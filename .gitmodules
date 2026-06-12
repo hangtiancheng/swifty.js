@@ -1,0 +1,3 @@
+[submodule "lark-go"]
+	path = lark-go
+	url = git@github.com:hangtiancheng/lark-go.git

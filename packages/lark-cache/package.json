@@ -1,0 +1,71 @@
+{
+  "name": "@lark.js/cache",
+  "version": "0.0.1",
+  "description": "Distributed cache library aligned with lark-go/lark_cache",
+  "keywords": [
+    "cache",
+    "consistent-hash",
+    "distributed-cache",
+    "etcd",
+    "grpc",
+    "lru",
+    "single-flight"
+  ],
+  "license": "ISC",
+  "author": "https://github.com/hangtiancheng",
+  "homepage": "https://github.com/hangtiancheng/lark/tree/main/packages/lark-cache#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hangtiancheng/lark.git",
+    "directory": "packages/lark-cache"
+  },
+  "bugs": {
+    "url": "https://github.com/hangtiancheng/lark/issues"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "main": "dist/index.mjs",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "default": "./dist/index.mjs"
+    },
+    "./proto/lark.proto": "./dist/proto/lark.proto",
+    "./proto/health.proto": "./dist/proto/health.proto",
+    "./package.json": "./package.json"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "rollup -c rollup.config.mjs",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "pnpm run clean && pnpm run build",
+    "test": "vitest run",
+    "format": "prettier -w ./"
+  },
+  "dependencies": {
+    "@grpc/grpc-js": "^1.14.4",
+    "@grpc/proto-loader": "^0.7.15",
+    "etcd3": "^1.1.2"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^29.0.3",
+    "@rollup/plugin-node-resolve": "^16.0.3",
+    "@rollup/plugin-typescript": "^12.3.0",
+    "@types/node": "^24.13.1",
+    "rollup": "^4.61.1",
+    "rollup-plugin-copy": "^3.5.0",
+    "rollup-plugin-dts": "^6.4.1",
+    "tslib": "^2.8.1",
+    "typescript": "^5.9.3"
+  }
+}

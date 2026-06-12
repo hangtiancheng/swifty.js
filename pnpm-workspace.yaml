@@ -1,0 +1,23 @@
+packages:
+  # Workspace package paths. Glob patterns are supported
+  - packages/*
+
+catalog:
+  '@lark.js/sentry': 0.0.6
+  '@types/node': 24.13.1
+
+allowBuilds:
+  '@parcel/watcher': true
+  '@swc/core': true
+  '@vscode/vsce-sign': true
+  core-js: true
+  core-js-pure: true
+  esbuild: true
+  keytar: true
+  msw: true
+  protobufjs: true
+  vue-demi: true
+  es5-ext: true
+
+minimumReleaseAgeExclude:
+  - '@lark.js/sentry@0.0.6'

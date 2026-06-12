@@ -1,0 +1,498 @@
+/**
+ * VDOM Diff Engine.
+ *
+ * Compares old and new DOM trees, computes minimal DOM operations,
+ * handles v-lark views, keyed elements, and special elements.
+ */
+import {
+  SVG_NS,
+  MATH_NS,
+  TAG_NAME_REGEXP,
+  LARK_VIEW,
+  LarkInnerKeys,
+} from "./constants";
+import { parseUri } from "./utils";
+import type { VDomRef, VDomOp, VdomElement, FrameInterface } from "./types";
+
+// ============================================================
+// Wrap meta for special HTML elements
+// ============================================================
+
+const wrapMeta: Record<string, [number, string]> = {
+  option: [1, "<select multiple>"],
+  thead: [1, "<table>"],
+  col: [2, "<table><colgroup>"],
+  tr: [2, "<table><tbody>"],
+  td: [3, "<table><tbody><tr>"],
+  area: [1, "<map>"],
+  param: [1, "<object>"],
+  svg: [1, '<svg xmlns="' + SVG_NS + '">'],
+  math: [1, '<math xmlns="' + MATH_NS + '">'],
+  _: [0, ""],
+};
+
+wrapMeta["optgroup"] = wrapMeta["option"];
+wrapMeta["tbody"] =
+  wrapMeta["tfoot"] =
+  wrapMeta["colgroup"] =
+  wrapMeta["caption"] =
+    wrapMeta["thead"];
+wrapMeta["th"] = wrapMeta["td"];
+
+// ============================================================
+// Virtual document for parsing HTML strings
+// ============================================================
+
+const VDoc = document.implementation.createHTMLDocument("");
+const VBase = VDoc.createElement("base");
+VBase.href = document.location.href;
+VDoc.head.appendChild(VBase);
+
+// ============================================================
+// Special element properties (direct DOM property diff)
+// ============================================================
+
+const VDomSpecials: Record<string, string[]> = {
+  INPUT: ["value", "checked"],
+  TEXTAREA: ["value"],
+  OPTION: ["selected"],
+};
+
+// ============================================================
+// Internal keys for VDOM tracking on elements
+// ============================================================
+
+// ============================================================
+// Core VDOM functions
+// ============================================================
+
+/**
+ * Unmount frames within a DOM node.
+ */
+export function vdomUnmountFrames(
+  frame: FrameInterface,
+  node: ChildNode,
+): void {
+  if (!(node instanceof Element)) return;
+  const id = node.getAttribute("id");
+  if (!id) return;
+  frame.unmountZone(id);
+  // Check if this is a child frame
+  if (frame.children().includes(id)) {
+    frame.unmountFrame(id);
+  }
+}
+
+/**
+ * Parse HTML string into a DOM element.
+ * Handles special elements (table, SVG, MathML) with wrapper elements.
+ */
+export function vdomGetNode(html: string, refNode: Element): Element {
+  const tmp = VDoc.createElement("div");
+  const ns = refNode.namespaceURI;
+  let tag: string;
+
+  if (ns === SVG_NS) {
+    tag = "svg";
+  } else if (ns === MATH_NS) {
+    tag = "math";
+  } else {
+    const match = TAG_NAME_REGEXP.exec(html);
+    tag = match ? match[1] : "";
+  }
+
+  const wrap = wrapMeta[tag] || wrapMeta["_"];
+  tmp.innerHTML = wrap[1] + html;
+
+  let j = wrap[0];
+  while (j--) {
+    const last = tmp.lastChild;
+    if (last) tmp.replaceChildren(last);
+  }
+
+  return tmp;
+}
+
+/**
+ * Get compare key for a DOM node (for keyed diff).
+ * Uses id, ldk (static key), or v-lark path.
+ */
+export function vdomGetCompareKey(node: ChildNode): string | undefined {
+  if (node.nodeType !== 1) return undefined;
+  const el = node as VdomElement;
+
+  if (el.compareKeyCached) {
+    return el.cachedCompareKey;
+  }
+
+  let key = el.autoId ? "" : el.getAttribute("id") || undefined;
+
+  if (!key) {
+    key = el.getAttribute(LarkInnerKeys.DIFF_KEY) || undefined;
+  }
+  if (!key) {
+    const larkView = el.getAttribute(LARK_VIEW);
+    if (larkView) {
+      key = parseUri(larkView).path || undefined;
+    }
+  }
+
+  el.compareKeyCached = 1;
+  el.cachedCompareKey = key || "";
+  return key;
+}
+
+/**
+ * Special diff for form elements (value, checked, selected).
+ * Form elements carry state on the DOM node (e.g. `input.value`) that isn't
+ * reflected in attributes, so we have to sync those properties separately.
+ */
+export function vdomSpecialDiff(
+  oldNode: ChildNode,
+  newNode: ChildNode,
+): number {
+  const specials = VDomSpecials[oldNode.nodeName];
+  if (!specials) return 0;
+
+  // We've matched by nodeName so both nodes are the same element type; the
+  // property access (`value`/`checked`/`selected`) is intentionally untyped
+  // because TS's HTMLElement union doesn't capture the per-tag overlap.
+  const oldEl = oldNode as unknown as Record<string, unknown>;
+  const newEl = newNode as unknown as Record<string, unknown>;
+  let result = 0;
+
+  for (const prop of specials) {
+    if (oldEl[prop] !== newEl[prop]) {
+      result = 1;
+      oldEl[prop] = newEl[prop];
+    }
+  }
+  return result;
+}
+
+/**
+ * Set attributes from new element onto old element, tracking changes in ref.
+ */
+export function vdomSetAttributes(
+  oldNode: Element,
+  newNode: Element,
+  ref: VDomRef,
+  keepId?: boolean,
+): void {
+  // Reset compare key cache
+  const oldEl = oldNode as VdomElement;
+  Reflect.deleteProperty(oldEl, "compareKeyCached");
+
+  const oldAttrs = oldNode.attributes;
+  const newAttrs = newNode.attributes;
+
+  // Remove attributes not in new
+  for (let i = oldAttrs.length; i--; ) {
+    const name = oldAttrs[i].name;
+    if (!newNode.hasAttribute(name)) {
+      if (name === "id") {
+        if (!keepId) {
+          ref.idUpdates.push([oldNode, ""]);
+        }
+      } else {
+        ref.hasChanged = 1;
+        oldNode.removeAttribute(name);
+      }
+    }
+  }
+
+  // Add/update attributes from new
+  for (let i = newAttrs.length; i--; ) {
+    const attr = newAttrs[i];
+    const key = attr.name;
+    const value = attr.value;
+    if (oldNode.getAttribute(key) !== value) {
+      if (key === "id") {
+        ref.idUpdates.push([oldNode, value]);
+      } else {
+        ref.hasChanged = 1;
+        oldNode.setAttribute(key, value);
+      }
+    }
+  }
+}
+
+/**
+ * Set child nodes from new parent onto old parent using keyed diff algorithm.
+ */
+export function vdomSetChildNodes(
+  oldParent: Element,
+  newParent: Element,
+  ref: VDomRef,
+  frame: FrameInterface,
+  keys_?: ReadonlySet<string>,
+): void {
+  let oldNode: ChildNode | null = oldParent.lastChild;
+  let newNode: ChildNode | null = newParent.firstChild;
+  let extra = 0;
+
+  // Build keyed-node map from old children (bucket per key).
+  // Maps used instead of plain objects so iteration / cleanup is GC-friendly
+  // and string keys collide-free with built-in property names.
+  const keyedNodes = new Map<string, ChildNode[]>();
+  const newKeyedNodes = new Map<string, number>();
+
+  while (oldNode) {
+    extra++;
+    const nodeKey = vdomGetCompareKey(oldNode);
+    if (nodeKey) {
+      let bucket = keyedNodes.get(nodeKey);
+      if (!bucket) {
+        bucket = [];
+        keyedNodes.set(nodeKey, bucket);
+      }
+      bucket.push(oldNode);
+    }
+    oldNode = oldNode.previousSibling;
+  }
+
+  // Count new keyed nodes
+  while (newNode) {
+    const nodeKey = vdomGetCompareKey(newNode);
+    if (nodeKey) {
+      newKeyedNodes.set(nodeKey, (newKeyedNodes.get(nodeKey) ?? 0) + 1);
+    }
+    newNode = newNode.nextSibling;
+  }
+
+  // Match and diff
+  newNode = newParent.firstChild;
+  oldNode = oldParent.firstChild;
+
+  while (newNode) {
+    extra--;
+    const tempNew = newNode;
+    newNode = newNode.nextSibling;
+    const nodeKey = vdomGetCompareKey(tempNew);
+    let foundNode = nodeKey ? keyedNodes.get(nodeKey) : undefined;
+
+    if (foundNode && (foundNode = foundNode.slice()) && foundNode.length) {
+      // `foundNode.length > 0` ⇒ pop is non-undefined.
+      const matched = foundNode.pop() as ChildNode;
+      while (matched !== oldNode) {
+        if (!oldNode) break;
+        const next = oldNode.nextSibling;
+        oldParent.appendChild(oldNode);
+        oldNode = next;
+      }
+      oldNode = matched.nextSibling;
+      if (nodeKey) {
+        const c = newKeyedNodes.get(nodeKey);
+        if (c) newKeyedNodes.set(nodeKey, c - 1);
+      }
+      vdomSetNode(matched, tempNew, oldParent, ref, frame, keys_);
+    } else if (oldNode) {
+      const tempOld = oldNode;
+      const oldKey = vdomGetCompareKey(tempOld);
+      if (oldKey && keyedNodes.has(oldKey) && newKeyedNodes.get(oldKey)) {
+        extra++;
+        ref.hasChanged = 1;
+        ref.domOps.push([8, oldParent, tempNew, tempOld]);
+      } else {
+        oldNode = oldNode.nextSibling;
+        vdomSetNode(tempOld, tempNew, oldParent, ref, frame, keys_);
+      }
+    } else {
+      ref.hasChanged = 1;
+      ref.domOps.push([1, oldParent, tempNew]);
+    }
+  }
+
+  // Remove extra old nodes
+  let tempOld: ChildNode | null = oldParent.lastChild;
+  while (extra-- > 0) {
+    if (tempOld) {
+      vdomUnmountFrames(frame, tempOld);
+      ref.domOps.push([2, oldParent, tempOld]);
+      tempOld = tempOld.previousSibling;
+      ref.hasChanged = 1;
+    }
+  }
+}
+
+/**
+ * Diff two DOM nodes and apply changes.
+ */
+export function vdomSetNode(
+  oldNode: ChildNode,
+  newNode: ChildNode,
+  oldParent: Element,
+  ref: VDomRef,
+  frame: FrameInterface,
+  keys_?: ReadonlySet<string>,
+): void {
+  // Narrow once and reuse: when both nodes are Elements, use the Element-typed
+  // references rather than repeated `as Element` casts.
+  const oldAsEl = oldNode instanceof Element ? oldNode : null;
+  const newAsEl = newNode instanceof Element ? newNode : null;
+
+  const hasViewKey = !!oldAsEl?.hasAttribute(LarkInnerKeys.VIEW_KEY);
+  const equalAsNodes =
+    oldAsEl !== null &&
+    newAsEl !== null &&
+    oldAsEl.isEqualNode &&
+    oldAsEl.isEqualNode(newAsEl);
+
+  if (vdomSpecialDiff(oldNode, newNode) || hasViewKey || !equalAsNodes) {
+    // Same type (same nodeName and nodeType) → diff in place
+    if (
+      oldNode.nodeType === newNode.nodeType &&
+      oldNode.nodeName === newNode.nodeName
+    ) {
+      if (oldAsEl !== null && newAsEl !== null) {
+        const oldEl = oldAsEl;
+        const newEl = newAsEl;
+
+        const staticKey = newEl.getAttribute(LarkInnerKeys.DIFF_KEY);
+        if (
+          staticKey &&
+          staticKey === oldEl.getAttribute(LarkInnerKeys.DIFF_KEY)
+        ) {
+          return;
+        }
+
+        // Diff attributes and children
+        const newLarkView = newEl.getAttribute(LARK_VIEW);
+        const updateAttribute =
+          !newEl.getAttribute(LarkInnerKeys.ATTR_KEY) ||
+          newEl.getAttribute(LarkInnerKeys.ATTR_KEY) !==
+            oldEl.getAttribute(LarkInnerKeys.ATTR_KEY);
+        let updateChildren = true;
+
+        // If same v-lark, keep existing view
+        if (newLarkView) {
+          const oldFrameId = oldEl.getAttribute("id") || "";
+          const newViewPath = parseUri(newLarkView).path;
+          const oldLarkView = oldEl.getAttribute(LARK_VIEW);
+          const oldViewPath = oldLarkView ? parseUri(oldLarkView).path : "";
+
+          if (oldFrameId && newViewPath === oldViewPath) {
+            updateChildren = false;
+          }
+        }
+
+        if (updateAttribute) {
+          vdomSetAttributes(oldEl, newEl, ref, !!newLarkView);
+        }
+        if (updateChildren) {
+          vdomSetChildNodes(oldEl, newEl, ref, frame, keys_);
+        }
+      } else if (oldNode.nodeValue !== newNode.nodeValue) {
+        // Text or Comment node: update nodeValue
+        ref.hasChanged = 1;
+        oldNode.nodeValue = newNode.nodeValue;
+      }
+    } else {
+      // Different type (e.g. DIV vs H1, element vs comment) → replace
+      ref.hasChanged = 1;
+      vdomUnmountFrames(frame, oldNode);
+      ref.domOps.push([4, oldParent, newNode, oldNode]);
+    }
+  }
+  // else: nodes are equal, no update needed
+}
+
+/**
+ * Create an empty VDomRef for tracking diff operations.
+ */
+export function createVdomRef(): VDomRef {
+  return {
+    idUpdates: [],
+    views: [],
+    domOps: [],
+    hasChanged: 0,
+  };
+}
+
+/**
+ * Apply VDOM diff operations to the DOM.
+ */
+export function applyVdomOps(ops: VDomOp[]): void {
+  for (const op of ops) {
+    switch (op[0]) {
+      case 1: // appendChild
+        op[1].appendChild(op[2]);
+        break;
+      case 2: // removeChild
+        op[1].removeChild(op[2]);
+        break;
+      case 4: // replaceChild
+        op[1].replaceChild(op[2], op[3]);
+        break;
+      case 8: // insertBefore
+        op[1].insertBefore(op[2], op[3]);
+        break;
+    }
+  }
+}
+
+/**
+ * Apply ID updates from VDOM diff.
+ */
+export function applyIdUpdates(updates: [Element, string][]): void {
+  for (const [element, newId] of updates) {
+    if (newId) {
+      element.setAttribute("id", newId);
+    } else {
+      element.removeAttribute("id");
+    }
+  }
+}
+
+// ============================================================
+// Template encoding helpers
+// ============================================================
+
+const EncoderMap: Record<string, string> = {
+  "&": "amp",
+  "<": "lt",
+  ">": "gt",
+  '"': "#34",
+  "'": "#39",
+  "`": "#96",
+};
+
+const ENCODE_REGEXP = /[&<>"'`]/g;
+
+/** Encode value for safe HTML output */
+export function encodeHTML(v: unknown): string {
+  return String(v == null ? "" : v).replace(
+    ENCODE_REGEXP,
+    (m: string) => "&" + EncoderMap[m] + ";",
+  );
+}
+
+/** Safe string conversion */
+export function encodeSafe(v: unknown): string {
+  return String(v == null ? "" : v);
+}
+
+const URIMap: Record<string, string> = {
+  "!": "%21",
+  "'": "%27",
+  "(": "%28",
+  ")": "%29",
+  "*": "%2A",
+};
+
+const URI_ENCODE_REGEXP = /[!')(*]/g;
+
+/** URI-encode a value with extra character encoding */
+export function encodeURIExtra(v: unknown): string {
+  return encodeURIComponent(encodeSafe(v)).replace(
+    URI_ENCODE_REGEXP,
+    (m: string) => URIMap[m],
+  );
+}
+
+const QUOTE_REGEXP = /['"\\]/g;
+
+/** Quote-encode a value for attribute use */
+export function encodeQ(v: unknown): string {
+  return encodeSafe(v).replace(QUOTE_REGEXP, "\\$&");
+}

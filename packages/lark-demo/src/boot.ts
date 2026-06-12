@@ -1,0 +1,120 @@
+/**
+ * Lark Application Bootstrap
+ *
+ * Chunk-split architecture: each view is a separate chunk loaded via
+ * dynamic import(). When mountView encounters an unregistered view path,
+ * it calls Framework.use() → require() → import() → registers + mounts.
+ *
+ * Sub-components of "counter" are preloaded in parallel with the parent
+ * view so they're available when mountZone processes v-lark elements.
+ */
+import { Framework, registerViewClass, View } from "@lark.js/mvc";
+import type { FrameworkConfig } from "@lark.js/mvc";
+import "./index.css";
+
+console.log("Initializing Lark application...");
+
+// ── View path → dynamic import loader ──
+// Each import() call creates a separate chunk in both Vite and Webpack.
+// The bundler scans these at build time and splits them into independent files.
+const VIEW_MODULES: Record<string, () => Promise<unknown>> = {
+  home: () => import("./views/home"),
+  about: () => import("./views/about"),
+  counter: () => import("./views/counter"),
+  "404": () => import("./views/404"),
+  "components/counter-store": () => import("./components/counter-store"),
+  "components/counter-updater": () => import("./components/counter-updater"),
+};
+
+// ── Sub-component dependency map ──
+// When a parent view is loaded, its sub-components are preloaded in
+// parallel so they're registered before mountZone processes v-lark.
+const VIEW_DEPS: Record<string, string[]> = {
+  counter: ["components/counter-store", "components/counter-updater"],
+};
+
+// ── ESM default export extractor ──
+// Vite dev mode does NOT set __esModule on ESM modules, so we must
+// check `default` directly regardless of __esModule.
+// FIXME: Is there any better implementation?
+function extractDefault(mod: unknown): unknown {
+  if (mod && typeof mod === "object") {
+    const mod_ = mod as Record<string, unknown>;
+    if (typeof mod_["default"] === "function") {
+      return mod_["default"];
+    }
+  }
+  return mod;
+}
+
+// Configure and start Lark application
+const config: FrameworkConfig = {
+  defaultPath: "/home",
+  defaultView: "home",
+  routes: {
+    "/home": "home",
+    "/about": "about",
+    "/counter": "counter",
+  },
+  unmatchedView: "404",
+  rootId: "app",
+  error(e: Error) {
+    console.error("Lark application error:", e);
+  },
+
+  // ── Lazy view loading via dynamic import ──
+  // When mountView encounters an unregistered view path, it calls
+  // Framework.use() → this require function → dynamic import() →
+  // loads the View class → registers it → mounts it.
+  //
+  // Sub-component dependencies are preloaded in parallel with the
+  // parent view so mountZone finds them already registered.
+  require: async (names: string[]): Promise<unknown[]> => {
+    // Collect sub-component dependencies to preload
+    const preloadNames: string[] = [];
+    for (const name of names) {
+      const deps = VIEW_DEPS[name];
+      if (deps) {
+        for (const dep of deps) {
+          if (!names.includes(dep) && !preloadNames.includes(dep)) {
+            preloadNames.push(dep);
+          }
+        }
+      }
+    }
+
+    // Load requested modules and preload dependencies in parallel
+    const allNames = [...names, ...preloadNames];
+    const allResults = await Promise.all(
+      allNames.map(async (name) => {
+        const loader = VIEW_MODULES[name];
+        if (!loader) {
+          console.warn(`[Lark] Unknown view path: ${name}`);
+          return { name, ViewClass: undefined as unknown };
+        }
+        const mod = await loader();
+        const ViewClass = extractDefault(mod);
+
+        // Register preloaded sub-components immediately.
+        // Requested views are registered by mountView's use() callback.
+        if (preloadNames.includes(name) && typeof ViewClass === "function") {
+          // Type assertion: dynamically loaded module shape is unknown at compile time,
+          // but at runtime it's a Lark View class.
+          registerViewClass(name, ViewClass as typeof View);
+        }
+
+        return { name, ViewClass };
+      }),
+    );
+
+    // Return only the requested modules (preloaded ones are already registered)
+    return allResults
+      .filter((r) => names.includes(r.name))
+      .map((r) => r.ViewClass);
+  },
+};
+
+Framework.boot(config);
+
+console.log("@lark.js/mvc application started (chunk-split mode)!");
+console.log("Visit http://localhost:3000 to get started");

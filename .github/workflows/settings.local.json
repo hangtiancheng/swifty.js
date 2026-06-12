@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(echo \"EXIT_CODE=$?\")",
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(echo \"exit: $?\")",
+      "Bash(node *)",
+      "Bash(npx vitest *)",
+      "Bash(npx tsc *)"
+    ]
+  }
+}

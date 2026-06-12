@@ -1,0 +1,101 @@
+{
+  "name": "@lark.js/mvc",
+  "version": "0.0.7",
+  "description": "@lark.js/mvc - TypeScript MVC framework",
+  "keywords": [
+    "framework",
+    "lark",
+    "mvc"
+  ],
+  "license": "ISC",
+  "author": "https://github.com/hangtiancheng",
+  "files": [
+    "dist",
+    "src/client.d.ts",
+    "README.md"
+  ],
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./vite": {
+      "import": {
+        "types": "./dist/vite.d.ts",
+        "default": "./dist/vite.js"
+      },
+      "require": {
+        "types": "./dist/vite.d.cts",
+        "default": "./dist/vite.cjs"
+      }
+    },
+    "./webpack": {
+      "import": {
+        "types": "./dist/webpack.d.ts",
+        "default": "./dist/webpack.js"
+      },
+      "require": {
+        "types": "./dist/webpack.d.cts",
+        "default": "./dist/webpack.cjs"
+      }
+    },
+    "./runtime": {
+      "import": {
+        "types": "./dist/runtime.d.ts",
+        "default": "./dist/runtime.js"
+      },
+      "require": {
+        "types": "./dist/runtime.d.cts",
+        "default": "./dist/runtime.cjs"
+      }
+    }
+  },
+  "scripts": {
+    "prepublish": "pnpm build",
+    "build": "pnpm build:tsup",
+    "build:rollup": "rollup -c rollup.config.mjs",
+    "build:tsup": "tsup",
+    "clean": "rm -rf dist",
+    "format": "prettier -w ./",
+    "typecheck": "tsc -p tsconfig.build.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@babel/parser": "^7.29.7",
+    "@babel/types": "^7.29.7"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^29.0.3",
+    "@rollup/plugin-node-resolve": "^16.0.3",
+    "@rollup/plugin-typescript": "^12.3.0",
+    "@types/node": "^24.13.1",
+    "@vitest/coverage-v8": "4.1.6",
+    "rollup": "^4.61.1",
+    "rollup-plugin-dts": "^6.4.1",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3",
+    "vite": "^8.0.16",
+    "vitest": "^4.1.8"
+  },
+  "peerDependencies": {
+    "vite": "^8.0.14"
+  },
+  "lint-staged": {
+    "*.{json,jsonc,js,cjs,mjs,jsx,ts,cts,mts,tsx,html,vue,css,scss,md,mdx}": [
+      "pnpm format"
+    ]
+  },
+  "packageManager": "pnpm@10.33.0"
+}

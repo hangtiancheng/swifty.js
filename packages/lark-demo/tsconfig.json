@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "target": "ESNext",
+    "moduleResolution": "bundler",
+    "types": ["node"],
+
+    "sourceMap": true,
+
+    "strict": true,
+    "jsx": "react-jsx",
+    "isolatedModules": true,
+    "noUncheckedSideEffectImports": true,
+    "moduleDetection": "force",
+    "skipLibCheck": true,
+
+    "verbatimModuleSyntax": false,
+    "noPropertyAccessFromIndexSignature": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
+  }
+}

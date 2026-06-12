@@ -1,0 +1,196 @@
+<!--
+  Shared template for both bookmark columns (personal / work).
+
+  Virtual scrolling layout:
+    [header]            (column title, count, edit toggle)
+    [scroll container]  visual-list-scroll, fixed height via flex-1,
+                        scrollY drives the visible window
+    [spacer]            height = items.length * itemHeight,
+                        position: relative, holds absolutely-positioned rows
+    [row]               absolute, transform: translateY(idx * itemHeight)
+                        only the rows in [startIndex, endIndex) are rendered
+    [footer]            add-bookmark form
+
+  The view class is responsible for:
+    - computing visibleItems with their absolute offsetY before digest
+    - wiring scroll/resize listeners that bump startIndex/endIndex
+    - calling updater.digest() inside requestAnimationFrame on scroll
+-->
+<div
+  class="flex items-center justify-between border-b border-emerald-100 bg-emerald-50/60 px-4 py-2.5"
+>
+  <div class="flex items-center gap-2">
+    <span class="text-[13px] font-semibold tracking-wide text-emerald-900"
+      >{{=title}}</span
+    >
+    <span
+      class="rounded-full bg-emerald-100 px-2 text-[10px] text-emerald-800"
+      title="Items in this column"
+      >{{=total}}</span
+    >
+  </div>
+  <div class="flex items-center gap-1">
+    <input
+      name="search"
+      class="w-24 rounded-md border border-emerald-200 bg-white px-2 py-1 text-xs text-emerald-950 transition-all outline-none placeholder:text-emerald-400 focus:w-32 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15"
+      placeholder="Search..."
+      autocomplete="off"
+      spellcheck="false"
+      @input="searchBookmarks()"
+    />
+    <button
+      type="button"
+      class="inline-flex cursor-pointer items-center gap-1 rounded-md border border-transparent bg-transparent px-2.5 py-1 text-xs text-emerald-800 transition-colors hover:bg-emerald-100"
+      @click="toggleAdding()"
+      title="Add bookmark"
+    >
+      {{if adding}}Close{{else}}Add{{/if}}
+    </button>
+    <button
+      type="button"
+      class="inline-flex cursor-pointer items-center gap-1 rounded-md border border-transparent bg-transparent px-2.5 py-1 text-xs text-emerald-800 transition-colors hover:bg-emerald-100"
+      @click="exportBookmarks()"
+      title="Export bookmarks as JSON"
+    >
+      Export
+    </button>
+    <button
+      type="button"
+      class="inline-flex cursor-pointer items-center gap-1 rounded-md border border-transparent bg-transparent px-2.5 py-1 text-xs text-emerald-800 transition-colors hover:bg-emerald-100"
+      @click="toggleEdit()"
+      title="Toggle edit mode"
+    >
+      {{if editing}}Done{{else}}Edit{{/if}}
+    </button>
+  </div>
+</div>
+
+<div
+  visual-list-scroll
+  class="relative min-h-0 flex-1 scrollbar-thin [scrollbar-color:rgb(167_243_208/0.7)_transparent] overflow-y-auto px-2 py-2"
+>
+  {{if total === 0}}
+  <div class="px-2.5 py-8 text-center text-xs text-emerald-700/50">
+    No bookmarks yet — add one below.
+  </div>
+  {{else}}
+  <div
+    class="relative w-full"
+    style="height: {{=spacerHeight}}px"
+    aria-label="virtual-list-spacer"
+  >
+    {{forOf visibleItems as it idx}}
+    <div
+      class="group absolute right-0 left-0 flex items-center gap-2 rounded-lg border border-transparent bg-white px-2.5 py-2 text-[12.5px] text-emerald-950 transition-colors hover:border-emerald-200 hover:bg-emerald-50/70"
+      style="height: {{=itemHeight}}px; transform: translateY({{=it.offsetY}}px)"
+      data-id="{{=it.id}}"
+    >
+      <span
+        class="flex h-4 w-4 shrink-0 items-center justify-center rounded-[3px] bg-emerald-100 text-[9px] text-emerald-700"
+        >{{=it.initial}}</span
+      >
+      {{if editing}}
+      <input
+        class="min-w-0 flex-1 rounded-md border border-emerald-200 bg-white px-2 py-1 text-[12px] text-emerald-950 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15"
+        value="{{=it.title}}"
+        placeholder="Title"
+        @change="renameBookmark({id: '{{=it.id}}'})"
+        @keydown="renameKey({id: '{{=it.id}}'})"
+      />
+      <input
+        class="min-w-0 flex-[1.4] rounded-md border border-emerald-200 bg-white px-2 py-1 text-[12px] text-emerald-700 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15"
+        value="{{=it.url}}"
+        placeholder="URL"
+        @change="reUrlBookmark({id: '{{=it.id}}'})"
+        @keydown="reUrlKey({id: '{{=it.id}}'})"
+      />
+      <button
+        type="button"
+        class="inline-flex h-6 w-6 cursor-pointer items-center justify-center rounded-md border border-transparent bg-transparent text-xs text-emerald-700 transition-colors hover:bg-emerald-100"
+        @click="moveBookmark({id: '{{=it.id}}'})"
+        title="Move to the other column"
+      >
+        ↔
+      </button>
+      <button
+        type="button"
+        class="inline-flex h-6 w-6 cursor-pointer items-center justify-center rounded-md border border-transparent bg-transparent text-xs text-rose-600 transition-colors hover:bg-rose-50"
+        @click="removeBookmark({id: '{{=it.id}}'})"
+        title="Delete"
+      >
+        X
+      </button>
+      {{else}}
+      <a
+        class="min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-emerald-950 no-underline hover:underline"
+        href="{{=it.url}}"
+        target="_blank"
+        rel="noopener noreferrer"
+        title="{{=it.url}}"
+        >{{=it.title}}</a
+      >
+      <span
+        class="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100"
+      >
+        <button
+          type="button"
+          class="inline-flex h-6 w-6 cursor-pointer items-center justify-center rounded-md border border-transparent bg-transparent text-xs text-emerald-700 transition-colors hover:bg-emerald-100"
+          @click="moveBookmark({id: '{{=it.id}}'})"
+          title="Move to the other column"
+        >
+          ↔
+        </button>
+        <button
+          type="button"
+          class="inline-flex h-6 w-6 cursor-pointer items-center justify-center rounded-md border border-transparent bg-transparent text-xs text-rose-600 transition-colors hover:bg-rose-50"
+          @click="removeBookmark({id: '{{=it.id}}'})"
+          title="Delete"
+        >
+          X
+        </button>
+      </span>
+      {{/if}}
+    </div>
+    {{/forOf}}
+  </div>
+  {{/if}}
+</div>
+
+{{if adding}}
+<div class="border-t border-emerald-100 bg-emerald-50/60 px-3 py-2.5">
+  <div class="flex flex-col gap-1.5">
+    <div class="flex gap-1.5">
+      <input
+        name="title"
+        class="w-full flex-1 rounded-md border border-emerald-200 bg-white px-2.5 py-1.5 text-xs text-emerald-950 outline-none focus:border-emerald-500 focus:ring-[3px] focus:ring-emerald-500/15"
+        placeholder="Title (optional, defaults to hostname)"
+        autocomplete="off"
+      />
+      <button
+        type="button"
+        class="inline-flex w-15 cursor-pointer items-center justify-center rounded-md border border-emerald-600 bg-emerald-600 px-3 py-1 text-xs font-medium text-white transition-colors hover:border-emerald-700 hover:bg-emerald-700"
+        @click="uploadBookmarks()"
+        title="Import Chrome bookmarks HTML or JSON"
+      >
+        Upload
+      </button>
+    </div>
+    <div class="flex gap-1.5">
+      <input
+        name="url"
+        class="w-full flex-1 rounded-md border border-emerald-200 bg-white px-2.5 py-1.5 text-xs text-emerald-950 outline-none focus:border-emerald-500 focus:ring-[3px] focus:ring-emerald-500/15"
+        placeholder="URL, e.g. github.com"
+        autocomplete="off"
+        spellcheck="false"
+      />
+      <button
+        type="button"
+        class="inline-flex w-15 cursor-pointer items-center justify-center rounded-md border border-emerald-600 bg-emerald-600 px-3 py-1 text-xs font-medium text-white transition-colors hover:border-emerald-700 hover:bg-emerald-700"
+        @click="addBookmark()"
+      >
+        Add
+      </button>
+    </div>
+  </div>
+</div>
+{{/if}}
