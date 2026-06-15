@@ -32,11 +32,7 @@
     "test:vue-reactivity": "pnpm --filter @lark.js/vue-reactivity test",
     "git:precommit": "rm -rf ./.claude && ln -s ./.github ./.claude",
     "git:commit": "pnpm git:precommit && git add -A && git commit -m \"feat: Introduce new features\"",
-    "git:push": "pnpm git:commit && git push origin main",
-    "git:push:force": "git push -f origin main --set-upstream",
-    "git:remote": "git remote add origin git@github.com:hangtiancheng/lark.git",
-    "git:init": "rm -rf ./.git && git init",
-    "git:reset": "pnpm git:init && pnpm git:remote && pnpm git:commit && pnpm git:push:force"
+    "git:push": "pnpm git:commit && git push origin main"
   },
   "type": "module"
 }
