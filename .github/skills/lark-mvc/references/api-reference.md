@@ -382,7 +382,7 @@ Base view class. Imported via `import { View } from '@lark.js/mvc'`.
 
 ### View.extend(props, statics?)
 
-Create a View subclass. The `make` function from `props` (and from mixins) is collected into a `ctors` array invoked in the constructor. Event method names matching `name<eventType>` are scanned at class-prepare time and routed through the EventDelegator.
+Create a View subclass. The `make` function from `props` (and from mixins) is collected into a `makes` array invoked in the constructor. Event method names matching `name<eventType>` are scanned at class-prepare time and routed through the EventDelegator.
 
 ```ts
 View.extend(
@@ -395,7 +395,7 @@ View.extend(
 
 ### View.merge(...mixins)
 
-Merge mixin objects into the View prototype. Conflicting event methods become an internal `handlerList` invoked in order. The `make` function from each mixin is appended to `ctors`.
+Merge mixin objects into the View prototype. Conflicting event methods become an internal `handlerList` invoked in order. The `make` function from each mixin is appended to `makes`.
 
 ```ts
 View.merge(...mixins: Record<string, unknown>[]): typeof View
@@ -403,7 +403,7 @@ View.merge(...mixins: Record<string, unknown>[]): typeof View
 
 ### View.prepare(viewClass)
 
-Internal — scans the prototype for event method patterns. Idempotent (guarded by `ctors`). Called from `Frame.mountView` before creating the view instance.
+Internal — scans the prototype for event method patterns. Idempotent (guarded by `makes`). Called from `Frame.mountView` before creating the view instance.
 
 ### View instance properties
 

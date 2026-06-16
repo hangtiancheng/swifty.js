@@ -152,13 +152,13 @@ export class Service {
    * References per-type static state from the current class.
    */
   get internals(): ServiceSendTarget["internals"] {
-    const ctor = this.constructor as typeof Service;
+    const constructor = this.constructor as typeof Service;
     return {
-      metaList: ctor._metaList,
-      payloadCache: ctor._payloadCache,
-      pendingCacheKeys: ctor._pendingCacheKeys,
-      syncFn: ctor._syncFn,
-      staticEmitter: ctor._staticEmitter,
+      metaList: constructor._metaList,
+      payloadCache: constructor._payloadCache,
+      pendingCacheKeys: constructor._pendingCacheKeys,
+      syncFn: constructor._syncFn,
+      staticEmitter: constructor._staticEmitter,
     };
   }
 

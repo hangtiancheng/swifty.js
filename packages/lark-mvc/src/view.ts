@@ -385,23 +385,23 @@ export class View implements ViewInterface {
   // Static public methods
   // ============================================================
 
-  /** Collected ctors from mixins */
-  static ctors?: AnyFunc[];
+  /** Collected makes from mixins */
+  static makes?: AnyFunc[];
 
   /**
    * Prepare a View subclass by scanning its prototype for event method patterns.
    * Pattern: `$?name<eventType1,eventType2>(&modifiers)`
    *
-   * Only runs once per View subclass (guarded by ctors marker).
+   * Only runs once per View subclass (guarded by makes marker).
    * Called from Frame.mountView before creating the view instance.
    */
   static prepare(oView: typeof View): AnyFunc[] {
-    if (oView.ctors) {
-      return oView.ctors;
+    if (oView.makes) {
+      return oView.makes;
     }
 
-    const ctors: AnyFunc[] = [];
-    oView.ctors = ctors;
+    const makes: AnyFunc[] = [];
+    oView.makes = makes;
 
     const proto = oView.prototype as unknown as Record<string, unknown>;
     const eventsObject: Record<string, number> = {};
@@ -411,7 +411,7 @@ export class View implements ViewInterface {
     // Process mixins first
     const mixins = proto["mixins"];
     if (mixins && Array.isArray(mixins)) {
-      View.mergeMixins(mixins, oView, ctors);
+      View.mergeMixins(mixins, oView, makes);
     }
 
     // Scan prototype for event method patterns
@@ -496,7 +496,7 @@ export class View implements ViewInterface {
     proto["$selMap"] = selectorObject;
     proto["$assignFn"] = proto["assign"];
 
-    return ctors;
+    return makes;
   }
 
   /**
@@ -664,7 +664,7 @@ export class View implements ViewInterface {
   private static mergeMixins(
     mixins: Record<string, unknown>[],
     viewClass: typeof View,
-    ctors: AnyFunc[],
+    makes: AnyFunc[],
   ): void {
     const proto = viewClass.prototype as unknown as Record<string, unknown>;
     const temp: Record<string, MixinEventHandler> = {};
@@ -678,7 +678,7 @@ export class View implements ViewInterface {
         const exist = temp[p];
 
         if (p === "make") {
-          ctors.push(mixinFn);
+          makes.push(mixinFn);
           continue;
         }
 
@@ -744,9 +744,9 @@ export class View implements ViewInterface {
   ): typeof View {
     const definedProps: Record<string, unknown> = props ?? {};
     const make = definedProps["make"];
-    const ctors: AnyFunc[] = [];
+    const makes: AnyFunc[] = [];
     if (typeof make === "function") {
-      ctors.push(make as AnyFunc);
+      makes.push(make as AnyFunc);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-this-alias -- Need reference to ParentView in closure for extend()
@@ -805,7 +805,7 @@ export class View implements ViewInterface {
           },
         ];
 
-        const concatCtors = ctors.concat(mixinCtors || []);
+        const concatCtors = makes.concat(mixinCtors || []);
         if (concatCtors.length) {
           funcWithTry(concatCtors, params, this, noop);
         }
@@ -842,7 +842,7 @@ export class View implements ViewInterface {
     this: typeof View,
     ...mixins: Record<string, unknown>[]
   ): typeof View {
-    const existingCtors = this.ctors || [];
+    const existingCtors = this.makes || [];
     View.mergeMixins(mixins, this, existingCtors);
     return this;
   }

@@ -439,7 +439,7 @@ Both produce equivalent runtime artifacts; the difference is purely in TypeScrip
 ### Lifecycle
 
 - `init(params?)` — Called when the view is first instantiated. `params` comes from query strings on `v-lark`. Read stores and call `this.assign()` to prepare initial data here.
-- `make()` — Called by the merged ctors pipeline; each mixin's `make` executes in order. Suitable for "run once per instance" initialization.
+- `make()` — Called by the merged makes pipeline; each mixin's `make` executes in order. Suitable for "run once per instance" initialization.
 - `assign()` — Should be called when data may have changed. Pattern: `this.updater.snapshot()` at the top, `this.updater.set(...)` in the middle, `return this.updater.altered()` at the end. The framework uses `altered()` to determine whether re-render is needed.
 - `render()` — Default implementation is `this.updater.digest()`. Wrapped by `View.wrapMethod`: increments signature on entry, handles pending endUpdate cleanup on exit.
 - Destruction — The framework automatically calls `release(key, true)` to release all `capture`d resources, cleans up event delegation, and sets signature to 0.

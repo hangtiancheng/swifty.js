@@ -470,7 +470,7 @@ export default View.extend({
 
 `View.extend(props, statics)` uses ES6 `class extends` for proper constructor chaining. The key implementation detail: extend props (like `template`) are applied as _instance_ properties in the constructor _after_ `super()`, because ES6 class field declarations (`template;` in the base View) set `this.template = undefined` in the constructor body, which would shadow any prototype property. The `render` method is explicitly _not_ copied as an instance property -- it must remain on the prototype where `View.wrapMethod` has already wrapped it with signature checking and resource cleanup.
 
-The constructor calls `make()` functions (from `props.make` and mixin `ctors`) with arguments `[initParams, { node, deep }]`.
+The constructor calls `make()` functions (from `props.make` and mixin `makes`) with arguments `[initParams, { node, deep }]`.
 
 ### View.merge
 
@@ -1203,7 +1203,7 @@ Both produce compiled `.html` modules that import their runtime helpers from `@l
 28. **Sub-component `v-lark` paths must match exactly** -- template strings embed the paths at build time; renaming a `registerViewClass` path without updating the template breaks the load.
 29. **Dynamic `import()` shape is unknown** -- for chunk splitting, use a small `extractDefault()` helper to unwrap the ESM default, then cast with `as typeof View` (NOT `as any`).
 30. **`capture` with one argument is a getter** -- `this.capture("key")` returns the previously captured resource, not undefined. Only `this.capture("key", resource, destroyOnRender)` stores.
-31. **`View.prepare` runs once per class** -- guarded by `ctors` marker on the constructor. Calling it twice is a no-op. This is why mixin event maps are frozen after first mount.
+31. **`View.prepare` runs once per class** -- guarded by `makes` marker on the constructor. Calling it twice is a no-op. This is why mixin event maps are frozen after first mount.
 32. **EventEmitter is re-entrant safe** -- `off()` during `fire()` defers removal until all nested `fire()` calls complete. Handlers replaced with `noop` are compacted when `firingDepth` returns to 0.
 
 ## Migration notes (recent API changes)

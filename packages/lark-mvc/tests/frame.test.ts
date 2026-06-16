@@ -37,26 +37,26 @@ describe("Frame", () => {
 
   describe("constructor", () => {
     it("creates Frame and registers it in registry", () => {
-      const frame = createTestFrame("ctor-test-1");
+      const frame = createTestFrame("constructor-test-1");
 
-      expect(frame.id).toBe("ctor-test-1");
-      expect(Frame.get("ctor-test-1")).toBe(frame);
-      expect(Frame.getAll().get("ctor-test-1")).toBe(frame);
+      expect(frame.id).toBe("constructor-test-1");
+      expect(Frame.get("constructor-test-1")).toBe(frame);
+      expect(Frame.getAll().get("constructor-test-1")).toBe(frame);
 
       cleanupFrame(frame);
     });
 
     it("creates Frame with parentId", () => {
-      const frame = createTestFrame("ctor-test-2", "parent-id");
+      const frame = createTestFrame("constructor-test-2", "parent-id");
 
-      expect(frame.id).toBe("ctor-test-2");
+      expect(frame.id).toBe("constructor-test-2");
       expect(frame.parentId).toBe("parent-id");
 
       cleanupFrame(frame);
     });
 
     it("parentId is undefined when not provided", () => {
-      const frame = createTestFrame("ctor-test-3");
+      const frame = createTestFrame("constructor-test-3");
 
       expect(frame.parentId).toBeUndefined();
 
@@ -67,7 +67,7 @@ describe("Frame", () => {
       const handler = vi.fn();
       Frame.on("add", handler);
 
-      const frame = createTestFrame("ctor-test-4");
+      const frame = createTestFrame("constructor-test-4");
 
       expect(handler).toHaveBeenCalledTimes(1);
       expect(handler.mock.calls[0][0]).toHaveProperty("frame");
@@ -78,8 +78,8 @@ describe("Frame", () => {
     });
 
     it("Frame is mounted to DOM element's frame property", () => {
-      const frame = createTestFrame("ctor-test-5");
-      const el = document.getElementById("ctor-test-5");
+      const frame = createTestFrame("constructor-test-5");
+      const el = document.getElementById("constructor-test-5");
 
       expect(el?.frame).toBe(frame);
       expect(el?.frameBound).toBe(1);
@@ -88,7 +88,7 @@ describe("Frame", () => {
     });
 
     it("initial state is correct", () => {
-      const frame = createTestFrame("ctor-test-6");
+      const frame = createTestFrame("constructor-test-6");
 
       expect(frame.childrenCount).toBe(0);
       expect(frame.readyCount).toBe(0);
