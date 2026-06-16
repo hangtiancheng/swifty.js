@@ -40,5 +40,5 @@ export default defineConfig([
     noExternal: ["@babel/parser", "@babel/types"],
     sourcemap: false,
     tsconfig: "./tsconfig.build.json",
-  }
+  },
 ]);

@@ -1,44 +1,97 @@
+// @ts-check
+
 import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
 import typescript from "@rollup/plugin-typescript";
 import dts from "rollup-plugin-dts";
 import { defineConfig } from "rollup";
 
-export default defineConfig([
-  {
-    input: "src/index.ts",
-    output: [
-      {
-        file: "dist/index.js",
+const deps = Object.keys(
+  (await import("./package.json", { with: { type: "json" } })).default
+    .dependencies ?? {},
+);
+const peerDeps = Object.keys(
+  (await import("./package.json", { with: { type: "json" } })).default
+    .peerDependencies ?? {},
+);
+
+// Entries where @babel/parser and @babel/types are bundled (not external),
+// matching tsup's `noExternal: ["@babel/parser", "@babel/types"]`.
+const /** @type{({ name: string, babelNoExternal: boolean }[])} */ entries = [
+    { name: "index", babelNoExternal: false },
+    { name: "vite", babelNoExternal: true },
+    { name: "webpack", babelNoExternal: true },
+    { name: "runtime", babelNoExternal: false },
+    { name: "compiler", babelNoExternal: true },
+  ];
+
+/** Externalize deps/peerDeps except @babel packages when the entry bundles them. */
+
+/**
+ *
+ * @param {boolean} bundleBabel
+ * @returns
+ */
+const makeExternal = (bundleBabel) => (/** @type {string} */ id) => {
+  if (id.startsWith("node:") || id.startsWith(".")) return false;
+  if (
+    bundleBabel &&
+    (id === "@babel/parser" ||
+      id === "@babel/types" ||
+      id.startsWith("@babel/parser/") ||
+      id.startsWith("@babel/types/"))
+  ) {
+    return false;
+  }
+  const pkg = id.startsWith("@")
+    ? id.split("/").slice(0, 2).join("/")
+    : id.split("/")[0];
+  return deps.includes(pkg) || peerDeps.includes(pkg);
+};
+
+const outputConfigs = [
+  { file: "dist/[name].js", format: "es" },
+  { file: "dist/[name].cjs", format: "cjs", exports: "named" },
+];
+
+// --- JS bundles (ESM + CJS, no sourcemap, matching tsup) ---
+const /** @type {import("rollup").OutputOptions[]} */ jsConfigs = entries.map(
+    ({ name, babelNoExternal }) => ({
+      input: `src/${name}.ts`,
+      output: outputConfigs.map((o) => ({
+        ...o,
+        file: o.file.replace("[name]", name),
+      })),
+      external: makeExternal(babelNoExternal),
+      plugins: [
+        resolve(),
+        commonjs(),
+        typescript({ tsconfig: "./tsconfig.build.json" }),
+      ],
+    }),
+  );
+
+// --- Type declarations (.d.ts for ESM consumers) ---
+const /** @type {import("rollup").RollupOptions[]} */ dtsConfigs = entries.map(
+    ({ name }) => ({
+      input: `src/${name}.ts`,
+      output: {
+        file: `dist/${name}.d.ts`,
         format: "es",
-        sourcemap: true,
       },
-      {
-        file: "dist/index.cjs",
-        format: "cjs",
-        sourcemap: true,
-        exports: "named",
+      plugins: [dts({ tsconfig: "./tsconfig.build.json" })],
+    }),
+  );
+
+// --- Type declarations (.d.cts for CJS consumers) ---
+const /** @type {import("rollup").RollupOptions[]} */ dtsCjsConfigs =
+    entries.map(({ name }) => ({
+      input: `src/${name}.ts`,
+      output: {
+        file: `dist/${name}.d.cts`,
+        format: "es",
       },
-    ],
-    plugins: [
-      resolve(),
-      commonjs(),
-      typescript({
-        tsconfig: "./tsconfig.build.json",
-      }),
-    ],
-    external: [],
-  },
-  {
-    input: "src/index.ts",
-    output: {
-      file: "dist/index.d.ts",
-      format: "es",
-    },
-    plugins: [
-      dts({
-        tsconfig: "./tsconfig.build.json",
-      }),
-    ],
-  },
-]);
+      plugins: [dts({ tsconfig: "./tsconfig.build.json" })],
+    }));
+
+export default defineConfig([...jsConfigs, ...dtsConfigs, ...dtsCjsConfigs]);
