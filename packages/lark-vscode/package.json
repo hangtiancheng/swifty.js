@@ -27,8 +27,8 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@swc/core": "^1.15.40",
-    "@types/node": "^24.13.1",
+    "@swc/core": "^1.15.41",
+    "@types/node": "^24.13.2",
     "@types/vscode": "^1.120.0",
     "@vscode/vsce": "^3.9.2",
     "tsup": "^8.5.1",
