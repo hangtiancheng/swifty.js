@@ -15,15 +15,6 @@ export const RouterEvents = {
   PAGE_UNLOAD: "page_unload",
 };
 
-export const LarkInnerKeys = {
-  /** Attribute name: ldk (static key for skipping DOM diff) */
-  DIFF_KEY: "ldk",
-  /** Attribute name: lak (static attribute key) */
-  ATTR_KEY: "lak",
-  /** Attribute name: lvk (view key for assign) */
-  VIEW_KEY: "lvk",
-};
-
 /** Attribute name: v-lark */
 export const LARK_VIEW = "v-lark";
 

@@ -9,7 +9,6 @@ import {
   MATH_NS,
   TAG_NAME_REGEXP,
   LARK_VIEW,
-  LarkInnerKeys,
 } from "./constants";
 import { parseUri } from "./utils";
 import type { DomRef, DomOp, DomElement, FrameInterface } from "./types";
@@ -57,10 +56,6 @@ const DomSpecials: Record<string, string[]> = {
   TEXTAREA: ["value"],
   OPTION: ["selected"],
 };
-
-// ============================================================
-// Internal keys for DOM tracking on elements
-// ============================================================
 
 // ============================================================
 // Core DOM functions
@@ -112,7 +107,7 @@ export function domGetNode(html: string, refNode: Element): Element {
 
 /**
  * Get compare key for a DOM node (for keyed diff).
- * Uses id, ldk (static key), or v-lark path.
+ * Uses id or v-lark path.
  */
 export function domGetCompareKey(node: ChildNode): string | undefined {
   if (node.nodeType !== 1) return undefined;
@@ -124,9 +119,6 @@ export function domGetCompareKey(node: ChildNode): string | undefined {
 
   let key = el.autoId ? "" : el.getAttribute("id") || undefined;
 
-  if (!key) {
-    key = el.getAttribute(LarkInnerKeys.DIFF_KEY) || undefined;
-  }
   if (!key) {
     const larkView = el.getAttribute(LARK_VIEW);
     if (larkView) {
@@ -325,14 +317,13 @@ export function domSetNode(
   const oldAsEl = oldNode instanceof Element ? oldNode : null;
   const newAsEl = newNode instanceof Element ? newNode : null;
 
-  const hasViewKey = !!oldAsEl?.hasAttribute(LarkInnerKeys.VIEW_KEY);
   const equalAsNodes =
     oldAsEl !== null &&
     newAsEl !== null &&
     oldAsEl.isEqualNode &&
     oldAsEl.isEqualNode(newAsEl);
 
-  if (domSpecialDiff(oldNode, newNode) || hasViewKey || !equalAsNodes) {
+  if (domSpecialDiff(oldNode, newNode) || !equalAsNodes) {
     // Same type (same nodeName and nodeType) → diff in place
     if (
       oldNode.nodeType === newNode.nodeType &&
@@ -342,20 +333,8 @@ export function domSetNode(
         const oldEl = oldAsEl;
         const newEl = newAsEl;
 
-        const staticKey = newEl.getAttribute(LarkInnerKeys.DIFF_KEY);
-        if (
-          staticKey &&
-          staticKey === oldEl.getAttribute(LarkInnerKeys.DIFF_KEY)
-        ) {
-          return;
-        }
-
         // Diff attributes and children
         const newLarkView = newEl.getAttribute(LARK_VIEW);
-        const updateAttribute =
-          !newEl.getAttribute(LarkInnerKeys.ATTR_KEY) ||
-          newEl.getAttribute(LarkInnerKeys.ATTR_KEY) !==
-            oldEl.getAttribute(LarkInnerKeys.ATTR_KEY);
         let updateChildren = true;
 
         // If same v-lark, keep existing view
@@ -370,9 +349,7 @@ export function domSetNode(
           }
         }
 
-        if (updateAttribute) {
-          domSetAttributes(oldEl, newEl, ref, !!newLarkView);
-        }
+        domSetAttributes(oldEl, newEl, ref, !!newLarkView);
         if (updateChildren) {
           domSetChildNodes(oldEl, newEl, ref, frame, keys_);
         }
