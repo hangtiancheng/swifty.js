@@ -1,10 +1,16 @@
 // @ts-check
 
 import path from "path";
+import { createRequire } from "module";
 import { fileURLToPath } from "url";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import CopyWebpackPlugin from "copy-webpack-plugin";
-import ModuleFederationPlugin from "webpack/lib/container/ModuleFederationPlugin.js";
+
+// Resolve webpack from webpack-cli's location to avoid duplicate webpack instances
+// in pnpm monorepo (different peer dep hashes create separate node_modules directories).
+const require2 = createRequire(import.meta.resolve("webpack-cli/package.json"));
+const webpack = require2("webpack");
+const { ModuleFederationPlugin } = webpack.container;
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -80,7 +86,7 @@ export default (env, argv) => {
       // Consumes remote Lark views from lark-demo running on port 3000.
       // At runtime: import('lark-demo/counter-view') loads the remote module.
       new ModuleFederationPlugin({
-        name: "lark_devtool",
+        name: "lark-devtool",
         remotes: {
           "lark-demo": "lark_demo@http://localhost:3000/remoteEntry.js",
         },
@@ -114,17 +120,17 @@ export default (env, argv) => {
 
     optimization: isProd
       ? {
-          splitChunks: {
-            chunks: "all",
-            cacheGroups: {
-              vendor: {
-                test: /[\\/]node_modules[\\/]/,
-                name: "vendor",
-                chunks: "all",
-              },
+        splitChunks: {
+          chunks: "all",
+          cacheGroups: {
+            vendor: {
+              test: /[\\/]node_modules[\\/]/,
+              name: "vendor",
+              chunks: "all",
             },
           },
-        }
+        },
+      }
       : undefined,
 
     devtool: isProd ? "hidden-source-map" : "source-map",
