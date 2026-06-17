@@ -241,7 +241,7 @@ function isLarkView(instance: unknown): instance is LarkView {
  * bindStore(this, useCountStore, (s) => ({ count: s.count }));
  * ```
  */
-export function bindStore<T extends Record<string, unknown>>(
+export function bindStore<T>(
   view: unknown,
   store: StoreApi<T>,
   selector?: (state: T) => Record<string, unknown>,

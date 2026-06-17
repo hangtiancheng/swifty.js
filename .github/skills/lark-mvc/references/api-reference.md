@@ -309,7 +309,7 @@ Default hashbang is `"#!"`. URLs look like `http://localhost/#!/home?count=5`.
 
 ## State
 
-Global singleton for cross-view observable data. Imported via `import { State } from '@lark.js/mvc'`. Best for simple shared values (counters, page title, session info). For complex reactive state with derived data, prefer `defineStore`.
+Global singleton for cross-view observable data. Imported via `import { State } from '@lark.js/mvc'`. Best for simple shared values (counters, page title, session info). For complex reactive state with derived data, prefer store `create`.
 
 ### State.get(key?)
 
@@ -731,134 +731,106 @@ The internal `getViewClass(path): typeof View | undefined` is not exported (used
 
 ## Store
 
-Proxy-based reactive state with handlers, computed values, multi-instance support, and adapter platforms (`lark` / `react` / `node`). Imported from `@lark.js/mvc`.
+Zustand-aligned state management for Lark MVC. Simple, explicit, no Proxy magic. Imported via `import { create, computed, bindStore } from '@lark.js/mvc'`.
 
-### defineStore(name, creator, config?)
+### create(name, creator)
 
-Define a store. The creator runs once at definition time. Functions in the return value become handlers; `computed(deps, fn)` entries become derived state; everything else becomes initial state.
+Define a store. The creator receives `set` and `get` and returns the initial state object. Functions in the return value become actions (attached to state, ignored by `setState`); `computed(deps, fn)` entries become derived state (read-only, auto-recomputed); everything else becomes plain state.
 
 ```ts
-export type InnerStore<S = Record<string, unknown>> = S & StoreMethods;
-
-function defineStore<S = Record<string, unknown>>(
+function create<T>(
   name: string,
-  creator: (store: InnerStore<S>, apis: { lazySet; shallowSet; computed }) => S,
-  config?: StoreConfig & {
-    platform?: Platform.Lark | Platform.React | Platform.Node;
-  },
-): LarkUseStore<S> | ReactUseStore<S> | NodeUseStore<S>;
+  creator: (set: SetFn<T>, get: () => T) => T,
+): StoreApi<T>;
+
+type SetFn<T> = (partial: Partial<T> | ((prev: T) => Partial<T>)) => void;
 ```
+
+The store is registered in a global `storeRegistry` keyed by `name`. Calling `create` with the same name replaces the previous entry.
+
+```ts
+const useCountStore = create("counter", (set, get) => ({
+  count: 0,
+  doubled: computed(["count"], () => get().count * 2),
+  increment() {
+    set({ count: get().count + 1 });
+  },
+  reset() {
+    set({ count: 0 });
+  },
+}));
+```
+
+### StoreApi
+
+The object returned by `create`. Four methods, no magic.
+
+```ts
+interface StoreApi<T = Record<string, unknown>> {
+  getState(): T;
+  setState(partial: Partial<T> | ((prev: T) => Partial<T>)): void;
+  subscribe(listener: (state: T, prevState: T) => void): () => void;
+  destroy(): void;
+}
+```
+
+| Method         | Description                                                                                                                                                                                   |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `getState()`   | Read the current state snapshot. Actions are included as own properties.                                                                                                                      |
+| `setState(p)`  | Shallow-merge `p` (or `p(prev)`) into state. Computed keys and action keys are silently skipped. Listeners are notified only when at least one key actually changes (`Object.is` comparison). |
+| `subscribe(l)` | Register a listener `(state, prevState) => void`. Returns an unsubscribe function.                                                                                                            |
+| `destroy()`    | Mark the store as destroyed, clear all listeners, remove from the global registry.                                                                                                            |
 
 ### computed(deps, fn)
 
-Mark a property as derived. `deps` is the list of state keys that `fn` reads. Whenever any dep changes, `fn` re-runs and the new value flows out via the standard observe path.
+Declare a derived property inside a `create` creator. `deps` lists the state keys that `fn` reads. Whenever any dep changes via `setState`, `fn` re-evaluates before listeners are notified.
 
 ```ts
 function computed<T>(deps: readonly string[], fn: () => T): T;
 ```
 
-Writes to a computed key at runtime are silently ignored (read-only by contract).
-
-### cell(data) / observeCell(state, cb, immediate?)
-
-Standalone reactive cell — no store name, no handlers, just a Proxy + tracker.
+Writes to a computed key via `setState` are silently ignored (read-only by contract).
 
 ```ts
-function cell<T = unknown>(data: T): T;
-function observeCell(
-  state: Record<string, unknown>,
-  cb: AnyFunc,
-  immediate?: boolean, // default true
+const store = create("cart", (set, get) => ({
+  items: [] as Item[],
+  total: computed(["items"], () =>
+    get().items.reduce((s, i) => s + i.price, 0),
+  ),
+  addItem(item: Item) {
+    set({ items: [...get().items, item] });
+  },
+}));
+```
+
+### bindStore(view, store, selector?)
+
+Bind a store to a Lark View. Subscribes to state changes and pipes them into the view's `updater`. Auto-unsubscribes when the view fires `destroy`.
+
+```ts
+function bindStore<T extends Record<string, unknown>>(
+  view: unknown,
+  store: StoreApi<T>,
+  selector?: (state: T) => Record<string, unknown>,
 ): () => void;
 ```
 
-### multi(useStore)
-
-Return `[useFn, mixinObj]` for multi-instance stores. Each view instance gets an independent store clone, keyed by a flag (`lark-comp-<storeName>`) propagated down the Frame tree via `mountFrame` interception.
-
-```ts
-function multi<S = Record<string, unknown>>(
-  useStore: LarkUseStore<S>,
-): [LarkUseStore<S>, { make: AnyFunc }];
-```
-
-### Lark adapter `useStore` (the default)
+- Without `selector`, only non-function state keys are forwarded to the updater (actions are excluded).
+- With `selector`, the selector's return value is forwarded on every state change.
+- Performs an initial sync (`updater.set` + `updater.digest`) at bind time.
+- Returns the unsubscribe function (also called automatically on view destroy).
 
 ```ts
-type LarkUseStore<S = Record<string, unknown>> = (
-  view?: LarkView,
-) => S & StoreMethods;
+const MyView = defineView({
+  make() {
+    // Observe all state keys (minus actions)
+    bindStore(this, useCountStore);
+
+    // Or observe with a selector
+    bindStore(this, useCountStore, (s) => ({ count: s.count }));
+  },
+});
 ```
-
-- `useStore()` (no view) — module-level read.
-- `useStore(view)` — registers the view in the store's bound-view set. Auto-unbinds on view destroy. Reads return deep-cloned values; writes go through the reactive Proxy.
-
-The use-fn is decorated with two own-properties via `Object.defineProperties`:
-
-| Property     | Type         | Purpose                               |
-| ------------ | ------------ | ------------------------------------- |
-| `$storeName` | `string`     | The registered store name             |
-| `$destroyFn` | `() => void` | Destroy the store (`_storeDestroy()`) |
-
-### StoreMethods
-
-```ts
-interface StoreMethods {
-  observe(
-    view: LarkView | undefined,
-    keys?: (string | ObservePayload)[] | (() => (string | ObservePayload)[]),
-    defCallback?: (changedMap: Record<string, unknown>) => void,
-  ): () => void;
-}
-
-interface ObservePayload {
-  key: string;
-  alias?: string;
-  cb?: (changedMap: Record<string, unknown>) => void;
-  lazy?: boolean; // default true — uses updater.digest; false uses set + digest
-  transform?: (val: unknown) => Record<string, unknown>;
-}
-```
-
-Behavior:
-
-- `observe(view)` — no keys: default to observing every state key in the store (D5). Returns the unsubscribe.
-- `observe(view, keys)` — observe just those keys.
-- `observe(view, keys, defaultCb)` — provide a fallback callback for keys that don't have their own.
-- `observe(undefined, keys, cb)` — inner observe (no view binding). Keys are required. De-duplicated by `key + observeKeys.join('-') + cb.toString()`.
-
-### Store helpers exported from `@lark.js/mvc`
-
-| Helper                       | Signature                                                                     | Purpose                                            |
-| ---------------------------- | ----------------------------------------------------------------------------- | -------------------------------------------------- |
-| `defineStore`                | see above                                                                     | Declare a store                                    |
-| `computed`                   | `(deps: readonly string[], fn: () => T) => T`                                 | Derived state factory                              |
-| `cell`                       | `<T>(data: T) => T`                                                           | Standalone reactive cell                           |
-| `observeCell`                | `(state, cb, immediate?) => () => void`                                       | Watch a cell                                       |
-| `multi`                      | `(useStore) => [useFn, mixinObj]`                                             | Multi-instance store                               |
-| `delStore(name)`             | `(name: string) => void`                                                      | Remove a store from the cache                      |
-| `getStore(name)`             | `(name: string) => BaseStore \| undefined`                                    | Internal store handle                              |
-| `getUseStore(n)`             | `(name: string) => AnyFunc \| undefined`                                      | Look up a use-fn                                   |
-| `cloneStore(n, useFn, cfg?)` | clone an existing store under a new name                                      | Used by `multi`                                    |
-| `isState`                    | `(val: unknown) => boolean`                                                   | Is this a reactive Proxy?                          |
-| `isPromise`                  | `<T>(val: unknown) => val is Promise<T>`                                      | Promise duck-typing                                |
-| `isStoreActive`              | `(name: string) => boolean`                                                   | Whether the store is in ACTIVE state               |
-| `createState`                | `(initialData, config?) => Record<string, unknown>`                           | Low-level reactive Proxy factory                   |
-| `shallowSet`                 | `(target, key, data) => unknown`                                              | Shallow reactive sub-state                         |
-| `lazySet`                    | `(target, data) => void`                                                      | Batch-set without triggering observers             |
-| `cloneData`                  | `<T>(data: T) => T`                                                           | Deep clone (uses `structuredClone` when available) |
-| `storeMark` / `storeUnmark`  | re-exports of `./store`'s `mark`/`unmark` (different namespace from `./mark`) | Internal use                                       |
-| `getPlatform`                | `(comp: unknown) => Platform \| undefined`                                    | Detect Lark/React/Node                             |
-| `Platform`                   | enum `{ Lark, React, Node }`                                                  | Adapter switch                                     |
-
-### Inner reactive scheduler
-
-The Lark adapter uses a microtask-batched `Queue` (`Promise.resolve().then`). Multiple writes within the same synchronous block are coalesced into a single observer flush.
-
-### Adapter notes
-
-- **React adapter** (`Platform.React`): `useStore(selector?)` — synchronous, returns frozen deep-cloned data. Internally maintains `lastState` cached behind a change counter.
-- **Node adapter** (`Platform.Node`): `useStore()` returns `{ observe(key, cb, immediate?) }`.
 
 ---
 
@@ -1131,7 +1103,7 @@ export default function(data, viewId, refData) { ... }
 
 ### extractGlobalVars(source)
 
-AST-based extraction of variable names referenced by the template. Used by `larkMvcPlugin`/`larkMvcLoader` to inject `let varName = $data.varName` destructures into the compiled function body.
+AST-based extraction of variable names referenced by the template. Used by `larkMvcPlugin`/`larkMvcLoader` to inject `let varName = $data.varName` destructure into the compiled function body.
 
 ```ts
 function extractGlobalVars(source: string): string[];
@@ -1145,32 +1117,14 @@ If parsing fails (malformed template), falls back to a regex-based extractor.
 
 Exported from the main entry.
 
-| Name                              | Signature                                                           | Purpose                                                                                        |
-| --------------------------------- | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| `noop`                            | `() => void`                                                        | The no-op function                                                                             |
-| `hasOwnProperty`                  | `<T>(owner: T \| undefined \| null, prop: PropertyKey) => boolean`  | Safe `Object.prototype.hasOwnProperty.call`                                                    |
-| `assign`                          | `<T>(target: T, ...sources: Partial<T>[]) => T`                     | Shallow merge with hasOwnProperty guard                                                        |
-| `keys`                            | `<T>(obj: T) => string[]`                                           | Own enumerable keys                                                                            |
-| `generateId(prefix?)`             | `(prefix?: string) => string`                                       | Monotonic id; default prefix `"lark_"`                                                         |
-| `syncCounter(n)`                  | `(n: number) => void`                                               | Sync the global id counter                                                                     |
-| `funcWithTry`                     | `(fns, args, ctx, onError?) => unknown`                             | Try-catch single or array of functions                                                         |
-| `setData`                         | `(newData, oldData, changedKeys: Set<string>, excludes) => boolean` | Merge with change tracking                                                                     |
-| `translateData`                   | `(data, value) => unknown`                                          | Recursively resolve SPLITTER+digits ref tokens                                                 |
-| `getById`                         | `(id: string \| Element \| null) => Element \| null`                | `document.getElementById` shorthand (passthrough if Element)                                   |
-| `ensureElementId`                 | `(el: HTMLElement) => string`                                       | Ensure id; generate auto-id if missing                                                         |
-| `nodeInside(a, b)`                | `(a, b) => boolean`                                                 | Is `a` inside `b`? (compareDocumentPosition)                                                   |
-| `parseUri(uri)`                   | `(uri: string) => ParsedUri`                                        | URL → `{ path, params }`. Re-entrant safe (local accumulator)                                  |
-| `toUri(path, params, keepEmpty?)` | `(path, params, keepEmpty?: ReadonlySet<string>) => string`         | Params → query string                                                                          |
-| `toMap(list, key?)`               | `<T>(list, key?: keyof T) => Record<string, T \| number>`           | Array → indexed map                                                                            |
-| `now()`                           | `() => number`                                                      | `Date.now()` polyfill                                                                          |
-| `isPlainObject(v)`                | `(v: unknown) => v is Record<string, unknown>`                      | Plain object guard                                                                             |
-| `isPrimitiveOrFunc(v)`            | `(v: unknown) => boolean`                                           | Truthy if primitive or function                                                                |
-| `isPrimitive(v)`                  | `(v: unknown) => boolean`                                           | Truthy if primitive                                                                            |
-| `getAttribute(el, attr)`          | `(el: Element, attr: string) => string`                             | Null-safe attribute read                                                                       |
-| `EMPTY_STRING_SET`                | `ReadonlySet<string>`                                               | Shared empty set used as default for `excludes?` params                                        |
-| `applyStyle`                      | `(idOrPairs, css?) => () => void`                                   | Inject and clean up `<style>` tags                                                             |
-| `mark` / `unmark`                 | re-exports of `./mark`                                              | Async callback validity (`@lark.js/mvc` exports also `storeMark`/`storeUnmark` from `./store`) |
-| `safeguard`                       | `<T>(data, getter?, setter?, isRoot?) => T`                         | Debug Proxy wrap (no-op outside `window.__lark_Debug`)                                         |
+| Name            | Signature                        | Purpose                                            |
+| --------------- | -------------------------------- | -------------------------------------------------- |
+| `applyStyle`    | `(idOrPairs, css?) => () => void` | Inject CSS into `<style>` tags; returns cleanup fn |
+| `mark` / `unmark` | `mark(host, key) => () => boolean` / `unmark(host) => void` | Async callback validity tracking (module-level WeakMap) |
+| `safeguard`     | `<T>(o: T) => T`                | Debug Proxy that warns on mutation (no-op outside `window.__lark_Debug`) |
+| `useUrlState`   | `(view, config?) => void`       | Sync view state with URL search params              |
+
+Internal utilities (`noop`, `hasOwnProperty`, `assign`, `keys`, `generateId`, `funcWithTry`, `setData`, `translateData`, `getById`, `ensureElementId`, `nodeInside`, `parseUri`, `toUri`, `toMap`, `now`, `isPlainObject`, `getAttribute`, `EMPTY_STRING_SET`, etc.) are NOT exported from the public entry. They live in `utils.ts` and `constants.ts` for framework-internal use.
 
 ### Constants
 
@@ -1178,13 +1132,8 @@ Exported from the main entry.
 | -------------------------- | ----------------------------------------- | -------------------------------------------------- |
 | `SPLITTER`                 | `"\x1e"`                                  | Internal separator (Record Separator)              |
 | `LARK_VIEW`                | `"v-lark"`                                | Sub-view attribute name                            |
-| `LarkInnerKeys.DIFF_KEY`   | `"ldk"`                                   | Skip whole-subtree diff when matched               |
-| `LarkInnerKeys.ATTR_KEY`   | `"lak"`                                   | Skip attribute diff when matched (still diff kids) |
-| `LarkInnerKeys.VIEW_KEY`   | `"lvk"`                                   | Force assign on this element                       |
 | `CALL_BREAK_TIME`          | `48`                                      | Task chunk budget (ms)                             |
-| `RouterEvents.CHANGE`      | `"change"`                                | Route change phase                                 |
-| `RouterEvents.CHANGED`     | `"changed"`                               | Post-change phase                                  |
-| `RouterEvents.PAGE_UNLOAD` | `"page_unload"`                           | beforeunload event                                 |
+| `ROUTER_EVENTS`            | `{ CHANGE, CHANGED, PAGE_UNLOAD }`        | Router event name constants                        |
 | `TAG_NAME_REGEXP`          | `/<([a-z][^/\0>\x20\t\r\n\f]+)/i`         | First tag detector                                 |
 | `EVENT_METHOD_REGEXP`      | (see `constants.ts`)                      | Parse `viewId\x1ehandlerName(params)`              |
 | `VIEW_EVENT_METHOD_REGEXP` | `/^(\$?)([\w]*)<(.*?)>(?:<([\w ,]*)>)?$/` | Match `name<click>` patterns                       |
