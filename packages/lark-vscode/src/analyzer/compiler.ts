@@ -782,11 +782,14 @@ function compileToFunction(
  * @param options - Compilation options
  * @returns ES module source code exporting the compiled template function
  */
-export function compileTemplate(
+export async function compileTemplate(
   source: string,
   options: CompileOptions = {},
-): string {
-  const { debug = false, globalVars = [], file } = options;
+): Promise<string> {
+  const { debug = false, file } = options;
+
+  // Auto-extract globalVars via SWC when not explicitly provided
+  const globalVars = options.globalVars ?? (await extractGlobalVars(source));
 
   // Phase 1: Protect comments
   const { protectedSource, comments } = protectComments(source);
@@ -954,24 +957,20 @@ export async function extractGlobalVars(source: string): Promise<string[]> {
   // Collect function params
   const functionParams: Record<string, number> = Object.create(null);
   for (const fnNode of fnRange) {
-    const rawParams = "params" in fnNode ? fnNode.params : [];
-    for (const rawP of rawParams) {
-      // SWC wraps FunctionDeclaration/FunctionExpression params in Param { type: "Parameter", pat: Pattern }
-      // ArrowFunctionExpression params are already Pattern[] — no wrapper
-      const p =
-        (rawP as Param).type === "Parameter" ? (rawP as Param).pat : rawP;
-      if (p.type === "Identifier") {
-        functionParams[(p as Identifier).value] = 1;
+    const patterns = getParamPatterns(fnNode);
+    for (const pat of patterns) {
+      if (pat.type === "Identifier") {
+        functionParams[(pat as Identifier).value] = 1;
       } else if (
-        p.type === "AssignmentPattern" &&
-        (p as AssignmentPattern).left.type === "Identifier"
+        pat.type === "AssignmentPattern" &&
+        pat.left.type === "Identifier"
       ) {
-        functionParams[((p as AssignmentPattern).left as Identifier).value] = 1;
+        functionParams[(pat.left as Identifier).value] = 1;
       } else if (
-        p.type === "RestElement" &&
-        (p as RestElement).argument.type === "Identifier"
+        pat.type === "RestElement" &&
+        pat.argument.type === "Identifier"
       ) {
-        functionParams[((p as RestElement).argument as Identifier).value] = 1;
+        functionParams[(pat.argument as Identifier).value] = 1;
       }
     }
   }
@@ -1027,6 +1026,20 @@ function fallbackExtractVariables(source: string): string[] {
   return Array.from(vars).filter((v) => !BUILTIN_GLOBALS.has(v));
 }
 
+/**
+ * Extract Pattern[] from function params, handling SWC's Param wrapper.
+ * ArrowFunctionExpression.params is Pattern[] directly;
+ * FunctionDeclaration/FunctionExpression wrap each param in Param { pat: Pattern }.
+ */
+function getParamPatterns(
+  fnNode: FunctionDeclaration | FunctionExpression | ArrowFunctionExpression,
+): Pattern[] {
+  if (fnNode.type === "ArrowFunctionExpression") {
+    return fnNode.params;
+  }
+  return (fnNode as { params: Param[] }).params.map((p: Param) => p.pat);
+}
+
 // ─── AST walker ────────────────────────────────────────────────────────────
 
 /**
@@ -1043,15 +1056,7 @@ function walkSwcAst(
       visitors[type](node);
     }
     for (const key of Object.keys(node)) {
-      if (
-        key === "type" ||
-        key === "start" ||
-        key === "end" ||
-        key === "loc" ||
-        key === "range" ||
-        key === "span"
-      )
-        continue;
+      if (key === "type" || key === "span" || key === "ctxt") continue;
       // Skip 'property' of non-computed MemberExpression
       // (e.g., obj.prop — 'prop' is not a standalone variable).
       if (type === "MemberExpression" && key === "property") {
