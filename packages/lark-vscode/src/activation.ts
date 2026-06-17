@@ -1,8 +1,9 @@
 import * as vscode from "vscode";
-import * as fs from "node:fs";
+import * as fs from "node:fs/promises";
+import * as fsSync from "node:fs";
 import * as path from "node:path";
-import { execSync } from "node:child_process";
-import { log } from "./logger.js";
+import { exec } from "node:child_process";
+import { log, logError } from "./logger.js";
 
 const BUNDLER_CONFIG_FILES = [
   "vite.config.ts",
@@ -32,14 +33,14 @@ const SKIP_DIRS = new Set([
   ".yarn",
 ]);
 
-export function findLarkRoots(workspaceRoot: string): readonly string[] {
-  const packageJsonPaths = findAllPackageJsons(workspaceRoot);
+export async function findLarkRoots(workspaceRoot: string): Promise<readonly string[]> {
+  const packageJsonPaths = await findAllPackageJsons(workspaceRoot);
   log(`Found ${String(packageJsonPaths.length)} package.json file(s)`);
 
   const larkRoots: string[] = [];
   for (const pkgPath of packageJsonPaths) {
     const dir = path.dirname(pkgPath);
-    if (isLarkProject(dir)) {
+    if (await isLarkProject(dir)) {
       log(`Lark project found: ${dir}`);
       larkRoots.push(dir);
     }
@@ -48,62 +49,67 @@ export function findLarkRoots(workspaceRoot: string): readonly string[] {
   return larkRoots;
 }
 
-function findAllPackageJsons(workspaceRoot: string): readonly string[] {
-  try {
-    const output = execSync(
+function findAllPackageJsons(workspaceRoot: string): Promise<readonly string[]> {
+  return new Promise((resolve) => {
+    exec(
       'git ls-files --cached --others --exclude-standard -- "package.json" "**/package.json"',
       { cwd: workspaceRoot, encoding: "utf-8", timeout: 5000 },
-    ).trim();
-
-    if (output.length === 0) {
-      return [];
-    }
-
-    return output.split("\n").map((rel) => path.join(workspaceRoot, rel));
-  } catch {
-    log("git ls-files failed, falling back to manual scan");
-    return scanForPackageJsons(workspaceRoot);
-  }
+      (error, stdout) => {
+        if (error !== null) {
+          log("git ls-files failed, falling back to manual scan");
+          void scanForPackageJsons(workspaceRoot).then(resolve);
+          return;
+        }
+        const output = stdout.trim();
+        if (output.length === 0) {
+          resolve([]);
+          return;
+        }
+        resolve(output.split("\n").map((rel) => path.join(workspaceRoot, rel)));
+      },
+    );
+  });
 }
 
-function scanForPackageJsons(dir: string): readonly string[] {
+async function scanForPackageJsons(dir: string): Promise<readonly string[]> {
   const results: string[] = [];
-  scanDirectory(dir, results, 0);
+  await scanDirectory(dir, results, 0);
   return results;
 }
 
-function scanDirectory(dir: string, out: string[], depth: number): void {
+async function scanDirectory(dir: string, out: string[], depth: number): Promise<void> {
   if (depth > 5) {
     return;
   }
 
+  let entries: import("node:fs").Dirent[];
   try {
-    const entries = fs.readdirSync(dir, { withFileTypes: true });
-    for (const entry of entries) {
-      if (entry.isFile() && entry.name === "package.json") {
-        out.push(path.join(dir, entry.name));
-      } else if (entry.isDirectory() && !SKIP_DIRS.has(entry.name) && !entry.name.startsWith(".")) {
-        scanDirectory(path.join(dir, entry.name), out, depth + 1);
-      }
-    }
+    entries = await fs.readdir(dir, { withFileTypes: true });
   } catch {
-    // unreadable directory
+    return;
+  }
+
+  for (const entry of entries) {
+    if (entry.isFile() && entry.name === "package.json") {
+      out.push(path.join(dir, entry.name));
+    } else if (entry.isDirectory() && !SKIP_DIRS.has(entry.name) && !entry.name.startsWith(".")) {
+      await scanDirectory(path.join(dir, entry.name), out, depth + 1);
+    }
   }
 }
 
-function isLarkProject(dir: string): boolean {
+async function isLarkProject(dir: string): Promise<boolean> {
   const packageJsonPath = path.join(dir, "package.json");
 
-  if (fs.existsSync(packageJsonPath)) {
-    try {
-      const content = fs.readFileSync(packageJsonPath, "utf-8");
-      const pkg: unknown = JSON.parse(content);
-      if (hasLarkDependency(pkg)) {
-        return true;
-      }
-    } catch {
-      // invalid package.json, fall through
+  try {
+    await fs.access(packageJsonPath);
+    const content = await fs.readFile(packageJsonPath, "utf-8");
+    const pkg: unknown = JSON.parse(content);
+    if (hasLarkDependency(pkg)) {
+      return true;
     }
+  } catch {
+    // package.json doesn't exist or can't be read, fall through to bundler check
   }
 
   return hasBundlerConfig(dir);
@@ -129,20 +135,19 @@ function isRecordWithKey(value: unknown, key: string): value is Record<string, u
   return typeof value === "object" && value !== null && key in value;
 }
 
-function hasBundlerConfig(dir: string): boolean {
+async function hasBundlerConfig(dir: string): Promise<boolean> {
   for (const configFile of BUNDLER_CONFIG_FILES) {
     const configPath = path.join(dir, configFile);
-    if (fs.existsSync(configPath)) {
-      try {
-        const content = fs.readFileSync(configPath, "utf-8");
-        for (const keyword of BUNDLER_KEYWORDS) {
-          if (content.includes(keyword)) {
-            return true;
-          }
+    try {
+      await fs.access(configPath);
+      const content = await fs.readFile(configPath, "utf-8");
+      for (const keyword of BUNDLER_KEYWORDS) {
+        if (content.includes(keyword)) {
+          return true;
         }
-      } catch {
-        continue;
       }
+    } catch {
+      continue;
     }
   }
   return false;

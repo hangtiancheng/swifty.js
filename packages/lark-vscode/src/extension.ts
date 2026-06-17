@@ -10,6 +10,7 @@ import { LarkCompletionProvider } from "./provider/completion-provider.js";
 import { LarkFoldingRangeProvider } from "./provider/folding-range-provider.js";
 import { LarkImageHoverProvider } from "./provider/hover-provider.js";
 import { StatusBarManager } from "./status-bar/status-bar-manager.js";
+import { disableCssValidation } from "./config/css-validation.js";
 import { initLogger, log } from "./logger.js";
 
 const HTML_SELECTOR: vscode.DocumentSelector = [{ language: "html", scheme: "file" }];
@@ -19,7 +20,7 @@ const TS_JS_SELECTOR: vscode.DocumentSelector = [
 ];
 const ALL_SELECTOR: vscode.DocumentSelector = [...HTML_SELECTOR, ...TS_JS_SELECTOR];
 
-export function activate(context: vscode.ExtensionContext): void {
+export async function activate(context: vscode.ExtensionContext): Promise<void> {
   const outputChannel = initLogger();
   context.subscriptions.push(outputChannel);
 
@@ -38,7 +39,8 @@ export function activate(context: vscode.ExtensionContext): void {
   const workspaceRoot = firstFolder.uri.fsPath;
   log(`Workspace root: ${workspaceRoot}`);
 
-  const larkRoots = findLarkRoots(workspaceRoot);
+  // Run project detection asynchronously to avoid blocking the extension host
+  const larkRoots = await findLarkRoots(workspaceRoot);
   const isLark = larkRoots.length > 0;
   setLarkContext(isLark);
   log(
@@ -56,10 +58,14 @@ export function activate(context: vscode.ExtensionContext): void {
     return;
   }
 
+  // Disable CSS validation in style="" attributes to avoid false-positive
+  // errors from Lark template interpolation syntax like {{=variable}}
+  await disableCssValidation();
+
   const viewFileCache = new ViewFileCache(larkRoots);
   const viewMethodCache = new ViewMethodCache();
 
-  viewFileCache.scanWorkspace();
+  await viewFileCache.scanWorkspace();
 
   const watchers = createFileWatchers(larkRoots, viewFileCache, viewMethodCache);
   for (const w of watchers) {
@@ -82,7 +88,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.languages.registerCompletionItemProvider(
       HTML_SELECTOR,
       new LarkCompletionProvider(viewFileCache, viewMethodCache),
-      "@",
+      // "@", // TODO: May effect claude code's Command+Option+K
       '"',
       "'",
     ),

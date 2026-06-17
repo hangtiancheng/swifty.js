@@ -1,19 +1,22 @@
-import * as fs from "node:fs";
+import * as fs from "node:fs/promises";
 import { analyzeViewFile } from "../analyzer/view-analyzer.js";
 import type { ViewFileInfo } from "../model/view-file-info.js";
 
 const MAX_CACHE_SIZE = 500;
 
 export class ViewMethodCache {
+  // Map preserves insertion order — delete + set gives O(1) LRU
   private readonly cache = new Map<string, ViewFileInfo>();
-  private readonly accessOrder: string[] = [];
 
   async resolve(filePath: string): Promise<ViewFileInfo | null> {
     const cached = this.cache.get(filePath);
     if (cached !== undefined) {
-      this.touch(filePath);
+      // Touch: move to end (most recently used)
+      this.cache.delete(filePath);
+      this.cache.set(filePath, cached);
+
       try {
-        const stat = fs.statSync(filePath);
+        const stat = await fs.stat(filePath);
         if (stat.mtimeMs === cached.mtime) {
           return cached;
         }
@@ -33,28 +36,16 @@ export class ViewMethodCache {
     if (this.cache.size >= MAX_CACHE_SIZE && !this.cache.has(filePath)) {
       this.evict();
     }
+    this.cache.delete(filePath);
     this.cache.set(filePath, info);
-    this.touch(filePath);
   }
 
   remove(filePath: string): void {
     this.cache.delete(filePath);
-    const idx = this.accessOrder.indexOf(filePath);
-    if (idx !== -1) {
-      this.accessOrder.splice(idx, 1);
-    }
-  }
-
-  private touch(filePath: string): void {
-    const idx = this.accessOrder.indexOf(filePath);
-    if (idx !== -1) {
-      this.accessOrder.splice(idx, 1);
-    }
-    this.accessOrder.push(filePath);
   }
 
   private evict(): void {
-    const oldest = this.accessOrder.shift();
+    const oldest = this.cache.keys().next().value;
     if (oldest !== undefined) {
       this.cache.delete(oldest);
     }

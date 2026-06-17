@@ -1,4 +1,4 @@
-import * as fs from "node:fs";
+import * as fs from "node:fs/promises";
 import type {
   CallExpression,
   Expression,
@@ -16,13 +16,12 @@ type ParseFn = typeof import("@swc/core").parse;
 let parser: ParseFn | null = null;
 let parserLoadAttempted = false;
 
-function getParser(): ParseFn | null {
+async function getParser(): Promise<ParseFn | null> {
   if (!parserLoadAttempted) {
     parserLoadAttempted = true;
     log("Loading @swc/core parser");
     try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const swc = require("@swc/core") as typeof import("@swc/core");
+      const swc = await import("@swc/core");
       parser = swc.parse;
       log("@swc/core parser loaded");
     } catch (error: unknown) {
@@ -35,7 +34,7 @@ function getParser(): ParseFn | null {
 export async function analyzeViewFile(filePath: string): Promise<ViewFileInfo | null> {
   let content: string;
   try {
-    content = fs.readFileSync(filePath, "utf-8");
+    content = await fs.readFile(filePath, "utf-8");
   } catch (e) {
     logError(`Failed to read view file: ${filePath}`, e);
     return null;
@@ -45,7 +44,7 @@ export async function analyzeViewFile(filePath: string): Promise<ViewFileInfo | 
 }
 
 async function analyzeViewContent(content: string, filePath: string): Promise<ViewFileInfo | null> {
-  const parse = getParser();
+  const parse = await getParser();
   if (parse === null) {
     return null;
   }
@@ -81,7 +80,13 @@ async function analyzeViewContent(content: string, filePath: string): Promise<Vi
     }
   }
 
-  const stat = fs.statSync(filePath);
+  let stat;
+  try {
+    stat = await fs.stat(filePath);
+  } catch (e) {
+    logError(`Failed to stat view file: ${filePath}`, e);
+    return null;
+  }
 
   return {
     filePath,
@@ -168,7 +173,7 @@ function isExtendOrDefineViewCall(call: CallExpression): boolean {
 function extractMethodFromProperty(prop: Property): MethodInfo | null {
   if (prop.type === "KeyValueProperty") {
     const kvProp = prop as KeyValueProperty;
-    const key = getPropertyKeyName(kvProp);
+    const key = getPropertyKeyString(kvProp.key);
     if (key === null) {
       return null;
     }
@@ -184,7 +189,7 @@ function extractMethodFromProperty(prop: Property): MethodInfo | null {
   }
 
   if (prop.type === "MethodProperty") {
-    const key = getMethodPropertyKeyName(prop);
+    const key = getPropertyKeyString(prop.key);
     if (key === null) {
       return null;
     }
@@ -194,31 +199,15 @@ function extractMethodFromProperty(prop: Property): MethodInfo | null {
   return null;
 }
 
-function getPropertyKeyName(prop: KeyValueProperty): string | null {
-  if (prop.key.type === "Identifier") {
-    return prop.key.value;
+function getPropertyKeyString(key: KeyValueProperty["key"]): string | null {
+  if (key.type === "Identifier") {
+    return key.value;
   }
-  if (prop.key.type === "StringLiteral") {
-    return prop.key.value;
+  if (key.type === "StringLiteral") {
+    return key.value;
   }
-  if (prop.key.type === "Computed" && prop.key.expression.type === "StringLiteral") {
-    return prop.key.expression.value;
-  }
-  return null;
-}
-
-function getMethodPropertyKeyName(prop: Property): string | null {
-  if (prop.type !== "MethodProperty") {
-    return null;
-  }
-  if (prop.key.type === "Identifier") {
-    return prop.key.value;
-  }
-  if (prop.key.type === "StringLiteral") {
-    return prop.key.value;
-  }
-  if (prop.key.type === "Computed" && prop.key.expression.type === "StringLiteral") {
-    return prop.key.expression.value;
+  if (key.type === "Computed" && key.expression.type === "StringLiteral") {
+    return key.expression.value;
   }
   return null;
 }

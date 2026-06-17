@@ -1,12 +1,11 @@
 import * as vscode from "vscode";
 import * as path from "node:path";
-import * as fs from "node:fs";
+import * as fs from "node:fs/promises";
 import type { ViewFileCache } from "../cache/view-file-cache.js";
 import type { ViewMethodCache } from "../cache/view-method-cache.js";
 import { analyzeTemplate } from "../analyzer/template-analyzer.js";
-import { log } from "../logger.js";
-
-const TEMPLATE_IMPORT_REGEX = /import\s+\w+\s+from\s+['"]([^'"]+\.html)['"]/;
+import { log, logError } from "../logger.js";
+import { TEMPLATE_IMPORT_REGEX } from "../model/constants.js";
 
 export class LarkDefinitionProvider implements vscode.DefinitionProvider {
   private readonly viewFileCache: ViewFileCache;
@@ -20,6 +19,7 @@ export class LarkDefinitionProvider implements vscode.DefinitionProvider {
   async provideDefinition(
     document: vscode.TextDocument,
     position: vscode.Position,
+    _token: vscode.CancellationToken,
   ): Promise<vscode.Location | null> {
     const line = document.lineAt(position).text;
     const languageId = document.languageId;
@@ -82,7 +82,7 @@ export class LarkDefinitionProvider implements vscode.DefinitionProvider {
 
       for (const ext of [".ts", ".js", ".html"]) {
         const candidate = path.join(srcDir, ref.path + ext);
-        if (fs.existsSync(candidate)) {
+        if (await fileExists(candidate)) {
           return new vscode.Location(vscode.Uri.file(candidate), new vscode.Position(0, 0));
         }
       }
@@ -143,7 +143,7 @@ export class LarkDefinitionProvider implements vscode.DefinitionProvider {
     if (importMatch?.[1] !== undefined) {
       const importPath = importMatch[1];
       const resolved = path.resolve(path.dirname(_document.fileName), importPath);
-      if (fs.existsSync(resolved)) {
+      if (await fileExists(resolved)) {
         return new vscode.Location(vscode.Uri.file(resolved), new vscode.Position(0, 0));
       }
     }
@@ -151,24 +151,38 @@ export class LarkDefinitionProvider implements vscode.DefinitionProvider {
     return null;
   }
 
-  private createLocationFromOffset(filePath: string, byteOffset: number): vscode.Location {
+  private async createLocationFromOffset(
+    filePath: string,
+    byteOffset: number,
+  ): Promise<vscode.Location> {
     try {
-      const content = fs.readFileSync(filePath, "utf-8");
-      const charOffset = byteOffsetToCharOffset(content, byteOffset);
+      const doc = await vscode.workspace.openTextDocument(filePath);
+      const charOffset = byteOffsetToCharOffset(doc.getText(), byteOffset);
       let line = 0;
       let col = 0;
-      for (let i = 0; i < charOffset && i < content.length; i++) {
-        if (content[i] === "\n") {
+      const text = doc.getText();
+      for (let i = 0; i < charOffset && i < text.length; i++) {
+        if (text[i] === "\n") {
           line++;
           col = 0;
         } else {
           col++;
         }
       }
-      return new vscode.Location(vscode.Uri.file(filePath), new vscode.Position(line, col));
-    } catch {
+      return new vscode.Location(doc.uri, new vscode.Position(line, col));
+    } catch (e) {
+      logError(`Failed to create location from offset for ${filePath}`, e);
       return new vscode.Location(vscode.Uri.file(filePath), new vscode.Position(0, 0));
     }
+  }
+}
+
+async function fileExists(filePath: string): Promise<boolean> {
+  try {
+    await fs.access(filePath);
+    return true;
+  } catch {
+    return false;
   }
 }
 

@@ -1,53 +1,62 @@
-import * as fs from "node:fs";
+import * as fs from "node:fs/promises";
+import * as fsSync from "node:fs";
 import * as path from "node:path";
-import { log } from "../logger.js";
-
-const TEMPLATE_IMPORT_REGEX = /import\s+\w+\s+from\s+['"]([^'"]+\.html)['"]/g;
+import { log, logError } from "../logger.js";
+import { TEMPLATE_IMPORT_REGEX_GLOBAL } from "../model/constants.js";
 
 export class ViewFileCache {
   private readonly larkRoots: readonly string[];
   private readonly htmlToTs = new Map<string, string>();
   private readonly tsToHtml = new Map<string, string>();
+  private readonly fallbackCache = new Map<string, string | null>();
 
   constructor(larkRoots: readonly string[]) {
     this.larkRoots = larkRoots;
   }
 
-  scanWorkspace(): void {
+  async scanWorkspace(): Promise<void> {
     for (const root of this.larkRoots) {
       const srcPath = path.join(root, "src");
-      if (!fs.existsSync(srcPath)) {
+      try {
+        await fs.access(srcPath);
+      } catch {
         log(`src/ directory not found in ${root}, skipping`);
         continue;
       }
-      this.scanDirectory(srcPath);
+      await this.scanDirectory(srcPath);
     }
     log(
       `Workspace scan complete: ${String(this.tsToHtml.size)} view file pairs indexed across ${String(this.larkRoots.length)} root(s)`,
     );
   }
 
-  private scanDirectory(dirPath: string): void {
-    const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+  private async scanDirectory(dirPath: string): Promise<void> {
+    let entries: import("node:fs").Dirent[];
+    try {
+      entries = await fs.readdir(dirPath, { withFileTypes: true });
+    } catch {
+      return;
+    }
+
     for (const entry of entries) {
       const fullPath = path.join(dirPath, entry.name);
       if (entry.isDirectory() && entry.name !== "node_modules") {
-        this.scanDirectory(fullPath);
+        await this.scanDirectory(fullPath);
       } else if (entry.isFile()) {
         const ext = path.extname(entry.name);
         if (ext === ".ts" || ext === ".js") {
-          this.indexTsFile(fullPath);
+          await this.indexTsFile(fullPath);
         }
       }
     }
   }
 
-  indexTsFile(filePath: string): void {
+  async indexTsFile(filePath: string): Promise<void> {
     try {
-      const content = fs.readFileSync(filePath, "utf-8");
+      const content = await fs.readFile(filePath, "utf-8");
       this.indexTsContent(content, filePath);
-    } catch {
-      // file read error, skip
+    } catch (e) {
+      logError(`Failed to read view file for indexing: ${filePath}`, e);
     }
   }
 
@@ -63,15 +72,15 @@ export class ViewFileCache {
       this.addMapping(filePath, htmlPath);
     } else {
       const sameNameHtml = filePath.replace(/\.(ts|js)$/, ".html");
-      if (fs.existsSync(sameNameHtml)) {
+      if (fsSync.existsSync(sameNameHtml)) {
         this.addMapping(filePath, sameNameHtml);
       }
     }
   }
 
   private extractTemplateImport(content: string, tsFilePath: string): string | null {
-    TEMPLATE_IMPORT_REGEX.lastIndex = 0;
-    const match = TEMPLATE_IMPORT_REGEX.exec(content);
+    TEMPLATE_IMPORT_REGEX_GLOBAL.lastIndex = 0;
+    const match = TEMPLATE_IMPORT_REGEX_GLOBAL.exec(content);
     if (match?.[1] !== undefined) {
       const importPath = match[1];
       return path.resolve(path.dirname(tsFilePath), importPath);
@@ -90,6 +99,7 @@ export class ViewFileCache {
       const html = this.tsToHtml.get(filePath);
       if (html !== undefined) {
         this.htmlToTs.delete(html);
+        this.fallbackCache.delete(html);
       }
       this.tsToHtml.delete(filePath);
     } else if (ext === ".html") {
@@ -98,6 +108,7 @@ export class ViewFileCache {
         this.tsToHtml.delete(ts);
       }
       this.htmlToTs.delete(filePath);
+      this.fallbackCache.delete(filePath);
     }
   }
 
@@ -106,14 +117,24 @@ export class ViewFileCache {
     if (mapped !== undefined) {
       return mapped;
     }
+
+    if (this.fallbackCache.has(htmlPath)) {
+      const cached = this.fallbackCache.get(htmlPath);
+      return cached === null ? undefined : cached;
+    }
+
     const tsPath = htmlPath.replace(/\.html$/, ".ts");
-    if (fs.existsSync(tsPath)) {
+    if (fsSync.existsSync(tsPath)) {
+      this.fallbackCache.set(htmlPath, tsPath);
       return tsPath;
     }
     const jsPath = htmlPath.replace(/\.html$/, ".js");
-    if (fs.existsSync(jsPath)) {
+    if (fsSync.existsSync(jsPath)) {
+      this.fallbackCache.set(htmlPath, jsPath);
       return jsPath;
     }
+
+    this.fallbackCache.set(htmlPath, null);
     return undefined;
   }
 

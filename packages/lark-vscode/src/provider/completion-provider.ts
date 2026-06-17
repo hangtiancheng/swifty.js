@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import type { ViewFileCache } from "../cache/view-file-cache.js";
 import type { ViewMethodCache } from "../cache/view-method-cache.js";
-import { analyzeTemplate } from "../analyzer/template-analyzer.js";
+import { analyzeTemplate, type TemplateAnalysis } from "../analyzer/template-analyzer.js";
 import { parseEventMethodName } from "../model/method-info.js";
 
 const EVENT_TYPES = [
@@ -33,6 +33,9 @@ const AT_EVENT_PREFIX_REGEX = /@$/;
 const AT_EVENT_VALUE_REGEX = /@\w+\s*=\s*["']$/;
 const TEMPLATE_VAR_REGEX = /\{\{[=!:@]\s*$/;
 
+// Document-version-based cache for template analysis results
+const analysisCache = new Map<string, { version: number; analysis: TemplateAnalysis }>();
+
 export class LarkCompletionProvider implements vscode.CompletionItemProvider {
   private readonly viewFileCache: ViewFileCache;
   private readonly viewMethodCache: ViewMethodCache;
@@ -45,6 +48,7 @@ export class LarkCompletionProvider implements vscode.CompletionItemProvider {
   async provideCompletionItems(
     document: vscode.TextDocument,
     position: vscode.Position,
+    _token: vscode.CancellationToken,
   ): Promise<vscode.CompletionList | null> {
     const lineText = document.lineAt(position).text.slice(0, position.character);
 
@@ -101,8 +105,7 @@ export class LarkCompletionProvider implements vscode.CompletionItemProvider {
   private async provideVariableCompletions(
     document: vscode.TextDocument,
   ): Promise<vscode.CompletionList | null> {
-    const source = document.getText();
-    const analysis = await analyzeTemplate(source);
+    const analysis = await getCachedAnalysis(document);
 
     if (analysis.variables.length === 0) {
       return null;
@@ -116,4 +119,16 @@ export class LarkCompletionProvider implements vscode.CompletionItemProvider {
 
     return new vscode.CompletionList(items, false);
   }
+}
+
+async function getCachedAnalysis(document: vscode.TextDocument): Promise<TemplateAnalysis> {
+  const key = document.uri.toString();
+  const cached = analysisCache.get(key);
+  if (cached?.version === document.version) {
+    return cached.analysis;
+  }
+
+  const analysis = await analyzeTemplate(document.getText());
+  analysisCache.set(key, { version: document.version, analysis });
+  return analysis;
 }

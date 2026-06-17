@@ -3,9 +3,10 @@ import * as vscode from "vscode";
 let channel: vscode.OutputChannel | null = null;
 
 export function initLogger(): vscode.OutputChannel {
-  if (channel === null) {
-    channel = vscode.window.createOutputChannel("Lark vscode");
+  if (channel !== null) {
+    channel.dispose();
   }
+  channel = vscode.window.createOutputChannel("Lark vscode");
   return channel;
 }
 

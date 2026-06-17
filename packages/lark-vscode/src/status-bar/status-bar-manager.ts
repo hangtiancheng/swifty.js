@@ -58,7 +58,6 @@ export class StatusBarManager {
     };
     item.show();
     this.items.push(item);
-    this.context.subscriptions.push(item);
   }
 
   private disposeItems(): void {
