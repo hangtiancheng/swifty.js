@@ -862,7 +862,8 @@ export function extractGlobalVars(source: string): string[] {
   }
 
   // Step 4: Walk the AST to find identifiers and track scopes
-  const globalExists: Record<string, number> = { ...BUILTIN_GLOBALS };
+  const globalExists: Record<string, number> = {};
+  for (const name of BUILTIN_GLOBALS) globalExists[name] = 1;
   const globalVars: Record<string, number> = Object.create(null);
 
   // Track function ranges for scope analysis
@@ -970,7 +971,7 @@ function fallbackExtractVariables(source: string): string[] {
     vars.add(m[1]);
   }
 
-  return Array.from(vars).filter((v) => !BUILTIN_GLOBAL_SET.has(v));
+  return Array.from(vars).filter((v) => !BUILTIN_GLOBALS.has(v));
 }
 
 // ─── AST walker ────────────────────────────────────────────────────────────
@@ -1047,7 +1048,7 @@ function isAstNode(v: unknown): v is t.Node {
 /**
  * Built-in globals that should not be treated as template data variables.
  */
-const BUILTIN_GLOBALS: Record<string, number> = {
+const BUILTIN_GLOBALS = new Set([
   // ─── Template runtime helpers (injected by compileToFunction) ───────
   //
   // These variables appear in the generated template function signature
@@ -1057,166 +1058,168 @@ const BUILTIN_GLOBALS: Record<string, number> = {
   // SPLITTER character constant (same as \x1e), used as namespace separator
   // for refData keys, event attribute encoding, and internal data structures.
   // Declared as: let $splitter='\x1e'
-  $splitter: 1,
+  "$splitter",
 
   // Data — the data object passed from Updater to the template function.
   // User variables are destructured from $data at the top of the function:
   //   let {name, age} = $data;
   // This is the first parameter of the generated arrow function.
-  $data: 1,
+  "$data",
 
   // Null-safe toString: v => '' + (v == null ? '' : v)
   // Converts null/undefined to empty string, otherwise calls toString().
   // Wraps every {{!raw}} output to prevent "null" / "undefined" rendering.
-  $strSafe: 1,
+  "$strSafe",
 
   // HTML entity encoder: v => $strSafe(v).replace(/[&<>"'`]/g, entityMap)
   // Encodes &, <, >, ", ', ` to HTML entities (&amp; &lt; etc.)
   // Applied to all {{=escaped}} and {{:binding}} outputs.
-  $encHtml: 1,
+  "$encHtml",
 
   // HTML entity map — internal object used by $encHtml:
   //   {'&':'amp','<':'gt','>':'gt','"':'#34','\'':'#39','`':'#96'}
   // Not a standalone function; referenced inside $encHtml's closure.
-  $entMap: 1,
+  "$entMap",
 
   // HTML entity RegExp — internal regexp used by $encHtml:
   //   /[&<>"'`]/g
-  $entReg: 1,
+  "$entReg",
 
   // HTML entity replacer function — internal helper used by $encHtml:
   //   m => '&' + $entMap[m] + ';'
   // Maps matched character to its entity string.
-  $entFn: 1,
+  "$entFn",
 
   // Output buffer — the string accumulator for rendered HTML.
   // All template output is appended via $out += '...'.
   // Declared as: let $out = ''
-  $out: 1,
+  "$out",
 
   // Reference lookup: (refData, value) => key
   // Finds or allocates a SPLITTER-prefixed key in refData for a given
   // object reference. Used by {{@ref}} operator for passing object
   // references to child views via v-lark attributes.
-  $refFn: 1,
+  "$refFn",
 
   // URI encoder: v => encodeURIComponent($strSafe(v)).replace(/[!')(*]/g, extraMap)
   // Extends encodeURIComponent with encoding of ! ' ( ) *.
   // Applied to values in @event URL parameters and {{!uri}} contexts.
-  $encUri: 1,
+  "$encUri",
 
   // URI encode map — internal object used by $encUri:
   //   {'!':'%21','\'':'%27','(':'%28',')':'%29','*':'%2A'}
-  $uriMap: 1,
+  "$uriMap",
 
   // URI encode replacer — internal helper used by $encUri:
   //   m => $uriMap[m]
-  $uriFn: 1,
+  "$uriFn",
 
   // URI encode regexp — internal regexp used by $encUri:
   //   /[!')(*]/g
-  $uriReg: 1,
+  "$uriReg",
 
   // Quote encoder: v => $strSafe(v).replace(/['"\\]/g, '\\$&')
   // Escapes quotes and backslashes for safe embedding in HTML attribute
   // values (e.g. data-json='...').
-  $encQuote: 1,
+  "$encQuote",
 
   // Quote encode regexp — internal regexp used by $encQuote:
   //   /['"\\]/g
-  $qReg: 1,
+  "$qReg",
 
   // View ID — the unique identifier of the owning View instance.
   // Injected into @event attribute values at render time so that
   // EventDelegator can dispatch events to the correct View handler.
   // The \x1f placeholder in compiled output is replaced with '+$viewId+'.
-  $viewId: 1,
+  "$viewId",
 
   // Debug: current expression text — stores the template expression being
   // evaluated, for error reporting. Only present in debug mode.
   // e.g. $dbgExpr='<%=user.name%>'
-  $dbgExpr: 1,
+  "$dbgExpr",
 
   // Debug: original art syntax — stores the {{}} template syntax before
   // conversion, for error reporting. Only present in debug mode.
   // e.g. $dbgArt='{{=user.name}}'
-  $dbgArt: 1,
+  "$dbgArt",
 
   // Debug: source line number — tracks the current line in the template
   // source, for error reporting. Only present in debug mode.
-  $dbgLine: 1,
+  "$dbgLine",
 
   // RefData alias — fallback reference lookup table.
   // Defaults to $data when no explicit $refAlt is provided.
   // Ensures $refFn() does not crash when @ operator is used without refData.
-  $refAlt: 1,
+  "$refAlt",
 
   // Temporary variable — used by the compiler for intermediate
   // expression results in generated code (e.g. loop variables,
   // conditional branches). Declared as: let $tmp
-  $tmp: 1,
-  // JS literals
-  undefined: 1,
-  null: 1,
-  true: 1,
-  false: 1,
-  NaN: 1,
-  Infinity: 1,
-  // JS built-in globals
-  window: 1,
-  self: 1,
-  globalThis: 1,
-  document: 1,
-  console: 1,
-  JSON: 1,
-  Math: 1,
-  Intl: 1,
-  Promise: 1,
-  Symbol: 1,
-  Number: 1,
-  String: 1,
-  Boolean: 1,
-  Array: 1,
-  Object: 1,
-  Date: 1,
-  RegExp: 1,
-  Error: 1,
-  TypeError: 1,
-  RangeError: 1,
-  SyntaxError: 1,
-  Map: 1,
-  Set: 1,
-  WeakMap: 1,
-  WeakSet: 1,
-  Proxy: 1,
-  Reflect: 1,
-  ArrayBuffer: 1,
-  DataView: 1,
-  Float32Array: 1,
-  Float64Array: 1,
-  Int8Array: 1,
-  Int16Array: 1,
-  Int32Array: 1,
-  Uint8Array: 1,
-  Uint16Array: 1,
-  Uint32Array: 1,
-  Uint8ClampedArray: 1,
-  // Functions
-  parseInt: 1,
-  parseFloat: 1,
-  isNaN: 1,
-  isFinite: 1,
-  encodeURIComponent: 1,
-  decodeURIComponent: 1,
-  encodeURI: 1,
-  decodeURI: 1,
-  // Babel helpers
-  arguments: 1,
-  this: 1,
-  require: 1,
-  // Lark framework
-  Lark: 1,
-};
+  "$tmp",
 
-/** Set version for O(1) lookup */
-const BUILTIN_GLOBAL_SET = new Set(Object.keys(BUILTIN_GLOBALS));
+  // JS literals
+  "undefined",
+  "null",
+  "true",
+  "false",
+  "NaN",
+  "Infinity",
+
+  // JS built-in globals
+  "window",
+  "self",
+  "globalThis",
+  "document",
+  "console",
+  "JSON",
+  "Math",
+  "Intl",
+  "Promise",
+  "Symbol",
+  "Number",
+  "String",
+  "Boolean",
+  "Array",
+  "Object",
+  "Date",
+  "RegExp",
+  "Error",
+  "TypeError",
+  "RangeError",
+  "SyntaxError",
+  "Map",
+  "Set",
+  "WeakMap",
+  "WeakSet",
+  "Proxy",
+  "Reflect",
+  "ArrayBuffer",
+  "DataView",
+  "Float32Array",
+  "Float64Array",
+  "Int8Array",
+  "Int16Array",
+  "Int32Array",
+  "Uint8Array",
+  "Uint16Array",
+  "Uint32Array",
+  "Uint8ClampedArray",
+
+  // Functions
+  "parseInt",
+  "parseFloat",
+  "isNaN",
+  "isFinite",
+  "encodeURIComponent",
+  "decodeURIComponent",
+  "encodeURI",
+  "decodeURI",
+
+  // Babel helpers
+  "arguments",
+  "this",
+  "require",
+
+  // Lark framework
+  "Lark",
+]);
