@@ -275,10 +275,3 @@ export function bindStore<T extends Record<string, unknown>>(
 
   return off;
 }
-
-// ---- Deprecated aliases for migration --------------------------------------
-
-/**
- * @deprecated Use `create()` instead. This is a temporary alias.
- */
-export const defineStore = create;

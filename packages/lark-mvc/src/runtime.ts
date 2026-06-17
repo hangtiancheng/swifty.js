@@ -7,66 +7,36 @@
  *
  * The helpers below are aliased to `$strSafe / $encHtml / $encUri / $encQuote /
  * $refFn` inside the IIFE that the compiler produces — see `compiler.ts`.
+ *
+ * Canonical implementations live in `./constants` so that dom.ts, runtime.ts,
+ * and updater.ts all share a single copy.
  */
 
-const HTML_ENT_MAP: Record<string, string> = {
-  "&": "amp",
-  "<": "lt",
-  ">": "gt",
-  '"': "#34",
-  "'": "#39",
-  "`": "#96",
-};
-
-const HTML_ENT_REGEXP = /[&<>"`']/g;
+import {
+  encodeSafe,
+  encodeHTML,
+  encodeURIExtra,
+  encodeQ,
+  refFn,
+} from "./constants";
 
 /** Null-safe `String(value)` — `null`/`undefined` become `""`. */
-export const strSafe = (v: unknown): string => "" + (v == null ? "" : v);
+export const strSafe = encodeSafe;
 
 /** HTML-escape a value for safe embedding in markup. */
-export const encHtml = (v: unknown): string =>
-  strSafe(v).replace(HTML_ENT_REGEXP, (m) => "&" + HTML_ENT_MAP[m] + ";");
-
-const URI_ENT_MAP: Record<string, string> = {
-  "!": "%21",
-  "'": "%27",
-  "(": "%28",
-  ")": "%29",
-  "*": "%2A",
-};
-
-const URI_ENT_REGEXP = /[!')(*]/g;
+export const encHtml = encodeHTML;
 
 /** Percent-encode a value, with extra characters escaped for stricter URIs. */
-export const encUri = (v: unknown): string =>
-  encodeURIComponent(strSafe(v)).replace(URI_ENT_REGEXP, (m) => URI_ENT_MAP[m]);
-
-const QUOTE_REGEXP = /['"\\]/g;
+export const encUri = encodeURIExtra;
 
 /** Backslash-escape quotes and backslashes for attribute string contents. */
-export const encQuote = (v: unknown): string =>
-  strSafe(v).replace(QUOTE_REGEXP, "\\$&");
+export const encQuote = encodeQ;
 
 /**
  * Look up (or assign) a stable refData token for an object value.
  *
  * Templates use `{{@expr}}` to pass live JS values (objects/functions) through
  * the DOM by writing the token into an attribute, then resolving it back to
- * the original value when the event fires. `refData[SPLITTER]` holds the
- * monotonic counter; `refData[SPLITTER + n]` holds the slot.
+ * the original value when the event fires.
  */
-export const refFn = (
-  ref: Record<string, unknown>,
-  value: unknown,
-  key: string,
-): string => {
-  const SPLITTER = String.fromCharCode(0x1e);
-  const counter = ref[SPLITTER] as number;
-  for (let i = counter; --i; ) {
-    key = SPLITTER + i;
-    if (ref[key] === value) return key;
-  }
-  key = SPLITTER + (ref[SPLITTER] as number)++;
-  ref[key] = value;
-  return key;
-};
+export { refFn };

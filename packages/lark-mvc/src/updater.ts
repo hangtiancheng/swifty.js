@@ -19,7 +19,7 @@ import {
   EMPTY_STRING_SET,
 } from "./utils";
 import { safeguard } from "./safeguard";
-import { SPLITTER } from "./constants";
+import { SPLITTER, isRefToken, refFn } from "./constants";
 import { Frame } from "./frame";
 import {
   domGetNode,
@@ -37,28 +37,6 @@ import type { UpdaterInterface } from "./types";
 /** RefData stores the counter under the SPLITTER key. */
 interface RefData extends Record<string, unknown> {
   [SPLITTER]: number;
-}
-
-/**
- * Template reference function for creating stable keys for objects.
- * Stores objects in refData with SPLITTER-prefixed keys.
- */
-function updaterRef(
-  refDataIn: Record<string, unknown>,
-  value: unknown,
-  key: string,
-): string {
-  const refData = refDataIn as RefData;
-  const counter = refData[SPLITTER];
-  for (let i = counter; --i; ) {
-    key = SPLITTER + i;
-    if (refData[key] === value) {
-      return key;
-    }
-  }
-  key = SPLITTER + refData[SPLITTER]++;
-  refData[key] = value as number;
-  return key;
 }
 
 // ============================================================
@@ -206,7 +184,7 @@ export class Updater implements UpdaterInterface {
           encodeHTML,
           encodeSafe,
           encodeURIExtra,
-          updaterRef,
+          refFn,
           encodeQ,
         );
 
@@ -274,17 +252,12 @@ export class Updater implements UpdaterInterface {
    * Translate a refData reference back to its original value.
    *
    * The ref protocol is `SPLITTER` + ascii decimal digits — the exact format
-   * emitted by `updaterRef`. We require that exact shape so a user-supplied
+   * emitted by `refFn`. We require that exact shape so a user-supplied
    * string that merely begins with SPLITTER is never accidentally resolved
    * (or mishandled as a "missing ref").
    */
   translate(data: unknown): unknown {
-    if (typeof data !== "string") return data;
-    if (data.length < 2 || data[0] !== SPLITTER) return data;
-    for (let i = 1; i < data.length; i++) {
-      const c = data.charCodeAt(i);
-      if (c < 48 || c > 57) return data; // not 0-9
-    }
+    if (typeof data !== "string" || !isRefToken(data)) return data;
     return hasOwnProperty(this.refData, data) ? this.refData[data] : data;
   }
 

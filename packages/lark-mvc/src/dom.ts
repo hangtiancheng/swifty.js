@@ -9,6 +9,10 @@ import {
   MATH_NS,
   TAG_NAME_REGEXP,
   LARK_VIEW,
+  encodeHTML,
+  encodeSafe,
+  encodeURIExtra,
+  encodeQ,
 } from "./constants";
 import { parseUri } from "./utils";
 import type { DomRef, DomOp, DomElement, FrameInterface } from "./types";
@@ -416,54 +420,7 @@ export function applyIdUpdates(updates: [Element, string][]): void {
 }
 
 // ============================================================
-// Template encoding helpers
+// Template encoding helpers (canonical definitions in constants.ts)
 // ============================================================
 
-const EncoderMap: Record<string, string> = {
-  "&": "amp",
-  "<": "lt",
-  ">": "gt",
-  '"': "#34",
-  "'": "#39",
-  "`": "#96",
-};
-
-const ENCODE_REGEXP = /[&<>"'`]/g;
-
-/** Encode value for safe HTML output */
-export function encodeHTML(v: unknown): string {
-  return String(v == null ? "" : v).replace(
-    ENCODE_REGEXP,
-    (m: string) => "&" + EncoderMap[m] + ";",
-  );
-}
-
-/** Safe string conversion */
-export function encodeSafe(v: unknown): string {
-  return String(v == null ? "" : v);
-}
-
-const URIMap: Record<string, string> = {
-  "!": "%21",
-  "'": "%27",
-  "(": "%28",
-  ")": "%29",
-  "*": "%2A",
-};
-
-const URI_ENCODE_REGEXP = /[!')(*]/g;
-
-/** URI-encode a value with extra character encoding */
-export function encodeURIExtra(v: unknown): string {
-  return encodeURIComponent(encodeSafe(v)).replace(
-    URI_ENCODE_REGEXP,
-    (m: string) => URIMap[m],
-  );
-}
-
-const QUOTE_REGEXP = /['"\\]/g;
-
-/** Quote-encode a value for attribute use */
-export function encodeQ(v: unknown): string {
-  return encodeSafe(v).replace(QUOTE_REGEXP, "\\$&");
-}
+export { encodeHTML, encodeSafe, encodeURIExtra, encodeQ };

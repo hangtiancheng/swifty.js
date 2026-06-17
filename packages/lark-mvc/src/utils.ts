@@ -2,7 +2,12 @@
  * Lark framework utility functions.
  */
 
-import { SPLITTER, URL_QUERY_HASH_REGEXP, URL_PARAM_REGEXP } from "./constants";
+import {
+  URL_QUERY_HASH_REGEXP,
+  URL_PARAM_REGEXP,
+  IS_URL_PARAMS,
+  isRefToken,
+} from "./constants";
 import type { AnyFunc, ParsedUri } from "./types";
 
 // ============================================================
@@ -150,18 +155,10 @@ export function setData(
  * Translate compiled refData references back to their original values.
  *
  * A reference token has the exact shape `SPLITTER + ascii decimal digits`
- * (as emitted by `updaterRef`). This shape check ensures user data that
+ * (as emitted by `refFn`). This shape check ensures user data that
  * merely happens to begin with the SPLITTER character is never mistaken
  * for a ref.
  */
-function isRefToken(s: string): boolean {
-  if (s.length < 2 || s[0] !== SPLITTER) return false;
-  for (let i = 1; i < s.length; i++) {
-    const c = s.charCodeAt(i);
-    if (c < 48 || c > 57) return false;
-  }
-  return true;
-}
 
 export function translateData(data: object, value: unknown): unknown {
   if (isPrimitive(value)) {
@@ -201,11 +198,11 @@ export function getAttribute(element: Element, attr: string): string {
 }
 
 /** Ensure element has an ID, generating one if missing. Returns the ID. */
-export function ensureElementId(element: HTMLElement): string {
+export function ensureElementId(element: HTMLElement, prefix?: string): string {
   const id = element.getAttribute("id");
   if (id) return id;
   element.autoId = 1;
-  const newId = generateId();
+  const newId = generateId(prefix);
   element.id = newId;
   return newId;
 }
@@ -259,13 +256,6 @@ export function parseUri(uri: string): ParsedUri {
     });
   return { path: actualPath, params };
 }
-
-/** Lazy-init regexp to avoid top-level control character issues */
-const IS_URL_PARAMS = {
-  test(s: string): boolean {
-    return /(?!^)=|&/.test(s);
-  },
-};
 
 /**
  * Convert path and params to URI string.

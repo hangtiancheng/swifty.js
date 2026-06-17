@@ -1,37 +1,12 @@
 /**
  * Lark Framework - barrel export.
- * Re-exports all public modules for convenient access.
+ * Re-exports public API modules for convenient access.
  */
-
-// Core utilities
-export {
-  noop,
-  hasOwnProperty,
-  assign,
-  keys,
-  generateId,
-  syncCounter,
-  funcWithTry,
-  setData,
-  translateData,
-  getById,
-  ensureElementId,
-  nodeInside,
-  parseUri,
-  toUri,
-  toMap,
-  now,
-  isPlainObject,
-  isPrimitiveOrFunc,
-  isPrimitive,
-  getAttribute,
-} from "./utils";
 
 // Constants
 export {
   SPLITTER,
   LARK_VIEW,
-  // LARK_KEYS,
   TAG_NAME_REGEXP,
   CALL_BREAK_TIME,
   EVENT_METHOD_REGEXP,
@@ -70,24 +45,6 @@ export { config as frameworkConfig, use } from "./module-loader";
 // CrossSite (micro-frontend bridge View)
 export { default as CrossSite, resetProjectsMap } from "./cross-site";
 
-// DOM diff engine
-export {
-  domUnmountFrames,
-  domGetNode,
-  domGetCompareKey,
-  domSpecialDiff,
-  domSetAttributes,
-  domSetChildNodes,
-  domSetNode,
-  createDomRef,
-  applyDomOps,
-  applyIdUpdates,
-  encodeHTML,
-  encodeSafe,
-  encodeURIExtra,
-  encodeQ,
-} from "./dom";
-
 // Updater (per-view data binding)
 export { Updater } from "./updater";
 
@@ -96,7 +53,6 @@ export { View, defineView } from "./view";
 
 // Service + Payload (API request management)
 export { Service, Payload } from "./service";
-// export type { ServiceConstructor } from "./service";
 
 // EventDelegator (DOM event delegation)
 export { EventDelegator } from "./event-delegator";
@@ -108,7 +64,7 @@ export { Framework } from "./framework";
 export { useUrlState } from "./url-state";
 
 // Store (zustand-aligned state management)
-export { create, computed, bindStore, defineStore } from "./store";
+export { create, computed, bindStore } from "./store";
 export type { StoreApi } from "./store";
 
 // Frame Visualizer Bridge (devtools postMessage bridge)
@@ -123,9 +79,6 @@ export type {
   SerializedFrameTree,
   SerializedViewInfo,
 } from "./frame-visual";
-
-// Template compiler
-// export { compileTemplate, extractGlobalVars } from "./compiler";
 
 // Types (re-exported for consumer convenience)
 export * from "./types";

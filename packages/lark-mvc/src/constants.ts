@@ -3,7 +3,7 @@
  */
 
 /** Global counter for generating unique IDs */
-export let globalCounter = 0;
+let globalCounter = 0;
 
 /** Internal splitter character (U+001E Record Separator, invisible, used as namespace separator).
  * Uses String.fromCharCode to survive bundlers that strip control-char literals. */
@@ -54,19 +54,96 @@ export const MATH_NS = "http://www.w3.org/1998/Math/MathML";
 /** Tag name regexp for I_GetNode */
 export const TAG_NAME_REGEXP = /<([a-z][^/\0>\x20\t\r\n\f]+)/i;
 
-/** HTML entity encode regexp */
-export const ENCODE_REGEXP = /[&<>"'`]/g;
-
-/** URI encode regexp */
-export const URI_ENCODE_REGEXP = /[!')(*]/g;
-
-/** Quote encode regexp */
-export const QUOTE_ENCODE_REGEXP = /['"\\]/g;
-
 /** Async task break time (ms) */
 export const CALL_BREAK_TIME = 48;
 
 /** Increment global counter and return new value */
 export function nextCounter(): number {
   return ++globalCounter;
+}
+
+// ============================================================
+// Encoding helpers (shared by dom.ts, runtime.ts, updater.ts)
+// ============================================================
+
+const HTML_ENT_MAP: Record<string, string> = {
+  "&": "amp",
+  "<": "lt",
+  ">": "gt",
+  '"': "#34",
+  "'": "#39",
+  "`": "#96",
+};
+
+const HTML_ENT_REGEXP = /[&<>"'`]/g;
+
+/** Null-safe String conversion */
+export function encodeSafe(v: unknown): string {
+  return String(v == null ? "" : v);
+}
+
+/** HTML entity encoding for safe output */
+export function encodeHTML(v: unknown): string {
+  return String(v == null ? "" : v).replace(
+    HTML_ENT_REGEXP,
+    (m: string) => "&" + HTML_ENT_MAP[m] + ";",
+  );
+}
+
+const URI_ENT_MAP: Record<string, string> = {
+  "!": "%21",
+  "'": "%27",
+  "(": "%28",
+  ")": "%29",
+  "*": "%2A",
+};
+
+const URI_ENT_REGEXP = /[!')(*]/g;
+
+/** URI-encode with extra character encoding */
+export function encodeURIExtra(v: unknown): string {
+  return encodeURIComponent(encodeSafe(v)).replace(
+    URI_ENT_REGEXP,
+    (m: string) => URI_ENT_MAP[m],
+  );
+}
+
+const QUOTE_ENT_REGEXP = /['"\\]/g;
+
+/** Quote-encode for attribute values */
+export function encodeQ(v: unknown): string {
+  return encodeSafe(v).replace(QUOTE_ENT_REGEXP, "\\$&");
+}
+
+/**
+ * Template reference function for creating stable keys for objects.
+ * Stores objects in refData with SPLITTER-prefixed keys.
+ */
+export function refFn(
+  ref: Record<string, unknown>,
+  value: unknown,
+  key: string,
+): string {
+  const counter = ref[SPLITTER] as number;
+  for (let i = counter; --i; ) {
+    key = SPLITTER + i;
+    if (ref[key] === value) return key;
+  }
+  key = SPLITTER + (ref[SPLITTER] as number)++;
+  ref[key] = value;
+  return key;
+}
+
+/**
+ * Check if a string is a refData reference token: SPLITTER followed by
+ * one or more ASCII decimal digits. Used by utils.ts translateData and
+ * updater.ts translate.
+ */
+export function isRefToken(s: string): boolean {
+  if (s.length < 2 || s[0] !== SPLITTER) return false;
+  for (let i = 1; i < s.length; i++) {
+    const c = s.charCodeAt(i);
+    if (c < "0".charCodeAt(0) || c > "9".charCodeAt(0)) return false;
+  }
+  return true;
 }

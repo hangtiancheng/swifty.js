@@ -1110,7 +1110,6 @@ Events are stored in a `Map<string, EventListenerEntry[]>` where keys are prefix
 - `Frame.getAll()` -- registry as `Map<string, Frame>`.
 - `Frame.getRoot()` -- current root or `undefined`.
 - `Frame.createRoot(id)` -- create root (idempotent; ignores `id` after first creation).
-- `Frame.root(id)` -- `@deprecated` alias to `createRoot`.
 - `frame.invoke(name, args?)` -- call a method on the frame's view. If the view isn't yet rendered, the call is deferred until render via `invokeList`.
 - `frame.invokeTyped<V, K>(name, args)` -- type-safe variant; carries the view's method signature through TS.
 - `frame.children()` -- array of child Frame ids (order is not stable).
@@ -1203,31 +1202,6 @@ Both produce compiled `.html` modules that import their runtime helpers from `@l
 30. **`capture` with one argument is a getter** -- `this.capture("key")` returns the previously captured resource, not undefined. Only `this.capture("key", resource, destroyOnRender)` stores.
 31. **`View.prepare` runs once per class** -- guarded by `makes` marker on the constructor. Calling it twice is a no-op. This is why mixin event maps are frozen after first mount.
 32. **EventEmitter is re-entrant safe** -- `off()` during `fire()` defers removal until all nested `fire()` calls complete. Handlers replaced with `noop` are compacted when `firingDepth` returns to 0.
-
-## Migration notes (recent API changes)
-
-- **Store rewrite (zustand-aligned)**:
-  - `defineStore(name, (store) => body)` is replaced by `create(name, (set, get) => body)`. `defineStore` is kept as a deprecated alias.
-  - `store.key = value` (Proxy write) is replaced by `set({ key: value })`.
-  - `store.key` (Proxy read in actions) is replaced by `get().key`.
-  - `useStore(view)` + `store.observe(view, keys?)` is replaced by `bindStore(view, store, selector?)`.
-  - `useStore()` (read-only) is replaced by `store.getState()`.
-  - `useStore().action()` is replaced by `store.getState().action()`.
-  - `store.observe(undefined, keys, cb)` (inner observe) is replaced by `store.subscribe((state, prev) => ...)`.
-  - `useStore.$destroyFn()` is replaced by `store.destroy()`.
-  - Removed: `multi()`, `cell()`, `observeCell()`, `cloneStore()`, `getStore()`, `delStore()`, `getUseStore()`, `isStoreActive()`, `createState()`, `shallowSet()`, `lazySet()`, `cloneData()`, `isState()`, `storeMark`, `storeUnmark`, `getPlatform`, `Platform`, `StoreConfig`, `ObservePayload`, `StoreMethods`, `LarkUseStore`, `ReactUseStore`, `NodeUseStore`.
-- **Router: history mode support**:
-  - `FrameworkConfig.routeMode` added (`"history"` default, `"hash"` opt-in).
-  - In history mode, path comes from `window.location.pathname`, params from search query.
-  - `useUrlState(view, initialState?)` added for syncing view state with URL query parameters.
-- `ChangeEvent.keys` is now `ReadonlySet<string>` (was `Record<string, 1>`). Use `keys.has("foo")` instead of `keys.foo`. Affects `State.on("changed")` handlers and `view.observeState` callbacks.
-- `StateInterface.diff()` returns `ReadonlySet<string>`.
-- `Framework.toUrl(path, params, keepEmpty?)` -- `keepEmpty` is now `Set<string>` (was `Record<string, number>`).
-- `Updater.set/digest`, `State.set/digest`, and `setData` take `excludes?: ReadonlySet<string>` (was `Set<string>`).
-- `Frame.root(id)` is `@deprecated`. Use `Frame.getRoot()` for reads, `Frame.createRoot(id)` for the explicit singleton creation, or `new Frame(id)` for independent mounts.
-- `Updater.parse` no longer eval -- only safe path/literal resolution. Migrate to a small helper function if you needed expression eval.
-- `mark.ts` no longer writes magic keys onto host objects -- it uses a module-level `WeakMap`. Works on frozen objects.
-- `Cache.del` now splices immediately (was leaving tombstones until the next eviction).
 
 ## References
 

@@ -8,12 +8,12 @@ import { SPLITTER, LARK_VIEW } from "./constants";
 import {
   hasOwnProperty,
   parseUri,
-  generateId,
   getAttribute,
   funcWithTry,
   noop,
   assign,
   translateData,
+  ensureElementId,
 } from "./utils";
 import { EventEmitter } from "./event-emitter";
 import { unmark } from "./mark";
@@ -419,7 +419,7 @@ export class Frame extends EventEmitter implements FrameInterface {
     viewElements.forEach((el) => {
       if (!(el instanceof HTMLElement)) return;
       if (htmlElIsBound(el)) return;
-      const elId = ensureElementId(el);
+      const elId = ensureElementId(el, "frame_");
       el.frameBound = 1;
       const viewPath = getAttribute(el, LARK_VIEW);
       frames.push([elId, viewPath]);
@@ -622,15 +622,6 @@ function htmlElIsBound(element: HTMLElement): boolean {
   return !!element.frameBound;
 }
 
-/** Ensure element has an ID, generating one if missing */
-function ensureElementId(element: HTMLElement): string {
-  const id = element.getAttribute("id");
-  if (id) return id;
-  element.autoId = 1;
-  const newId = generateId("frame_");
-  element.id = newId;
-  return newId;
-}
 
 /** Remove frame from registry */
 function removeFrame(id: string, wasCreated: boolean): void {

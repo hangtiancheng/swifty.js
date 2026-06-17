@@ -927,28 +927,6 @@ The `lark-visual` sub-project in this repository is the paired visual DevTools t
 19. MF view paths use the remote project name as prefix: `v-lark="remote-app/views/home"` triggers async loading via `FrameworkConfig.require` when unregistered; `@lark.js/mvc` must be `singleton: true`.
 20. `splitChunks.chunks` must be `"async"` in MF projects: `"all"` breaks shared scope initialization.
 
-## Recent API Changes
-
-- Store rewrite (zustand-style):
-  - `defineStore(name, (store) => body)` replaced by `create(name, (set, get) => body)`. `defineStore` retained as deprecated alias.
-  - `store.key = value` (Proxy write) replaced by `set({ key: value })`.
-  - `store.key` reads in actions replaced by `get().key`.
-  - `useStore(view)` + `store.observe(view, keys?)` replaced by `bindStore(view, store, selector?)`.
-  - `useStore()` (read-only access) replaced by `store.getState()`.
-  - `store.observe(undefined, keys, cb)` (internal reaction) replaced by `store.subscribe((state, prev) => ...)`.
-  - Removed: `multi()`, `cell()`, `observeCell()`, `cloneStore()`, `getStore()`, `delStore()`, `getUseStore()`, `isStoreActive()`, `createState()`, `shallowSet()`, `lazySet()`, `cloneData()`, `isState()`, `storeMark`, `storeUnmark`, `getPlatform`, `Platform`, `StoreConfig`, `ObservePayload`, `StoreMethods`, `LarkUseStore`, `ReactUseStore`, `NodeUseStore`.
-- Router history mode support:
-  - Added `FrameworkConfig.routeMode` (`"history"` default, `"hash"` optional).
-  - In history mode, path comes from `window.location.pathname`, params from search query string.
-  - Added `useUrlState(view, initialState?)` for URL parameter state sync.
-- `ChangeEvent.keys` changed to `ReadonlySet<string>` (was `Record<string, 1>`). Use `keys.has("foo")` instead of `keys.foo`.
-- `StateInterface.diff()` returns `ReadonlySet<string>`.
-- `Updater.set/digest`, `State.set/digest`, `setData` `excludes?` changed to `ReadonlySet<string>` (was `Set<string>`).
-- `Frame.root(id)` `@deprecated`. Read via `Frame.getRoot()`, create singleton via `Frame.createRoot(id)`, independent mount via `new Frame(id)`.
-- `Updater.parse` no longer evals; only supports safe paths and literals.
-- `mark.ts` no longer writes magic keys to host objects; uses module-level `WeakMap`, works on `Object.freeze`d objects.
-- `Cache.del` immediately removes from `entries` array and `lookup` Map (previously left tombstones until next eviction).
-
 ## Comparison with Vue 3 / React 19
 
 ### vs Vue 3
