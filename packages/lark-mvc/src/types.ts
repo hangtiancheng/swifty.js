@@ -1362,7 +1362,7 @@ export interface FrameworkInterface {
 
 /**
  * Framework configuration interface, global config passed to app during `Framework.boot()`.
- * All config items can be accessed at runtime via `Framework.config('key')`.
+ * All config items can be accessed at runtime via `Framework.getConfig('key')`.
  */
 export interface FrameworkConfig {
   /**

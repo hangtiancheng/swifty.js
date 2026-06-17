@@ -136,7 +136,7 @@ describe("Frame", () => {
       el.id = "app-root";
       document.body.appendChild(el);
 
-      const root = Frame.root("app-root");
+      const root = Frame.createRoot("app-root");
 
       expect(root.id).toBe("app-root");
       expect(Frame.get("app-root")).toBe(root);
@@ -146,8 +146,8 @@ describe("Frame", () => {
     });
 
     it("multiple calls return same root instance", () => {
-      const root1 = Frame.root("root-same");
-      const root2 = Frame.root("root-same");
+      const root1 = Frame.createRoot("root-same");
+      const root2 = Frame.createRoot("root-same");
 
       expect(root1).toBe(root2);
 
@@ -167,12 +167,6 @@ describe("Frame", () => {
       // getRoot is a pure read: never creates, returns the same singleton.
       const peek = Frame.getRoot();
       expect(peek).toBe(a);
-    });
-
-    it("deprecated root() still works and delegates to createRoot", () => {
-      const r = Frame.root("d2-root-c");
-      const peek = Frame.getRoot();
-      expect(peek).toBe(r);
     });
   });
 

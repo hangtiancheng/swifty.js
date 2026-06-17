@@ -45,8 +45,8 @@ registerViewClass("components/counter-updater", CounterUpdaterComponent);
  * 2. Registers view classes with MF-prefixed names
  * 3. Creates an independent Frame and mounts the Counter view
  *
- * IMPORTANT: We use `new Frame(containerId)` instead of `Frame.root()`
- * because `Frame.root()` is a singleton — it returns the same rootFrame
+ * IMPORTANT: We use `new Frame(containerId)` instead of `Frame.createRoot()`
+ * because `Frame.createRoot()` is a singleton — it returns the same rootFrame
  * on every call, ignoring the rootId parameter after first creation.
  * Using `new Frame()` ensures each mount gets its own Frame, allowing
  * multiple containers to render independently (e.g., mf-demo and sf-cdn-demo).
@@ -75,7 +75,7 @@ export function mountCounter(container: HTMLElement): () => void {
   Reflect.set(State, "_booted", true);
 
   // Create an INDEPENDENT Frame for this container.
-  // Do NOT use Frame.root() — it is a singleton that always returns the
+  // Do NOT use Frame.createRoot() — it is a singleton that always returns the
   // first-created rootFrame, making all subsequent mounts render into the
   // first container instead of their own.
   const frame = new Frame(containerId);

@@ -595,18 +595,6 @@ export class Frame extends EventEmitter implements FrameInterface {
     return rootFrame;
   }
 
-  /**
-   * @deprecated Use `Frame.getRoot()` for read-only access or
-   * `Frame.createRoot(id)` to create the root explicitly. The single-method
-   * `root()` blurred the distinction and was a common source of bugs in
-   * Micro-Frontend hosts.
-   *
-   * Kept for backward compatibility — behavior unchanged.
-   */
-  static root(rootId?: string): Frame {
-    return Frame.createRoot(rootId);
-  }
-
   /** Bind event listener (static) */
   static on(event: string, handler: AnyFunc): typeof Frame {
     staticEmitter.on(event, handler);

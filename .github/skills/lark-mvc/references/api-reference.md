@@ -57,15 +57,6 @@ Framework.setConfig<T extends object = Partial<FrameworkConfig>>(
 ): FrameworkConfig & T
 ```
 
-### Framework.config(...) _(deprecated)_
-
-Combined getter/setter overload. Kept for backward compatibility; prefer `getConfig` and `setConfig`.
-
-```ts
-Framework.config(cfg?: FrameworkConfig): FrameworkConfig
-Framework.config(key: string): unknown
-```
-
 ### Framework.isBooted()
 
 ```ts

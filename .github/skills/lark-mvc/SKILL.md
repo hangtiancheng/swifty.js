@@ -620,7 +620,7 @@ interface FrameworkConfig {
 }
 ```
 
-After boot, prefer `Framework.getConfig(key)` for reads and `Framework.setConfig(patch)` for writes. The older `Framework.config(...)` overload still works but is `@deprecated`.
+After boot, prefer `Framework.getConfig(key)` for reads and `Framework.setConfig(patch)` for writes.
 
 ## Router
 
@@ -1001,16 +1001,15 @@ new ModuleFederationPlugin({
 
 If `chunks: "all"` extracts `@lark.js/mvc` into a separate vendor chunk, the MF shared scope initialization fails -- `remoteEntry.js` needs `@lark.js/mvc` synchronously available in the initial entry chunk. With `chunks: "async"`, shared singletons stay in the entry chunk and `window.<remote_name>` is set correctly.
 
-### `Frame.root()` vs `new Frame()` for MF
+### `Frame.createRoot()` vs `new Frame()` for MF
 
-`Frame.root()` (and the newer `Frame.createRoot()`) is a singleton -- always returns the first root, ignoring later `id` arguments. For MF containers that need independent rendering contexts, use `new Frame(containerId)` directly so each mount owns its frame tree.
+`Frame.createRoot()` is a singleton -- always returns the first root, ignoring later `id` arguments. For MF containers that need independent rendering contexts, use `new Frame(containerId)` directly so each mount owns its frame tree.
 
-Use the new APIs (preferred):
+Use the following APIs:
 
 - `Frame.getRoot()` -- pure getter, returns `undefined` if not yet created.
 - `Frame.createRoot(id)` -- idempotent create (Framework.boot calls this).
 - `new Frame(containerId)` -- independent root for MF or for an embeddable widget.
-- `Frame.root(id)` -- `@deprecated` alias that delegates to `createRoot`.
 
 ### Exposed mount function pattern
 
@@ -1128,7 +1127,6 @@ Frame object pooling: destroyed Frame instances are pooled up to `MAX_FRAME_POOL
 - `Framework.boot(config)` -- start the app.
 - `Framework.getConfig()` / `Framework.getConfig(key)` -- read config.
 - `Framework.setConfig(patch)` -- merge into config; returns the merged result.
-- `Framework.config(...)` -- `@deprecated`; still works.
 - `Framework.isBooted()` -- boolean.
 - `Framework.use(names, callback?)` -- async View loader. Returns `Promise<unknown[]>` when no callback is passed.
 - `Framework.mark(host, key)` / `Framework.unmark(host)` -- async callback validity tracking. Stored in a module-level `WeakMap`, does NOT pollute the host object with magic keys.
@@ -1198,7 +1196,7 @@ Both produce compiled `.html` modules that import their runtime helpers from `@l
 23. **`Updater.parse` is path-only, no eval** -- it accepts dotted paths and numeric literals. `updater.parse("1 + 2")` returns `undefined`. CSP-safe by design.
 24. **`LarkInnerKeys` for DOM short-circuits** -- `ldk` skips the entire diff for static elements; `lak` skips attribute diff but still diffs children; `lvk` is an assign-optimization marker.
 25. **MF: `splitChunks.chunks` MUST be `"async"`** -- using `"all"` extracts `@lark.js/mvc` into a separate vendor chunk, breaking shared-scope initialization. The error surfaces as `ScriptExternalLoadError: Loading script failed (missing)`.
-26. **MF: `new Frame(containerId)` for independent contexts** -- `Frame.createRoot()` (and the deprecated `Frame.root()`) is a singleton that ignores later id arguments. Each MF mount needs its own `new Frame()`.
+26. **MF: `new Frame(containerId)` for independent contexts** -- `Frame.createRoot()` is a singleton that ignores later id arguments. Each MF mount needs its own `new Frame()`.
 27. **MF: remote must explicitly import CSS** -- Webpack bundles only CSS reachable from the exposed module's import graph. Without an `import "../index.css"` in the exposed entry, host pages won't receive utility classes used in the templates.
 28. **Sub-component `v-lark` paths must match exactly** -- template strings embed the paths at build time; renaming a `registerViewClass` path without updating the template breaks the load.
 29. **Dynamic `import()` shape is unknown** -- for chunk splitting, use a small `extractDefault()` helper to unwrap the ESM default, then cast with `as typeof View` (NOT `as any`).
@@ -1227,8 +1225,7 @@ Both produce compiled `.html` modules that import their runtime helpers from `@l
 - `Framework.toUrl(path, params, keepEmpty?)` -- `keepEmpty` is now `Set<string>` (was `Record<string, number>`).
 - `Updater.set/digest`, `State.set/digest`, and `setData` take `excludes?: ReadonlySet<string>` (was `Set<string>`).
 - `Frame.root(id)` is `@deprecated`. Use `Frame.getRoot()` for reads, `Frame.createRoot(id)` for the explicit singleton creation, or `new Frame(id)` for independent mounts.
-- `Framework.config(...)` is `@deprecated`. Use `Framework.getConfig(key?)` and `Framework.setConfig(patch)`.
-- `Updater.parse` no longer evals -- only safe path/literal resolution. Migrate to a small helper function if you needed expression eval.
+- `Updater.parse` no longer eval -- only safe path/literal resolution. Migrate to a small helper function if you needed expression eval.
 - `mark.ts` no longer writes magic keys onto host objects -- it uses a module-level `WeakMap`. Works on frozen objects.
 - `Cache.del` now splices immediately (was leaving tombstones until the next eviction).
 

@@ -30,22 +30,6 @@ describe("Framework", () => {
       // getConfig reads same store
       expect(Framework.getConfig("defaultPath")).toBe("/home");
     });
-
-    it("deprecated config() still works — read all", () => {
-      Framework.setConfig({ rootId: "set-config-test-3" });
-      const all = Framework.config();
-      expect(all.rootId).toBe("set-config-test-3");
-    });
-
-    it("deprecated config(key) still reads", () => {
-      Framework.setConfig({ rootId: "set-config-test-4" });
-      expect(Framework.config("rootId")).toBe("set-config-test-4");
-    });
-
-    it("deprecated config(patch) still writes", () => {
-      Framework.config({ rootId: "set-config-test-5" });
-      expect(Framework.getConfig("rootId")).toBe("set-config-test-5");
-    });
   });
 
   describe("isBooted", () => {
