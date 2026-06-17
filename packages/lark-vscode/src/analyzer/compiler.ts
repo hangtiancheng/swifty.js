@@ -39,12 +39,16 @@ import type {
   FunctionDeclaration,
   FunctionExpression,
   Identifier,
+  KeyValueProperty,
   MemberExpression,
+  MethodProperty,
   Param,
+  Pattern,
   Program,
   RestElement,
   VariableDeclarator,
 } from "@swc/core";
+import { logError } from "../logger.js";
 
 type ParseSyncFn = typeof import("@swc/core").parseSync;
 let parseSyncFn: ParseSyncFn | null = null;
@@ -56,8 +60,9 @@ async function getParser(): Promise<ParseSyncFn | null> {
     try {
       const swc = await import("@swc/core");
       parseSyncFn = swc.parseSync;
-    } catch {
+    } catch (err) {
       // SWC native binding not available — extractGlobalVars will fall back to regex
+      logError("Failed to load @swc/core", err);
     }
   }
   return parseSyncFn;
@@ -919,10 +924,10 @@ export async function extractGlobalVars(source: string): Promise<string[]> {
   )[] = [];
 
   // First pass: collect variable declarations and function scopes
-  walkAst(ast, {
+  walkSwcAst(ast, {
     VariableDeclarator(node: VariableDeclarator) {
       if (node.id.type === "Identifier") {
-        const name = (node.id as Identifier).value;
+        const name = node.id.value;
         // Mark as declared (value 3 = with init, 2 = without init)
         globalExists[name] = node.init ? 3 : 2;
       }
@@ -941,7 +946,7 @@ export async function extractGlobalVars(source: string): Promise<string[]> {
     },
     CallExpression(node: CallExpression) {
       if (node.callee.type === "Identifier") {
-        globalExists[(node.callee as Identifier).value] = 1; // treat as built-in/const
+        globalExists[node.callee.value] = 1; // treat as built-in/const
       }
     },
   });
@@ -972,7 +977,7 @@ export async function extractGlobalVars(source: string): Promise<string[]> {
   }
 
   // Second pass: collect all identifiers, determine which are global
-  walkAst(ast, {
+  walkSwcAst(ast, {
     Identifier(node: Identifier) {
       const name = node.value;
       // Skip if already known (declared, built-in, etc.)
@@ -1027,7 +1032,7 @@ function fallbackExtractVariables(source: string): string[] {
 /**
  * Simple AST walker that visits all nodes recursively.
  */
-function walkAst(
+function walkSwcAst(
   ast: Program,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   visitors: Record<string, (node: any) => void>,
@@ -1037,9 +1042,6 @@ function walkAst(
     if (visitors[type]) {
       visitors[type](node);
     }
-    // Recurse into child nodes. We treat the node as a string-indexable
-    // bag for traversal purposes; that's structurally what an AST node is.
-    const bag = node as unknown as Record<string, unknown>;
     for (const key of Object.keys(node)) {
       if (
         key === "type" ||
@@ -1059,26 +1061,22 @@ function walkAst(
       // Skip 'key' of non-computed KeyValueProperty
       // (e.g., {key: value} — 'key' is not a standalone variable).
       if (type === "KeyValueProperty" && key === "key") {
-        const propKey = (node as unknown as Record<string, { type: string }>)[
-          "key"
-        ];
-        if (propKey.type !== "Computed") continue;
+        const kv = node as unknown as KeyValueProperty;
+        if (kv.key.type !== "Computed") continue;
       }
       // Skip 'key' of non-computed MethodProperty
       // (e.g., {method() {}} — 'method' is not a standalone variable).
       if (type === "MethodProperty" && key === "key") {
-        const propKey = (node as unknown as Record<string, { type: string }>)[
-          "key"
-        ];
-        if (propKey.type !== "Computed") continue;
+        const mp = node as unknown as MethodProperty;
+        if (mp.key.type !== "Computed") continue;
       }
 
-      const child = bag[key];
+      const child = Reflect.get(node, key);
       if (Array.isArray(child)) {
         for (const item of child) {
-          if (isAstNode(item)) visit(item);
+          if (isSwcNode(item)) visit(item);
         }
-      } else if (isAstNode(child)) {
+      } else if (isSwcNode(child)) {
         visit(child);
       }
     }
@@ -1086,8 +1084,8 @@ function walkAst(
   visit(ast);
 }
 
-/** Type guard: is `v` an AST node (has a string `type` field)? */
-function isAstNode(v: unknown): v is { type: string } {
+/** Type guard: is `v` an SWC-style AST node (has a string `type` field)? */
+function isSwcNode(v: unknown): v is { type: string } {
   return (
     !!v &&
     typeof v === "object" &&

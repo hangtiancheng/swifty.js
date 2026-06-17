@@ -40,7 +40,7 @@ export class LarkDefinitionProvider implements vscode.DefinitionProvider {
     position: vscode.Position,
     line: string,
   ): Promise<vscode.Location | null> {
-    const vLarkResult = this.resolveVLark(document, line, position);
+    const vLarkResult = await this.resolveVLark(document, line, position);
     if (vLarkResult !== null) {
       return vLarkResult;
     }
@@ -53,12 +53,12 @@ export class LarkDefinitionProvider implements vscode.DefinitionProvider {
     return null;
   }
 
-  private resolveVLark(
+  private async resolveVLark(
     document: vscode.TextDocument,
     line: string,
     position: vscode.Position,
-  ): vscode.Location | null {
-    const analysis = analyzeTemplate(line);
+  ): Promise<vscode.Location | null> {
+    const analysis = await analyzeTemplate(line);
     if (analysis.viewRefs.length === 0) {
       return null;
     }
@@ -96,7 +96,7 @@ export class LarkDefinitionProvider implements vscode.DefinitionProvider {
     position: vscode.Position,
     line: string,
   ): Promise<vscode.Location | null> {
-    const analysis = analyzeTemplate(line);
+    const analysis = await analyzeTemplate(line);
     if (analysis.events.length === 0) {
       return null;
     }

@@ -22,6 +22,7 @@ import type {
   VariableDeclarator,
   KeyValueProperty,
   MethodProperty,
+  Program,
 } from "@swc/core";
 import { logError } from "../logger.js";
 import {
@@ -34,21 +35,21 @@ import {
 // ─── SWC parser (lazy-loaded, synchronous) ──────────────────────────────
 
 type ParseSyncFn = typeof import("@swc/core").parseSync;
-let parserSync: ParseSyncFn | null = null;
-let parserLoadAttempted = false;
+let parseSyncFn: ParseSyncFn | null = null;
+let parseSyncLoadAttempted = false;
 
-function getParserSync(): ParseSyncFn | null {
-  if (!parserLoadAttempted) {
-    parserLoadAttempted = true;
+async function getParser(): Promise<ParseSyncFn | null> {
+  if (!parseSyncLoadAttempted) {
+    parseSyncLoadAttempted = true;
     try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const swc = require("@swc/core") as typeof import("@swc/core");
-      parserSync = swc.parseSync;
-    } catch (error: unknown) {
-      logError("Failed to load @swc/core", error);
+      const swc = await import("@swc/core");
+      parseSyncFn = swc.parseSync;
+    } catch (err) {
+      // SWC native binding not available — extractGlobalVars will fall back to regex
+      logError("Failed to load @swc/core", err);
     }
   }
-  return parserSync;
+  return parseSyncFn;
 }
 
 // ─── Public API ───────────────────────────────────────────────────────────
@@ -56,23 +57,40 @@ function getParserSync(): ParseSyncFn | null {
 /**
  * Extract global variable names from a template source using AST analysis.
  *
+ * 1. Convert template commands (<% %> blocks) into a form parseable by an AST parser
+ * 2. Walk the AST to find all Identifier nodes
+ * 3. Track variable declarations (VariableDeclarator, FunctionDeclaration) as local vars
+ * 4. Track function parameters as local vars
+ * 5. Remaining identifiers that are not local and not in the exclusion list are "global" —
+ *    they must be passed in as part of the data context ($$)
+ *
+ * This replaces the old regex-based `extractVariables()` with proper scope analysis,
+ * eliminating false positives from local template variables and function parameters.
+ *
  * @param source - The raw HTML template content (with {{ }} syntax)
  * @returns Array of global variable names found in the template
  */
-export function extractGlobalVars(source: string): string[] {
+
+export async function extractGlobalVars(source: string): Promise<string[]> {
   // Step 1: Convert {{ }} art syntax to <% %> so we can analyze it
+  // (reuse the same pipeline as compilation, but without debug markers)
   const { protectedSource, comments: _comments } = protectComments(source);
   const viewEventProcessed = processViewEvents(protectedSource);
   const converted = convertArtSyntax(viewEventProcessed, false);
   const template = restoreComments(converted, _comments);
 
   // Step 2: Convert <% %> template commands into a JS-parsable form
+  //   - Replace HTML text between <% %> with unique placeholders
+  //   - Keep the JS code from <% %> blocks
+  //   - Wrap in backtick template literal for parsing
   const templateCmdRegExp = /<%([@=!:])?([\s\S]*?)%>|$/g;
   const fnParts: string[] = [];
   const htmlStore: Record<string, string> = {};
   let htmlIndex = 0;
   let lastIndex = 0;
   const htmlKey = String.fromCharCode(0x05);
+  // htmlHolderRegExp is used at restore time; kept for future template command analysis
+  // const htmlHolderRegExp = new RegExp(htmlKey + "\\d+" + htmlKey, "g");
 
   template.replace(
     templateCmdRegExp,
@@ -98,7 +116,7 @@ export function extractGlobalVars(source: string): string[] {
   fn = `(function(){${fn}})`;
 
   // Step 3: Parse with SWC
-  const parseSync = getParserSync();
+  const parseSync = await getParser();
   if (!parseSync) {
     return fallbackExtractVariables(source);
   }
@@ -120,7 +138,11 @@ export function extractGlobalVars(source: string): string[] {
   const globalVars: Record<string, number> = Object.create(null);
 
   // Track function nodes for scope analysis
-  const fnNodes: (FunctionDeclaration | FunctionExpression | ArrowFunctionExpression)[] = [];
+  const fnNodes: (
+    | FunctionDeclaration
+    | FunctionExpression
+    | ArrowFunctionExpression
+  )[] = [];
 
   // First pass: collect variable declarations and function scopes
   walkSwcAst(ast, {
@@ -142,7 +164,7 @@ export function extractGlobalVars(source: string): string[] {
     },
     CallExpression(node: CallExpression) {
       if (node.callee.type === "Identifier") {
-        globalExists[(node.callee as Identifier).value] = 1;
+        globalExists[node.callee.value] = 1; // treat as built-in/const
       }
     },
   });
@@ -154,9 +176,15 @@ export function extractGlobalVars(source: string): string[] {
     for (const pat of patterns) {
       if (pat.type === "Identifier") {
         functionParams[(pat as Identifier).value] = 1;
-      } else if (pat.type === "AssignmentPattern" && pat.left.type === "Identifier") {
+      } else if (
+        pat.type === "AssignmentPattern" &&
+        pat.left.type === "Identifier"
+      ) {
         functionParams[(pat.left as Identifier).value] = 1;
-      } else if (pat.type === "RestElement" && pat.argument.type === "Identifier") {
+      } else if (
+        pat.type === "RestElement" &&
+        pat.argument.type === "Identifier"
+      ) {
         functionParams[(pat.argument as Identifier).value] = 1;
       }
     }
@@ -166,14 +194,18 @@ export function extractGlobalVars(source: string): string[] {
   walkSwcAst(ast, {
     Identifier(node: Identifier) {
       const name = node.value;
+      // Skip if already known (declared, built-in, etc.)
       if (globalExists[name]) return;
+      // Skip function parameters
       if (functionParams[name]) return;
+      // This is a global variable that needs to be passed in
       globalVars[name] = 1;
     },
     AssignmentExpression(node: AssignmentExpression) {
       if (node.left.type === "Identifier") {
         const name = (node.left as Identifier).value;
         if (!globalExists[name] || globalExists[name] === 1) {
+          // Undeclared variable being assigned — mark as existing to avoid duplicate reports
           globalExists[name] = (globalExists[name] || 0) + 1;
         }
       }
@@ -200,6 +232,7 @@ function getParamPatterns(
 
 /**
  * Fallback regex-based variable extraction when AST parsing fails.
+ * Kept for robustness — handles malformed templates gracefully.
  */
 function fallbackExtractVariables(source: string): string[] {
   const vars = new Set<string>();
@@ -229,11 +262,11 @@ function fallbackExtractVariables(source: string): string[] {
  * Simple AST walker for SWC nodes.
  */
 function walkSwcAst(
-  ast: Module,
+  ast: Program,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   visitors: Record<string, (node: any) => void>,
 ): void {
-  function visit(node: Record<string, unknown>): void {
+  function visit(node: { type: string }): void {
     const type = node.type as string;
     if (visitors[type]) {
       visitors[type](node);
@@ -249,6 +282,7 @@ function walkSwcAst(
         if (me.property.type !== "Computed") continue;
       }
       // Skip non-computed KeyValueProperty.key
+      // (e.g., {key: value} — 'key' is not a standalone variable).
       if (type === "KeyValueProperty" && key === "key") {
         const kv = node as unknown as KeyValueProperty;
         if (kv.key.type !== "Computed") continue;
@@ -259,21 +293,21 @@ function walkSwcAst(
         if (mp.key.type !== "Computed") continue;
       }
 
-      const child = node[key];
+      const child = Reflect.get(node, key);
       if (Array.isArray(child)) {
         for (const item of child) {
-          if (isSwcNode(item)) visit(item as Record<string, unknown>);
+          if (isSwcNode(item)) visit(item);
         }
       } else if (isSwcNode(child)) {
-        visit(child as Record<string, unknown>);
+        visit(child);
       }
     }
   }
-  visit(ast as unknown as Record<string, unknown>);
+  visit(ast);
 }
 
 /** Type guard: is `v` an SWC-style AST node (has a string `type` field)? */
-function isSwcNode(v: unknown): boolean {
+function isSwcNode(v: unknown): v is { type: string } {
   return (
     !!v &&
     typeof v === "object" &&
@@ -281,33 +315,119 @@ function isSwcNode(v: unknown): boolean {
   );
 }
 
+
 // ─── Built-in globals exclusion list ───────────────────────────────────────
 
 /**
  * Built-in globals that should not be treated as template data variables.
  */
 const BUILTIN_GLOBALS = new Set([
-  // Template runtime helpers (injected by compileToFunction)
+  // ─── Template runtime helpers (injected by compileToFunction) ───────
+  //
+  // These variables appear in the generated template function signature
+  // or body. They must be excluded from extractGlobalVars() so that
+  // they are not mistaken for user data variables and destructured from $data.
+
+  // SPLITTER character constant (same as \x1e), used as namespace separator
+  // for refData keys, event attribute encoding, and internal data structures.
+  // Declared as: let $splitter='\x1e'
   "$splitter",
+
+  // Data — the data object passed from Updater to the template function.
+  // User variables are destructured from $data at the top of the function:
+  //   let {name, age} = $data;
+  // This is the first parameter of the generated arrow function.
   "$data",
+
+  // Null-safe toString: v => '' + (v == null ? '' : v)
+  // Converts null/undefined to empty string, otherwise calls toString().
+  // Wraps every {{!raw}} output to prevent "null" / "undefined" rendering.
   "$strSafe",
+
+  // HTML entity encoder: v => $strSafe(v).replace(/[&<>"'`]/g, entityMap)
+  // Encodes &, <, >, ", ', ` to HTML entities (&amp; &lt; etc.)
+  // Applied to all {{=escaped}} and {{:binding}} outputs.
   "$encHtml",
+
+  // HTML entity map — internal object used by $encHtml:
+  //   {'&':'amp','<':'gt','>':'gt','"':'#34','\'':'#39','`':'#96'}
+  // Not a standalone function; referenced inside $encHtml's closure.
   "$entMap",
+
+  // HTML entity RegExp — internal regexp used by $encHtml:
+  //   /[&<>"'`]/g
   "$entReg",
+
+  // HTML entity replacer function — internal helper used by $encHtml:
+  //   m => '&' + $entMap[m] + ';'
+  // Maps matched character to its entity string.
   "$entFn",
+
+  // Output buffer — the string accumulator for rendered HTML.
+  // All template output is appended via $out += '...'.
+  // Declared as: let $out = ''
   "$out",
+
+  // Reference lookup: (refData, value) => key
+  // Finds or allocates a SPLITTER-prefixed key in refData for a given
+  // object reference. Used by {{@ref}} operator for passing object
+  // references to child views via v-lark attributes.
   "$refFn",
+
+  // URI encoder: v => encodeURIComponent($strSafe(v)).replace(/[!')(*]/g, extraMap)
+  // Extends encodeURIComponent with encoding of ! ' ( ) *.
+  // Applied to values in @event URL parameters and {{!uri}} contexts.
   "$encUri",
+
+  // URI encode map — internal object used by $encUri:
+  //   {'!':'%21','\'':'%27','(':'%28',')':'%29','*':'%2A'}
   "$uriMap",
+
+  // URI encode replacer — internal helper used by $encUri:
+  //   m => $uriMap[m]
   "$uriFn",
+
+  // URI encode regexp — internal regexp used by $encUri:
+  //   /[!')(*]/g
   "$uriReg",
+
+  // Quote encoder: v => $strSafe(v).replace(/['"\\]/g, '\\$&')
+  // Escapes quotes and backslashes for safe embedding in HTML attribute
+  // values (e.g. data-json='...').
   "$encQuote",
+
+  // Quote encode regexp — internal regexp used by $encQuote:
+  //   /['"\\]/g
   "$qReg",
+
+  // View ID — the unique identifier of the owning View instance.
+  // Injected into @event attribute values at render time so that
+  // EventDelegator can dispatch events to the correct View handler.
+  // The \x1f placeholder in compiled output is replaced with '+$viewId+'.
   "$viewId",
+
+  // Debug: current expression text — stores the template expression being
+  // evaluated, for error reporting. Only present in debug mode.
+  // e.g. $dbgExpr='<%=user.name%>'
   "$dbgExpr",
+
+  // Debug: original art syntax — stores the {{}} template syntax before
+  // conversion, for error reporting. Only present in debug mode.
+  // e.g. $dbgArt='{{=user.name}}'
   "$dbgArt",
+
+  // Debug: source line number — tracks the current line in the template
+  // source, for error reporting. Only present in debug mode.
   "$dbgLine",
+
+  // RefData alias — fallback reference lookup table.
+  // Defaults to $data when no explicit $refAlt is provided.
+  // Ensures $refFn() does not crash when @ operator is used without refData.
   "$refAlt",
+
+  // Temporary variable — used by the compiler for intermediate
+  // expression results in generated code (e.g. loop variables,
+  // conditional branches). Declared as: let $tmp
   "$tmp",
 
   // JS literals
@@ -368,7 +488,7 @@ const BUILTIN_GLOBALS = new Set([
   "encodeURI",
   "decodeURI",
 
-  // Common helpers
+  // SWC helpers
   "arguments",
   "this",
   "require",

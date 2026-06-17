@@ -102,7 +102,7 @@ export class LarkCompletionProvider implements vscode.CompletionItemProvider {
     document: vscode.TextDocument,
   ): Promise<vscode.CompletionList | null> {
     const source = document.getText();
-    const analysis = analyzeTemplate(source);
+    const analysis = await analyzeTemplate(source);
 
     if (analysis.variables.length === 0) {
       return null;

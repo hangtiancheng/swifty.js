@@ -194,14 +194,14 @@ function compileToFunction(
  * @param options - Compilation options
  * @returns ES module source code exporting the compiled template function
  */
-export function compileTemplate(
+export async function compileTemplate(
   source: string,
   options: CompileOptions = {},
-): string {
+): Promise<string> {
   const { debug = false, file } = options;
 
   // Auto-extract globalVars via SWC when not explicitly provided
-  const globalVars = options.globalVars ?? extractGlobalVars(source);
+  const globalVars = options.globalVars ?? await extractGlobalVars(source);
 
   // Phase 1: Protect comments
   const { protectedSource, comments } = protectComments(source);

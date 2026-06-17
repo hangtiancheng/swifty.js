@@ -22,13 +22,13 @@ const EVENT_ATTR_PATTERN = /@(\w+)="([^"]+)"/g;
 const HANDLER_PATTERN = /^(\w+)\(.*\)$/s;
 const V_LARK_PATTERN = /v-lark\s*=\s*"([^"?]+)(?:\?[^"]*)?"/g;
 
-export function analyzeTemplate(source: string): TemplateAnalysis {
+export async function analyzeTemplate(source: string): Promise<TemplateAnalysis> {
   const events = extractEventBindings(source);
   const viewRefs = extractViewRefs(source);
   let variables: string[] = [];
 
   try {
-    variables = extractGlobalVars(source);
+    variables = await extractGlobalVars(source);
   } catch (e) {
     logError("Failed to extract template variables", e);
   }
