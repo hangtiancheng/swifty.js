@@ -368,7 +368,7 @@ export class Frame extends EventEmitter implements FrameInterface {
   /**
    * Unmount a child frame.
    */
-  unmountFrame(id?: string, _inner?: boolean): void {
+  unmountFrame(id?: string): void {
     const targetId = id ? this.childrenMap[id] : this.id;
     const frame = frameRegistry.get(targetId);
     if (!frame) return;
@@ -403,7 +403,7 @@ export class Frame extends EventEmitter implements FrameInterface {
   /**
    * Mount all views in a zone.
    */
-  mountZone(zoneId?: string, _inner?: boolean): void {
+  mountZone(zoneId?: string): void {
     const targetZone = zoneId || this.id;
 
     // Hold fire created event
@@ -440,7 +440,7 @@ export class Frame extends EventEmitter implements FrameInterface {
   /**
    * Unmount all views in a zone.
    */
-  unmountZone(zoneId?: string, _inner?: boolean): void {
+  unmountZone(zoneId?: string): void {
     for (const childId in this.childrenMap) {
       if (hasOwnProperty(this.childrenMap, childId)) {
         if (!zoneId || childId !== zoneId) {

@@ -8,11 +8,13 @@ import {
   createDomRef as createDomRef,
   applyDomOps,
   applyIdUpdates,
+} from "../src/dom";
+import {
   encodeHTML,
   encodeSafe,
   encodeURIExtra,
   encodeQ,
-} from "../src/dom";
+} from "../src/common";
 import { Frame } from "../src/frame";
 import type { FrameInterface } from "../src/types";
 

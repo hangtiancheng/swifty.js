@@ -35,7 +35,11 @@ import { parse as babelParse } from "@babel/parser";
 import type * as t from "@babel/types";
 import type { CompileOptions } from "./types";
 
-/** SPLITTER character (U+001E). fromCharCode survives bundlers that strip control-char literals. */
+/**
+ * SPLITTER character (U+001E). Kept local rather than importing from common.ts
+ * because compiler.ts runs at build-time (Node.js) while common.ts is a
+ * runtime module — avoids pulling runtime dependencies into the build path.
+ */
 const SPLITTER = String.fromCharCode(0x1e);
 
 /** View ID placeholder character (U+001F). */
@@ -439,7 +443,7 @@ function convertArtExpression(
         throw new Error(
           `[@lark.js/mvc error] bad forIn syntax: {{${code}}}. ` +
             `Expected "as" keyword, got "${tokens[1]}". ` +
-            `Usage: {{for-in obj as val [key]}}`,
+            `Usage: {{forIn obj as val [key]}}`,
         );
       }
       const restTokens2 = tokens.slice(2);

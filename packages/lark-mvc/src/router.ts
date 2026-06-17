@@ -209,7 +209,6 @@ function getChanged(
   setDiff("path", oldLoc["path"], newLoc["path"]);
   if (changedParams["path"]) {
     result["path"] = changedParams["path"];
-    hasChanged = true;
     result.changed = true;
   }
 
@@ -217,7 +216,6 @@ function getChanged(
   setDiff(viewKey, oldLoc.view, newLoc.view);
   if (changedParams[viewKey]) {
     result.view = changedParams[viewKey];
-    hasChanged = true;
     result.changed = true;
   }
 

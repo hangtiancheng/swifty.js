@@ -20,8 +20,7 @@ export function isPlainObject(
 ): value is Record<string, unknown> {
   if (typeof value !== "object" || value === null) return false;
   const proto = Object.getPrototypeOf(value);
-  if (proto === null) return true;
-  return proto === Object.prototype || proto === null;
+  return proto === null || proto === Object.prototype;
 }
 
 /** Check if value is primitive or function (not a complex object) */
@@ -309,5 +308,5 @@ export function toMap<T>(
 
 /** Get current timestamp */
 export function now(): number {
-  return Date.now ? Date.now() : new Date().getTime();
+  return Date.now();
 }

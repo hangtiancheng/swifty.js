@@ -9,10 +9,6 @@ import {
   MATH_NS,
   TAG_NAME_REGEXP,
   LARK_VIEW,
-  encodeHTML,
-  encodeSafe,
-  encodeURIExtra,
-  encodeQ,
 } from "./common";
 import { parseUri } from "./utils";
 import type { DomRef, DomOp, DomElement, FrameInterface } from "./types";
@@ -418,9 +414,3 @@ export function applyIdUpdates(updates: [Element, string][]): void {
     }
   }
 }
-
-// ============================================================
-// Template encoding helpers (canonical definitions in constants.ts)
-// ============================================================
-
-export { encodeHTML, encodeSafe, encodeURIExtra, encodeQ };

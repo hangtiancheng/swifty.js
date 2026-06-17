@@ -8,7 +8,7 @@
  * The helpers below are aliased to `$strSafe / $encHtml / $encUri / $encQuote /
  * $refFn` inside the IIFE that the compiler produces — see `compiler.ts`.
  *
- * Canonical implementations live in `./constants` so that dom.ts, runtime.ts,
+ * Canonical implementations live in `./common` so that dom.ts, runtime.ts,
  * and updater.ts all share a single copy.
  */
 

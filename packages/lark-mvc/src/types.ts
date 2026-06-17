@@ -495,8 +495,6 @@ export interface ViewInterface extends EventEmitterInterface<ViewInterface> {
   eventObjectMap: Record<string, number>;
   /** Global event list */
   globalEventList: ViewGlobalEventEntry[];
-  /** Assign method reference */
-  assignMethod?: AnyFunc;
   /** Whether endUpdate has been called (1 = pending) */
   endUpdatePending?: number;
   /** Render method (wrapped) */
@@ -666,18 +664,17 @@ export interface FrameInterface extends EventEmitterInterface<FrameInterface> {
    * Unmount child Frame from specified DOM node.
    * @param id DOM node ID, defaults to current Frame if omitted
    */
-  unmountFrame: (id?: string, inner?: boolean) => void;
+  unmountFrame: (id?: string) => void;
   /**
    * Render all child views under specified node (scans v-lark attributes and mounts).
    * @param zoneId DOM node ID, defaults to current Frame
-   * @param inner Whether this is an internal framework call
    */
-  mountZone: (zoneId?: string, inner?: boolean) => void;
+  mountZone: (zoneId?: string) => void;
   /**
    * Unmount all child views under specified node.
    * @param zoneId DOM node ID, defaults to current Frame
    */
-  unmountZone: (zoneId?: string, inner?: boolean) => void;
+  unmountZone: (zoneId?: string) => void;
   /**
    * Get ancestor Frame, defaults to parent Frame (level=1).
    * @param level Levels to traverse upward, defaults to 1
@@ -926,26 +923,6 @@ export interface ServiceOptions {
   data?: unknown;
 }
 
-export interface PayloadEntry {
-  /** Payload data */
-  data: Record<string, unknown>;
-}
-
-export interface ServiceEntry {
-  /** Service ID */
-  id: string;
-  /** Service URL */
-  url: string;
-  /** Cache time in ms, 0 = no cache */
-  cacheTime: number;
-  /** Payload instance */
-  payload?: PayloadEntry;
-  /** Whether loading */
-  loading?: boolean;
-  /** Error info */
-  error?: Error;
-}
-
 /** Pending cache entry for deduplication (internal to Service) */
 export interface PendingCacheEntry extends Array<unknown> {
   /** Reference to the pending Payload entity */
@@ -995,127 +972,6 @@ export interface ServiceMetaEntry {
   cleanKeys?: string;
   /** Additional properties */
   [key: string]: unknown;
-}
-
-interface ServiceInternals {
-  metaList: Record<string, ServiceMetaEntry>;
-  payloadCache: CacheInterface<PayloadInterface>;
-  pendingCacheKeys: Record<string, PendingCacheEntry>;
-  syncFn: (payload: PayloadInterface, callback: () => void) => void;
-  staticEmitter: EventEmitterInterface;
-}
-
-export interface ServiceInterface {
-  id: string;
-  destroyed: number;
-  busy: number;
-  taskQueue: AnyFunc[];
-  prevArgs: unknown[];
-  emitter: EventEmitterInterface;
-  internals: ServiceInternals;
-  /**
-   * Send all requests in parallel, execute done callback when all requests complete (success or failure).
-   * If endpoint specifies cache and cache is valid, uses cached data directly.
-   * @param metaList Endpoint name string, params object, or array of them
-   * @param done Callback when all requests complete, first param is error array, followed by each endpoint's Payload
-   */
-  all(
-    metaList:
-      | string
-      | Record<string, unknown>
-      | (string | Record<string, unknown>)[],
-    done: AnyFunc,
-  ): ServiceInterface;
-  /**
-   * Execute callback after each request succeeds, callback may be called multiple times.
-   * @param metaList Endpoint name string, params object, or array of them
-   * @param done Callback
-   */
-  one(
-    attrs:
-      | string
-      | Record<string, unknown>
-      | (string | Record<string, unknown>)[],
-    done: AnyFunc,
-  ): ServiceInterface;
-  /**
-   * Similar to all, but always skips cache and forces actual requests.
-   * @param metaList Endpoint name string, params object, or array of them
-   * @param done Callback
-   */
-  save(
-    metaList:
-      | string
-      | Record<string, unknown>
-      | (string | Record<string, unknown>)[],
-    done: AnyFunc,
-  ): ServiceInterface;
-  /**
-   * Queue task for execution, executes next task after previous all/one/save task completes, similar to Promise chain.
-   * @param callback Callback invoked after task completes
-   */
-  enqueue(callback: AnyFunc): ServiceInterface;
-  /**
-   * Dequeue and execute next task in queue.
-   */
-  dequeue(...args: unknown[]): void;
-  /**
-   * Destroy current Service instance, cannot send new requests or invoke callbacks after destruction.
-   */
-  destroy(): void;
-  /**
-   * Add endpoint metadata, register one or more API endpoints.
-   * @param metaList Endpoint metadata array, or single metadata object
-   */
-  add(attrs: ServiceMetaEntry | ServiceMetaEntry[]): void;
-  /**
-   * Get metadata object.
-   * @param attrs Endpoint metadata object or name string
-   */
-  meta(attrs: string | Record<string, unknown>): ServiceMetaEntry;
-  /**
-   * Create Payload object from endpoint metadata.
-   * @param meta Endpoint metadata object or name string
-   */
-  create(meta: Record<string, unknown>): PayloadInterface;
-  /**
-   * Get or create Payload object from cache.
-   * @param meta Endpoint metadata object
-   * @param createNew Whether to create new Payload object; if false, prioritizes getting from cache
-   */
-  get(
-    meta: Record<string, unknown>,
-    createNew?: boolean,
-  ): { entity: PayloadInterface; needsUpdate: boolean };
-  /**
-   * Get Payload object from cache, returns undefined if cache doesn't exist or has expired.
-   * @param meta Endpoint metadata object
-   */
-  cached(meta: Record<string, unknown>): PayloadInterface | undefined;
-  /**
-   * Clear cached data for specified endpoint.
-   * @param names Comma-separated endpoint name string or string array
-   */
-  clear(names: string | string[]): void;
-  /**
-   * Inherit to create new Service subclass, bind custom data sync function.
-   * @param sync Method to sync data, typically exchanges data with server
-   * @param cacheMax Maximum cache entries
-   * @param cacheBuffer Cache buffer size
-   */
-  extend(
-    newSyncFn: (payload: PayloadInterface, callback: () => void) => void,
-    newCacheMax?: number,
-    newCacheBuffer?: number,
-  ): ServiceInterface;
-  /**
-   * Triggered before endpoint sends request.
-   */
-  onBegin?: (e?: ServiceEvent) => void;
-  /**
-   * Triggered when endpoint request completes, whether success or failure.
-   */
-  onEnd?: (e?: ServiceEvent) => void;
 }
 
 /** Cache info attached to Payload entity */

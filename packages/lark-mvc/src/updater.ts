@@ -19,7 +19,7 @@ import {
   EMPTY_STRING_SET,
 } from "./utils";
 import { safeguard } from "./safeguard";
-import { SPLITTER, isRefToken, refFn } from "./common";
+import { SPLITTER, isRefToken, refFn, encodeHTML, encodeSafe, encodeURIExtra, encodeQ } from "./common";
 import { Frame } from "./frame";
 import {
   domGetNode,
@@ -27,17 +27,8 @@ import {
   applyDomOps,
   applyIdUpdates,
   createDomRef,
-  encodeHTML,
-  encodeSafe,
-  encodeURIExtra,
-  encodeQ,
 } from "./dom";
 import type { UpdaterInterface } from "./types";
-
-/** RefData stores the counter under the SPLITTER key. */
-interface RefData extends Record<string, unknown> {
-  [SPLITTER]: number;
-}
 
 // ============================================================
 // Updater class

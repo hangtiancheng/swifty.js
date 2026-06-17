@@ -80,9 +80,6 @@ export class View implements ViewInterface {
   /** Resource map */
   resources: Record<string, ViewResourceEntry> = {};
 
-  /** Assign method reference */
-  assignMethod?: AnyFunc;
-
   /** Whether endUpdate pending */
   endUpdatePending?: number;
 
@@ -189,7 +186,7 @@ export class View implements ViewInterface {
    */
   beginUpdate(id?: string): void {
     if (this.signature > 0 && this.endUpdatePending !== undefined) {
-      this.ownerFrame.unmountZone(id, true);
+      this.ownerFrame.unmountZone(id);
     }
   }
 
@@ -211,7 +208,7 @@ export class View implements ViewInterface {
       }
 
       const ownerFrame = this.ownerFrame;
-      ownerFrame.mountZone(updateId, inner);
+      ownerFrame.mountZone(updateId);
 
       if (!flag) {
         setTimeout(
@@ -494,8 +491,6 @@ export class View implements ViewInterface {
     proto["$evtObjMap"] = eventsObject;
     proto["$globalEvtList"] = eventsList;
     proto["$selMap"] = selectorObject;
-    proto["$assignFn"] = proto["assign"];
-
     return makes;
   }
 

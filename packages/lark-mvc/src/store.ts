@@ -134,19 +134,13 @@ export function create<T>(name: string, creator: StateCreator<T>): StoreApi<T> {
       }
     }
 
-    let recomputed = false;
     for (const [key, def] of computedDefs) {
       if (def.deps.some((dep) => changedKeys.has(dep))) {
         const newVal = def.fn();
         if (!Object.is((state as Record<string, unknown>)[key], newVal)) {
           (state as Record<string, unknown>)[key] = newVal;
-          recomputed = true;
         }
       }
-    }
-
-    if (recomputed) {
-      // no recursive recomputation needed for now
     }
   };
 
