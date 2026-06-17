@@ -67,18 +67,5 @@ export { useUrlState } from "./url-state";
 export { create, computed, bindStore } from "./store";
 export type { StoreApi } from "./store";
 
-// Frame Visualizer Bridge (devtools postMessage bridge)
-export {
-  installFrameVisualizerBridge,
-  serializeFrameTree,
-  FrameVisualBridge,
-} from "./frame-visual";
-
-export type {
-  SerializedFrameNode,
-  SerializedFrameTree,
-  SerializedViewInfo,
-} from "./frame-visual";
-
 // Types (re-exported for consumer convenience)
 export * from "./types";

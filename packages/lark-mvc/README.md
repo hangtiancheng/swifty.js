@@ -22,7 +22,7 @@ A TypeScript MVC framework designed for back-office single-page applications and
 - Template Syntax
 - Frame and the View Tree
 - Module Federation Micro-Frontend
-- Debugging and DevTools Bridge
+- Debugging and Devtool Bridge
 - Public API Reference
 - Common Pitfalls
 - Recent API Changes
@@ -41,7 +41,7 @@ Third, zero runtime dependencies. `@babel/parser` / `@babel/types` are used only
 
 Fourth, real DOM diff. Templates compile to functions that produce HTML strings, which are parsed into temporary DOM via `document.implementation.createHTMLDocument` and then diffed against the live DOM using keyed comparison. The advantage is that context-sensitive tags like `<table>` / `<select>` / `<svg>` are handled by the native parser. The trade-off is that large templates incur parse overhead, and SSR is not supported.
 
-Fifth, debug-friendly. `window.__lark_Debug = true` enables Safeguard Proxy protection against cross-page pollution and accidental writes. `installFrameVisualizerBridge` exposes the Frame tree to visual DevTools via `postMessage`. A set of `window.__lark_*` global shortcuts cover Framework / State / Router / Frame / View and HMR helpers.
+Fifth, debug-friendly. `window.__lark_Debug = true` enables Safeguard Proxy protection against cross-page pollution and accidental writes. `installFrameDevtoolBridge` exposes the Frame tree to Devtool via `postMessage`. A set of `window.__lark_*` global shortcuts cover Framework / State / Router / Frame / View and HMR helpers.
 
 Not suitable for: projects requiring SSR/streaming rendering, cross-platform needs like React Native, or projects needing off-the-shelf Chrome extension panels. For those, consider the React or Vue ecosystems.
 
@@ -220,7 +220,7 @@ const config: FrameworkConfig = {
 Framework.boot(config);
 ```
 
-`Framework.boot()` executes the following steps in order (order is correctness-sensitive): merge user config (including `routeMode`), inject config into Router (which determines history/hash mode), set EventDelegator's frame getter, subscribe to Router/State `changed` events, mark Framework/Router/State as booted, install the Frame Visualizer Bridge, create the root Frame via `Frame.createRoot(config.rootId)`, call `Router._bind()` to bind route events (popstate for history mode, hashchange + popstate for hash mode) and trigger the first `diff()`, and finally mount `defaultView` if Router has not mounted a view. Step seven must precede step eight because the first `diff()` may immediately trigger `CHANGED` followed by `Frame.getRoot()`, and if the root Frame does not exist it degrades to rendering against the wrong element.
+`Framework.boot()` executes the following steps in order (order is correctness-sensitive): merge user config (including `routeMode`), inject config into Router (which determines history/hash mode), set EventDelegator's frame getter, subscribe to Router/State `changed` events, mark Framework/Router/State as booted, install the Frame Devtool Bridge, create the root Frame via `Frame.createRoot(config.rootId)`, call `Router._bind()` to bind route events (poptate for history mode, hashchange + popstate for hash mode) and trigger the first `diff()`, and finally mount `defaultView` if Router has not mounted a view. Step seven must precede step eight because the first `diff()` may immediately trigger `CHANGED` followed by `Frame.getRoot()`, and if the root Frame does not exist it degrades to rendering against the wrong element.
 
 ## Three Data Pipelines: Updater / State / Store
 
@@ -832,7 +832,7 @@ new ModuleFederationPlugin({
 
 `splitChunks.chunks` must be `"async"`. Using `"all"` extracts `@lark.js/mvc` into a separate vendor chunk, breaking MF shared scope initialization (`ScriptExternalLoadError: Loading script failed`).
 
-## Debugging and DevTools Bridge
+## Debugging and Devtool Bridge
 
 ### Global Objects
 
@@ -857,15 +857,15 @@ Set `window.__lark_Debug = true` before boot, and the framework wraps `State.get
 - Warns when reading data written by another page (potential cross-page pollution).
 - Warns immediately when assigning directly to objects returned by `State.get()` (deduplicated by key); the correct approach is `State.set(patch)` + `State.digest()`.
 
-### Frame Visualizer Bridge
+### Frame Devtool Bridge
 
-`installFrameVisualizerBridge()` is automatically installed during `Framework.boot`, listening for `window` message events and communicating with DevTools via postMessage:
+`installFrameDevtoolBridge()` is automatically installed during `Framework.boot`, listening for `window` message events and communicating with Devtool via postMessage:
 
-- `LARK_VIS_PING` — responds with `LARK_VIS_PONG` to confirm this page is a Lark application.
-- `LARK_VIS_REQUEST_TREE` — responds with `LARK_VIS_TREE` carrying `SerializedFrameTree`.
-- Internally listens to `Frame.on('add' | 'remove')` and automatically pushes `LARK_VIS_TREE_DELTA`; JSON.stringify is compared with `lastTreeJson` before pushing to avoid flooding when nothing changed.
+- `LARK_DEVTOOL_PING` — responds with `LARK_DEVTOOL_PONG` to confirm this page is a Lark application.
+- `LARK_DEVTOOL_REQUEST_TREE` — responds with `LARK_DEVTOOL_TREE` carrying `SerializedFrameTree`.
+- Internally listens to `Frame.on('add' | 'remove')` and automatically pushes `LARK_DEVTOOL_TREE_DELTA`; JSON.stringify is compared with `lastTreeJson` before pushing to avoid flooding when nothing changed.
 
-The `lark-visual` sub-project in this repository is the paired visual DevTools that loads the target application via iframe to display the real-time Frame tree.
+The `lark-devtool` sub-project in this repository is the paired Devtool that loads the target application via iframe to display the real-time Frame tree.
 
 ## Public API Reference
 

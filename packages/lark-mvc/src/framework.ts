@@ -40,7 +40,7 @@ import {
 } from "./frame";
 import { EventDelegator } from "./event-delegator";
 import { View } from "./view";
-import { installFrameVisualizerBridge } from "./frame-visual";
+import { installFrameDevtoolBridge } from "./devtool";
 import type {
   AnyFunc,
   FrameworkConfig,
@@ -474,10 +474,10 @@ export const Framework: FrameworkInterface = {
     markStateBooted();
     markRouterBooted();
 
-    // Install the Frame Visualizer Bridge for devtools support.
+    // Install the Frame Devtool Bridge for devtools support.
     // This adds a lightweight postMessage listener so that the
-    // lark-visualizer devtools panel can inspect the frame tree.
-    installFrameVisualizerBridge();
+    // lark-devtool panel can inspect the frame tree.
+    installFrameDevtoolBridge();
 
     // Create root frame BEFORE Router._bind(), so that when Router.diff()
     // fires CHANGED → dispatcherNotifyChange → Frame.getRoot(), the rootFrame

@@ -114,7 +114,7 @@ export default {
     //   remoteEntry.js 的 window.__lark_DemoMF 全局变量无法正确设置, 抛出 ScriptExternalLoadError
     //
     //   故障链路
-    //   Host (lark-visual) import("lark-demo/counter-view")
+    //   Host (lark-devtool) import("lark-demo/counter-view")
     //   Host 的 MF runtime 加载 remoteEntry.js (<script> 注入)
     //   remoteEntry.js 初始化 shared scope, 需要 @lark.js/mvc 同步可用
     //   但是 "all" 模式下 @lark.js/mvc 被提取到 vendor-lark-mvc 异步 chunk

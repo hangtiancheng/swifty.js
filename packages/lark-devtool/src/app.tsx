@@ -1,5 +1,5 @@
 /**
- * App — main application component for the Lark Frame Tree Visual.
+ * App — main application component for the Lark Frame Tree Devtool.
  *
  * Layout:
  * - Header: URL input, connection status, controls

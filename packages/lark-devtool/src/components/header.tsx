@@ -94,7 +94,7 @@ export function Header({
           </div>
           <div>
             <h1 className="text-base font-semibold tracking-tight text-slate-800">
-              Lark Visual
+              Lark Devtool
             </h1>
             <p className="-mt-0.5 text-[11px] text-slate-400">
               Frame Tree & Module Federation Inspector

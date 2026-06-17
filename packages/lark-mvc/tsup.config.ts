@@ -41,4 +41,13 @@ export default defineConfig([
     sourcemap: false,
     tsconfig: "./tsconfig.build.json",
   },
+  {
+    entry: ["src/devtool.ts"],
+    dts: true,
+    format: ["esm", "cjs"],
+    minify: false,
+    noExternal: [],
+    sourcemap: false,
+    tsconfig: "./tsconfig.build.json",
+  },
 ]);

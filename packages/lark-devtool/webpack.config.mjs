@@ -8,7 +8,11 @@ import ModuleFederationPlugin from "webpack/lib/container/ModuleFederationPlugin
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-/** @param {Record<string, unknown>} env */
+/**
+ * @param {Record<string, unknown>} env
+ * @param {{ mode: "development" | "production" }} argv
+ *
+ */
 export default (env, argv) => {
   const isProd = argv.mode === "production";
 
@@ -76,7 +80,7 @@ export default (env, argv) => {
       // Consumes remote Lark views from lark-demo running on port 3000.
       // At runtime: import('lark-demo/counter-view') loads the remote module.
       new ModuleFederationPlugin({
-        name: "lark_visual",
+        name: "lark_devtool",
         remotes: {
           "lark-demo": "lark_demo@http://localhost:3000/remoteEntry.js",
         },

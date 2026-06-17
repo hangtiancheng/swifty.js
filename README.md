@@ -669,7 +669,7 @@ async branch.
    `v-lark="remote-app/path"` are syntactically identical; the framework
    picks the loader based on registry lookup, not template grammar.
 3. Two-tier cache — view classes are cached in `view-registry`, prepare
-   promises in `preparePromises`. The first amortises module instantiation;
+   promises in `preparePromises`. The first amortizes module instantiation;
    the second amortizes business-level preflight.
 4. Self-healing failures — both caches delete their entry on rejection, so
    a single transient error does not blacklist the resource for the session.
@@ -677,9 +677,9 @@ async branch.
    `init()`, `updateView`) takes a signature snapshot before awaiting and
    bails on mismatch. There is no observer-based "isAlive" check; the
    discipline is structural.
-6. Reuse over rebuild — `CrossSite` recognises same-path navigations and
+6. Reuse over rebuild — `CrossSite` recognizes same-path navigation and
    delegates to `view.assign`, so router-level param changes within a remote
    view skip the entire MF round trip.
-7. Devtools-aware — `Framework.boot` installs the Frame Visualizer Bridge,
+7. Devtool-aware — `Framework.boot` installs the Frame Devtool Bridge,
    exposing the live frame tree (including remote frames) over `postMessage`
-   for the lark-visualizer panel.
+   for the lark-devtool panel.

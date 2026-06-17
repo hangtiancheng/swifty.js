@@ -1,6 +1,6 @@
-# @lark.js/visual
+# @lark.js/devtool
 
-Visual devtools for the @lark.js/mvc framework. Built on React 19 + Webpack 5 + Tailwind 4 + TypeScript 6, totaling 2535 lines of application code across four independent feature tabs:
+Devtool for the @lark.js/mvc framework. Built on React 19 + Webpack 5 + Tailwind 4 + TypeScript 6, totaling 2535 lines of application code across four independent feature tabs:
 
 - Inspector: connects to any Lark application via iframe + postMessage for real-time visualization of the Frame tree and View information
 - MF Demo: statically loads CounterView from lark-demo via Webpack Module Federation
@@ -44,8 +44,8 @@ pnpm install
 ### 1.3 Starting the Dev Server
 
 ```bash
-# From the lark-visual directory
-cd lark-visual
+# From the lark-devtool directory
+cd lark-devtool
 
 # Development: webpack-dev-server, auto-opens browser
 pnpm dev
@@ -74,13 +74,13 @@ cd lark-demo
 pnpm dev:webpack
 # -> http://localhost:3000/
 
-# Terminal 3: lark-visual
-cd lark-visual
+# Terminal 3: lark-devtool
+cd lark-devtool
 pnpm dev
 # -> http://localhost:5173/
 ```
 
-If you only need the Inspector tab, start lark-visual and the target Lark application.
+If you only need the Inspector tab, start lark-devtool and the target Lark application.
 
 ---
 
@@ -112,7 +112,7 @@ Real-time inspection of any Lark application's Frame tree.
 Usage:
 
 1 Enter the target Lark application URL in the Header (e.g., `http://localhost:3000`) and click Connect
-2 lark-visual loads the URL in a hidden iframe
+2 lark-devtool loads the URL in a hidden iframe
 3 After iframe.onload, a PING is sent automatically at 500ms; retries every 1 second until the target responds with PONG
 4 Upon PONG, the frame tree is requested immediately, then polled every 2 seconds
 5 The Frame tree in the left panel uses virtual scrolling (@tanstack/react-virtual) with the first 3 levels expanded by default
@@ -120,7 +120,7 @@ Usage:
 
 URL sharing: the current target URL is synced to `location.hash`, e.g., `http://localhost:5173#http://localhost:3000` can be shared directly.
 
-Prerequisite: the target Lark application must have called `Framework.boot()`, which internally invokes `installFrameVisualizerBridge()` to register the postMessage listener.
+Prerequisite: the target Lark application must have called `Framework.boot()`, which internally invokes `installFrameDevtoolBridge()` to register the postMessage listener.
 
 ### 2.2 MF Demo
 
@@ -130,7 +130,7 @@ Demonstrates Webpack Module Federation in static loading mode.
 +- MF Demo -------------------------------------------+
 | [Load Remote View]   * mounted                      |
 +-----------------------------------------------------+
-| lark-demo:3000  ->  MF  ->  lark-visual:5173        |
+| lark-demo:3000  ->  MF  ->  lark-devtool:5173        |
 | Shared: @lark.js/mvc (singleton)                    |
 +-----------------------------------------------------+
 |  +- CounterView (loaded from lark-demo) ----------+ |
@@ -153,7 +153,7 @@ Key webpack configuration:
 
 ```js
 new ModuleFederationPlugin({
-  name: "lark_visual",
+  name: "lark_devtool",
   remotes: {
     "lark-demo": "lark_demo@http://localhost:3000/remoteEntry.js",
   },
@@ -210,7 +210,7 @@ Demonstrates dynamic Module Federation: loads remoteEntry.js from any URL at run
 | [http://localhost:3300/cdn/lark-demo/remoteEntry.js]       |
 | [Load from CDN]   * mounted                                |
 +------------------------------------------------------------+
-| lark-cdn:3300  -> dynamic script ->  lark-visual:5173      |
+| lark-cdn:3300  -> dynamic script ->  lark-devtool:5173      |
 | Dynamic MF: runtime remote loading                         |
 +------------------------------------------------------------+
 |  +- CounterView (loaded from CDN) ---------------------+   |
@@ -221,24 +221,24 @@ Demonstrates dynamic Module Federation: loads remoteEntry.js from any URL at run
 
 Differences from MF Demo:
 
-| Dimension       | MF Demo (static)           | MF CDN (dynamic)                             |
-| --------------- | -------------------------- | -------------------------------------------- |
-| URL config      | Hardcoded in webpack.config | User-provided at runtime                     |
-| Loading method  | Transparent via webpack runtime | Manual 5-step process (dynamic-remote.ts) |
-| Use case        | Known remotes              | Multiple remotes / canary switching          |
-| Container cache | Managed by webpack internals | `loadedContainers` Map (cleared on unmount) |
+| Dimension       | MF Demo (static)                | MF CDN (dynamic)                            |
+| --------------- | ------------------------------- | ------------------------------------------- |
+| URL config      | Hardcoded in webpack.config     | User-provided at runtime                    |
+| Loading method  | Transparent via webpack runtime | Manual 5-step process (dynamic-remote.ts)   |
+| Use case        | Known remotes                   | Multiple remotes / canary switching         |
+| Container cache | Managed by webpack internals    | `loadedContainers` Map (cleared on unmount) |
 
 Usage:
 
 1 Enter the CDN remoteEntry.js URL (defaults to lark-demo)
 2 Click Load from CDN
 3 Dynamic loading process:
-  1 Parse the container name (kebab-case to snake_case, e.g., `lark-demo` -> `lark_demo`)
-  2 Inject `<script src=URL>` -> window.__lark_DemoMF
-  3 Await `__webpack_init_sharing__("default")` (initialize the shared scope)
-  4 Await `lark_demo.init(__webpack_share_scopes__.default)` (let the remote join the shared scope)
-  5 `lark_demo.get("./counter-view")` -> resolveFactory -> unwrapDefault -> obtain the module
-4 Call `mountCounter(containerRef.current)` to render
+1 Parse the container name (kebab-case to snake_case, e.g., `lark-demo` -> `lark_demo`)
+2 Inject `<script src=URL>` -> window.**lark_DemoMF
+3 Await `**webpack_init_sharing**("default")`(initialize the shared scope)
+  4 Await`lark_demo.init(**webpack_share_scopes\_\_.default)`(let the remote join the shared scope)
+  5`lark_demo.get("./counter-view")`-> resolveFactory -> unwrapDefault -> obtain the module
+4 Call`mountCounter(containerRef.current)` to render
 
 Prerequisite: the lark-demo dist must have been published to CDN via the CDN tab or by calling lark-cdn's publish API directly.
 
@@ -250,21 +250,21 @@ To make your Lark application inspectable, two conditions must be met.
 
 ### 3.1 Call Framework.boot()
 
-The mvc `Framework.boot()` method automatically invokes `installFrameVisualizerBridge()`. If you already follow the standard startup flow (i.e., `Framework.boot({ rootView, ... })`), this step is already satisfied.
+The mvc `Framework.boot()` method automatically invokes `installFrameDevtoolBridge()`. If you already follow the standard startup flow (i.e., `Framework.boot({ rootView, ... })`), this step is already satisfied.
 
 If you do not use Framework.boot(), install the bridge manually:
 
 ```ts
-import { installFrameVisualizerBridge } from "@lark.js/mvc";
+import { installFrameDevtoolBridge } from "@lark.js/mvc";
 
-installFrameVisualizerBridge();
+installFrameDevtoolBridge();
 ```
 
 The bridge is idempotent; calling it multiple times is safe.
 
 ### 3.2 Allow iframe Embedding
 
-lark-visual loads the target URL in an iframe. If your application responds with `X-Frame-Options: DENY` or `Content-Security-Policy: frame-ancestors 'none'`, the iframe load will fail.
+lark-devtool loads the target URL in an iframe. If your application responds with `X-Frame-Options: DENY` or `Content-Security-Policy: frame-ancestors 'none'`, the iframe load will fail.
 
 Development environments typically do not send these headers (webpack-dev-server and Vite do not by default). For production environments that need Inspector access:
 
@@ -282,7 +282,7 @@ Content-Security-Policy: frame-ancestors 'self' http://localhost:5173
 
 The Inspector iframe sandbox includes `allow-scripts allow-same-origin`, allowing scripts within the iframe to execute and access same-origin parents. postMessage communication is not restricted by origin.
 
-If the target app and lark-visual are on different origins (typical case, e.g., lark-visual on 5173, app on 3000), the mvc application inside the iframe can still communicate with lark-visual via postMessage. Cookie isolation and localStorage isolation work as expected.
+If the target app and lark-devtool are on different origins (typical case, e.g., lark-devtool on 5173, app on 3000), the mvc application inside the iframe can still communicate with lark-devtool via postMessage. Cookie isolation and localStorage isolation work as expected.
 
 ### 3.4 Verifying the Connection
 
@@ -295,28 +295,28 @@ With the target app already running:
 
 If the status remains Connecting after 10 seconds, it automatically transitions to Error. Common causes:
 
-- Target app did not call `Framework.boot()` or `installFrameVisualizerBridge()`
+- Target app did not call `Framework.boot()` or `installFrameDevtoolBridge()`
 - Target URL is incorrect (404 or load failure)
 - Target responded with X-Frame-Options
 - Target app threw an error during boot, preventing bridge registration
 
 ### 3.5 View Field Reference
 
-The DetailPanel displays mvc's `SerializedViewInfo`, defined in `lark/src/frame-visual.ts:23-50`:
+The DetailPanel displays mvc's `SerializedViewInfo`, defined in `lark/src/devtool.ts:23-50`:
 
-| Field                          | Description                                                                  |
-| ------------------------------ | ---------------------------------------------------------------------------- |
-| `id`                           | View ID, identical to the Frame ID                                           |
-| `rendered`                     | Whether the View has rendered at least once                                  |
-| `signature`                    | View signature (> 0 indicates active)                                        |
-| `observedStateKeys`            | List of State keys being observed                                            |
-| `locationObserved.flag`        | Route observation flag                                                       |
-| `locationObserved.keys`        | Route parameter keys being observed                                          |
-| `locationObserved.observePath` | Whether the full path is being observed                                      |
-| `hasTemplate`                  | Whether the View has a template function                                     |
-| `eventMethodKeys`              | Delegated event method names (keys from `$evtObjMap`)                        |
-| `resourceKeys`                 | Resource manager key list                                                    |
-| `hasAssign`                    | Whether the View has an assign method (supports CrossSite reuse)             |
+| Field                          | Description                                                                       |
+| ------------------------------ | --------------------------------------------------------------------------------- |
+| `id`                           | View ID, identical to the Frame ID                                                |
+| `rendered`                     | Whether the View has rendered at least once                                       |
+| `signature`                    | View signature (> 0 indicates active)                                             |
+| `observedStateKeys`            | List of State keys being observed                                                 |
+| `locationObserved.flag`        | Route observation flag                                                            |
+| `locationObserved.keys`        | Route parameter keys being observed                                               |
+| `locationObserved.observePath` | Whether the full path is being observed                                           |
+| `hasTemplate`                  | Whether the View has a template function                                          |
+| `eventMethodKeys`              | Delegated event method names (keys from `$evtObjMap`)                             |
+| `resourceKeys`                 | Resource manager key list                                                         |
+| `hasAssign`                    | Whether the View has an assign method (supports CrossSite reuse)                  |
 | `updaterData`                  | Shallow copy of Updater refData (primitives preserved, objects become `[object]`) |
 
 ---
@@ -325,19 +325,19 @@ The DetailPanel displays mvc's `SerializedViewInfo`, defined in `lark/src/frame-
 
 ### 4.1 Static vs Dynamic
 
-| Dimension        | Static MF (MfDemo)              | Dynamic MF (SfCdnDemo)                     |
-| ---------------- | ------------------------------- | ------------------------------------------ |
-| Webpack config   | `remotes: { name: "name@URL" }` | None                                       |
-| Load trigger     | `import("name/path")`           | `loadRemoteFromCdn(url, path)`             |
-| URL resolution   | Compile time                    | Runtime                                    |
-| Loading steps    | Transparent via webpack runtime | Manual 5-step process                      |
-| Share negotiation| Automatic                       | Manual init_sharing + container.init       |
-| Changing URL     | Modify webpack.config + rebuild | Change the input directly                  |
+| Dimension         | Static MF (MfDemo)              | Dynamic MF (SfCdnDemo)               |
+| ----------------- | ------------------------------- | ------------------------------------ |
+| Webpack config    | `remotes: { name: "name@URL" }` | None                                 |
+| Load trigger      | `import("name/path")`           | `loadRemoteFromCdn(url, path)`       |
+| URL resolution    | Compile time                    | Runtime                              |
+| Loading steps     | Transparent via webpack runtime | Manual 5-step process                |
+| Share negotiation | Automatic                       | Manual init_sharing + container.init |
+| Changing URL      | Modify webpack.config + rebuild | Change the input directly            |
 
 ### 4.2 Shared Module Negotiation
 
 ```
-host (lark-visual) boot:
+host (lark-devtool) boot:
   1 webpack runtime initializes the default share scope
   2 eagerly injects react / react-dom into the share scope
   3 lazily injects @lark.js/mvc into the share scope (on first import)
@@ -420,7 +420,7 @@ Note the third row: if lark-cdn uses a `@version` suffix, the container name wil
 ```
 1 Start lark-cdn @ 3300 (with MongoDB)
 2 Build any sub-project in the workspace (producing dist/ or dist-vite/ or dist-webpack/)
-3 Open lark-visual, switch to the CDN tab
+3 Open lark-devtool, switch to the CDN tab
 4 Click Scan Workspace
 5 View the discovered dist list, click Publish
 6 Switch to the MF CDN tab
@@ -432,15 +432,15 @@ Note the third row: if lark-cdn uses a `@version` suffix, the container name wil
 
 Each UI action in the CDN tab corresponds to a lark-cdn REST API call:
 
-| Action              | API                                                                              |
-| ------------------- | -------------------------------------------------------------------------------- |
-| Page open           | `GET /api/projects`                                                              |
-| Scan Workspace      | `GET /api/discover`                                                              |
-| Publish button      | `POST /api/publish`                                                              |
-| Toggle active       | `PUT /api/projects/:name/versions/:version` `{ isActive: true/false }`           |
-| Delete version      | `DELETE /api/projects/:name/versions/:version`                                   |
-| Delete project      | `DELETE /api/projects/:name`                                                     |
-| Refresh project list| `GET /api/projects` (refresh icon button, and automatically after publish/delete)|
+| Action               | API                                                                               |
+| -------------------- | --------------------------------------------------------------------------------- |
+| Page open            | `GET /api/projects`                                                               |
+| Scan Workspace       | `GET /api/discover`                                                               |
+| Publish button       | `POST /api/publish`                                                               |
+| Toggle active        | `PUT /api/projects/:name/versions/:version` `{ isActive: true/false }`            |
+| Delete version       | `DELETE /api/projects/:name/versions/:version`                                    |
+| Delete project       | `DELETE /api/projects/:name`                                                      |
+| Refresh project list | `GET /api/projects` (refresh icon button, and automatically after publish/delete) |
 
 ### 5.3 Error Handling
 
@@ -473,19 +473,19 @@ const api = useCdnApi(import.meta.env.VITE_CDN_BASE ?? undefined);
 
 ## 6 Protocol Reference
 
-### 6.1 postMessage Protocol (lark-visual <-> Lark app)
+### 6.1 postMessage Protocol (lark-devtool <-> Lark app)
 
 5 message types:
 
-| Constant           | String                  | Direction    | Payload                                              |
-| ------------------ | ----------------------- | ------------ | ---------------------------------------------------- |
-| `MSG_PING`         | `LARK_VIS_PING`         | visual -> app | (none)                                              |
-| `MSG_PONG`         | `LARK_VIS_PONG`         | app -> visual | (none)                                              |
-| `MSG_REQUEST_TREE` | `LARK_VIS_REQUEST_TREE` | visual -> app | (none)                                              |
-| `MSG_TREE`         | `LARK_VIS_TREE`         | app -> visual | `SerializedFrameTree`                               |
-| `MSG_TREE_DELTA`   | `LARK_VIS_TREE_DELTA`   | app -> visual | `SerializedFrameTree` (full tree; name is historical)|
+| Constant           | String                      | Direction     | Payload                                               |
+| ------------------ | --------------------------- | ------------- | ----------------------------------------------------- |
+| `MSG_PING`         | `LARK_DEVTOOL_PING`         | devtool -> app | (none)                                                |
+| `MSG_PONG`         | `LARK_DEVTOOL_PONG`         | app -> devtool | (none)                                                |
+| `MSG_REQUEST_TREE` | `LARK_DEVTOOL_REQUEST_TREE` | devtool -> app | (none)                                                |
+| `MSG_TREE`         | `LARK_DEVTOOL_TREE`         | app -> devtool | `SerializedFrameTree`                                 |
+| `MSG_TREE_DELTA`   | `LARK_DEVTOOL_TREE_DELTA`   | app -> devtool | `SerializedFrameTree` (full tree; name is historical) |
 
-Defined in `lark/src/frame-visual.ts:88-94` (mvc-side `FrameVisualBridge`) and `lark-visual/src/types.ts:22-26`.
+Defined in `lark/src/devtool.ts:88-94` (mvc-side `FrameDevtoolBridge`) and `lark-devtool/src/types.ts:22-26`.
 
 ### 6.2 ConnectionStatus State Machine
 
@@ -497,11 +497,11 @@ disconnected --setTargetUrl--> connecting --PONG--> connected
 
 ### 6.3 Three Timers
 
-| Timer          | Period | Start condition        | Clear condition                             |
-| -------------- | ------ | ---------------------- | ------------------------------------------- |
-| `pingTimerRef` | 1s     | targetUrl changes      | PONG received / unmount / targetUrl changes |
-| `timeoutRef`   | 10s    | targetUrl changes      | PONG received / unmount / targetUrl changes |
-| `pollTimerRef` | 2s     | status === connected   | status leaves connected / unmount           |
+| Timer          | Period | Start condition      | Clear condition                             |
+| -------------- | ------ | -------------------- | ------------------------------------------- |
+| `pingTimerRef` | 1s     | targetUrl changes    | PONG received / unmount / targetUrl changes |
+| `timeoutRef`   | 10s    | targetUrl changes    | PONG received / unmount / targetUrl changes |
+| `pollTimerRef` | 2s     | status === connected | status leaves connected / unmount           |
 
 ### 6.4 REST API Envelope
 
@@ -525,23 +525,23 @@ Failure:
 
 ### 7.1 Port Conventions
 
-| Service     | Port | Purpose                                      |
-| ----------- | ---- | -------------------------------------------- |
-| lark-visual | 5173 | Host (this service)                          |
-| lark-demo   | 3000 | MF remote (MF Demo tab)                     |
-| lark-cdn    | 3300 | REST API + CDN (CDN tab + MF CDN tab)        |
+| Service      | Port | Purpose                               |
+| ------------ | ---- | ------------------------------------- |
+| lark-devtool | 5173 | Host (this service)                   |
+| lark-demo    | 3000 | MF remote (MF Demo tab)               |
+| lark-cdn     | 3300 | REST API + CDN (CDN tab + MF CDN tab) |
 
 Changing ports:
 
-- lark-visual: `devServer.port` in `webpack.config.mjs`
-- lark-demo: update the port in its `webpack.config.mjs` + update `ModuleFederationPlugin.remotes` in lark-visual
+- lark-devtool: `devServer.port` in `webpack.config.mjs`
+- lark-demo: update the port in its `webpack.config.mjs` + update `ModuleFederationPlugin.remotes` in lark-devtool
 - lark-cdn: environment variable `CDN_PORT`; also update `DEFAULT_BASE` in `src/hooks/use-cdn-api.ts:17`
 
 ### 7.2 Module Federation Configuration
 
 ```js
 new ModuleFederationPlugin({
-  name: "lark_visual",
+  name: "lark_devtool",
   remotes: {
     "lark-demo": "lark_demo@http://localhost:3000/remoteEntry.js",
   },
@@ -569,7 +569,7 @@ devServer: {
 }
 ```
 
-Fully open CORS allows lark-cdn and other tools to load lark-visual's resources. This is appropriate for a dev tool; do not deploy this configuration to production as-is.
+Fully open CORS allows lark-cdn and other tools to load lark-devtool's resources. This is appropriate for a dev tool; do not deploy this configuration to production as-is.
 
 ### 7.4 TypeScript Configuration
 
@@ -593,18 +593,18 @@ Recommendation: explicitly enable `strict: true` and `noUncheckedIndexedAccess: 
 After 10 seconds, the status automatically transitions to Error. Possible causes:
 
 1 Target URL is incorrect or returns 404
-2 Target app did not call `Framework.boot()` or `installFrameVisualizerBridge()`
+2 Target app did not call `Framework.boot()` or `installFrameDevtoolBridge()`
 3 Target responded with `X-Frame-Options: DENY`, blocking iframe embedding
 4 Target app threw an error during boot, preventing bridge registration (check browser console)
 
 To verify whether the bridge is installed, run this in the target app's console:
 
 ```js
-window.postMessage({ type: "LARK_VIS_PING" }, "*");
+window.postMessage({ type: "LARK_DEVTOOL_PING" }, "*");
 window.addEventListener("message", (e) => console.log("got", e.data));
 ```
 
-You should see `got { type: "LARK_VIS_PONG" }`. If not, the bridge is not installed.
+You should see `got { type: "LARK_DEVTOOL_PONG" }`. If not, the bridge is not installed.
 
 ### 8.2 Inspector Connected but Frame Count is 0
 
@@ -625,7 +625,7 @@ Follow the instructions to start lark-demo.
 
 If lark-demo is already running but loading still fails, common causes include:
 
-- lark-demo's webpack config `name` is not `lark_demo` (does not match lark-visual's remotes key)
+- lark-demo's webpack config `name` is not `lark_demo` (does not match lark-devtool's remotes key)
 - lark-demo does not expose `./counter-view`
 - Port conflict: another service is occupying port 3000
 
@@ -672,7 +672,7 @@ Known behavior: the iframe is only rendered when `activeTab === "inspector"`. Sw
 
 Known limitation: `clearRemoteCache(url)` only clears the internal Map, not `window[containerName]`. If the lark-cdn remoteEntry.js content has been updated but the container name remains the same, reloading will skip script injection and reuse the stale container.
 
-Workaround: refresh the entire lark-visual page.
+Workaround: refresh the entire lark-devtool page.
 
 ### 8.9 Tailwind Styles Not Applied
 
@@ -683,7 +683,7 @@ Verify that `index.css` contains `@import "tailwindcss";` and that the webpack C
 ## 9 Project Structure
 
 ```
-lark-visual/
+lark-devtool/
 +-- index.html                          // bootstrap HTML
 +-- webpack.config.mjs                  // webpack + MF + dev-server config
 +-- tsconfig.json                       // TS configuration
@@ -733,19 +733,19 @@ Tech stack:
 
 For detailed analysis, see `code-review.md` section 7. Ordered by priority:
 
-| ID   | Limitation                                                              | Impact                                    |
-| ---- | ----------------------------------------------------------------------- | ----------------------------------------- |
-| K2   | `DiscoveredDist.type` is missing the `dist-vite` variant                | Type contract inaccuracy                  |
-| K1   | useFrameTree ping timer not cleared after timeout                       | Resource waste + console noise            |
-| K8   | `clearRemoteCache` does not clear `window[containerName]`               | Reload after unmount shows stale code     |
-| K3   | `frame-tree-node.tsx` is dead code                                      | Maintenance noise                         |
-| K4   | `detail-panel.tsx` child node className missing space, cursor-pointer broken | Visual only, no functional impact     |
-| K7   | iframe sandbox contains `allow-scripts allow-same-origin` (high-risk combo) | Acceptable for a dev tool             |
-| K11  | useCdnApi error state can be overwritten during concurrent requests     | Minimal real-world impact                 |
-| K17  | Inspector tab not wrapped in ErrorBoundary                              | mvc serialization is stable; low impact   |
-| Other| K5-K6 K9-K10 K12-K16 K18 documented in code-review.md                  | Minor impact                              |
+| ID    | Limitation                                                                   | Impact                                  |
+| ----- | ---------------------------------------------------------------------------- | --------------------------------------- |
+| K2    | `DiscoveredDist.type` is missing the `dist-vite` variant                     | Type contract inaccuracy                |
+| K1    | useFrameTree ping timer not cleared after timeout                            | Resource waste + console noise          |
+| K8    | `clearRemoteCache` does not clear `window[containerName]`                    | Reload after unmount shows stale code   |
+| K3    | `frame-tree-node.tsx` is dead code                                           | Maintenance noise                       |
+| K4    | `detail-panel.tsx` child node className missing space, cursor-pointer broken | Visual only, no functional impact       |
+| K7    | iframe sandbox contains `allow-scripts allow-same-origin` (high-risk combo)  | Acceptable for a dev tool               |
+| K11   | useCdnApi error state can be overwritten during concurrent requests          | Minimal real-world impact               |
+| K17   | Inspector tab not wrapped in ErrorBoundary                                   | mvc serialization is stable; low impact |
+| Other | K5-K6 K9-K10 K12-K16 K18 documented in code-review.md                        | Minor impact                            |
 
-Do not deploy lark-visual to a public network: the iframe sandbox configuration, fully open CORS, and dynamic script injection without SRI/CSP are not suitable for production. This tool is intended for use during development and integration testing only.
+Do not deploy lark-devtool to a public network: the iframe sandbox configuration, fully open CORS, and dynamic script injection without SRI/CSP are not suitable for production. This tool is intended for use during development and integration testing only.
 
 ---
 

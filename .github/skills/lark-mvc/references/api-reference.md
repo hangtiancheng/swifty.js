@@ -18,7 +18,7 @@ This document is the complete API reference for every public module in `@lark.js
 - [Cache](#cache)
 - [EventEmitter](#eventemitter)
 - [EventDelegator](#eventdelegator)
-- [Frame Visualizer Bridge](#frame-visualizer-bridge)
+- [Frame Devtool Bridge](#frame-devtool-bridge)
 - [Template Runtime](#template-runtime)
 - [Compiler](#compiler)
 - [Utilities & Constants](#utilities--constants)
@@ -32,7 +32,7 @@ The main entry point object, imported via `import { Framework } from '@lark.js/m
 
 ### Framework.boot(config)
 
-Starts the application. Order: merge config → set router config → set EventDelegator frame getter → bind router/state CHANGED events → mark booted → install Frame Visualizer Bridge → `Frame.createRoot(config.rootId)` → `Router._bind()` → mount default view (only if Router didn't already mount one).
+Starts the application. Order: merge config → set router config → set EventDelegator frame getter → bind router/state CHANGED events → mark booted → install Frame Devtool Bridge → `Frame.createRoot(config.rootId)` → `Router._bind()` → mount default view (only if Router didn't already mount one).
 
 ```ts
 Framework.boot(config: FrameworkConfig): void
@@ -1023,31 +1023,31 @@ EventDelegator.nextElementGuid(): number
 
 ---
 
-## Frame Visualizer Bridge
+## Frame Devtool Bridge
 
-`postMessage` bridge for the Lark Visualizer DevTools panel.
+`postMessage` bridge for the Lark Devtool panel.
 
 ```ts
 import {
-  installFrameVisualizerBridge,
+  installFrameDevtoolBridge,
   serializeFrameTree,
-  FrameVisualBridge,
+  FrameDevtoolBridge,
   type SerializedFrameNode,
   type SerializedFrameTree,
   type SerializedViewInfo,
 } from "@lark.js/mvc";
 ```
 
-`installFrameVisualizerBridge()` — called once by `Framework.boot`. Installs a `message` listener that responds to:
+`installFrameDevtoolBridge()` — called once by `Framework.boot`. Installs a `message` listener that responds to:
 
-- `LARK_VIS_PING` → `LARK_VIS_PONG`
-- `LARK_VIS_REQUEST_TREE` → `LARK_VIS_TREE`
+- `LARK_DEVTOOL_PING` → `LARK_DEVTOOL_PONG`
+- `LARK_DEVTOOL_REQUEST_TREE` → `LARK_DEVTOOL_TREE`
 
-Also pushes `LARK_VIS_TREE_DELTA` to `window.parent` on Frame `add`/`remove` (when running in an iframe).
+Also pushes `LARK_DEVTOOL_TREE_DELTA` to `window.parent` on Frame `add`/`remove` (when running in an iframe).
 
 `serializeFrameTree()` — walk the Frame tree from the root, return a JSON-safe snapshot. Returns an empty snapshot if the framework hasn't booted yet.
 
-`FrameVisualBridge` — message-type constants.
+`FrameDevtoolBridge` — message-type constants.
 
 ---
 
@@ -1117,27 +1117,27 @@ If parsing fails (malformed template), falls back to a regex-based extractor.
 
 Exported from the main entry.
 
-| Name            | Signature                        | Purpose                                            |
-| --------------- | -------------------------------- | -------------------------------------------------- |
-| `applyStyle`    | `(idOrPairs, css?) => () => void` | Inject CSS into `<style>` tags; returns cleanup fn |
-| `mark` / `unmark` | `mark(host, key) => () => boolean` / `unmark(host) => void` | Async callback validity tracking (module-level WeakMap) |
-| `safeguard`     | `<T>(o: T) => T`                | Debug Proxy that warns on mutation (no-op outside `window.__lark_Debug`) |
-| `useUrlState`   | `(view, config?) => void`       | Sync view state with URL search params              |
+| Name              | Signature                                                   | Purpose                                                                  |
+| ----------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `applyStyle`      | `(idOrPairs, css?) => () => void`                           | Inject CSS into `<style>` tags; returns cleanup fn                       |
+| `mark` / `unmark` | `mark(host, key) => () => boolean` / `unmark(host) => void` | Async callback validity tracking (module-level WeakMap)                  |
+| `safeguard`       | `<T>(o: T) => T`                                            | Debug Proxy that warns on mutation (no-op outside `window.__lark_Debug`) |
+| `useUrlState`     | `(view, config?) => void`                                   | Sync view state with URL search params                                   |
 
 Internal utilities (`noop`, `hasOwnProperty`, `assign`, `keys`, `generateId`, `funcWithTry`, `setData`, `translateData`, `getById`, `ensureElementId`, `nodeInside`, `parseUri`, `toUri`, `toMap`, `now`, `isPlainObject`, `getAttribute`, `EMPTY_STRING_SET`, etc.) are NOT exported from the public entry. They live in `utils.ts` and `constants.ts` for framework-internal use.
 
 ### Constants
 
-| Name                       | Value                                     | Purpose                                            |
-| -------------------------- | ----------------------------------------- | -------------------------------------------------- |
-| `SPLITTER`                 | `"\x1e"`                                  | Internal separator (Record Separator)              |
-| `LARK_VIEW`                | `"v-lark"`                                | Sub-view attribute name                            |
-| `CALL_BREAK_TIME`          | `48`                                      | Task chunk budget (ms)                             |
-| `ROUTER_EVENTS`            | `{ CHANGE, CHANGED, PAGE_UNLOAD }`        | Router event name constants                        |
-| `TAG_NAME_REGEXP`          | `/<([a-z][^/\0>\x20\t\r\n\f]+)/i`         | First tag detector                                 |
-| `EVENT_METHOD_REGEXP`      | (see `constants.ts`)                      | Parse `viewId\x1ehandlerName(params)`              |
-| `VIEW_EVENT_METHOD_REGEXP` | `/^(\$?)([\w]*)<(.*?)>(?:<([\w ,]*)>)?$/` | Match `name<click>` patterns                       |
-| `nextCounter()`            | `() => number`                            | Increment global counter                           |
+| Name                       | Value                                     | Purpose                               |
+| -------------------------- | ----------------------------------------- | ------------------------------------- |
+| `SPLITTER`                 | `"\x1e"`                                  | Internal separator (Record Separator) |
+| `LARK_VIEW`                | `"v-lark"`                                | Sub-view attribute name               |
+| `CALL_BREAK_TIME`          | `48`                                      | Task chunk budget (ms)                |
+| `ROUTER_EVENTS`            | `{ CHANGE, CHANGED, PAGE_UNLOAD }`        | Router event name constants           |
+| `TAG_NAME_REGEXP`          | `/<([a-z][^/\0>\x20\t\r\n\f]+)/i`         | First tag detector                    |
+| `EVENT_METHOD_REGEXP`      | (see `constants.ts`)                      | Parse `viewId\x1ehandlerName(params)` |
+| `VIEW_EVENT_METHOD_REGEXP` | `/^(\$?)([\w]*)<(.*?)>(?:<([\w ,]*)>)?$/` | Match `name<click>` patterns          |
+| `nextCounter()`            | `() => number`                            | Increment global counter              |
 
 ---
 

@@ -36,7 +36,7 @@ export function EmptyState({ status, targetUrl }: EmptyStateProps) {
                 1
               </span>
               <p className="text-xs text-slate-500">
-                The Lark Visual loads the target app in a hidden iframe
+                The Lark devtool loads the target app in a hidden iframe
               </p>
             </div>
             <div className="flex items-start gap-3">

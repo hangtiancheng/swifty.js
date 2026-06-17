@@ -2,7 +2,7 @@
  * Exposed module: Counter View
  *
  * This module is exposed via Webpack Module Federation so that
- * other applications (e.g., lark-visual) can load the CounterView
+ * other applications (e.g., lark-devtool) can load the CounterView
  * and its sub-components at runtime.
  *
  * Usage from a host app:

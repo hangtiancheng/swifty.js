@@ -111,7 +111,7 @@ export function createBookmarksView(spec: BookmarksViewSpec): typeof View {
 
       // Expose ctx to assign() via the view's resources slot so the same
       // captured object is reachable from any handler.
-      this.capture("visual-list-ctx", ctx, false);
+      this.capture("virtual-list-ctx", ctx, false);
 
       this.assign?.();
 
@@ -126,7 +126,7 @@ export function createBookmarksView(spec: BookmarksViewSpec): typeof View {
 
       // Wire scroll + resize observation against the actual DOM container
       // once it's been rendered into the page. We poll on rAF until the
-      // [visual-list-scroll] node appears (one frame at most in practice).
+      // [virtual-list-scroll] node appears (one frame at most in practice).
       const recompute = () => {
         this.assign?.();
         this.updater.digest();
@@ -135,7 +135,7 @@ export function createBookmarksView(spec: BookmarksViewSpec): typeof View {
       const setupScroll = () => {
         const root = document.getElementById(this.id);
         const scroller = root?.querySelector<HTMLDivElement>(
-          "[visual-list-scroll]",
+          "[virtual-list-scroll]",
         );
         if (!root || !scroller) {
           window.requestAnimationFrame(setupScroll);
@@ -164,7 +164,7 @@ export function createBookmarksView(spec: BookmarksViewSpec): typeof View {
         window.addEventListener("storage", onStorage);
 
         this.capture(
-          "visual-list-listeners",
+          "virtual-list-listeners",
           {
             destroy() {
               scroller.removeEventListener("scroll", onScroll);
@@ -191,7 +191,7 @@ export function createBookmarksView(spec: BookmarksViewSpec): typeof View {
             b.title.toLowerCase().includes(searchQuery.toLowerCase()),
           )
         : all;
-      const ctx = this.capture("visual-list-ctx") as
+      const ctx = this.capture("virtual-list-ctx") as
         | { scroller: HTMLDivElement | null }
         | undefined;
       const scroller = ctx?.scroller ?? null;

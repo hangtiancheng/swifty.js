@@ -18,12 +18,13 @@ const peerDeps = Object.keys(
 // Entries where @babel/parser and @babel/types are bundled (not external),
 // matching tsup's `noExternal: ["@babel/parser", "@babel/types"]`.
 const /** @type{({ name: string, babelNoExternal: boolean }[])} */ entries = [
-    { name: "index", babelNoExternal: false },
-    { name: "vite", babelNoExternal: true },
-    { name: "webpack", babelNoExternal: true },
-    { name: "runtime", babelNoExternal: false },
-    { name: "compiler", babelNoExternal: true },
-  ];
+  { name: "index", babelNoExternal: false },
+  { name: "vite", babelNoExternal: true },
+  { name: "webpack", babelNoExternal: true },
+  { name: "runtime", babelNoExternal: false },
+  { name: "compiler", babelNoExternal: true },
+  { name: "devtool", babelNoExternal: false },
+];
 
 /** Externalize deps/peerDeps except @babel packages when the entry bundles them. */
 
@@ -56,42 +57,42 @@ const outputConfigs = [
 
 // --- JS bundles (ESM + CJS, no sourcemap, matching tsup) ---
 const /** @type {import("rollup").OutputOptions[]} */ jsConfigs = entries.map(
-    ({ name, babelNoExternal }) => ({
-      input: `src/${name}.ts`,
-      output: outputConfigs.map((o) => ({
-        ...o,
-        file: o.file.replace("[name]", name),
-      })),
-      external: makeExternal(babelNoExternal),
-      plugins: [
-        resolve(),
-        commonjs(),
-        typescript({ tsconfig: "./tsconfig.build.json" }),
-      ],
-    }),
-  );
+  ({ name, babelNoExternal }) => ({
+    input: `src/${name}.ts`,
+    output: outputConfigs.map((o) => ({
+      ...o,
+      file: o.file.replace("[name]", name),
+    })),
+    external: makeExternal(babelNoExternal),
+    plugins: [
+      resolve(),
+      commonjs(),
+      typescript({ tsconfig: "./tsconfig.build.json" }),
+    ],
+  }),
+);
 
 // --- Type declarations (.d.ts for ESM consumers) ---
 const /** @type {import("rollup").RollupOptions[]} */ dtsConfigs = entries.map(
-    ({ name }) => ({
-      input: `src/${name}.ts`,
-      output: {
-        file: `dist/${name}.d.ts`,
-        format: "es",
-      },
-      plugins: [dts({ tsconfig: "./tsconfig.build.json" })],
-    }),
-  );
+  ({ name }) => ({
+    input: `src/${name}.ts`,
+    output: {
+      file: `dist/${name}.d.ts`,
+      format: "es",
+    },
+    plugins: [dts({ tsconfig: "./tsconfig.build.json" })],
+  }),
+);
 
 // --- Type declarations (.d.cts for CJS consumers) ---
 const /** @type {import("rollup").RollupOptions[]} */ dtsCjsConfigs =
-    entries.map(({ name }) => ({
-      input: `src/${name}.ts`,
-      output: {
-        file: `dist/${name}.d.cts`,
-        format: "es",
-      },
-      plugins: [dts({ tsconfig: "./tsconfig.build.json" })],
-    }));
+  entries.map(({ name }) => ({
+    input: `src/${name}.ts`,
+    output: {
+      file: `dist/${name}.d.cts`,
+      format: "es",
+    },
+    plugins: [dts({ tsconfig: "./tsconfig.build.json" })],
+  }));
 
 export default defineConfig([...jsConfigs, ...dtsConfigs, ...dtsCjsConfigs]);

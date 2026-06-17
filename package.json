@@ -18,10 +18,10 @@
   },
   "scripts": {
     "build:lark": "pnpm --filter @lark.js/mvc build",
-    "dev:lark": "pnpm build:lark && concurrently \"pnpm dev:lark-cdn\" \"pnpm dev:lark-demo\" \"pnpm dev:lark-visual\"",
+    "dev:lark": "pnpm build:lark && concurrently \"pnpm dev:lark-cdn\" \"pnpm dev:lark-demo\" \"pnpm dev:lark-devtool\"",
     "dev:lark-cdn": "CDN_WORKSPACE_ROOT=.. pnpm --filter @lark.js/cdn dev",
     "dev:lark-demo": "pnpm --filter lark-demo dev:webpack",
-    "dev:lark-visual": "pnpm --filter @lark.js/visual dev",
+    "dev:lark-devtool": "pnpm --filter @lark.js/devtool dev",
     "prepare": "husky",
     "preview": "vitepress preview",
     "test": "concurrently \"pnpm test:bloom-filter\" \"pnpm test:distributed-lock\" \"pnpm test:math\" \"pnpm test:mini-zustand\" \"pnpm test:react-vue\" \"pnpm test:vue-reactivity\"",

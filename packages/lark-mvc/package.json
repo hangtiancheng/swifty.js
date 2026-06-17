@@ -68,6 +68,16 @@
         "types": "./dist/compiler.d.cts",
         "default": "./dist/compiler.cjs"
       }
+    },
+    "./devtool": {
+      "import": {
+        "types": "./dist/devtool.d.ts",
+        "default": "./dist/devtool.js"
+      },
+      "require": {
+        "types": "./dist/devtool.d.cts",
+        "default": "./dist/devtool.cjs"
+      }
     }
   },
   "scripts": {

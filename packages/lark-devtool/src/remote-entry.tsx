@@ -1,5 +1,5 @@
 /**
- * Module Federation async boundary for lark-visual.
+ * Module Federation async boundary for lark-devtool.
  * Webpack requires the entry point to be an async boundary for MF to work.
  */
 import("./main");

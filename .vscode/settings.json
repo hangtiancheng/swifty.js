@@ -7,11 +7,13 @@
   },
   "cmake.ignoreCMakeListsMissing": true,
   "cSpell.words": [
+    "beforeunload",
     "ctxt",
     "dblclick",
     "gstatic",
     "gypfile",
     "hangtiancheng",
+    "hashchange",
     "heapify",
     "heappop",
     "heappush",
@@ -24,9 +26,12 @@
     "mouseout",
     "mouseup",
     "napi",
+    "popstate",
+    "poptate",
     "rsbuild",
     "touchend",
     "touchmove",
     "touchstart"
-  ]
+  ],
+  "css.validate": false
 }

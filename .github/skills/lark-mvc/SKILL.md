@@ -13,7 +13,7 @@ description: >
   with CrossSite, calling Service for API requests with caching/dedup/queue,
   or anything mentioning Frame trees, history/hash routing, real-DOM diff,
   capture-phase event delegation, or the v-lark attribute. Also trigger on
-  Lark-related debugging (window.__lark_Debug, Frame Visualizer Bridge,
+  Lark-related debugging (window.__lark_Debug, Frame Devtool Bridge,
   ldk/lak/lvk attributes) and on questions about Lark's three data pipelines
   (Updater / State / Store) or migration patterns between them.
 ---
@@ -35,7 +35,7 @@ Any task that names -- or clearly implies -- Lark:
 - Configuring the Vite plugin (`larkMvcPlugin`) or Webpack loader (`larkMvcLoader`).
 - Embedding remote views via Module Federation (`CrossSite`, `FrameworkConfig.require`).
 - API request layers using `Service.extend`, `Service.add`, `service.all/one/save`, `cleanKeys`.
-- Debugging Frame trees, working with `window.__lark_Debug`, or the Frame Visualizer Bridge.
+- Debugging Frame trees, working with `window.__lark_Debug`, or the Frame Devtool Bridge.
 
 ## Architecture
 
@@ -67,7 +67,7 @@ Lark exposes three ways to flow data to a view. Pick the simplest one that solve
 3. Set the EventDelegator's frame getter so global events can find views.
 4. Subscribe Router and State `changed` events to the dispatcher.
 5. Mark Framework / Router / State as booted.
-6. Install the Frame Visualizer Bridge (`postMessage` listener for DevTools).
+6. Install the Frame Devtool Bridge (`postMessage` listener for Devtool).
 7. **Create the root Frame with `Frame.createRoot(config.rootId)` BEFORE step 8.**
 8. **Bind `Router._bind()` so hashchange/popstate/beforeunload fire -- and Router.diff() runs once initially.**
 9. Mount the `defaultView` ONLY if Router didn't already mount one (e.g., after a page reload with `#!/counter`).
@@ -1138,21 +1138,21 @@ Frame object pooling: destroyed Frame instances are pooled up to `MAX_FRAME_POOL
 - `Framework.guard(o)` -- Safeguard Proxy wrap (no-op outside debug mode).
 - `Framework.Base` / `Framework.View` / `Framework.Frame` / `Framework.Cache` / `Framework.State` / `Framework.Router` -- class re-exports.
 
-## Frame Visualizer Bridge
+## Frame Devtool Bridge
 
-The framework installs a `postMessage` bridge during boot for the lark-visualizer devtools panel. The protocol:
+The framework installs a `postMessage` bridge during boot for the lark-devtool devtools panel. The protocol:
 
-| Direction            | Message type            | Data                  |
-| -------------------- | ----------------------- | --------------------- |
-| Visualizer -> Bridge | `LARK_VIS_PING`         | (none)                |
-| Bridge -> Visualizer | `LARK_VIS_PONG`         | (none)                |
-| Visualizer -> Bridge | `LARK_VIS_REQUEST_TREE` | (none)                |
-| Bridge -> Visualizer | `LARK_VIS_TREE`         | `SerializedFrameTree` |
-| Bridge -> Visualizer | `LARK_VIS_TREE_DELTA`   | `SerializedFrameTree` |
+| Direction         | Message type                | Data                  |
+| ----------------- | --------------------------- | --------------------- |
+| Devtool -> Bridge | `LARK_DEVTOOL_PING`         | (none)                |
+| Bridge -> Devtool | `LARK_DEVTOOL_PONG`         | (none)                |
+| Devtool -> Bridge | `LARK_DEVTOOL_REQUEST_TREE` | (none)                |
+| Bridge -> Devtool | `LARK_DEVTOOL_TREE`         | `SerializedFrameTree` |
+| Bridge -> Devtool | `LARK_DEVTOOL_TREE_DELTA`   | `SerializedFrameTree` |
 
 Delta updates are pushed automatically on Frame `add`/`remove` events. The bridge only sends if the serialized JSON has actually changed since the last push.
 
-Exported: `installFrameVisualizerBridge()`, `serializeFrameTree()`, `FrameVisualBridge` (message type constants), and the serialization types (`SerializedFrameNode`, `SerializedFrameTree`, `SerializedViewInfo`).
+Exported: `installFrameDevtoolBridge()`, `serializeFrameTree()`, `FrameDevtoolBridge` (message type constants), and the serialization types (`SerializedFrameNode`, `SerializedFrameTree`, `SerializedViewInfo`).
 
 ## Vite vs Webpack at a glance
 

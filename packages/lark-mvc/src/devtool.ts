@@ -1,15 +1,15 @@
 /**
- * Frame Visualizer Bridge — runs inside the target Lark application.
+ * Frame Devtool Bridge — runs inside the target Lark application.
  *
  * Serializes the Frame tree and responds to postMessage requests
- * from the Lark Visualizer (lark-visualizer) devtools panel.
+ * from the Lark devtool panel.
  *
  * Message protocol:
- *   Visualizer → Bridge:  { type: 'LARK_VIS_PING' }
- *   Bridge → Visualizer:  { type: 'LARK_VIS_PONG' }
- *   Visualizer → Bridge:  { type: 'LARK_VIS_REQUEST_TREE' }
- *   Bridge → Visualizer:  { type: 'LARK_VIS_TREE', data: SerializedFrameTree }
- *   Bridge → Visualizer:  { type: 'LARK_VIS_TREE_DELTA', data: SerializedFrameTree }
+ *   Devtool → Bridge:  { type: 'LARK_DEVTOOL_PING' }
+ *   Bridge → Devtool:  { type: 'LARK_DEVTOOL_PONG' }
+ *   Devtool → Bridge:  { type: 'LARK_DEVTOOL_REQUEST_TREE' }
+ *   Bridge → Devtool:  { type: 'LARK_DEVTOOL_TREE', data: SerializedFrameTree }
+ *   Bridge → Devtool:  { type: 'LARK_DEVTOOL_TREE_DELTA', data: SerializedFrameTree }
  *     (pushed automatically when frame tree changes)
  */
 import { Frame } from "./frame";
@@ -87,12 +87,12 @@ export interface SerializedFrameTree {
 // Message type constants
 // ============================================================
 
-export const FrameVisualBridge = {
-  MSG_PING: "LARK_VIS_PING",
-  MSG_PONG: "LARK_VIS_PONG",
-  MSG_REQUEST_TREE: "LARK_VIS_REQUEST_TREE",
-  MSG_TREE: "LARK_VIS_TREE",
-  MSG_TREE_DELTA: "LARK_VIS_TREE_DELTA",
+export const FrameDevtoolBridge = {
+  MSG_PING: "LARK_DEVTOOL_PING",
+  MSG_PONG: "LARK_DEVTOOL_PONG",
+  MSG_REQUEST_TREE: "LARK_DEVTOOL_REQUEST_TREE",
+  MSG_TREE: "LARK_DEVTOOL_TREE",
+  MSG_TREE_DELTA: "LARK_DEVTOOL_TREE_DELTA",
 };
 
 // ============================================================
@@ -213,13 +213,13 @@ let bridgeInstalled = false;
 let lastTreeJson = "";
 
 /**
- * Install the Frame Visualizer Bridge.
- * Listens for postMessage events from the visualizer and responds
+ * Install the Frame Devtool Bridge.
+ * Listens for postMessage events from the devtool panel and responds
  * with serialized frame tree data.
  *
  * This should be called once during Framework.boot().
  */
-export function installFrameVisualizerBridge(): void {
+export function installFrameDevtoolBridge(): void {
   if (bridgeInstalled) return;
   if (typeof window === "undefined") return;
 
@@ -231,25 +231,25 @@ export function installFrameVisualizerBridge(): void {
 
     const type = data.type;
 
-    if (type === FrameVisualBridge.MSG_PING) {
-      // Respond with pong so the visualizer knows we're a Lark app
+    if (type === FrameDevtoolBridge.MSG_PING) {
+      // Respond with pong so the devtool knows we're a Lark app
       const source = event.source as WindowProxy | null;
       if (source) {
         source.postMessage(
-          { type: FrameVisualBridge.MSG_PONG },
+          { type: FrameDevtoolBridge.MSG_PONG },
           { targetOrigin: "*" },
         );
       }
       return;
     }
 
-    if (type === FrameVisualBridge.MSG_REQUEST_TREE) {
+    if (type === FrameDevtoolBridge.MSG_REQUEST_TREE) {
       // Serialize and send back the frame tree
       const tree = serializeFrameTree();
       const source = event.source as WindowProxy | null;
       if (source) {
         source.postMessage(
-          { type: FrameVisualBridge.MSG_TREE, data: tree },
+          { type: FrameDevtoolBridge.MSG_TREE, data: tree },
           { targetOrigin: "*" },
         );
       }
@@ -267,7 +267,7 @@ export function installFrameVisualizerBridge(): void {
 }
 
 /**
- * Push a frame tree update to the parent window (visualizer).
+ * Push a frame tree update to the parent window (devtool).
  * Only sends if the tree has actually changed since the last push.
  */
 function pushTreeUpdate(): void {
@@ -279,7 +279,7 @@ function pushTreeUpdate(): void {
   if (treeJson !== lastTreeJson) {
     lastTreeJson = treeJson;
     window.parent.postMessage(
-      { type: FrameVisualBridge.MSG_TREE_DELTA, data: tree },
+      { type: FrameDevtoolBridge.MSG_TREE_DELTA, data: tree },
       "*",
     );
   }
