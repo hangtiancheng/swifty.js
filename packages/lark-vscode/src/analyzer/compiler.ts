@@ -4,7 +4,7 @@
  *   convertArtSyntax()    ({{}} → <% %>)
  *   processViewEvents()      (@event prefix + param encoding)
  *   compileToFunction()  (<% %> → JS template function)
- *   extractGlobalVars()   (AST-based global var analysis via @babel/parser)
+ *   extractGlobalVars()   (AST-based global var analysis via @swc/core)
  *
  * - All template operators: = (escape), ! (raw), @ (ref lookup), : (binding)
  * - @event attribute processing with $splitter prefix + \x1e separator
@@ -30,8 +30,39 @@
  *   {{set a = b}}              → variable declaration
  */
 
-import { parse as babelParse } from "@babel/parser";
-import type * as t from "@babel/types";
+// ─── SWC parser (lazy-loaded, same native binding as view-analyzer) ─────────
+import type {
+  ArrowFunctionExpression,
+  AssignmentExpression,
+  AssignmentPattern,
+  CallExpression,
+  FunctionDeclaration,
+  FunctionExpression,
+  Identifier,
+  MemberExpression,
+  Param,
+  Program,
+  RestElement,
+  VariableDeclarator,
+} from "@swc/core";
+
+type ParseSyncFn = typeof import("@swc/core").parseSync;
+let parseSyncFn: ParseSyncFn | null = null;
+let parseSyncLoadAttempted = false;
+
+async function getParser(): Promise<ParseSyncFn | null> {
+  if (!parseSyncLoadAttempted) {
+    parseSyncLoadAttempted = true;
+    try {
+      const swc = await import("@swc/core");
+      parseSyncFn = swc.parseSync;
+    } catch {
+      // SWC native binding not available — extractGlobalVars will fall back to regex
+    }
+  }
+  return parseSyncFn;
+}
+
 // ─── Compilation options ──────────────────────────────────────────────────
 /** Options for compileTemplate() */
 export interface CompileOptions {
@@ -42,7 +73,6 @@ export interface CompileOptions {
   /** File path for debug error messages (default: undefined) */
   file?: string;
 }
-
 
 /**
  * SPLITTER character (U+001E). Kept local rather than importing from common.ts
@@ -812,7 +842,7 @@ export default function(data, viewId, refData) {
  * @param source - The raw HTML template content (with {{ }} syntax)
  * @returns Array of global variable names found in the template
  */
-export function extractGlobalVars(source: string): string[] {
+export async function extractGlobalVars(source: string): Promise<string[]> {
   // Step 1: Convert {{ }} art syntax to <% %> so we can analyze it
   // (reuse the same pipeline as compilation, but without debug markers)
   const { protectedSource, comments: _comments } = protectComments(source);
@@ -857,13 +887,19 @@ export function extractGlobalVars(source: string): string[] {
   // Wrap in a function body so it's valid JS
   fn = `(function(){${fn}})`;
 
-  // Step 3: Parse with @babel/parser
-  let ast: t.File;
+  // Step 3: Parse with @swc/core
+  const parseSync = await getParser();
+  if (!parseSync) {
+    // SWC native binding not available — fall back to regexp extraction
+    return fallbackExtractVariables(source);
+  }
+
+  let ast: Program;
   try {
-    ast = babelParse(fn, {
-      sourceType: "script",
+    ast = parseSync(fn, {
+      syntax: "ecmascript",
+      isModule: false,
       allowReturnOutsideFunction: true,
-      allowAwaitOutsideFunction: true,
     });
   } catch {
     // If parsing fails, fall back to regexp extraction
@@ -876,32 +912,36 @@ export function extractGlobalVars(source: string): string[] {
   const globalVars: Record<string, number> = Object.create(null);
 
   // Track function ranges for scope analysis
-  const fnRange: t.Node[] = [];
+  const fnRange: (
+    | FunctionDeclaration
+    | FunctionExpression
+    | ArrowFunctionExpression
+  )[] = [];
 
   // First pass: collect variable declarations and function scopes
   walkAst(ast, {
-    VariableDeclarator(node: t.VariableDeclarator) {
+    VariableDeclarator(node: VariableDeclarator) {
       if (node.id.type === "Identifier") {
-        const name = node.id.name;
+        const name = (node.id as Identifier).value;
         // Mark as declared (value 3 = with init, 2 = without init)
         globalExists[name] = node.init ? 3 : 2;
       }
     },
-    FunctionDeclaration(node: t.FunctionDeclaration) {
-      if (node.id) {
-        globalExists[node.id.name] = 3;
+    FunctionDeclaration(node: FunctionDeclaration) {
+      if (node.identifier) {
+        globalExists[node.identifier.value] = 3;
       }
       fnRange.push(node);
     },
-    FunctionExpression(node: t.FunctionExpression) {
+    FunctionExpression(node: FunctionExpression) {
       fnRange.push(node);
     },
-    ArrowFunctionExpression(node: t.ArrowFunctionExpression) {
+    ArrowFunctionExpression(node: ArrowFunctionExpression) {
       fnRange.push(node);
     },
-    CallExpression(node: t.CallExpression) {
+    CallExpression(node: CallExpression) {
       if (node.callee.type === "Identifier") {
-        globalExists[node.callee.name] = 1; // treat as built-in/const
+        globalExists[(node.callee as Identifier).value] = 1; // treat as built-in/const
       }
     },
   });
@@ -909,33 +949,32 @@ export function extractGlobalVars(source: string): string[] {
   // Collect function params
   const functionParams: Record<string, number> = Object.create(null);
   for (const fnNode of fnRange) {
-    const params =
-      "params" in fnNode
-        ? (
-            fnNode as
-              | t.FunctionDeclaration
-              | t.FunctionExpression
-              | t.ArrowFunctionExpression
-          ).params
-        : [];
-    for (const p of params) {
+    const rawParams = "params" in fnNode ? fnNode.params : [];
+    for (const rawP of rawParams) {
+      // SWC wraps FunctionDeclaration/FunctionExpression params in Param { type: "Parameter", pat: Pattern }
+      // ArrowFunctionExpression params are already Pattern[] — no wrapper
+      const p =
+        (rawP as Param).type === "Parameter" ? (rawP as Param).pat : rawP;
       if (p.type === "Identifier") {
-        functionParams[p.name] = 1;
+        functionParams[(p as Identifier).value] = 1;
       } else if (
         p.type === "AssignmentPattern" &&
-        p.left.type === "Identifier"
+        (p as AssignmentPattern).left.type === "Identifier"
       ) {
-        functionParams[p.left.name] = 1;
-      } else if (p.type === "RestElement" && p.argument.type === "Identifier") {
-        functionParams[p.argument.name] = 1;
+        functionParams[((p as AssignmentPattern).left as Identifier).value] = 1;
+      } else if (
+        p.type === "RestElement" &&
+        (p as RestElement).argument.type === "Identifier"
+      ) {
+        functionParams[((p as RestElement).argument as Identifier).value] = 1;
       }
     }
   }
 
   // Second pass: collect all identifiers, determine which are global
   walkAst(ast, {
-    Identifier(node: t.Identifier) {
-      const name = node.name;
+    Identifier(node: Identifier) {
+      const name = node.value;
       // Skip if already known (declared, built-in, etc.)
       if (globalExists[name]) return;
       // Skip function parameters
@@ -943,9 +982,9 @@ export function extractGlobalVars(source: string): string[] {
       // This is a global variable that needs to be passed in
       globalVars[name] = 1;
     },
-    AssignmentExpression(node: t.AssignmentExpression) {
+    AssignmentExpression(node: AssignmentExpression) {
       if (node.left.type === "Identifier") {
-        const name = node.left.name;
+        const name = (node.left as Identifier).value;
         if (!globalExists[name] || globalExists[name] === 1) {
           // Undeclared variable being assigned — mark as existing to avoid duplicate reports
           globalExists[name] = (globalExists[name] || 0) + 1;
@@ -989,14 +1028,11 @@ function fallbackExtractVariables(source: string): string[] {
  * Simple AST walker that visits all nodes recursively.
  */
 function walkAst(
-  ast: t.File,
+  ast: Program,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   visitors: Record<string, (node: any) => void>,
 ): void {
-  // Babel node has `.type` as a discriminant; the cleanest narrowing pattern
-  // for a generic walker without depending on @babel/types' runtime helpers
-  // is to project the node into a typed local once per branch.
-  function visit(node: t.Node): void {
+  function visit(node: { type: string }): void {
     const type = node.type;
     if (visitors[type]) {
       visitors[type](node);
@@ -1010,26 +1046,33 @@ function walkAst(
         key === "start" ||
         key === "end" ||
         key === "loc" ||
-        key === "range"
+        key === "range" ||
+        key === "span"
       )
         continue;
       // Skip 'property' of non-computed MemberExpression
       // (e.g., obj.prop — 'prop' is not a standalone variable).
       if (type === "MemberExpression" && key === "property") {
-        const me = node as t.MemberExpression;
-        if (!me.computed) continue;
+        const me = node as unknown as MemberExpression;
+        if (me.property.type !== "Computed") continue;
       }
-      // Skip 'key' of non-computed ObjectProperty
+      // Skip 'key' of non-computed KeyValueProperty
       // (e.g., {key: value} — 'key' is not a standalone variable).
-      if (type === "ObjectProperty" && key === "key") {
-        const op = node as t.ObjectProperty;
-        if (!op.computed) continue;
+      if (type === "KeyValueProperty" && key === "key") {
+        const propKey = (node as unknown as Record<string, { type: string }>)[
+          "key"
+        ];
+        if (propKey.type !== "Computed") continue;
       }
-      // Skip 'key' of non-computed ObjectMethod
-      if (type === "ObjectMethod" && key === "key") {
-        const om = node as t.ObjectMethod;
-        if (!om.computed) continue;
+      // Skip 'key' of non-computed MethodProperty
+      // (e.g., {method() {}} — 'method' is not a standalone variable).
+      if (type === "MethodProperty" && key === "key") {
+        const propKey = (node as unknown as Record<string, { type: string }>)[
+          "key"
+        ];
+        if (propKey.type !== "Computed") continue;
       }
+
       const child = bag[key];
       if (Array.isArray(child)) {
         for (const item of child) {
@@ -1043,8 +1086,8 @@ function walkAst(
   visit(ast);
 }
 
-/** Type guard: is `v` a Babel-style AST node (has a string `type` field)? */
-function isAstNode(v: unknown): v is t.Node {
+/** Type guard: is `v` an AST node (has a string `type` field)? */
+function isAstNode(v: unknown): v is { type: string } {
   return (
     !!v &&
     typeof v === "object" &&
@@ -1224,7 +1267,7 @@ const BUILTIN_GLOBALS = new Set([
   "encodeURI",
   "decodeURI",
 
-  // Babel helpers
+  // SWC helpers
   "arguments",
   "this",
   "require",
