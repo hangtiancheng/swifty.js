@@ -14,17 +14,26 @@ export default defineConfig([
     tsconfig: "./tsconfig.build.json",
   },
   {
-    entry: [
-      "src/compiler.ts",
-      "src/webpack.ts",
-      "src/rspack.ts",
-      "src/vite.ts",
-    ],
+    entry: ["src/compiler.ts"],
+    dts: true,
+    format: ["esm", "cjs"],
+    minify: false,
+    noExternal: ["@babel/parser", "@babel/types"],
+    sourcemap: false,
+    tsconfig: "./tsconfig.build.json",
+  },
+  {
+    // Rspack / Webpack / Vite plugin entries — each needs __filename shim to
+    // resolve to its own file (not a shared chunk) for the LarkMvcPlugin to
+    // locate the loader at runtime. splitting: false ensures each ESM entry
+    // is a single self-contained file with no shared chunk extraction.
+    entry: ["src/rspack.ts", "src/webpack.ts", "src/vite.ts"],
     dts: true,
     format: ["esm", "cjs"],
     minify: false,
     noExternal: ["@babel/parser", "@babel/types"],
     shims: true,
+    splitting: false,
     sourcemap: false,
     tsconfig: "./tsconfig.build.json",
   },

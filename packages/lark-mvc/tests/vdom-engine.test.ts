@@ -83,11 +83,7 @@ describe("VDOM Engine", () => {
 
     it("serializes nested children into innerHTML", () => {
       const text = vdomCreate(0, "click me");
-      const btn = vdomCreate(
-        "button",
-        { id: "run", class: "btn" },
-        [text],
-      );
+      const btn = vdomCreate("button", { id: "run", class: "btn" }, [text]);
       const wrapper = vdomCreate("div", { class: "container" }, [btn]);
       expect(wrapper.html).toContain("<button");
       expect(wrapper.html).toContain('id="run"');
@@ -328,8 +324,7 @@ describe("VDOM Engine", () => {
     it("preserves node identity on keyed reorder", () => {
       const ref = createVDomRef("test");
       const el = document.createElement("ul");
-      el.innerHTML =
-        '<li id="a">A</li><li id="b">B</li><li id="c">C</li>';
+      el.innerHTML = '<li id="a">A</li><li id="b">B</li><li id="c">C</li>';
 
       const nodeA = el.children[0];
       const nodeB = el.children[1];

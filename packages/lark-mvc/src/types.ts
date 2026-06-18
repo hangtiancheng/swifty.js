@@ -333,11 +333,7 @@ export type VDomTemplate = (
   viewId: string,
   encUri: (v: unknown) => string,
   refData: unknown,
-  refFn: (
-    ref: Record<string, unknown>,
-    value: unknown,
-    key: string,
-  ) => string,
+  refFn: (ref: Record<string, unknown>, value: unknown, key: string) => string,
   encQuote: (v: unknown) => string,
   isArray: (v: unknown) => v is unknown[],
 ) => VDomNode;

@@ -1,2 +1,70 @@
-"use strict";(self.webpackChunklark_demo=self.webpackChunklark_demo||[]).push([[99],{892(e,r,t){t.d(r,{A:()=>a});var n=t(622);const a=n.View.extend({make(){console.log(`View instance created: ${this.id}`),this.updater.set({appName:"Lark Demo",currentTime:(new Date).toLocaleString()}),this.on("destroy",()=>{console.log(`View destroyed: ${this.id}`)})},alert(e,r){alert(`${e}\n\n${r}`)},navigate(e,r){n.Router.to(e,r)},getUrlParams:()=>n.Router.parse().params})},258(e,r,t){t.d(r,{M6:()=>d,pu:()=>m,tX:()=>g,IW:()=>l,Ni:()=>p});var n=String.fromCharCode(30);new RegExp(`(?:([\\w-]+)${n})?([^(]+)\\(([\\s\\S]*?)?\\)`);var a={"&":"amp","<":"lt",">":"gt",'"':"#34","'":"#39","`":"#96"},o=/[&<>"'`]/g;function i(e){return String(e??"")}var s={"!":"%21","'":"%27","(":"%28",")":"%29","*":"%2A"},u=/[!')(*]/g,c=/['"\\]/g;function l(e,r,t){for(let a=e[n];--a;)if(e[t=n+a]===r)return t;return t=n+e[n]++,e[t]=r,t}var p=i,d=function(e){return String(e??"").replace(o,e=>"&"+a[e]+";")},g=function(e){return encodeURIComponent(i(e)).replace(u,e=>s[e])},m=function(e){return i(e).replace(c,"\\$&")}}}]);
+"use strict";
+(self.webpackChunklark_demo = self.webpackChunklark_demo || []).push([
+  [99],
+  {
+    892(e, r, t) {
+      t.d(r, { A: () => a });
+      var n = t(622);
+      const a = n.View.extend({
+        make() {
+          (console.log(`View instance created: ${this.id}`),
+            this.updater.set({
+              appName: "Lark Demo",
+              currentTime: new Date().toLocaleString(),
+            }),
+            this.on("destroy", () => {
+              console.log(`View destroyed: ${this.id}`);
+            }));
+        },
+        alert(e, r) {
+          alert(`${e}\n\n${r}`);
+        },
+        navigate(e, r) {
+          n.Router.to(e, r);
+        },
+        getUrlParams: () => n.Router.parse().params,
+      });
+    },
+    258(e, r, t) {
+      t.d(r, {
+        M6: () => d,
+        pu: () => m,
+        tX: () => g,
+        IW: () => l,
+        Ni: () => p,
+      });
+      var n = String.fromCharCode(30);
+      new RegExp(`(?:([\\w-]+)${n})?([^(]+)\\(([\\s\\S]*?)?\\)`);
+      var a = {
+          "&": "amp",
+          "<": "lt",
+          ">": "gt",
+          '"': "#34",
+          "'": "#39",
+          "`": "#96",
+        },
+        o = /[&<>"'`]/g;
+      function i(e) {
+        return String(e ?? "");
+      }
+      var s = { "!": "%21", "'": "%27", "(": "%28", ")": "%29", "*": "%2A" },
+        u = /[!')(*]/g,
+        c = /['"\\]/g;
+      function l(e, r, t) {
+        for (let a = e[n]; --a; ) if (e[(t = n + a)] === r) return t;
+        return ((t = n + e[n]++), (e[t] = r), t);
+      }
+      var p = i,
+        d = function (e) {
+          return String(e ?? "").replace(o, (e) => "&" + a[e] + ";");
+        },
+        g = function (e) {
+          return encodeURIComponent(i(e)).replace(u, (e) => s[e]);
+        },
+        m = function (e) {
+          return i(e).replace(c, "\\$&");
+        };
+    },
+  },
+]);
 //# sourceMappingURL=99.ec08101b.js.map

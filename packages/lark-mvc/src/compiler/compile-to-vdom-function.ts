@@ -1,4 +1,3 @@
-
 // ─── VDOM compilation (htmlparser2-based) ──────────────────────────────────
 
 import { parseDocument } from "htmlparser2";
@@ -271,10 +270,7 @@ export function compileToVDomFunction(
     const children: HPNode[] = node.children || [];
     const childVar = allocVar();
     const propsKey = `__p${propsCounter++}`;
-    const props = vdomBuildPropsFromAttribs(
-      node.attribs,
-      exprStore,
-    );
+    const props = vdomBuildPropsFromAttribs(node.attribs, exprStore);
 
     lines.push(`let ${propsKey}=${props}`);
     lines.push(`${childVar}=[]`);

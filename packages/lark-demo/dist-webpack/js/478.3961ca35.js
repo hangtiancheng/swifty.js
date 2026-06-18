@@ -1,2 +1,47 @@
-"use strict";(self.webpackChunklark_demo=self.webpackChunklark_demo||[]).push([[478],{478(e,t,o){o.r(t),o.d(t,{CounterView:()=>n.default,default:()=>c,mountCounter:()=>l});var r=o(622),n=o(552),s=o(602),u=o(402);o(457);const a="mf/counter";function l(e){const t=e.id||"mf-counter-root";e.id=t,r.Framework.setConfig({rootId:t,error(e){console.error("[MF Counter View]",e)}}),r.EventDelegator.setFrameGetter(e=>r.Frame.get(e)),Reflect.set(r.Router,"_booted",!0),Reflect.set(r.State,"_booted",!0);const o=new r.Frame(t);return o.mountView(a),()=>{o.unmountView(),r.Frame.getAll().delete(t);const e=document.getElementById(t);e&&Reflect.set(e,"frameBound",0)}}(0,r.registerViewClass)(a,n.default),(0,r.registerViewClass)("components/counter-store",s.default),(0,r.registerViewClass)("components/counter-updater",u.default);const c=l}}]);
+"use strict";
+(self.webpackChunklark_demo = self.webpackChunklark_demo || []).push([
+  [478],
+  {
+    478(e, t, o) {
+      (o.r(t),
+        o.d(t, {
+          CounterView: () => n.default,
+          default: () => c,
+          mountCounter: () => l,
+        }));
+      var r = o(622),
+        n = o(552),
+        s = o(602),
+        u = o(402);
+      o(457);
+      const a = "mf/counter";
+      function l(e) {
+        const t = e.id || "mf-counter-root";
+        ((e.id = t),
+          r.Framework.setConfig({
+            rootId: t,
+            error(e) {
+              console.error("[MF Counter View]", e);
+            },
+          }),
+          r.EventDelegator.setFrameGetter((e) => r.Frame.get(e)),
+          Reflect.set(r.Router, "_booted", !0),
+          Reflect.set(r.State, "_booted", !0));
+        const o = new r.Frame(t);
+        return (
+          o.mountView(a),
+          () => {
+            (o.unmountView(), r.Frame.getAll().delete(t));
+            const e = document.getElementById(t);
+            e && Reflect.set(e, "frameBound", 0);
+          }
+        );
+      }
+      ((0, r.registerViewClass)(a, n.default),
+        (0, r.registerViewClass)("components/counter-store", s.default),
+        (0, r.registerViewClass)("components/counter-updater", u.default));
+      const c = l;
+    },
+  },
+]);
 //# sourceMappingURL=478.3961ca35.js.map

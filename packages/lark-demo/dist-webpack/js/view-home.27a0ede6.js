@@ -1,2 +1,101 @@
-"use strict";(self.webpackChunklark_demo=self.webpackChunklark_demo||[]).push([[724],{298(e,t,n){n.r(t),n.d(t,{default:()=>d});var a=n(622),r=n(892),s=n(258);function o(e,t,n){return((e,t,n,a)=>{n||(n=e);let r="",s=e.title,o=e.description,i=e.count,d=e.step,l=e.appName,c=e.currentTime;return r+='\x3c!-- Home View Template --\x3e\n<div class="min-h-screen bg-emerald-50/30 p-6">\n  <div class="mx-auto max-w-3xl">\n    <h1 class="mb-2 text-2xl font-normal tracking-tight text-emerald-800">\n      '+a(s)+'\n    </h1>\n    <p class="mb-6 text-xs text-emerald-500">'+a(o)+'</p>\n\n    <div class="mb-6 rounded-lg border border-emerald-100 bg-white p-5">\n      <h2 class="mb-3 text-base font-normal text-emerald-700">Navigation</h2>\n      <div class="flex gap-3">\n        <button\n          @click="'+t+'navigateTo(path=/about)"\n          class="rounded-md bg-emerald-500 px-5 py-2 text-xs font-normal text-white transition-colors hover:bg-emerald-600"\n        >\n          About\n        </button>\n        <button\n          @click="'+t+'navigateTo(path=/counter)"\n          class="rounded-md bg-sky-500 px-5 py-2 text-xs font-normal text-white transition-colors hover:bg-sky-600"\n        >\n          Counter\n        </button>\n      </div>\n    </div>\n\n    <div class="mb-6 rounded-lg border border-emerald-100 bg-white p-5">\n      <div class="mb-3 flex items-center justify-between">\n        <h2 class="text-base font-normal text-emerald-700">Store State</h2>\n        <a\n          @click="'+t+'navigateTo(path=/counter)"\n          class="cursor-pointer text-xs text-emerald-400 underline decoration-emerald-200 underline-offset-2 transition-colors hover:text-emerald-600"\n        >\n          modify\n        </a>\n      </div>\n      <div class="flex items-center gap-4">\n        <div\n          class="flex-1 rounded-md bg-emerald-500 py-6 text-center text-white"\n        >\n          <div class="text-3xl font-normal tracking-tight">'+a(i)+'</div>\n          <div class="text-[10px] opacity-60">count</div>\n        </div>\n        <div class="flex-1 rounded-md bg-sky-500 py-6 text-center text-white">\n          <div class="text-3xl font-normal tracking-tight">'+a(d)+'</div>\n          <div class="text-[10px] opacity-60">step</div>\n        </div>\n      </div>\n    </div>\n\n    <div class="mb-6 rounded-lg border border-emerald-100 bg-white p-5">\n      <h2 class="mb-3 text-base font-normal text-emerald-700">Interaction</h2>\n      <button\n        @click="'+t+'showInfo(title=Notice&message=You clicked the button!)"\n        class="rounded-md bg-emerald-500 px-5 py-2 text-xs font-normal text-white transition-colors hover:bg-emerald-600"\n      >\n        Show Alert\n      </button>\n    </div>\n\n    <div class="rounded-lg border border-emerald-100 bg-emerald-50/50 p-4">\n      <p class="mb-1 text-xs font-normal text-emerald-700">App: '+a(l)+'</p>\n      <p class="text-xs text-emerald-500">Time: '+a(c)+"</p>\n    </div>\n  </div>\n</div>\n",r})(e||{},t||"",n,s.M6,s.Ni,s.tX,s.IW,s.pu)}n.dn(o);var i=n(660);const d=r.A.extend({template:o,init(e){this.assign?.(e),(0,a.bindStore)(this,i.A,e=>({count:e.count,step:e.step}))},assign(e){this.updater.snapshot();const{count:t,step:n}=i.A.getState();return this.updater.set({title:"Welcome to Lark Framework",description:"This is a minimal @lark.js/mvc example",features:[{name:"MVC Architecture",desc:"Clear separation of View / Updater / Frame"},{name:"Routing System",desc:"Hash-based frontend routing"},{name:"Componentization",desc:"Reusable View components"},{name:"Template Engine",desc:"Supports conditionals, loops, and more"}],appName:"Lark MVC Demo",currentTime:(new Date).toLocaleString(),count:t,step:n}),this.updater.altered()},render(){this.updater.digest()},"navigateTo<click>"(e){const t=e.params,n=t?.path;n&&a.Router.to(n)},"showInfo<click>"(e){const t=e.params;t&&alert(`${t.title}\n\n${t.message}`)}})}}]);
+"use strict";
+(self.webpackChunklark_demo = self.webpackChunklark_demo || []).push([
+  [724],
+  {
+    298(e, t, n) {
+      (n.r(t), n.d(t, { default: () => d }));
+      var a = n(622),
+        r = n(892),
+        s = n(258);
+      function o(e, t, n) {
+        return ((e, t, n, a) => {
+          n || (n = e);
+          let r = "",
+            s = e.title,
+            o = e.description,
+            i = e.count,
+            d = e.step,
+            l = e.appName,
+            c = e.currentTime;
+          return (
+            (r +=
+              '\x3c!-- Home View Template --\x3e\n<div class="min-h-screen bg-emerald-50/30 p-6">\n  <div class="mx-auto max-w-3xl">\n    <h1 class="mb-2 text-2xl font-normal tracking-tight text-emerald-800">\n      ' +
+              a(s) +
+              '\n    </h1>\n    <p class="mb-6 text-xs text-emerald-500">' +
+              a(o) +
+              '</p>\n\n    <div class="mb-6 rounded-lg border border-emerald-100 bg-white p-5">\n      <h2 class="mb-3 text-base font-normal text-emerald-700">Navigation</h2>\n      <div class="flex gap-3">\n        <button\n          @click="' +
+              t +
+              'navigateTo(path=/about)"\n          class="rounded-md bg-emerald-500 px-5 py-2 text-xs font-normal text-white transition-colors hover:bg-emerald-600"\n        >\n          About\n        </button>\n        <button\n          @click="' +
+              t +
+              'navigateTo(path=/counter)"\n          class="rounded-md bg-sky-500 px-5 py-2 text-xs font-normal text-white transition-colors hover:bg-sky-600"\n        >\n          Counter\n        </button>\n      </div>\n    </div>\n\n    <div class="mb-6 rounded-lg border border-emerald-100 bg-white p-5">\n      <div class="mb-3 flex items-center justify-between">\n        <h2 class="text-base font-normal text-emerald-700">Store State</h2>\n        <a\n          @click="' +
+              t +
+              'navigateTo(path=/counter)"\n          class="cursor-pointer text-xs text-emerald-400 underline decoration-emerald-200 underline-offset-2 transition-colors hover:text-emerald-600"\n        >\n          modify\n        </a>\n      </div>\n      <div class="flex items-center gap-4">\n        <div\n          class="flex-1 rounded-md bg-emerald-500 py-6 text-center text-white"\n        >\n          <div class="text-3xl font-normal tracking-tight">' +
+              a(i) +
+              '</div>\n          <div class="text-[10px] opacity-60">count</div>\n        </div>\n        <div class="flex-1 rounded-md bg-sky-500 py-6 text-center text-white">\n          <div class="text-3xl font-normal tracking-tight">' +
+              a(d) +
+              '</div>\n          <div class="text-[10px] opacity-60">step</div>\n        </div>\n      </div>\n    </div>\n\n    <div class="mb-6 rounded-lg border border-emerald-100 bg-white p-5">\n      <h2 class="mb-3 text-base font-normal text-emerald-700">Interaction</h2>\n      <button\n        @click="' +
+              t +
+              'showInfo(title=Notice&message=You clicked the button!)"\n        class="rounded-md bg-emerald-500 px-5 py-2 text-xs font-normal text-white transition-colors hover:bg-emerald-600"\n      >\n        Show Alert\n      </button>\n    </div>\n\n    <div class="rounded-lg border border-emerald-100 bg-emerald-50/50 p-4">\n      <p class="mb-1 text-xs font-normal text-emerald-700">App: ' +
+              a(l) +
+              '</p>\n      <p class="text-xs text-emerald-500">Time: ' +
+              a(c) +
+              "</p>\n    </div>\n  </div>\n</div>\n"),
+            r
+          );
+        })(e || {}, t || "", n, s.M6, s.Ni, s.tX, s.IW, s.pu);
+      }
+      n.dn(o);
+      var i = n(660);
+      const d = r.A.extend({
+        template: o,
+        init(e) {
+          (this.assign?.(e),
+            (0, a.bindStore)(this, i.A, (e) => ({
+              count: e.count,
+              step: e.step,
+            })));
+        },
+        assign(e) {
+          this.updater.snapshot();
+          const { count: t, step: n } = i.A.getState();
+          return (
+            this.updater.set({
+              title: "Welcome to Lark Framework",
+              description: "This is a minimal @lark.js/mvc example",
+              features: [
+                {
+                  name: "MVC Architecture",
+                  desc: "Clear separation of View / Updater / Frame",
+                },
+                { name: "Routing System", desc: "Hash-based frontend routing" },
+                { name: "Componentization", desc: "Reusable View components" },
+                {
+                  name: "Template Engine",
+                  desc: "Supports conditionals, loops, and more",
+                },
+              ],
+              appName: "Lark MVC Demo",
+              currentTime: new Date().toLocaleString(),
+              count: t,
+              step: n,
+            }),
+            this.updater.altered()
+          );
+        },
+        render() {
+          this.updater.digest();
+        },
+        "navigateTo<click>"(e) {
+          const t = e.params,
+            n = t?.path;
+          n && a.Router.to(n);
+        },
+        "showInfo<click>"(e) {
+          const t = e.params;
+          t && alert(`${t.title}\n\n${t.message}`);
+        },
+      });
+    },
+  },
+]);
 //# sourceMappingURL=view-home.27a0ede6.js.map

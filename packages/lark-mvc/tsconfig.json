@@ -8,6 +8,7 @@
     // Environment Settings
     // See also https://aka.ms/tsconfig/module
     "module": "esnext",
+    "moduleResolution": "bundler",
     "target": "esnext",
     // For nodejs:
     "lib": ["esnext", "DOM", "DOM.Iterable"],
@@ -47,6 +48,7 @@
     "./src/**/*.ts",
     "./tests/**/*.test.ts",
     "./rollup.config.mjs",
-    "./tsup/config.ts"
+    "./tsup.config.ts",
+    "./vitest.config.ts"
   ]
 }

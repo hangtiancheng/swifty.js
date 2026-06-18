@@ -38,7 +38,9 @@ export default defineConfig({
     rspack(config, { rspack }) {
       // Lark template processing
       config.plugins = config.plugins ?? [];
-      config.plugins.push(new LarkMvcPlugin({ virtualDom: true, exclude: /index\.html$/ }));
+      config.plugins.push(
+        new LarkMvcPlugin({ virtualDom: true, exclude: /index\.html$/ }),
+      );
 
       // Module Federation (Remote)
       config.plugins.push(

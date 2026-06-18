@@ -1,4 +1,3 @@
-var lark_demo;
 (() => {
   "use strict";
   var e,
@@ -11,9 +10,9 @@ var lark_demo;
     u,
     l,
     s,
+    c,
     f,
     d,
-    c,
     p,
     h,
     v,
@@ -21,44 +20,8 @@ var lark_demo;
     g,
     b,
     y = {
-      762(e, r, t) {
-        var n = {
-            "./counter-view": () =>
-              Promise.all([
-                t.e(108),
-                t.e(57),
-                t.e(705),
-                t.e(467),
-                t.e(99),
-                t.e(660),
-                t.e(126),
-                t.e(478),
-              ]).then(() => () => t(478)),
-          },
-          o = (e, r) => (
-            (t.R = r),
-            (r = t.o(n, e)
-              ? n[e]()
-              : Promise.resolve().then(() => {
-                  throw new Error(
-                    'Module "' + e + '" does not exist in container.',
-                  );
-                })),
-            (t.R = void 0),
-            r
-          ),
-          a = (e, r) => {
-            if (t.S) {
-              var n = "default",
-                o = t.S[n];
-              if (o && o !== e)
-                throw new Error(
-                  "Container initialization failed as it has already been initialized with a different share scope",
-                );
-              return ((t.S[n] = e), t.I(n, r));
-            }
-          };
-        t.d(r, { get: () => o, init: () => a });
+      90(e, r, t) {
+        Promise.all([t.e(108), t.e(126), t.e(77)]).then(t.bind(t, 77));
       },
     },
     w = {};
@@ -86,22 +49,28 @@ var lark_demo;
     (k.u = (e) =>
       "js/" +
       ({
+        7: "view-404",
         57: "comp-counter-updater",
         108: "vendor-css-loaders",
         467: "view-counter",
         705: "comp-counter-store",
+        724: "view-home",
+        996: "view-about",
       }[e] || e) +
       "." +
       {
+        7: "c6408e5f",
         57: "41219f08",
         63: "95afb770",
+        77: "1055ae72",
         99: "ec08101b",
         108: "ae877ed6",
         126: "96a8c982",
         467: "a5a279f9",
-        478: "3961ca35",
         660: "1ef4dafc",
         705: "c4f2f0a3",
+        724: "27a0ede6",
+        996: "566948a5",
       }[e] +
       ".js"),
     (k.g = (function () {
@@ -125,12 +94,12 @@ var lark_demo;
             s < l.length;
             s++
           ) {
-            var f = l[s];
+            var c = l[s];
             if (
-              f.getAttribute("src") == t ||
-              f.getAttribute("data-webpack") == r + o
+              c.getAttribute("src") == t ||
+              c.getAttribute("data-webpack") == r + o
             ) {
-              i = f;
+              i = c;
               break;
             }
           }
@@ -141,8 +110,8 @@ var lark_demo;
           i.setAttribute("data-webpack", r + o),
           (i.src = t)),
           (e[t] = [n]));
-        var d = (r, n) => {
-            ((i.onerror = i.onload = null), clearTimeout(c));
+        var f = (r, n) => {
+            ((i.onerror = i.onload = null), clearTimeout(d));
             var o = e[t];
             if (
               (delete e[t],
@@ -152,12 +121,12 @@ var lark_demo;
             )
               return r(n);
           },
-          c = setTimeout(
-            d.bind(null, void 0, { type: "timeout", target: i }),
+          d = setTimeout(
+            f.bind(null, void 0, { type: "timeout", target: i }),
             12e4,
           );
-        ((i.onerror = d.bind(null, i.onerror)),
-          (i.onload = d.bind(null, i.onload)),
+        ((i.onerror = f.bind(null, i.onerror)),
+          (i.onload = f.bind(null, i.onload)),
           u && document.head.appendChild(i));
       }
     }),
@@ -230,7 +199,7 @@ var lark_demo;
         .replace(/#.*$/, "")
         .replace(/\?.*$/, "")
         .replace(/\/[^\/]+$/, "/")),
-        (k.p = e));
+        (k.p = e + "../"));
     })(),
     (t = (e) => {
       var r = (e) => e.split(".").map((e) => (+e == e ? +e : e)),
@@ -307,35 +276,35 @@ var lark_demo;
         o && (n = -n - 1);
         for (var i = 0, u = 1, l = !0; ; u++, i++) {
           var s,
-            f,
-            d = u < e.length ? (typeof e[u])[0] : "";
-          if (i >= r.length || "o" == (f = (typeof (s = r[i]))[0]))
-            return !l || ("u" == d ? u > n && !o : ("" == d) != o);
-          if ("u" == f) {
-            if (!l || "u" != d) return !1;
+            c,
+            f = u < e.length ? (typeof e[u])[0] : "";
+          if (i >= r.length || "o" == (c = (typeof (s = r[i]))[0]))
+            return !l || ("u" == f ? u > n && !o : ("" == f) != o);
+          if ("u" == c) {
+            if (!l || "u" != f) return !1;
           } else if (l)
-            if (d == f)
+            if (f == c)
               if (u <= n) {
                 if (s != e[u]) return !1;
               } else {
                 if (o ? s > e[u] : s < e[u]) return !1;
                 s != e[u] && (l = !1);
               }
-            else if ("s" != d && "n" != d) {
+            else if ("s" != f && "n" != f) {
               if (o || u <= n) return !1;
               ((l = !1), u--);
             } else {
-              if (u <= n || f < d != o) return !1;
+              if (u <= n || c < f != o) return !1;
               l = !1;
             }
-          else "s" != d && "n" != d && ((l = !1), u--);
+          else "s" != f && "n" != f && ((l = !1), u--);
         }
       }
-      var c = [],
-        p = c.pop.bind(c);
+      var d = [],
+        p = d.pop.bind(d);
       for (i = 1; i < e.length; i++) {
         var h = e[i];
-        c.push(1 == h ? p() | p() : 2 == h ? p() & p() : h ? a(h, r) : !p());
+        d.push(1 == h ? p() | p() : 2 == h ? p() & p() : h ? a(h, r) : !p());
       }
       return !!p();
     }),
@@ -350,7 +319,7 @@ var lark_demo;
         0,
       );
     }),
-    (f = (e, r, t, n) =>
+    (c = (e, r, t, n) =>
       "Unsatisfied version " +
       t +
       " from " +
@@ -360,17 +329,17 @@ var lark_demo;
       " (required " +
       o(n) +
       ")"),
-    (d = (e) => {
+    (f = (e) => {
       throw new Error(e);
     }),
-    (c = (e) => {
+    (d = (e) => {
       "undefined" != typeof console && console.warn && console.warn(e);
     }),
     (p = (e, r, t) =>
       t
         ? t()
         : ((e, r) =>
-            d("Shared module " + r + " doesn't exist in shared scope " + e))(
+            f("Shared module " + r + " doesn't exist in shared scope " + e))(
             e,
             r,
           )),
@@ -382,8 +351,8 @@ var lark_demo;
           : e(r, k.S[r], t, n, o, a);
       })((e, r, t, n, o, l) => {
       if (!i(r, t)) return p(e, t, l);
-      var d = s(r, t, n);
-      return (a(o, d) || c(f(r, t, d, o)), u(r[t][d]));
+      var f = s(r, t, n);
+      return (a(o, f) || d(c(r, t, f, o)), u(r[t][f]));
     })),
     (v = {}),
     (m = {
@@ -422,7 +391,7 @@ var lark_demo;
         });
     }),
     (() => {
-      var e = { 219: 0 };
+      var e = { 792: 0 };
       k.f.j = (r, t) => {
         var n = k.o(e, r) ? e[r] : void 0;
         if (0 !== n)
@@ -466,8 +435,7 @@ var lark_demo;
         t = (self.webpackChunklark_demo = self.webpackChunklark_demo || []);
       (t.forEach(r.bind(null, 0)), (t.push = r.bind(null, t.push.bind(t))));
     })(),
-    (k.nc = void 0));
-  var S = k(762);
-  lark_demo = S;
+    (k.nc = void 0),
+    k(90));
 })();
-//# sourceMappingURL=remoteEntry.js.map
+//# sourceMappingURL=main.83b1c585.js.map

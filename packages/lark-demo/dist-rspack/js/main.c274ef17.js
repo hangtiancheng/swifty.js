@@ -1,8 +1,7 @@
-var lark_demo;
 (() => {
-  "use strict";
   var __webpack_modules__ = {
       11(e, t) {
+        "use strict";
         let r = "RUNTIME-001",
           o = "RUNTIME-002",
           n = "RUNTIME-003",
@@ -67,10 +66,11 @@ var lark_demo;
           (t.runtimeDescMap = g),
           (t.typeDescMap = y));
       },
-      58(e, t, r) {
-        r.d(t, { get: () => r.getContainer, init: () => r.initContainer });
+      387(e, t, r) {
+        Promise.all([r.e(282), r.e(437)]).then(r.bind(r, 820));
       },
       361(e, t, r) {
+        "use strict";
         var o,
           n,
           i,
@@ -355,6 +355,7 @@ var lark_demo;
         }
       },
       37(e, t, r) {
+        "use strict";
         var o = r(983),
           n = r(11);
         let i = "[ Federation Runtime ]",
@@ -547,7 +548,7 @@ var lark_demo;
               R.__FEDERATION__.moduleInfo
             );
           },
-          C = (e) => (
+          H = (e) => (
             (R.__FEDERATION__.moduleInfo = {
               ...R.__FEDERATION__.moduleInfo,
               ...e,
@@ -557,7 +558,7 @@ var lark_demo;
                 delete R.__FEDERATION__.moduleInfo[t];
             }
           ),
-          H = (e, t) => {
+          C = (e, t) => {
             let r = t || `__FEDERATION_${e}:custom__`,
               o = I[r];
             return { remoteEntryKey: r, entryExports: o };
@@ -574,9 +575,9 @@ var lark_demo;
           G = (e) => I.__FEDERATION__.__PRELOADED_MAP__.get(e),
           V = (e) => I.__FEDERATION__.__PRELOADED_MAP__.set(e, !0),
           B = "default",
-          q = "global",
-          W = "[0-9A-Za-z-]+",
-          z = `(?:\\+(${W}(?:\\.${W})*))`,
+          W = "global",
+          q = "[0-9A-Za-z-]+",
+          z = `(?:\\+(${q}(?:\\.${q})*))`,
           K = "0|[1-9]\\d*",
           Y = "[0-9]+",
           X = "\\d*[a-zA-Z-][a-zA-Z0-9-]*",
@@ -775,7 +776,7 @@ var lark_demo;
         function ej(e, t) {
           return e.version === t.version;
         }
-        function eC(e, t) {
+        function eH(e, t) {
           switch (e.operator) {
             case "":
             case "=":
@@ -794,7 +795,7 @@ var lark_demo;
               return !1;
           }
         }
-        function eH(e) {
+        function eC(e) {
           return eI(ew, eO, eA, ek)(e);
         }
         function ex(e) {
@@ -821,7 +822,7 @@ var lark_demo;
               if (!e.trim()) return !0;
               let r = e
                 .split(" ")
-                .map((e) => eH(e))
+                .map((e) => eC(e))
                 .join(" ");
               if (!r.trim()) return !0;
               let o = r
@@ -845,7 +846,7 @@ var lark_demo;
                     patch: a,
                     preRelease: s?.split("."),
                   };
-                if (!eC(c, l)) {
+                if (!eH(c, l)) {
                   n = !1;
                   break;
                 }
@@ -928,7 +929,7 @@ var lark_demo;
           };
           return !!eU(r(e), `<=${r(t)}`);
         }
-        let eq = (e, t) => {
+        let eW = (e, t) => {
             let r =
               t ||
               function (e, t) {
@@ -939,25 +940,25 @@ var lark_demo;
               0,
             );
           },
-          eW = (e) => !!e.loaded || "function" == typeof e.lib,
+          eq = (e) => !!e.loaded || "function" == typeof e.lib,
           ez = (e) => !!e.loading;
         function eK(e, t, r) {
           let o = e[t][r],
             n = function (e, t) {
-              return !eW(o[e]) && eB(e, t);
+              return !eq(o[e]) && eB(e, t);
             };
-          return eq(e[t][r], n);
+          return eW(e[t][r], n);
         }
         function eY(e, t, r) {
           let o = e[t][r],
             n = function (e, t) {
-              let r = (e) => eW(e) || ez(e);
+              let r = (e) => eq(e) || ez(e);
               if (r(o[t]))
                 if (r(o[e])) return !!eB(e, t);
                 else return !0;
               return !r(o[e]) && eB(e, t);
             };
-          return eq(e[t][r], n);
+          return eW(e[t][r], n);
         }
         function eX(e) {
           return "loaded-first" === e ? eY : eK;
@@ -1004,9 +1005,9 @@ var lark_demo;
                 t[e.version] = e;
               });
               let r = function (e, r) {
-                  return !eW(t[e]) && eB(e, r);
+                  return !eq(t[e]) && eB(e, r);
                 },
-                o = eq(t, r);
+                o = eW(t, r);
               return t[o];
             };
           return Object.assign(
@@ -1102,8 +1103,8 @@ var lark_demo;
             }
           });
         }
-        function e6(e, t, r) {
-          let { remoteEntryKey: o, entryExports: i } = H(e, t);
+        function e4(e, t, r) {
+          let { remoteEntryKey: o, entryExports: i } = C(e, t);
           return (
             s(
               i,
@@ -1116,14 +1117,14 @@ var lark_demo;
             i
           );
         }
-        async function e4({
+        async function e6({
           name: e,
           globalName: t,
           entry: r,
           loaderHook: i,
           getEntryUrl: a,
         }) {
-          let { entryExports: l } = H(e, t);
+          let { entryExports: l } = C(e, t);
           if (l) return l;
           let c = a ? a(r) : r;
           return o
@@ -1140,7 +1141,7 @@ var lark_demo;
                   return r;
               },
             })
-            .then(() => e6(e, t, r))
+            .then(() => e4(e, t, r))
             .catch((t) => {
               throw (
                 s(
@@ -1168,7 +1169,7 @@ var lark_demo;
             case "system":
               return e8({ entry: n, remoteEntryExports: t });
             default:
-              return e4({
+              return e6({
                 entry: n,
                 globalName: i,
                 name: a,
@@ -1179,7 +1180,7 @@ var lark_demo;
         }
         async function te({ remoteInfo: e, loaderHook: t }) {
           let { entry: r, entryGlobalName: n, name: i, type: a } = e,
-            { entryExports: s } = H(i, n);
+            { entryExports: s } = C(i, n);
           return (
             s ||
             o
@@ -1192,7 +1193,7 @@ var lark_demo;
                   },
                 },
               })
-              .then(() => e6(i, n, r))
+              .then(() => e4(i, n, r))
               .catch((e) => {
                 throw e;
               })
@@ -1260,7 +1261,7 @@ var lark_demo;
           return {
             ...e,
             entry: "entry" in e ? e.entry : "",
-            type: e.type || q,
+            type: e.type || W,
             entryGlobalName: e.entryGlobalName || e.name,
             shareScope: e.shareScope || B,
           };
@@ -1403,8 +1404,8 @@ var lark_demo;
             getTargetSnapshotInfoByModuleInfo: L,
             getGlobalSnapshotInfoByModuleInfo: F,
             setGlobalSnapshotInfoByModuleInfo: j,
-            addGlobalSnapshot: C,
-            getRemoteEntryExports: H,
+            addGlobalSnapshot: H,
+            getRemoteEntryExports: C,
             registerGlobalPlugins: x,
             getGlobalHostPlugins: U,
             getPreloaded: G,
@@ -1971,7 +1972,7 @@ var lark_demo;
                 remoteEntry: "",
                 remotesInfo: {},
               }),
-              C({ [this.HostInstance.options.name]: c })),
+              H({ [this.HostInstance.options.name]: c })),
               c &&
                 "remotesInfo" in c &&
                 !D(c.remotesInfo, e.name).value &&
@@ -2615,7 +2616,7 @@ var lark_demo;
                   !e.entry.startsWith("http") &&
                   (e.entry = new URL(e.entry, window.location.origin).href),
                   e.shareScope || (e.shareScope = B),
-                  e.type || (e.type = q));
+                  e.type || (e.type = W));
               };
             this.hooks.lifecycle.beforeRegisterRemote.emit({
               remote: e,
@@ -2848,7 +2849,7 @@ var lark_demo;
           (t.Global = N),
           (t.Module = tc),
           (t.ModuleFederation = tT),
-          (t.addGlobalSnapshot = C),
+          (t.addGlobalSnapshot = H),
           (t.assert = s),
           (t.getGlobalFederationConstructor = A),
           (t.getGlobalSnapshot = P),
@@ -2868,6 +2869,7 @@ var lark_demo;
           (t.types = tw));
       },
       223(e, t, r) {
+        "use strict";
         var o = r(37),
           n = r(11),
           i = r(560);
@@ -2947,6 +2949,7 @@ var lark_demo;
           (t.registerShared = g));
       },
       560(e, t, r) {
+        "use strict";
         var o = r(37);
         function n() {
           return "u" > typeof FEDERATION_BUILD_IDENTIFIER
@@ -2964,6 +2967,7 @@ var lark_demo;
         };
       },
       983(__unused_rspack_module, exports) {
+        "use strict";
         let FederationModuleManifest = "federation-manifest.json",
           MANIFEST_EXT = ".json",
           BROWSER_LOG_KEY = "FEDERATION_DEBUG",
@@ -3816,9 +3820,11 @@ ${o}`;
           (exports.warn = warn));
       },
       79(e, t) {
+        "use strict";
         t.FEDERATION_SUPPORTED_TYPES = ["script"];
       },
       193(e, t, r) {
+        "use strict";
         var o = r(223),
           n = r(79),
           i = r(983);
@@ -4273,7 +4279,7 @@ while loading "${a[1]}" from ${a[2]}`),
   }
   ((__webpack_require__.m = __webpack_modules__),
     (__webpack_require__.c = __webpack_module_cache__),
-    (__webpack_require__.x = () => __webpack_require__(58)),
+    (__webpack_require__.x = () => __webpack_require__(387)),
     (() => {
       __webpack_require__.n = (e) => {
         var t = e && e.__esModule ? () => e.default : () => e;
@@ -4311,16 +4317,22 @@ while loading "${a[1]}" from ${a[2]}`),
           2: "comp-counter-updater",
           298: "comp-counter-store",
           456: "view-counter",
+          461: "view-home",
+          725: "view-about",
+          916: "view-404",
         }[e] || e) +
         "." +
         {
           2: "6df3abb5",
           280: "7eb5fc78",
           298: "f20845fd",
-          376: "dc3b3d2b",
+          437: "48c4d839",
           456: "a3d32af2",
+          461: "1f9a6ccc",
           604: "9197fff5",
+          725: "d3ab4c8f",
           875: "3a55c5ef",
+          916: "ced7da89",
         }[e] +
         ".js";
     })(),
@@ -4403,7 +4415,7 @@ while loading "${a[1]}" from ${a[2]}`),
           chunkMatcher: function (e) {
             return 282 != e;
           },
-          rootOutputDir: "",
+          rootOutputDir: "../",
         });
     })(),
     (() => {
@@ -4453,11 +4465,12 @@ while loading "${a[1]}" from ${a[2]}`),
       }
       if (!e)
         throw Error("Automatic publicPath is not supported in this browser");
-      __webpack_require__.p = e = e
-        .replace(/^blob:/, "")
-        .replace(/#.*$/, "")
-        .replace(/\?.*$/, "")
-        .replace(/\/[^\/]+$/, "/");
+      __webpack_require__.p =
+        (e = e
+          .replace(/^blob:/, "")
+          .replace(/#.*$/, "")
+          .replace(/\?.*$/, "")
+          .replace(/\/[^\/]+$/, "/")) + "../";
     })(),
     (() => {
       ((__webpack_require__.consumesLoadingData = {
@@ -4597,34 +4610,7 @@ while loading "${a[1]}" from ${a[2]}`),
       };
     })(),
     (() => {
-      ((__webpack_require__.initializeExposesData = {
-        moduleMap: {
-          "./counter-view": () =>
-            Promise.all([
-              __webpack_require__.e(2),
-              __webpack_require__.e(298),
-              __webpack_require__.e(456),
-              __webpack_require__.e(875),
-              __webpack_require__.e(280),
-              __webpack_require__.e(282),
-              __webpack_require__.e(376),
-            ]).then(() => () => __webpack_require__(523)),
-        },
-        shareScope: "default",
-      }),
-        (__webpack_require__.getContainer =
-          __webpack_require__.getContainer ||
-          function () {
-            throw Error("should have __webpack_require__.getContainer");
-          }),
-        (__webpack_require__.initContainer =
-          __webpack_require__.initContainer ||
-          function () {
-            throw Error("should have __webpack_require__.initContainer");
-          }));
-    })(),
-    (() => {
-      var e = { 416: 0 };
+      var e = { 889: 0 };
       __webpack_require__.f.j = function (t, r) {
         var o = __webpack_require__.o(e, t) ? e[t] : void 0;
         if (0 !== o)
@@ -4680,6 +4666,5 @@ while loading "${a[1]}" from ${a[2]}`),
       };
     })());
   var __webpack_exports__ = __webpack_require__.x();
-  lark_demo = __webpack_exports__;
 })();
-//# sourceMappingURL=remoteEntry.js.map
+//# sourceMappingURL=main.c274ef17.js.map

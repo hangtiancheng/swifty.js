@@ -1,2 +1,274 @@
-"use strict";(self.rspackChunklark_demo=self.rspackChunklark_demo||[]).push([[725],{678(e,t,s){s.r(t),s.d(t,{default:()=>u});var r=s(954),a=s(521),o=s(286),n=s(83);let u=a.A.extend({template:function(e,t,s){var a,n,u;let p,l,d,h,m,i,c,x,b,f,g,v,k,w,y,A,S,C,R,V,H,L,D,I,P,T,_,B,J,M,N,U,W,X=r.vdomCreate,j=o.Ni;return a=e||{},n=t||"",u=s,o.IW,o.tX,o.pu,u||(u=a),_=a.title,B=a.count,J=a.step,M=a.content,N=a.author,U=a.version,W=[],p=[],l=[],(d=[]).push(X(0,j(_))),l.push(X("h1",{class:"mb-5 text-2xl font-normal tracking-tight text-emerald-800/90"},d)),h=[],(m=[]).push(X(0,"\n        Shared Store State\n      ")),h.push(X("h3",{class:"mb-3 text-sm font-normal text-emerald-700/80"},m)),i=[],c=[],(x=[]).push(X(0,j(B))),c.push(X("div",{class:"text-2xl font-normal"},x)),(b=[]).push(X(0,"count")),c.push(X("div",{class:"text-[10px] opacity-70"},b)),i.push(X("div",{class:"flex-1 rounded-md bg-emerald-500/90 py-5 text-center text-white/90"},c)),f=[],(g=[]).push(X(0,j(J))),f.push(X("div",{class:"text-2xl font-normal"},g)),(v=[]).push(X(0,"step")),f.push(X("div",{class:"text-[10px] opacity-70"},v)),i.push(X("div",{class:"flex-1 rounded-md bg-sky-500/80 py-5 text-center text-white/90"},f)),h.push(X("div",{class:"flex items-center gap-4"},i)),l.push(X("div",{class:"mb-5 rounded-lg border border-emerald-100/80 bg-white/70 p-5"},h)),k=[],(w=[]).push(X(0,j(M))),k.push(X("p",{class:"text-sm leading-relaxed text-emerald-600/70"},w)),l.push(X("div",{class:"mb-5 rounded-lg border border-emerald-100/80 bg-white/70 p-5"},k)),y=[],(A=[]).push(X(0,"\n        Version Information\n      ")),y.push(X("h3",{class:"mb-3 text-sm font-normal text-emerald-700/80"},A)),(S=[]).push(X(0,"\n        Author: ")),(C=[]).push(X(0,j(N))),S.push(X("span",{class:"font-normal text-emerald-700/80"},C)),y.push(X("p",{class:"mb-1.5 text-xs text-emerald-600/70"},S)),(R=[]).push(X(0,"\n        Version:\n        ")),(V=[]).push(X(0,j(U))),R.push(X("span",{class:"font-normal text-emerald-700/80"},V)),y.push(X("p",{class:"text-xs text-emerald-600/70"},R)),l.push(X("div",{class:"mb-5 rounded-lg border border-emerald-100/80 bg-white/70 p-5"},y)),H=[],(L=[]).push(X(0,"\n        Route Parameter Demo\n      ")),H.push(X("h3",{class:"mb-3 text-sm font-normal text-emerald-700/80"},L)),(D=[]).push(X(0,"Current URL Parameters:")),H.push(X("p",{class:"mb-2 text-xs text-emerald-600/70"},D)),(I=[]).push(X(0,"author=")),I.push(X(0,j(N))),I.push(X(0,", version=")),I.push(X(0,j(U))),H.push(X("code",{class:"block rounded border border-emerald-100/60 bg-emerald-50/40 p-3 font-mono text-[11px] text-emerald-700/80"},I)),(P=[]).push(X(0,"\n        Tip: Visit #!/about?author=JohnDoe&version=1.0 to pass parameters\n      ")),H.push(X("p",{class:"mt-3 text-[10px] text-emerald-500/60 italic"},P)),l.push(X("div",{class:"mb-5 rounded-lg border border-emerald-100/80 bg-white/70 p-5"},H)),(T=[]).push(X(0,"\n      Back to Home\n    ")),l.push(X("button",{"@click":n+"\x1egoHome()",class:"rounded-md bg-emerald-500/90 px-5 py-2 text-xs font-normal text-white/90 transition-colors hover:bg-emerald-600/90"},T)),p.push(X("div",{class:"mx-auto max-w-2xl"},l)),W.push(X("div",{class:"min-h-screen bg-emerald-50/30 p-6"},p)),X(n,0,W)},init:function(e){var t;null==(t=this.assign)||t.call(this,e),(0,r.bindStore)(this,n.A,function(e){return{count:e.count,step:e.step}})},assign:function(e){this.updater.snapshot();var t=r.Router.parse().params,s=n.A.getState(),a=s.count,o=s.step;return this.updater.set({title:"About Lark",content:"Lark is a TypeScript MVC framework",author:t.author||"Anonymous",version:t.version||"1.0",count:a,step:o}),this.updater.altered()},render:function(){this.updater.digest()},"goHome<click>":function(){r.Router.to("/home")}})}}]);
+"use strict";
+(self.rspackChunklark_demo = self.rspackChunklark_demo || []).push([
+  [725],
+  {
+    678(e, t, s) {
+      (s.r(t), s.d(t, { default: () => u }));
+      var r = s(954),
+        a = s(521),
+        o = s(286),
+        n = s(83);
+      let u = a.A.extend({
+        template: function (e, t, s) {
+          var a, n, u;
+          let p,
+            l,
+            d,
+            h,
+            m,
+            i,
+            c,
+            x,
+            b,
+            f,
+            g,
+            v,
+            k,
+            w,
+            y,
+            A,
+            S,
+            C,
+            R,
+            V,
+            H,
+            L,
+            D,
+            I,
+            P,
+            T,
+            _,
+            B,
+            J,
+            M,
+            N,
+            U,
+            W,
+            X = r.vdomCreate,
+            j = o.Ni;
+          return (
+            (a = e || {}),
+            (n = t || ""),
+            (u = s),
+            o.IW,
+            o.tX,
+            o.pu,
+            u || (u = a),
+            (_ = a.title),
+            (B = a.count),
+            (J = a.step),
+            (M = a.content),
+            (N = a.author),
+            (U = a.version),
+            (W = []),
+            (p = []),
+            (l = []),
+            (d = []).push(X(0, j(_))),
+            l.push(
+              X(
+                "h1",
+                {
+                  class:
+                    "mb-5 text-2xl font-normal tracking-tight text-emerald-800/90",
+                },
+                d,
+              ),
+            ),
+            (h = []),
+            (m = []).push(X(0, "\n        Shared Store State\n      ")),
+            h.push(
+              X(
+                "h3",
+                { class: "mb-3 text-sm font-normal text-emerald-700/80" },
+                m,
+              ),
+            ),
+            (i = []),
+            (c = []),
+            (x = []).push(X(0, j(B))),
+            c.push(X("div", { class: "text-2xl font-normal" }, x)),
+            (b = []).push(X(0, "count")),
+            c.push(X("div", { class: "text-[10px] opacity-70" }, b)),
+            i.push(
+              X(
+                "div",
+                {
+                  class:
+                    "flex-1 rounded-md bg-emerald-500/90 py-5 text-center text-white/90",
+                },
+                c,
+              ),
+            ),
+            (f = []),
+            (g = []).push(X(0, j(J))),
+            f.push(X("div", { class: "text-2xl font-normal" }, g)),
+            (v = []).push(X(0, "step")),
+            f.push(X("div", { class: "text-[10px] opacity-70" }, v)),
+            i.push(
+              X(
+                "div",
+                {
+                  class:
+                    "flex-1 rounded-md bg-sky-500/80 py-5 text-center text-white/90",
+                },
+                f,
+              ),
+            ),
+            h.push(X("div", { class: "flex items-center gap-4" }, i)),
+            l.push(
+              X(
+                "div",
+                {
+                  class:
+                    "mb-5 rounded-lg border border-emerald-100/80 bg-white/70 p-5",
+                },
+                h,
+              ),
+            ),
+            (k = []),
+            (w = []).push(X(0, j(M))),
+            k.push(
+              X(
+                "p",
+                { class: "text-sm leading-relaxed text-emerald-600/70" },
+                w,
+              ),
+            ),
+            l.push(
+              X(
+                "div",
+                {
+                  class:
+                    "mb-5 rounded-lg border border-emerald-100/80 bg-white/70 p-5",
+                },
+                k,
+              ),
+            ),
+            (y = []),
+            (A = []).push(X(0, "\n        Version Information\n      ")),
+            y.push(
+              X(
+                "h3",
+                { class: "mb-3 text-sm font-normal text-emerald-700/80" },
+                A,
+              ),
+            ),
+            (S = []).push(X(0, "\n        Author: ")),
+            (C = []).push(X(0, j(N))),
+            S.push(X("span", { class: "font-normal text-emerald-700/80" }, C)),
+            y.push(X("p", { class: "mb-1.5 text-xs text-emerald-600/70" }, S)),
+            (R = []).push(X(0, "\n        Version:\n        ")),
+            (V = []).push(X(0, j(U))),
+            R.push(X("span", { class: "font-normal text-emerald-700/80" }, V)),
+            y.push(X("p", { class: "text-xs text-emerald-600/70" }, R)),
+            l.push(
+              X(
+                "div",
+                {
+                  class:
+                    "mb-5 rounded-lg border border-emerald-100/80 bg-white/70 p-5",
+                },
+                y,
+              ),
+            ),
+            (H = []),
+            (L = []).push(X(0, "\n        Route Parameter Demo\n      ")),
+            H.push(
+              X(
+                "h3",
+                { class: "mb-3 text-sm font-normal text-emerald-700/80" },
+                L,
+              ),
+            ),
+            (D = []).push(X(0, "Current URL Parameters:")),
+            H.push(X("p", { class: "mb-2 text-xs text-emerald-600/70" }, D)),
+            (I = []).push(X(0, "author=")),
+            I.push(X(0, j(N))),
+            I.push(X(0, ", version=")),
+            I.push(X(0, j(U))),
+            H.push(
+              X(
+                "code",
+                {
+                  class:
+                    "block rounded border border-emerald-100/60 bg-emerald-50/40 p-3 font-mono text-[11px] text-emerald-700/80",
+                },
+                I,
+              ),
+            ),
+            (P = []).push(
+              X(
+                0,
+                "\n        Tip: Visit #!/about?author=JohnDoe&version=1.0 to pass parameters\n      ",
+              ),
+            ),
+            H.push(
+              X(
+                "p",
+                { class: "mt-3 text-[10px] text-emerald-500/60 italic" },
+                P,
+              ),
+            ),
+            l.push(
+              X(
+                "div",
+                {
+                  class:
+                    "mb-5 rounded-lg border border-emerald-100/80 bg-white/70 p-5",
+                },
+                H,
+              ),
+            ),
+            (T = []).push(X(0, "\n      Back to Home\n    ")),
+            l.push(
+              X(
+                "button",
+                {
+                  "@click": n + "\x1egoHome()",
+                  class:
+                    "rounded-md bg-emerald-500/90 px-5 py-2 text-xs font-normal text-white/90 transition-colors hover:bg-emerald-600/90",
+                },
+                T,
+              ),
+            ),
+            p.push(X("div", { class: "mx-auto max-w-2xl" }, l)),
+            W.push(X("div", { class: "min-h-screen bg-emerald-50/30 p-6" }, p)),
+            X(n, 0, W)
+          );
+        },
+        init: function (e) {
+          var t;
+          (null == (t = this.assign) || t.call(this, e),
+            (0, r.bindStore)(this, n.A, function (e) {
+              return { count: e.count, step: e.step };
+            }));
+        },
+        assign: function (e) {
+          this.updater.snapshot();
+          var t = r.Router.parse().params,
+            s = n.A.getState(),
+            a = s.count,
+            o = s.step;
+          return (
+            this.updater.set({
+              title: "About Lark",
+              content: "Lark is a TypeScript MVC framework",
+              author: t.author || "Anonymous",
+              version: t.version || "1.0",
+              count: a,
+              step: o,
+            }),
+            this.updater.altered()
+          );
+        },
+        render: function () {
+          this.updater.digest();
+        },
+        "goHome<click>": function () {
+          r.Router.to("/home");
+        },
+      });
+    },
+  },
+]);
 //# sourceMappingURL=view-about.d3ab4c8f.js.map

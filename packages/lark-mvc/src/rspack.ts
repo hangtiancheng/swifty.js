@@ -49,9 +49,6 @@
  * };
  * ```
  */
-
-// import { fileURLToPath } from "node:url";
-// import { isCjs } from "./common.js";
 import type { Compiler, RspackPluginInstance } from "@rspack/core";
 import { compileTemplate, extractGlobalVars } from "./compiler.js";
 
@@ -148,10 +145,12 @@ export class LarkMvcPlugin implements RspackPluginInstance {
   apply(compiler: Compiler): void {
     const { debug, virtualDom, useSwc, test, exclude } = this.options;
 
-    // Resolve the loader path (this file).
-    // ESM uses import.meta.url.
-
+    // Deprecated implementation
     // const loaderPath = isCjs() ? __filename : fileURLToPath(import.meta.url);
+
+    // Resolve the loader path (this file).
+    // __filename is provided by tsup's ESM shim (shims: true) in ESM output,
+    // and is a native CJS global in CJS output.
     const loaderPath = __filename;
 
     // Push the loader rule into rspack's module.rules

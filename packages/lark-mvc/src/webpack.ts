@@ -49,9 +49,6 @@
  * };
  * ```
  */
-
-// import { fileURLToPath } from "url";
-// import { isCjs } from "./common";
 import { compileTemplate, extractGlobalVars } from "./compiler";
 
 /** Webpack loader context */
@@ -152,10 +149,12 @@ class LarkMvcPlugin {
   }): void {
     const { debug, virtualDom, useSwc, test, exclude } = this.options;
 
-    // Resolve the loader path (this file)
-    // In production builds, this will be the compiled webpack.js
-
+    // Deprecated implementation
     // const loaderPath = isCjs() ? __filename : fileURLToPath(import.meta.url);
+
+    // Resolve the loader path (this file).
+    // __filename is provided by tsup's ESM shim (shims: true) in ESM output,
+    // and is a native CJS global in CJS output.
     const loaderPath = __filename;
 
     // Push the loader rule into webpack's module.rules

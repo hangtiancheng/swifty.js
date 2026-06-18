@@ -1,2 +1,34 @@
-"use strict";(self.webpackChunklark_demo=self.webpackChunklark_demo||[]).push([[467],{552(e,n,t){t.r(n),t.d(n,{default:()=>s});var a=t(622),o=t(892),r=t(258);function l(e,n,t){return((e,n,t)=>{t||(t=e);let a="";return a+='\x3c!-- Counter View Template --\x3e\n<div class="min-h-screen bg-emerald-50/30 p-6">\n  <div class="mx-auto max-w-3xl">\n    <h1 class="mb-2 text-2xl font-normal tracking-tight text-emerald-800">\n      Counter Example\n    </h1>\n    <p class="mb-6 text-xs text-emerald-500">Data updates & event handling</p>\n\n    <div class="grid grid-cols-2 gap-6">\n      \x3c!-- Sub-View: Counter Store Component --\x3e\n      <div class="mb-6" v-lark="components/counter-store"></div>\n\n      \x3c!-- Sub-View: Counter Updater Component --\x3e\n      <div v-lark="components/counter-updater"></div>\n    </div>\n\n    <button\n      @click="'+n+'navigateTo(path=/home)"\n      class="rounded-md bg-emerald-500 px-5 py-2 text-xs font-normal text-white transition-colors hover:bg-emerald-600"\n    >\n      Back to Home\n    </button>\n  </div>\n</div>\n',a})(e||{},n||"",t,r.M6,r.Ni,r.tX,r.IW,r.pu)}t.dn(l);const s=o.A.extend({template:l,"navigateTo<click>"(e){const n=e.params;n?.path&&a.Router.to(n.path)}})}}]);
+"use strict";
+(self.webpackChunklark_demo = self.webpackChunklark_demo || []).push([
+  [467],
+  {
+    552(e, n, t) {
+      (t.r(n), t.d(n, { default: () => s }));
+      var a = t(622),
+        o = t(892),
+        r = t(258);
+      function l(e, n, t) {
+        return ((e, n, t) => {
+          t || (t = e);
+          let a = "";
+          return (
+            (a +=
+              '\x3c!-- Counter View Template --\x3e\n<div class="min-h-screen bg-emerald-50/30 p-6">\n  <div class="mx-auto max-w-3xl">\n    <h1 class="mb-2 text-2xl font-normal tracking-tight text-emerald-800">\n      Counter Example\n    </h1>\n    <p class="mb-6 text-xs text-emerald-500">Data updates & event handling</p>\n\n    <div class="grid grid-cols-2 gap-6">\n      \x3c!-- Sub-View: Counter Store Component --\x3e\n      <div class="mb-6" v-lark="components/counter-store"></div>\n\n      \x3c!-- Sub-View: Counter Updater Component --\x3e\n      <div v-lark="components/counter-updater"></div>\n    </div>\n\n    <button\n      @click="' +
+              n +
+              'navigateTo(path=/home)"\n      class="rounded-md bg-emerald-500 px-5 py-2 text-xs font-normal text-white transition-colors hover:bg-emerald-600"\n    >\n      Back to Home\n    </button>\n  </div>\n</div>\n'),
+            a
+          );
+        })(e || {}, n || "", t, r.M6, r.Ni, r.tX, r.IW, r.pu);
+      }
+      t.dn(l);
+      const s = o.A.extend({
+        template: l,
+        "navigateTo<click>"(e) {
+          const n = e.params;
+          n?.path && a.Router.to(n.path);
+        },
+      });
+    },
+  },
+]);
 //# sourceMappingURL=view-counter.a5a279f9.js.map

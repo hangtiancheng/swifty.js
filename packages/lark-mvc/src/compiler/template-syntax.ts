@@ -30,7 +30,6 @@
  *   {{set a = b}}              → variable declaration
  */
 
-
 /**
  * SPLITTER character (U+001E). Kept local rather than importing from common.ts
  * because compiler.ts runs at build-time (Node.js) while common.ts is a
