@@ -202,9 +202,14 @@ packages/lark-vscode/lark-vscode-*.vsix
 .etcd/
 **/.etcd/
 
-dist-rsbuild
-**/dist-rsbuild
+dist-vite
+**/dist-vite
 
+dist-webpack
+**/dist-webpack
+
+dist-rspack
+**/dist-rspack
 
 dist-rsbuild
 **/dist-rsbuild
