@@ -49,9 +49,10 @@
  * };
  * ```
  */
-import { fileURLToPath } from "url";
+
+// import { fileURLToPath } from "url";
+// import { isCjs } from "./common";
 import { compileTemplate, extractGlobalVars } from "./compiler";
-import { isCjs } from "./common";
 
 /** Webpack loader context */
 interface LoaderContext {
@@ -153,7 +154,9 @@ class LarkMvcPlugin {
 
     // Resolve the loader path (this file)
     // In production builds, this will be the compiled webpack.js
-    const loaderPath = isCjs() ? __filename : fileURLToPath(import.meta.url);
+
+    // const loaderPath = isCjs() ? __filename : fileURLToPath(import.meta.url);
+    const loaderPath = __filename;
 
     // Push the loader rule into webpack's module.rules
     compiler.options.module = compiler.options.module || {};

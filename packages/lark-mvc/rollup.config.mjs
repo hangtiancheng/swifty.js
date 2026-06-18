@@ -51,10 +51,42 @@ const makeExternal = (external) => (/** @type {string} */ id) => {
   return deps.includes(pkg) || peerDeps.includes(pkg);
 };
 
+/**
+ * Rollup plugin: inject __filename/__dirname shims for ESM output.
+ * These are native CJS globals but absent in ESM, so we derive them
+ * from import.meta.url — mirroring tsup's `shims: true`.
+ * @returns {import("rollup").Plugin}
+ */
+function cjsShims() {
+  const shims = [
+    "import { fileURLToPath as __cjs_fileURLToPath } from 'url';",
+    "import { dirname as __cjs_dirname } from 'path';",
+    "const __filename = __cjs_fileURLToPath(import.meta.url);",
+    "const __dirname = __cjs_dirname(__filename);",
+    "",
+  ].join("\n");
+  return {
+    name: "cjs-shims",
+    /**
+     * @param {string} code
+     * @param {import("rollup").RenderedChunk} chunk
+     * @param {import("rollup").NormalizedOutputOptions} outputOptions
+     * @returns {string | null}
+     */
+    renderChunk(code, chunk, outputOptions) {
+      if (outputOptions.format !== "es") return null;
+      return shims + code;
+    },
+  };
+}
+
 const outputConfigs = [
   { file: "dist/[name].js", format: "es" },
   { file: "dist/[name].cjs", format: "cjs", exports: "named" },
 ];
+
+// Entries that use __filename (webpack/rspack plugin loaders) need the shim.
+const cjsShimsEntries = new Set(["webpack", "rspack"]);
 
 // --- JS bundles (ESM + CJS, no sourcemap, matching tsup) ---
 const /** @type {import("rollup").OutputOptions[]} */ jsConfigs = entries.map(
@@ -69,6 +101,7 @@ const /** @type {import("rollup").OutputOptions[]} */ jsConfigs = entries.map(
       resolve(),
       commonjs(),
       typescript({ tsconfig: "./tsconfig.build.json" }),
+      ...(cjsShimsEntries.has(name) ? [cjsShims()] : []),
     ],
   }),
 );

@@ -49,10 +49,11 @@
  * };
  * ```
  */
-import { fileURLToPath } from "node:url";
+
+// import { fileURLToPath } from "node:url";
+// import { isCjs } from "./common.js";
 import type { Compiler, RspackPluginInstance } from "@rspack/core";
 import { compileTemplate, extractGlobalVars } from "./compiler.js";
-import { isCjs } from "./common.js";
 
 /** Rspack loader context */
 interface LoaderContext {
@@ -149,7 +150,9 @@ export class LarkMvcPlugin implements RspackPluginInstance {
 
     // Resolve the loader path (this file).
     // ESM uses import.meta.url.
-    const loaderPath = isCjs() ? __filename : fileURLToPath(import.meta.url);
+
+    // const loaderPath = isCjs() ? __filename : fileURLToPath(import.meta.url);
+    const loaderPath = __filename;
 
     // Push the loader rule into rspack's module.rules
     compiler.options.module = compiler.options.module || {};

@@ -24,6 +24,7 @@ export default defineConfig([
     format: ["esm", "cjs"],
     minify: false,
     noExternal: ["@babel/parser", "@babel/types"],
+    shims: true,
     sourcemap: false,
     tsconfig: "./tsconfig.build.json",
   },
