@@ -20,7 +20,6 @@ import {
   toUri,
   toMap,
   generateId,
-  now,
   getById,
   nodeInside,
   keys,
@@ -91,7 +90,7 @@ let taskScheduled = false;
  */
 function executeTaskChunk(deadline?: IdleDeadline): void {
   const hasDeadline = !!deadline;
-  const startTime = now();
+  const startTime = Date.now();
 
   while (true) {
     const fn = taskList[taskIndex] as AnyFunc | undefined;
@@ -111,7 +110,7 @@ function executeTaskChunk(deadline?: IdleDeadline): void {
         return;
       }
     } else if (
-      now() - startTime > CALL_BREAK_TIME &&
+      Date.now() - startTime > CALL_BREAK_TIME &&
       taskList.length > taskIndex + 3
     ) {
       // Fixed: 48ms budget, and there are more tasks remaining
@@ -370,10 +369,10 @@ function waitZoneViewsRendered(
     timeout = 30 * 1000;
   }
   const checkFrame = Frame.get(viewId);
-  const endTime = now() + timeout;
+  const endTime = Date.now() + timeout;
   return new Promise((resolve) => {
     const check = (): void => {
-      const currentTime = now();
+      const currentTime = Date.now();
       if (currentTime > endTime || !checkFrame) {
         resolve(WAIT_TIMEOUT_OR_NOT_FOUND);
       } else if (checkFrame.childrenCount === checkFrame.readyCount) {

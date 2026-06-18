@@ -189,6 +189,13 @@ export function vdomCreate(
       continue;
     }
 
+    // textarea value: write as innerHTML, not as attribute
+    if (prop === "value" && tag === "textarea") {
+      innerHTML = String(value);
+      delete propsObj[prop];
+      continue;
+    }
+
     // Serialize attribute
     attrs += ` ${prop}="${value && encodeHTML(value)}"`;
   }
@@ -322,7 +329,7 @@ export function vdomSetAttributes(
           if (ref) {
             ref.nodeProps.push([realNode, sValue, ""]);
           } else {
-            (realNode as unknown as Record<string, unknown>)[sValue] = "";
+            Reflect.set(realNode, sValue, "");
           }
         } else {
           realNode.removeAttribute(key);
@@ -337,14 +344,14 @@ export function vdomSetAttributes(
     const sKey = nsMap[key];
 
     if (sKey) {
-      // Special: set as DOM property
-      const oldMap = lastVDom?.attrsMap;
-      if (!oldMap || oldMap[key] !== value) {
+      // Special: set as DOM property — compare against DOM real-time value
+      // to detect user-interaction changes (e.g., typing in input)
+      if (Reflect.get(realNode, sKey) !== value) {
         changed = 1;
         if (ref) {
           ref.nodeProps.push([realNode, sKey, value]);
         } else {
-          (realNode as unknown as Record<string, unknown>)[sKey] = value;
+          Reflect.set(realNode, sKey, value);
         }
       }
     } else {
@@ -376,22 +383,18 @@ export function vdomSetAttributes(
  * attributes (including @event names) on the throwaway, causing
  * InvalidCharacterError in browsers with strict XML Name validation.
  */
-function vdomSyncFormState(
-  realNode: ChildNode,
-  newVDom: VDomNode,
-): number {
+function vdomSyncFormState(realNode: ChildNode, newVDom: VDomNode): number {
   const specials = DOM_SPECIALS[realNode.nodeName];
   if (!specials) return 0;
 
-  const el = realNode as unknown as Record<string, unknown>;
   const nMap = newVDom.attrsMap || EMPTY_OBJ;
   let result = 0;
 
   for (const prop of specials) {
     const newVal = nMap[prop];
-    if (newVal !== undefined && el[prop] !== newVal) {
+    if (newVal !== undefined && Reflect.get(realNode, prop) !== newVal) {
       result = 1;
-      el[prop] = newVal;
+      Reflect.set(realNode, prop, newVal);
     }
   }
   return result;
@@ -587,76 +590,114 @@ export function vdomSetChildNodes(
       // Head-head match
       if (newStartNode!.tag === SPLITTER || oldStartNode.tag === SPLITTER) {
         ref.changed = 1;
-        realNode.innerHTML = newVDom.html;
-        return;
+        domUnmountFrames(frame, realNode);
+        if (newStartNode!.tag === SPLITTER) {
+          // New node is raw HTML: replace with SPLITTER content
+          realNode.innerHTML = newStartNode!.html;
+        } else {
+          // Old node was raw HTML, new is normal: clear and recreate
+          realNode.innerHTML = "";
+          realNode.appendChild(vdomCreateNode(newStartNode!, realNode, ref));
+        }
+      } else {
+        vdomSetNode(
+          nodes[realStart] as ChildNode,
+          realNode,
+          oldStartNode,
+          newStartNode!,
+          ref,
+          frame,
+          keys,
+          view,
+          ready,
+        );
       }
-      vdomSetNode(
-        nodes[realStart] as ChildNode,
-        realNode,
-        oldStartNode,
-        newStartNode!,
-        ref,
-        frame,
-        keys,
-        view,
-        ready,
-      );
-      reduceCached(keyedNodes, oldStartNode);
+      reduceCached(keyedNodes, oldStartNode, nodes[realStart] as ChildNode);
       realStart++;
       oldStartNode = oldChildren?.[++oldStart];
       newStartNode = newChildren?.[++newStart];
     } else if (isSameVDomNode(newEndNode!, oldEndNode)) {
       // Tail-tail match
-      vdomSetNode(
-        nodes[realEnd] as ChildNode,
-        realNode,
-        oldEndNode,
-        newEndNode!,
-        ref,
-        frame,
-        keys,
-        view,
-        ready,
-      );
-      reduceCached(keyedNodes, oldEndNode);
+      if (newEndNode!.tag === SPLITTER || oldEndNode.tag === SPLITTER) {
+        ref.changed = 1;
+        domUnmountFrames(frame, realNode);
+        realNode.innerHTML =
+          newEndNode!.tag === SPLITTER ? newEndNode!.html : "";
+        if (newEndNode!.tag !== SPLITTER) {
+          realNode.appendChild(vdomCreateNode(newEndNode!, realNode, ref));
+        }
+      } else {
+        vdomSetNode(
+          nodes[realEnd] as ChildNode,
+          realNode,
+          oldEndNode,
+          newEndNode!,
+          ref,
+          frame,
+          keys,
+          view,
+          ready,
+        );
+      }
+      reduceCached(keyedNodes, oldEndNode, nodes[realEnd] as ChildNode);
       realEnd--;
       oldEndNode = oldChildren?.[--oldEnd];
       newEndNode = newChildren?.[--newEnd];
     } else if (isSameVDomNode(newEndNode!, oldStartNode)) {
       // Old start moves to after tail
-      const oi = nodes[realStart] as ChildNode;
-      realNode.insertBefore(oi, nodes[realEnd + 1] || null);
-      vdomSetNode(
-        oi,
-        realNode,
-        oldStartNode,
-        newEndNode!,
-        ref,
-        frame,
-        keys,
-        view,
-        ready,
-      );
-      reduceCached(keyedNodes, oldStartNode);
+      if (newEndNode!.tag === SPLITTER || oldStartNode.tag === SPLITTER) {
+        ref.changed = 1;
+        domUnmountFrames(frame, realNode);
+        realNode.innerHTML =
+          newEndNode!.tag === SPLITTER ? newEndNode!.html : "";
+        if (newEndNode!.tag !== SPLITTER) {
+          realNode.appendChild(vdomCreateNode(newEndNode!, realNode, ref));
+        }
+      } else {
+        const oi = nodes[realStart] as ChildNode;
+        realNode.insertBefore(oi, nodes[realEnd + 1] || null);
+        vdomSetNode(
+          oi,
+          realNode,
+          oldStartNode,
+          newEndNode!,
+          ref,
+          frame,
+          keys,
+          view,
+          ready,
+        );
+      }
+      reduceCached(keyedNodes, oldStartNode, nodes[realStart] as ChildNode);
       realStart++;
       oldStartNode = oldChildren?.[++oldStart];
       newEndNode = newChildren?.[--newEnd];
     } else if (isSameVDomNode(newStartNode!, oldEndNode)) {
       // Old end moves to before head
-      const oi = nodes[realEnd] as ChildNode;
-      realNode.insertBefore(oi, nodes[realStart] as ChildNode);
-      vdomSetNode(
-        oi,
-        realNode,
-        oldEndNode,
-        newStartNode!,
-        ref,
-        frame,
-        keys,
-        view,
-        ready,
-      );
-      reduceCached(keyedNodes, oldEndNode);
+      if (newStartNode!.tag === SPLITTER || oldEndNode.tag === SPLITTER) {
+        ref.changed = 1;
+        domUnmountFrames(frame, realNode);
+        realNode.innerHTML =
+          newStartNode!.tag === SPLITTER ? newStartNode!.html : "";
+        if (newStartNode!.tag !== SPLITTER) {
+          realNode.appendChild(vdomCreateNode(newStartNode!, realNode, ref));
+        }
+      } else {
+        const oi = nodes[realEnd] as ChildNode;
+        realNode.insertBefore(oi, nodes[realStart] as ChildNode);
+        vdomSetNode(
+          oi,
+          realNode,
+          oldEndNode,
+          newStartNode!,
+          ref,
+          frame,
+          keys,
+          view,
+          ready,
+        );
+      }
+      reduceCached(keyedNodes, oldEndNode, nodes[realEnd] as ChildNode);
       realEnd--;
       oldEndNode = oldChildren?.[--oldEnd];
       newStartNode = newChildren?.[++newStart];
@@ -678,10 +719,13 @@ export function vdomSetChildNodes(
 
       if (cKey && keyedNodes) {
         found = keyedNodes[cKey];
-        if (found) {
+        compareKey = undefined;
+        // Skip nullified entries (previously matched nodes set to undefined)
+        while (found && found.length > 0) {
           compareKey = found.pop();
-          if (found.length === 0) delete keyedNodes[cKey];
+          if (compareKey) break;
         }
+        if (found && found.length === 0) delete keyedNodes[cKey];
       }
 
       if (compareKey) {
@@ -691,7 +735,8 @@ export function vdomSetChildNodes(
           for (let j = oldStart + 1; j <= oldEnd; j++) {
             const oc = oldChildren?.[j];
             if (oc && nodes[realStart + (j - oldStart)] === compareKey) {
-              oldChildren![j] = undefined as unknown as VDomNode;
+              oldChildren[j] = undefined as unknown as VDomNode;
+
               break;
             }
           }
@@ -750,8 +795,13 @@ export function vdomSetChildNodes(
     const refNode = nodes[realEnd + 1] || null;
     for (let i = newStart; i <= newEnd; i++) {
       ref.changed = 1;
-      ref.asyncCount++;
       const nc = newChildren![i];
+      if (nc.tag === SPLITTER) {
+        domUnmountFrames(frame, realNode);
+        realNode.innerHTML = nc.html;
+        return;
+      }
+      ref.asyncCount++;
       const newNode = vdomCreateNode(nc, realNode, ref);
       realNode.insertBefore(newNode, refNode);
       ref.asyncCount--;
@@ -773,16 +823,23 @@ export function vdomSetChildNodes(
 
 /**
  * Decrement reused count for a matched keyed node.
+ * Precisely finds and nullifies the corresponding DOM node in the bucket
+ * (rather than blindly popping) to keep the keyed index consistent.
  */
 function reduceCached(
   keyedNodes: Record<string, ChildNode[]> | undefined,
   node: VDomNode,
+  compared: ChildNode,
 ): void {
   if (!keyedNodes || !node.compareKey) return;
   const bucket = keyedNodes[node.compareKey];
   if (bucket) {
-    bucket.pop();
-    if (bucket.length === 0) delete keyedNodes[node.compareKey];
+    for (let i = bucket.length; i--; ) {
+      if (bucket[i] === compared) {
+        bucket[i] = undefined as unknown as ChildNode;
+        break;
+      }
+    }
   }
 }
 

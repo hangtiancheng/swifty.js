@@ -17,7 +17,7 @@ import {
   URL_TRIM_QUERY_REGEXP,
   RouterEvents,
 } from "./common";
-import { hasOwnProperty, assign, parseUri, toUri } from "./utils";
+import { hasOwnProperty, assign, parseUri, toUri, asRecord } from "./utils";
 import { Cache } from "./cache";
 import { EventEmitter } from "./event-emitter";
 import { safeguard } from "./safeguard";
@@ -371,10 +371,7 @@ export const Router: RouterInterface = {
       if (lastChanged["path"]) {
         document.title = defaultTitle || document.title;
       }
-      emitter.fire(
-        RouterEvents.CHANGED,
-        lastChanged as unknown as Record<string, unknown>,
-      );
+      emitter.fire(RouterEvents.CHANGED, asRecord(lastChanged));
     }
 
     silent = 0;
@@ -551,10 +548,7 @@ export const Router: RouterInterface = {
           },
         };
 
-        Router.fire(
-          RouterEvents.CHANGE,
-          changeEvent as unknown as Record<string, unknown>,
-        );
+        Router.fire(RouterEvents.CHANGE, changeEvent);
 
         if (suspend || changeEvent.p) {
           return;

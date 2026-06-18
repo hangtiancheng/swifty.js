@@ -138,14 +138,12 @@ export function domSpecialDiff(oldNode: ChildNode, newNode: ChildNode): number {
   // We've matched by nodeName so both nodes are the same element type; the
   // property access (`value`/`checked`/`selected`) is intentionally untyped
   // because TS's HTMLElement union doesn't capture the per-tag overlap.
-  const oldEl = oldNode as unknown as Record<string, unknown>;
-  const newEl = newNode as unknown as Record<string, unknown>;
   let result = 0;
 
   for (const prop of specials) {
-    if (oldEl[prop] !== newEl[prop]) {
+    if (Reflect.get(oldNode, prop) !== Reflect.get(newNode, prop)) {
       result = 1;
-      oldEl[prop] = newEl[prop];
+      Reflect.set(oldNode, prop, Reflect.get(newNode, prop));
     }
   }
   return result;

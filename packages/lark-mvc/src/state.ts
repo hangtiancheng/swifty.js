@@ -169,10 +169,7 @@ export const State: StateInterface = {
       const keys = changedKeys;
       stashedChangedKeys = keys;
       changedKeys = new Set();
-      emitter.fire(RouterEvents.CHANGED, { keys } as unknown as Record<
-        string,
-        unknown
-      >);
+      emitter.fire(RouterEvents.CHANGED, { keys });
     }
   },
 

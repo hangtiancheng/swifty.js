@@ -184,12 +184,8 @@ export class Updater implements UpdaterInterface {
           // ── VDOM rendering path ──
           // The compiled VDOM template imports vdomCreate via ES module
           // import and takes only (data, viewId, refData).
-          const vdomTemplate = template as unknown as VDomTemplate;
-          const newVDom = vdomTemplate(
-            this.data,
-            this.viewId,
-            this.refData,
-          );
+          const vdomTemplate = template as VDomTemplate;
+          const newVDom = vdomTemplate(this.data, this.viewId, this.refData);
 
           const ref = createVDomRef(this.viewId);
 
@@ -201,7 +197,7 @@ export class Updater implements UpdaterInterface {
             }
             // Apply deferred DOM property assignments
             for (const [el, prop, val] of ref.nodeProps) {
-              (el as unknown as Record<string, unknown>)[prop] = val;
+              Reflect.set(el, prop, val);
             }
             // Re-render sub-views that changed
             for (const v of ref.viewRenders) {
@@ -240,7 +236,7 @@ export class Updater implements UpdaterInterface {
           );
 
           // Parse new DOM from HTML
-          const newDom = domGetNode(html, node);
+          const newDom = domGetNode(html as string, node);
 
           // Create DOM ref for tracking operations
           const ref = createDomRef();

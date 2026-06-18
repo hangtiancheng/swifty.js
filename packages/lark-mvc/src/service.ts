@@ -11,7 +11,7 @@
  * - Payload: response wrapper with get/set
  */
 import { SPLITTER } from "./common";
-import { assign, funcWithTry, noop, generateId, now } from "./utils";
+import { assign, funcWithTry, noop, generateId } from "./utils";
 import { Cache } from "./cache";
 import { EventEmitter } from "./event-emitter";
 import type {
@@ -395,7 +395,7 @@ export class Service {
       }
       const cached = this._payloadCache.get(cacheKey);
       if (cached && cached.cacheInfo) {
-        if (now() - cached.cacheInfo.time > cache) {
+        if (Date.now() - cached.cacheInfo.time > cache) {
           this._payloadCache.del(cacheKey);
           return undefined;
         }
@@ -605,7 +605,7 @@ function serviceSend(
           const list = pendingCacheKeys[cacheKey];
           const entity = list.entity;
           if (entity instanceof Payload && entity.cacheInfo) {
-            entity.cacheInfo.time = now();
+            entity.cacheInfo.time = Date.now();
             internals.payloadCache.set(cacheKey, entity);
           }
           Reflect.deleteProperty(pendingCacheKeys, cacheKey);

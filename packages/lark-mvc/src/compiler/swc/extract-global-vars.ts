@@ -278,18 +278,18 @@ function walkSwcAst(
       // Skip non-computed MemberExpression.property
       // (e.g., obj.prop — 'prop' is not a standalone variable)
       if (type === "MemberExpression" && key === "property") {
-        const me = node as unknown as MemberExpression;
+        const me = node as MemberExpression;
         if (me.property.type !== "Computed") continue;
       }
       // Skip non-computed KeyValueProperty.key
       // (e.g., {key: value} — 'key' is not a standalone variable).
       if (type === "KeyValueProperty" && key === "key") {
-        const kv = node as unknown as KeyValueProperty;
+        const kv = node as KeyValueProperty;
         if (kv.key.type !== "Computed") continue;
       }
       // Skip non-computed MethodProperty.key
       if (type === "MethodProperty" && key === "key") {
-        const mp = node as unknown as MethodProperty;
+        const mp = node as MethodProperty;
         if (mp.key.type !== "Computed") continue;
       }
 

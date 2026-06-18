@@ -213,8 +213,6 @@ function walkAst(
       visitors[type](node);
     }
     // Recurse into child nodes. We treat the node as a string-indexable
-    // bag for traversal purposes; that's structurally what an AST node is.
-    const bag = node as unknown as Record<string, unknown>;
     for (const key of Object.keys(node)) {
       if (
         key === "type" ||
@@ -241,7 +239,7 @@ function walkAst(
         const om = node as t.ObjectMethod;
         if (!om.computed) continue;
       }
-      const child = bag[key];
+      const child = Reflect.get(node, key);
       if (Array.isArray(child)) {
         for (const item of child) {
           if (isAstNode(item)) visit(item);

@@ -169,7 +169,7 @@ describe("EventEmitter", () => {
 
       const list =
         (
-          emitter as unknown as {
+          emitter as {
             listeners: Map<string, { handler: AnyFunc }[]>;
           }
         ).listeners.get("\x1ee") ?? [];

@@ -23,6 +23,21 @@ export function isPlainObject(
   return proto === null || proto === Object.prototype;
 }
 
+export function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+export function asRecord(value: unknown): Record<string, unknown> {
+  if (isRecord(value)) {
+    return value;
+  }
+  console.error("fallback to Object.fromEntries, even an empty object {}.");
+  if (Array.isArray(value)) {
+    return Object.fromEntries(value.entries());
+  }
+  return {};
+}
+
 /** Check if value is primitive or function (not a complex object) */
 export function isPrimitiveOrFunc(value: unknown): boolean {
   return !value || (typeof value !== "object" && typeof value !== "function");
@@ -300,13 +315,4 @@ export function toMap<T>(
     map[mapKey] = key ? item : ((map[mapKey] as number) || 0) + 1;
   }
   return map;
-}
-
-// ============================================================
-// Async utilities
-// ============================================================
-
-/** Get current timestamp */
-export function now(): number {
-  return Date.now();
 }

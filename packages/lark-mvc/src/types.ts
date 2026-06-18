@@ -561,7 +561,7 @@ export interface ViewInterface extends EventEmitterInterface<ViewInterface> {
    * View template function. Receives data + viewId + refData and a set of
    * encoder helpers wired in by the Updater, and returns the rendered HTML.
    */
-  template?: ViewTemplate;
+  template?: ViewTemplate | VDomTemplate;
   /**
    * Mixin object array for extending view functionality.
    * Framework merges properties and methods from mixins into view prototype.

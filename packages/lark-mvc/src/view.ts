@@ -10,7 +10,7 @@
  * - Location/State observation
  */
 import { SPLITTER, VIEW_EVENT_METHOD_REGEXP, RouterEvents } from "./common";
-import { hasOwnProperty, funcWithTry, noop } from "./utils";
+import { hasOwnProperty, funcWithTry, noop, asRecord } from "./utils";
 import { EventEmitter } from "./event-emitter";
 import { EventDelegator } from "./event-delegator";
 import { Updater } from "./updater";
@@ -400,21 +400,20 @@ export class View implements ViewInterface {
     const makes: AnyFunc[] = [];
     oView.makes = makes;
 
-    const proto = oView.prototype as unknown as Record<string, unknown>;
     const eventsObject: Record<string, number> = {};
     const eventsList: ViewGlobalEventEntry[] = [];
     const selectorObject: Record<string, ViewEventSelectorEntry> = {};
 
     // Process mixins first
-    const mixins = proto["mixins"];
+    const mixins = Reflect.get(oView.prototype, "mixins");
     if (mixins && Array.isArray(mixins)) {
       View.mergeMixins(mixins, oView, makes);
     }
 
     // Scan prototype for event method patterns
-    for (const p in proto) {
-      if (!hasOwnProperty(proto, p)) continue;
-      const currentFn = proto[p];
+    for (const p in oView.prototype) {
+      if (!hasOwnProperty(oView.prototype, p)) continue;
+      const currentFn = Reflect.get(oView.prototype, p);
       if (typeof currentFn !== "function") continue;
 
       const matches = p.match(VIEW_EVENT_METHOD_REGEXP);
@@ -464,20 +463,21 @@ export class View implements ViewInterface {
         eventsObject[item] = (eventsObject[item] || 0) | mask;
 
         const combinedKey = selectorOrCallback + SPLITTER + item;
-        const existingFn = proto[combinedKey];
+        const existingFn = Reflect.get(oView.prototype, combinedKey);
         if (!existingFn) {
-          proto[combinedKey] = currentFn;
+          Reflect.set(oView.prototype, combinedKey, currentFn);
         } else if (typeof existingFn === "function") {
           const mixinFn = currentFn as MixinEventHandler;
           const existingMixin = existingFn as MixinEventHandler;
           if (existingMixin.marker) {
             if (mixinFn.marker) {
-              proto[combinedKey] = View.processMixinsSameEvent(
-                mixinFn,
-                existingMixin,
+              Reflect.set(
+                oView.prototype,
+                combinedKey,
+                View.processMixinsSameEvent(mixinFn, existingMixin),
               );
-            } else if (hasOwnProperty(proto, p)) {
-              proto[combinedKey] = currentFn;
+            } else if (hasOwnProperty(oView.prototype, p)) {
+              Reflect.set(oView.prototype, combinedKey, currentFn);
             }
           }
         }
@@ -485,12 +485,12 @@ export class View implements ViewInterface {
     }
 
     // Wrap render method
-    View.wrapMethod(proto, "render", "$renderWrap");
+    View.wrapMethod(asRecord(oView.prototype), "render", "$renderWrap");
 
     // Store event maps on prototype
-    proto["$evtObjMap"] = eventsObject;
-    proto["$globalEvtList"] = eventsList;
-    proto["$selMap"] = selectorObject;
+    Reflect.set(oView.prototype, "$evtObjMap", eventsObject);
+    Reflect.set(oView.prototype, "$globalEvtList", eventsList);
+    Reflect.set(oView.prototype, "$selMap", selectorObject);
     return makes;
   }
 
@@ -607,7 +607,7 @@ export class View implements ViewInterface {
         this.signature++;
         this.fire("render");
         View.destroyAllResources(this, false);
-        const lookup = this as unknown as Record<string, unknown>;
+        const lookup = asRecord(this);
         const candidate = lookup[fnName];
         const instanceFn =
           typeof candidate === "function"
@@ -661,7 +661,7 @@ export class View implements ViewInterface {
     viewClass: typeof View,
     makes: AnyFunc[],
   ): void {
-    const proto = viewClass.prototype as unknown as Record<string, unknown>;
+    const proto = asRecord(viewClass.prototype);
     const temp: Record<string, MixinEventHandler> = {};
 
     for (const node of mixins) {
@@ -808,19 +808,17 @@ export class View implements ViewInterface {
     } as unknown as typeof View;
 
     // Methods on prototype (for proper method lookup via prototype chain)
-    const proto = ChildView.prototype as unknown as Record<string, unknown>;
     for (const key in definedProps) {
       if (hasOwnProperty(definedProps, key) && key !== "make") {
-        proto[key] = definedProps[key];
+        Reflect.set(ChildView.prototype, key, definedProps[key]);
       }
     }
 
     // Copy statics
     if (statics) {
-      const staticTarget = ChildView as unknown as Record<string, unknown>;
       for (const key in statics) {
         if (hasOwnProperty(statics, key)) {
-          staticTarget[key] = statics[key];
+          Reflect.set(ChildView, key, statics[key]);
         }
       }
     }

@@ -233,7 +233,7 @@ export class Frame extends EventEmitter implements FrameInterface {
     if (sign !== this.signature) return; // Frame may have been unmounted
 
     // Prepare the View class (scan event methods)
-    const mixinCtors = View.prepare(ViewClass);
+    const mixinConstructors = View.prepare(ViewClass);
 
     // Create View instance (via extend's constructor which takes nodeId, ownerFrame, params, node, mixinCtors)
     type ViewConstructor = new (
@@ -243,8 +243,14 @@ export class Frame extends EventEmitter implements FrameInterface {
       node?: Element,
       mixinCtors?: AnyFunc[],
     ) => ViewInterface;
-    const Ctor = ViewClass as unknown as ViewConstructor;
-    const view = new Ctor(this.id, this, params, node, mixinCtors);
+    const Constructor = ViewClass as ViewConstructor;
+    const view = new Constructor(
+      this.id,
+      this,
+      params,
+      node,
+      mixinConstructors,
+    );
 
     // Store view reference
     this.viewInstance = view;
@@ -488,8 +494,7 @@ export class Frame extends EventEmitter implements FrameInterface {
 
     if (view && view.rendered) {
       // View is rendered, invoke directly
-      const lookup = view as unknown as Record<string, unknown>;
-      const fn = lookup[name];
+      const fn = Reflect.get(view, name);
       if (typeof fn === "function") {
         result = funcWithTry(fn as AnyFunc, args || [], view, noop);
       }

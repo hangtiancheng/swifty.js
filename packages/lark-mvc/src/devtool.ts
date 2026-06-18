@@ -106,8 +106,7 @@ function serializeView(view: ViewInterface): SerializedViewInfo {
   const evtMap = view.eventObjectMap;
   const eventMethodKeys = evtMap ? Object.keys(evtMap) : [];
   const resourceKeys = view.resources ? Object.keys(view.resources) : [];
-  const lookup = view as unknown as Record<string, unknown>;
-  const hasAssign = typeof lookup["assign"] === "function";
+  const hasAssign = typeof view["assign"] === "function";
 
   let updaterData: Record<string, unknown> | null = null;
   try {

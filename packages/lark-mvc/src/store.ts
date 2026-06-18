@@ -65,7 +65,7 @@ function isComputedMarker(val: unknown): val is ComputedMarker {
  * Writes to a computed key via `setState` are silently ignored.
  */
 export function computed<T>(deps: readonly string[], fn: () => T): T {
-  return { [COMPUTED_BRAND]: true, deps, fn } as unknown as T;
+  return { [COMPUTED_BRAND]: true, deps, fn } as T;
 }
 
 // ---- Store registry --------------------------------------------------------
