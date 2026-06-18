@@ -1475,4 +1475,6 @@ export interface CompileOptions {
   file?: string;
   /** Generate VDOM output instead of HTML string (default: false) */
   virtualDom?: boolean;
+  /** Use SWC instead of Babel for parsing (default: false) */
+  useSwc?: boolean;
 }

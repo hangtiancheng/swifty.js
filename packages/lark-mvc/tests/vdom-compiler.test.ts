@@ -5,12 +5,12 @@ import { compileTemplate } from "../src/compiler";
  * Helper: compile a template in VDOM mode and execute it.
  * Returns the root VDomNode.
  */
-function compileAndRun(
+async function compileAndRun(
   template: string,
   data: Record<string, unknown> = {},
   globalVars: string[] = [],
-): unknown {
-  const moduleSource = compileTemplate(template, {
+): Promise<unknown> {
+  const moduleSource = await compileTemplate(template, {
     virtualDom: true,
     globalVars,
   });
@@ -49,7 +49,7 @@ function compileAndRun(
       key = splitter + i;
       if (ref[key] === value) return key;
     }
-    key = splitter + ((ref[splitter] as number)++);
+    key = splitter + (ref[splitter] as number)++;
     ref[key] = value;
     return key;
   };
@@ -66,7 +66,8 @@ function compileAndRun(
   const arrowMatch = moduleSource.match(
     /return\s*\(\(([^)]*)\)\s*=>\s*\{([\s\S]*?)\}\)\(([\s\S]*?)\);?\s*\}/,
   );
-  if (!arrowMatch) throw new Error("Failed to parse compiled module:\n" + moduleSource);
+  if (!arrowMatch)
+    throw new Error("Failed to parse compiled module:\n" + moduleSource);
 
   const params = arrowMatch[1];
   const body = arrowMatch[2];
@@ -78,8 +79,15 @@ function compileAndRun(
 
   // Create the inner arrow function and call it
   const innerFn = new Function(
-    "$c", "$n", "$refFn", "$encUri", "$encQuote",
-    params.split(",").map(p => p.trim()).join(","),
+    "$c",
+    "$n",
+    "$refFn",
+    "$encUri",
+    "$encQuote",
+    params
+      .split(",")
+      .map((p) => p.trim())
+      .join(","),
     body,
   );
 
@@ -89,18 +97,28 @@ function compileAndRun(
   // The arrow function params are: $data,$viewId,$refAlt,$n,$refFn,$encUri,$encQuote
   // We pass $n (strSafe) as the 4th param which maps to $n in the function
   return innerFn(
-    vdomCreate, strSafe, refFn, encUri, encQuote,
-    $data, $viewId, refData, strSafe, refFn, encUri, encQuote,
+    vdomCreate,
+    strSafe,
+    refFn,
+    encUri,
+    encQuote,
+    $data,
+    $viewId,
+    refData,
+    strSafe,
+    refFn,
+    encUri,
+    encQuote,
   );
 }
 
 /**
  * Helper: get the compiled module source for inspection.
  */
-function compileSource(
+async function compileSource(
   template: string,
   options: { debug?: boolean; globalVars?: string[] } = {},
-): string {
+): Promise<string> {
   return compileTemplate(template, {
     virtualDom: true,
     ...options,
@@ -112,37 +130,39 @@ describe("VDOM Compiler", () => {
   // A. Module output format
   // ============================================================
   describe("module output format", () => {
-    it("imports vdomCreate from @lark.js/mvc", () => {
-      const src = compileSource("<div>hi</div>");
-      expect(src).toContain('import { vdomCreate as __larkC } from "@lark.js/mvc"');
+    it("imports vdomCreate from @lark.js/mvc", async () => {
+      const src = await compileSource("<div>hi</div>");
+      expect(src).toContain(
+        'import { vdomCreate as __larkC } from "@lark.js/mvc"',
+      );
     });
 
-    it("imports runtime helpers from @lark.js/mvc/runtime", () => {
-      const src = compileSource("<div>hi</div>");
-      expect(src).toContain('strSafe as __larkStrSafe');
-      expect(src).toContain('encUri as __larkEncUri');
-      expect(src).toContain('refFn as __larkRefFn');
+    it("imports runtime helpers from @lark.js/mvc/runtime", async () => {
+      const src = await compileSource("<div>hi</div>");
+      expect(src).toContain("strSafe as __larkStrSafe");
+      expect(src).toContain("encUri as __larkEncUri");
+      expect(src).toContain("refFn as __larkRefFn");
     });
 
-    it("does NOT import encHtml (not needed for VDOM)", () => {
-      const src = compileSource("<div>hi</div>");
+    it("does NOT import encHtml (not needed for VDOM)", async () => {
+      const src = await compileSource("<div>hi</div>");
       expect(src).not.toContain("encHtml");
     });
 
-    it("exports default function with correct signature", () => {
-      const src = compileSource("<div>hi</div>");
+    it("exports default function with correct signature", async () => {
+      const src = await compileSource("<div>hi</div>");
       expect(src).toContain("export default function(data, viewId, refData)");
     });
 
-    it("inner function has 7 params (no $encHtml)", () => {
-      const src = compileSource("<div>hi</div>");
+    it("inner function has 7 params (no $encHtml)", async () => {
+      const src = await compileSource("<div>hi</div>");
       expect(src).toContain(
         "$data,$viewId,$refAlt,$n,$refFn,$encUri,$encQuote",
       );
     });
 
-    it("includes globalVars destructuring", () => {
-      const src = compileSource("<div>{{=title}}</div>", {
+    it("includes globalVars destructuring", async () => {
+      const src = await compileSource("<div>{{=title}}</div>", {
         globalVars: ["title", "count"],
       });
       expect(src).toContain(",title=$data.title,count=$data.count");
@@ -153,19 +173,21 @@ describe("VDOM Compiler", () => {
   // B. Basic element compilation
   // ============================================================
   describe("basic elements", () => {
-    it("compiles a simple div with text", () => {
-      const root = compileAndRun("<div>hello</div>") as Record<string, unknown>;
-      expect(root).toBeDefined();
-      expect(root.tag).toBe("test-view");
-    });
-
-    it("compiles nested elements", () => {
-      const root = compileAndRun("<div><span>text</span></div>") as Record<
+    it("compiles a simple div with text", async () => {
+      const root = (await compileAndRun("<div>hello</div>")) as Record<
         string,
         unknown
       >;
       expect(root).toBeDefined();
-      expect(root.tag).toBe("test-view");
+      expect(root["tag"]).toBe("test-view");
+    });
+
+    it("compiles nested elements", async () => {
+      const root = (await compileAndRun(
+        "<div><span>text</span></div>",
+      )) as Record<string, unknown>;
+      expect(root).toBeDefined();
+      expect(root["tag"]).toBe("test-view");
     });
 
     it("compiles element with static attributes", () => {
@@ -175,14 +197,14 @@ describe("VDOM Compiler", () => {
       expect(root).toBeDefined();
     });
 
-    it("compiles self-closing elements", () => {
-      const src = compileSource("<div><br/><hr/></div>");
+    it("compiles self-closing elements", async () => {
+      const src = await compileSource("<div><br/><hr/></div>");
       // Should contain selfClose marker (children=1)
       expect(src).toContain("1)");
     });
 
-    it("compiles multiple sibling elements", () => {
-      const root = compileAndRun("<p>first</p><p>second</p>") as Record<
+    it("compiles multiple sibling elements", async () => {
+      const root = (await compileAndRun("<p>first</p><p>second</p>")) as Record<
         string,
         unknown
       >;
@@ -194,37 +216,37 @@ describe("VDOM Compiler", () => {
   // C. Expression handling
   // ============================================================
   describe("expressions", () => {
-    it("compiles {{=expr}} as text node", () => {
-      const src = compileSource("<div>{{=name}}</div>", {
+    it("compiles {{=expr}} as text node", async () => {
+      const src = await compileSource("<div>{{=name}}</div>", {
         globalVars: ["name"],
       });
       expect(src).toContain("$c(0,$n(name))");
     });
 
-    it("compiles {{!expr}} as raw text node", () => {
-      const src = compileSource("<div>{{!rawContent}}</div>", {
+    it("compiles {{!expr}} as raw text node", async () => {
+      const src = await compileSource("<div>{{!rawContent}}</div>", {
         globalVars: ["rawContent"],
       });
       expect(src).toContain("$n(rawContent)");
     });
 
-    it("compiles {{@expr}} as ref lookup", () => {
-      const src = compileSource("<div>{{@objRef}}</div>", {
+    it("compiles {{@expr}} as ref lookup", async () => {
+      const src = await compileSource("<div>{{@objRef}}</div>", {
         globalVars: ["objRef"],
       });
       expect(src).toContain("$refFn($refAlt,objRef)");
     });
 
-    it("compiles expression in attribute value", () => {
-      const src = compileSource('<div id="item-{{=item.id}}"></div>', {
+    it("compiles expression in attribute value", async () => {
+      const src = await compileSource('<div id="item-{{=item.id}}"></div>', {
         globalVars: ["item"],
       });
       // Should have string concatenation in the props object
       expect(src).toContain("item");
     });
 
-    it("compiles expression as full attribute value", () => {
-      const src = compileSource('<span class="{{=cls}}"></span>', {
+    it("compiles expression as full attribute value", async () => {
+      const src = await compileSource('<span class="{{=cls}}"></span>', {
         globalVars: ["cls"],
       });
       expect(src).toContain("$n(cls)");
@@ -235,8 +257,8 @@ describe("VDOM Compiler", () => {
   // D. Control flow
   // ============================================================
   describe("control flow", () => {
-    it("compiles {{if}}...{{/if}}", () => {
-      const src = compileSource(
+    it("compiles {{if}}...{{/if}}", async () => {
+      const src = await compileSource(
         "<div>{{if show}}<span>visible</span>{{/if}}</div>",
         { globalVars: ["show"] },
       );
@@ -244,8 +266,8 @@ describe("VDOM Compiler", () => {
       expect(src).toContain("}");
     });
 
-    it("compiles {{if}}...{{else}}...{{/if}}", () => {
-      const src = compileSource(
+    it("compiles {{if}}...{{else}}...{{/if}}", async () => {
+      const src = await compileSource(
         "<div>{{if a}}<p>yes</p>{{else}}<p>no</p>{{/if}}</div>",
         { globalVars: ["a"] },
       );
@@ -253,8 +275,8 @@ describe("VDOM Compiler", () => {
       expect(src).toContain("}else{");
     });
 
-    it("compiles {{forOf}} loop", () => {
-      const src = compileSource(
+    it("compiles {{forOf}} loop", async () => {
+      const src = await compileSource(
         "<ul>{{forOf items as item idx}}<li>{{=item}}</li>{{/forOf}}</ul>",
         { globalVars: ["items"] },
       );
@@ -262,8 +284,8 @@ describe("VDOM Compiler", () => {
       expect(src).toContain("idx");
     });
 
-    it("compiles nested control flow", () => {
-      const src = compileSource(
+    it("compiles nested control flow", async () => {
+      const src = await compileSource(
         `<div>{{forOf list as item}}<span>{{if item.active}}on{{else}}off{{/if}}</span>{{/forOf}}</div>`,
         { globalVars: ["list"] },
       );
@@ -271,8 +293,8 @@ describe("VDOM Compiler", () => {
       expect(src).toContain("if(item.active)");
     });
 
-    it("compiles {{set}} variable declaration", () => {
-      const src = compileSource(
+    it("compiles {{set}} variable declaration", async () => {
+      const src = await compileSource(
         "<div>{{set x = 42}}<span>{{=x}}</span></div>",
         { globalVars: [] },
       );
@@ -284,15 +306,15 @@ describe("VDOM Compiler", () => {
   // E. Execution tests (compile + run)
   // ============================================================
   describe("execution", () => {
-    it("renders static HTML to VDomNode tree", () => {
-      const root = compileAndRun("<div>hello</div>") as Record<
+    it("renders static HTML to VDomNode tree", async () => {
+      const root = (await compileAndRun("<div>hello</div>")) as Record<
         string,
         unknown
       >;
       // Root should be a VDomNode with tag=viewId
-      expect(root.tag).toBe("test-view");
+      expect(root["tag"]).toBe("test-view");
       // Should have children
-      const children = root.children as unknown[];
+      const children = root["children"] as unknown[];
       expect(children).toBeDefined();
       expect(children.length).toBeGreaterThan(0);
     });
@@ -306,32 +328,35 @@ describe("VDOM Compiler", () => {
       expect(root).toBeDefined();
     });
 
-    it("renders forOf loop with correct count", () => {
-      const root = compileAndRun(
+    it("renders forOf loop with correct count", async () => {
+      const root = (await compileAndRun(
         "<ul>{{forOf items as item}}<li>{{=item}}</li>{{/forOf}}</ul>",
         { items: ["a", "b", "c"] },
         ["items"],
-      ) as Record<string, unknown>;
+      )) as Record<string, unknown>;
       expect(root).toBeDefined();
     });
 
-    it("renders if/else correctly", () => {
-      const root = compileAndRun(
+    it("renders if/else correctly", async () => {
+      const root = (await compileAndRun(
         "<div>{{if show}}<span>yes</span>{{else}}<span>no</span>{{/if}}</div>",
         { show: true },
         ["show"],
-      ) as Record<string, unknown>;
+      )) as Record<string, unknown>;
       expect(root).toBeDefined();
     });
 
-    it("handles empty template", () => {
-      const root = compileAndRun("") as Record<string, unknown>;
+    it("handles empty template", async () => {
+      const root = (await compileAndRun("")) as Record<string, unknown>;
       expect(root).toBeDefined();
-      expect(root.tag).toBe("test-view");
+      expect(root["tag"]).toBe("test-view");
     });
 
-    it("handles template with only text", () => {
-      const root = compileAndRun("just text") as Record<string, unknown>;
+    it("handles template with only text", async () => {
+      const root = (await compileAndRun("just text")) as Record<
+        string,
+        unknown
+      >;
       expect(root).toBeDefined();
     });
   });
@@ -340,8 +365,8 @@ describe("VDOM Compiler", () => {
   // F. String mode unchanged
   // ============================================================
   describe("string mode (regression)", () => {
-    it("still generates HTML string output when virtualDom is false", () => {
-      const src = compileTemplate("<div>{{=name}}</div>", {
+    it("still generates HTML string output when virtualDom is false", async () => {
+      const src = await compileTemplate("<div>{{=name}}</div>", {
         globalVars: ["name"],
       });
       expect(src).toContain("encHtml");
@@ -349,8 +374,8 @@ describe("VDOM Compiler", () => {
       expect(src).toContain("$out");
     });
 
-    it("still generates HTML string when virtualDom is not specified", () => {
-      const src = compileTemplate("<p>hello</p>");
+    it("still generates HTML string when virtualDom is not specified", async () => {
+      const src = await compileTemplate("<p>hello</p>");
       expect(src).toContain("encHtml");
       expect(src).not.toContain("vdomCreate");
     });

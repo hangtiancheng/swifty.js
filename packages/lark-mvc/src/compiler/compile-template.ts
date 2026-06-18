@@ -177,9 +177,8 @@ function compileToFunction(
 export async function compileTemplate(
   source: string,
   options: CompileOptions = {},
-  useSwc = false,
 ): Promise<string> {
-  const { debug = false, file, virtualDom = false } = options;
+  const { debug = false, file, virtualDom = false, useSwc = false } = options;
 
   const globalVars =
     options.globalVars ??

@@ -35,7 +35,7 @@ interface LoaderContext {
   /** Whether in development mode */
   dev?: boolean;
   /** Loader options */
-  getOptions: () => { debug?: boolean; virtualDom?: boolean };
+  getOptions: () => { debug?: boolean; virtualDom?: boolean; useSwc?: boolean };
 }
 
 /**
@@ -49,6 +49,7 @@ export async function larkMvcLoader(
   const options = this.getOptions();
   const debug = options.debug ?? false;
   const virtualDom = options.virtualDom ?? false;
+  const useSwc = options.useSwc ?? false;
 
   try {
     // Auto-extract variables from template for 0-config experience
@@ -57,6 +58,7 @@ export async function larkMvcLoader(
       debug,
       globalVars,
       virtualDom,
+      useSwc,
     });
     this.callback(null, result);
   } catch (error) {

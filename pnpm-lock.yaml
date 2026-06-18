@@ -918,6 +918,9 @@ importers:
       '@babel/types':
         specifier: ^7.29.7
         version: 7.29.7
+      '@rspack/core':
+        specifier: ^2.0.8
+        version: 2.0.8(@swc/helpers@0.5.23)
       '@swc/core':
         specifier: ^1.15.41
         version: 1.15.41(@swc/helpers@0.5.23)
@@ -954,10 +957,10 @@ importers:
         version: 5.9.3
       vite:
         specifier: ^8.0.16
-        version: 8.0.16(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.101.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0)
+        version: 8.0.16(@types/node@24.13.2)(esbuild@0.27.7)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.101.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0)
       vitest:
         specifier: ^4.1.9
-        version: 4.1.9(@types/node@24.13.2)(@vitest/coverage-v8@4.1.6)(jsdom@26.1.0)(msw@2.14.6(@types/node@24.13.2)(typescript@5.9.3))(vite@8.0.16(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.101.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0))
+        version: 4.1.9(@types/node@24.13.2)(@vitest/coverage-v8@4.1.6)(jsdom@26.1.0)(msw@2.14.6(@types/node@24.13.2)(typescript@5.9.3))(vite@8.0.16(@types/node@24.13.2)(esbuild@0.27.7)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.101.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0))
 
   packages/lark-vscode:
     dependencies:
@@ -3124,6 +3127,12 @@ packages:
   '@napi-rs/wasm-runtime@1.0.7':
     resolution: {integrity: sha512-SeDnOO0Tk7Okiq6DbXmmBODgOAb9dp9gjlphokTUxmt8U3liIP1ZsozBahH69j/RJv+Rfs6IwUKHTgQYJ/HBAw==}
 
+  '@napi-rs/wasm-runtime@1.1.4':
+    resolution: {integrity: sha512-3NQNNgA1YSlJb/kMH1ildASP9HW7/7kYnRI2szWJaofaS1hWmbGI4H+d3+22aGzXXN9IJ+n+GiFVcGipJP18ow==}
+    peerDependencies:
+      '@emnapi/core': ^1.7.1
+      '@emnapi/runtime': ^1.7.1
+
   '@napi-rs/wasm-runtime@1.1.5':
     resolution: {integrity: sha512-AWPoBRJ9tsnVhor4sjO7rkni+7p+2IAEFj6cx06UgP10jkQHqay/36uRV/bFkgrh18D9vb4cr8Q0Pthskgzy+Q==}
     peerDependencies:
@@ -4504,13 +4513,29 @@ packages:
     cpu: [arm64]
     os: [darwin]
 
+  '@rspack/binding-darwin-arm64@2.0.8':
+    resolution: {integrity: sha512-vCgbgH7B7qom+uID+RCZsTCOYFb9wC4/4+1U6rMfytrXGVJ72eNQs2tbdjOl0lb18CT3N/n+VkWynUiLk84GwA==}
+    cpu: [arm64]
+    os: [darwin]
+
   '@rspack/binding-darwin-x64@1.7.11':
     resolution: {integrity: sha512-a1+TtTE9ap6RalgFi7FGIgkJP6O4Vy6ctv+9WGJy53E4kuqHR0RygzaiVxCI/GMc/vBT9vY23hyrpWb3d1vtXA==}
     cpu: [x64]
     os: [darwin]
 
+  '@rspack/binding-darwin-x64@2.0.8':
+    resolution: {integrity: sha512-satPm2PD4B7jDTVlVAdvMVdUszwLvWUEnUDzLb77mvVkezKNDZmuhb+e8s+FfKs8hJpNbZ9VAejuA2rr8o985w==}
+    cpu: [x64]
+    os: [darwin]
+
   '@rspack/binding-linux-arm64-gnu@1.7.11':
     resolution: {integrity: sha512-P0QrGRPbTWu6RKWfN0bDtbnEps3rXH0MWIMreZABoUrVmNQKtXR6e73J3ub6a+di5s2+K0M2LJ9Bh2/H4UsDUA==}
+    cpu: [arm64]
+    os: [linux]
+    libc: [glibc]
+
+  '@rspack/binding-linux-arm64-gnu@2.0.8':
+    resolution: {integrity: sha512-pSI+npPQE/uDtiboqvcOIRJbEV2+B+H1xffmko/gw50la92oTUW60kVULFwsb6L0+GVCzIcwX3yq60GtYIn+Ug==}
     cpu: [arm64]
     os: [linux]
     libc: [glibc]
@@ -4521,8 +4546,20 @@ packages:
     os: [linux]
     libc: [musl]
 
+  '@rspack/binding-linux-arm64-musl@2.0.8':
+    resolution: {integrity: sha512-igjJ43yxWQ72GZqjDDZSSHax9/Vg+6rLMmOvFglTJUkQpB4Tyvu/YjW+WRjYj2xRw6blOjLxUSJWASvuSqqlvg==}
+    cpu: [arm64]
+    os: [linux]
+    libc: [musl]
+
   '@rspack/binding-linux-x64-gnu@1.7.11':
     resolution: {integrity: sha512-cuOJMfCOvb2Wgsry5enXJ3iT1FGUjdPqtGUBVupQlEG4ntSYsQ2PtF4wIDVasR3wdxC5nQbipOrDiN/u6fYsdQ==}
+    cpu: [x64]
+    os: [linux]
+    libc: [glibc]
+
+  '@rspack/binding-linux-x64-gnu@2.0.8':
+    resolution: {integrity: sha512-zrkoEOnqj1hOEBO5T2I/2Ts2HSJsYFh1qXwMpK4dMJFGGNWDfNeUa6/LF5uq3VINF3JUl7RL47AgrucoSZJXPA==}
     cpu: [x64]
     os: [linux]
     libc: [glibc]
@@ -4533,12 +4570,27 @@ packages:
     os: [linux]
     libc: [musl]
 
+  '@rspack/binding-linux-x64-musl@2.0.8':
+    resolution: {integrity: sha512-6CtDaGZjNDvJd9TBp7a9zABbrPORO21W96+3ZcGBn0YNUPUk4ARxIxrTTpeJ/1F41QDM8AYIkGDdqEYMqTYBsA==}
+    cpu: [x64]
+    os: [linux]
+    libc: [musl]
+
   '@rspack/binding-wasm32-wasi@1.7.11':
     resolution: {integrity: sha512-OtrmnPUVJMxjNa3eDMfHyPdtlLRmmp/aIm0fQHlAOATbZvlGm12q7rhPW5BXTu1yh+1rQ1/uqvz+SzKEZXuJaQ==}
     cpu: [wasm32]
 
+  '@rspack/binding-wasm32-wasi@2.0.8':
+    resolution: {integrity: sha512-Yf4SiqTUroT5Ju+te0YAY2xxKOb35tECsO21v7hYyGa705wrgoAK/MmF7enOvs9GR1iZIqgiLD/wxsIxl8GjJw==}
+    cpu: [wasm32]
+
   '@rspack/binding-win32-arm64-msvc@1.7.11':
     resolution: {integrity: sha512-lObFW6e5lCWNgTBNwT//yiEDbsxm9QG4BYUojqeXxothuzJ/L6ibXz6+gLMvbOvLGV3nKgkXmx8GvT9WDKR0mA==}
+    cpu: [arm64]
+    os: [win32]
+
+  '@rspack/binding-win32-arm64-msvc@2.0.8':
+    resolution: {integrity: sha512-8NCuiQsAhXrwRBy57QZoypqrws/zLBkaQVGiB8hksr6v++8hNigNjqpQARLbd0iyMuHsQQ++8+auGk6xlDXmzw==}
     cpu: [arm64]
     os: [win32]
 
@@ -4547,13 +4599,26 @@ packages:
     cpu: [ia32]
     os: [win32]
 
+  '@rspack/binding-win32-ia32-msvc@2.0.8':
+    resolution: {integrity: sha512-bxiekytbX7V9KFAra+HkwtNWC6pYfHEBBZFpiT0xUs3mCFOmAAFVBsBSQsoCP9AdCEXoMAvNdnrHNw3iov4OZw==}
+    cpu: [ia32]
+    os: [win32]
+
   '@rspack/binding-win32-x64-msvc@1.7.11':
     resolution: {integrity: sha512-EeQXayoQk/uBkI3pdoXfQBXNIUrADq56L3s/DFyM2pJeUDrWmhfIw2UFIGkYPTMSCo8F2JcdcGM32FGJrSnU0Q==}
     cpu: [x64]
     os: [win32]
 
+  '@rspack/binding-win32-x64-msvc@2.0.8':
+    resolution: {integrity: sha512-7zPs8YCe/ZVJTwd+5lpB0CP0tkn2pONf/T1ycmVY76u21Nrwt8mXQGc/2yH2eWP4B7fikYBr3hGr7mpR2fajqQ==}
+    cpu: [x64]
+    os: [win32]
+
   '@rspack/binding@1.7.11':
     resolution: {integrity: sha512-2MGdy2s2HimsDT444Bp5XnALzNRxuBNc7y0JzyuqKbHBywd4x2NeXyhWXXoxufaCFu5PBc9Qq9jyfjW2Aeh06Q==}
+
+  '@rspack/binding@2.0.8':
+    resolution: {integrity: sha512-3uZ+y8aQxq33ty2srMxg2Nu0XuBI6vVrG50rkDaXqwWqOohfgGUSfFuQK7EnSUNy4aFUQlCG6NHialQHJov0wg==}
 
   '@rspack/core@1.7.11':
     resolution: {integrity: sha512-rsD9b+Khmot5DwCMiB3cqTQo53ioPG3M/A7BySu8+0+RS7GCxKm+Z+mtsjtG/vsu4Tn2tcqCdZtA3pgLoJB+ew==}
@@ -4561,6 +4626,18 @@ packages:
     peerDependencies:
       '@swc/helpers': '>=0.5.1'
     peerDependenciesMeta:
+      '@swc/helpers':
+        optional: true
+
+  '@rspack/core@2.0.8':
+    resolution: {integrity: sha512-+NLGJf8gZxihDmMFzjlly3toc2SMjeDmuvz0/Cai9AMdV4F+Pqcnt2BA9V4e3SY2jmhJQtPwgyyLtR1RiJO77g==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    peerDependencies:
+      '@module-federation/runtime-tools': ^0.24.1 || ^2.0.0
+      '@swc/helpers': ^0.5.23
+    peerDependenciesMeta:
+      '@module-federation/runtime-tools':
+        optional: true
       '@swc/helpers':
         optional: true
 
@@ -13575,6 +13652,13 @@ snapshots:
       '@tybys/wasm-util': 0.10.2
     optional: true
 
+  '@napi-rs/wasm-runtime@1.1.4(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)':
+    dependencies:
+      '@emnapi/core': 1.10.0
+      '@emnapi/runtime': 1.10.0
+      '@tybys/wasm-util': 0.10.2
+    optional: true
+
   '@napi-rs/wasm-runtime@1.1.5(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)':
     dependencies:
       '@emnapi/core': 1.10.0
@@ -14722,19 +14806,37 @@ snapshots:
   '@rspack/binding-darwin-arm64@1.7.11':
     optional: true
 
+  '@rspack/binding-darwin-arm64@2.0.8':
+    optional: true
+
   '@rspack/binding-darwin-x64@1.7.11':
+    optional: true
+
+  '@rspack/binding-darwin-x64@2.0.8':
     optional: true
 
   '@rspack/binding-linux-arm64-gnu@1.7.11':
     optional: true
 
+  '@rspack/binding-linux-arm64-gnu@2.0.8':
+    optional: true
+
   '@rspack/binding-linux-arm64-musl@1.7.11':
+    optional: true
+
+  '@rspack/binding-linux-arm64-musl@2.0.8':
     optional: true
 
   '@rspack/binding-linux-x64-gnu@1.7.11':
     optional: true
 
+  '@rspack/binding-linux-x64-gnu@2.0.8':
+    optional: true
+
   '@rspack/binding-linux-x64-musl@1.7.11':
+    optional: true
+
+  '@rspack/binding-linux-x64-musl@2.0.8':
     optional: true
 
   '@rspack/binding-wasm32-wasi@1.7.11':
@@ -14742,13 +14844,29 @@ snapshots:
       '@napi-rs/wasm-runtime': 1.0.7
     optional: true
 
+  '@rspack/binding-wasm32-wasi@2.0.8':
+    dependencies:
+      '@emnapi/core': 1.10.0
+      '@emnapi/runtime': 1.10.0
+      '@napi-rs/wasm-runtime': 1.1.4(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)
+    optional: true
+
   '@rspack/binding-win32-arm64-msvc@1.7.11':
+    optional: true
+
+  '@rspack/binding-win32-arm64-msvc@2.0.8':
     optional: true
 
   '@rspack/binding-win32-ia32-msvc@1.7.11':
     optional: true
 
+  '@rspack/binding-win32-ia32-msvc@2.0.8':
+    optional: true
+
   '@rspack/binding-win32-x64-msvc@1.7.11':
+    optional: true
+
+  '@rspack/binding-win32-x64-msvc@2.0.8':
     optional: true
 
   '@rspack/binding@1.7.11':
@@ -14764,11 +14882,30 @@ snapshots:
       '@rspack/binding-win32-ia32-msvc': 1.7.11
       '@rspack/binding-win32-x64-msvc': 1.7.11
 
+  '@rspack/binding@2.0.8':
+    optionalDependencies:
+      '@rspack/binding-darwin-arm64': 2.0.8
+      '@rspack/binding-darwin-x64': 2.0.8
+      '@rspack/binding-linux-arm64-gnu': 2.0.8
+      '@rspack/binding-linux-arm64-musl': 2.0.8
+      '@rspack/binding-linux-x64-gnu': 2.0.8
+      '@rspack/binding-linux-x64-musl': 2.0.8
+      '@rspack/binding-wasm32-wasi': 2.0.8
+      '@rspack/binding-win32-arm64-msvc': 2.0.8
+      '@rspack/binding-win32-ia32-msvc': 2.0.8
+      '@rspack/binding-win32-x64-msvc': 2.0.8
+
   '@rspack/core@1.7.11(@swc/helpers@0.5.23)':
     dependencies:
       '@module-federation/runtime-tools': 0.22.0
       '@rspack/binding': 1.7.11
       '@rspack/lite-tapable': 1.1.0
+    optionalDependencies:
+      '@swc/helpers': 0.5.23
+
+  '@rspack/core@2.0.8(@swc/helpers@0.5.23)':
+    dependencies:
+      '@rspack/binding': 2.0.8
     optionalDependencies:
       '@swc/helpers': 0.5.23
 
@@ -15987,7 +16124,7 @@ snapshots:
       obug: 2.1.3
       std-env: 4.1.0
       tinyrainbow: 3.1.0
-      vitest: 4.1.9(@types/node@24.13.2)(@vitest/coverage-v8@4.1.6)(jsdom@26.1.0)(msw@2.14.6(@types/node@24.13.2)(typescript@5.9.3))(vite@8.0.16(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.101.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0))
+      vitest: 4.1.9(@types/node@24.13.2)(@vitest/coverage-v8@4.1.6)(jsdom@26.1.0)(msw@2.14.6(@types/node@24.13.2)(typescript@5.9.3))(vite@8.0.16(@types/node@24.13.2)(esbuild@0.27.7)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.101.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0))
 
   '@vitest/expect@3.2.4':
     dependencies:
@@ -16024,14 +16161,14 @@ snapshots:
       msw: 2.14.6(@types/node@25.9.3)(typescript@6.0.3)
       vite: 7.3.5(@types/node@25.9.3)(jiti@2.7.0)(lightningcss@1.32.0)(sass-embedded@1.100.0)(sass@1.101.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0)
 
-  '@vitest/mocker@4.1.9(msw@2.14.6(@types/node@24.13.2)(typescript@5.9.3))(vite@8.0.16(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.101.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0))':
+  '@vitest/mocker@4.1.9(msw@2.14.6(@types/node@24.13.2)(typescript@5.9.3))(vite@8.0.16(@types/node@24.13.2)(esbuild@0.27.7)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.101.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0))':
     dependencies:
       '@vitest/spy': 4.1.9
       estree-walker: 3.0.3
       magic-string: 0.30.21
     optionalDependencies:
       msw: 2.14.6(@types/node@24.13.2)(typescript@5.9.3)
-      vite: 8.0.16(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.101.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0)
+      vite: 8.0.16(@types/node@24.13.2)(esbuild@0.27.7)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.101.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0)
 
   '@vitest/mocker@4.1.9(msw@2.14.6(@types/node@25.9.3)(typescript@6.0.3))(vite@8.0.16(@types/node@25.9.3)(esbuild@0.28.1)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.101.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0))':
     dependencies:
@@ -22547,6 +22684,24 @@ snapshots:
       tsx: 4.22.4
       yaml: 2.9.0
 
+  vite@8.0.16(@types/node@24.13.2)(esbuild@0.27.7)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.101.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0):
+    dependencies:
+      lightningcss: 1.32.0
+      picomatch: 4.0.4
+      postcss: 8.5.15
+      rolldown: 1.0.3
+      tinyglobby: 0.2.17
+    optionalDependencies:
+      '@types/node': 24.13.2
+      esbuild: 0.27.7
+      fsevents: 2.3.3
+      jiti: 2.7.0
+      sass: 1.101.0
+      sass-embedded: 1.100.0
+      terser: 5.48.0
+      tsx: 4.22.4
+      yaml: 2.9.0
+
   vite@8.0.16(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.101.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0):
     dependencies:
       lightningcss: 1.32.0
@@ -22621,10 +22776,10 @@ snapshots:
       - tsx
       - yaml
 
-  vitest@4.1.9(@types/node@24.13.2)(@vitest/coverage-v8@4.1.6)(jsdom@26.1.0)(msw@2.14.6(@types/node@24.13.2)(typescript@5.9.3))(vite@8.0.16(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.101.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0)):
+  vitest@4.1.9(@types/node@24.13.2)(@vitest/coverage-v8@4.1.6)(jsdom@26.1.0)(msw@2.14.6(@types/node@24.13.2)(typescript@5.9.3))(vite@8.0.16(@types/node@24.13.2)(esbuild@0.27.7)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.101.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0)):
     dependencies:
       '@vitest/expect': 4.1.9
-      '@vitest/mocker': 4.1.9(msw@2.14.6(@types/node@24.13.2)(typescript@5.9.3))(vite@8.0.16(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.101.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0))
+      '@vitest/mocker': 4.1.9(msw@2.14.6(@types/node@24.13.2)(typescript@5.9.3))(vite@8.0.16(@types/node@24.13.2)(esbuild@0.27.7)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.101.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0))
       '@vitest/pretty-format': 4.1.9
       '@vitest/runner': 4.1.9
       '@vitest/snapshot': 4.1.9
@@ -22641,7 +22796,7 @@ snapshots:
       tinyexec: 1.2.4
       tinyglobby: 0.2.17
       tinyrainbow: 3.1.0
-      vite: 8.0.16(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.101.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0)
+      vite: 8.0.16(@types/node@24.13.2)(esbuild@0.27.7)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.101.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0)
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 24.13.2

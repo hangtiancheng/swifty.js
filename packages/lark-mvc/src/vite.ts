@@ -41,9 +41,10 @@ export function larkMvcPlugin(
   options: {
     debug?: boolean;
     virtualDom?: boolean;
+    useSwc?: boolean;
   } = {},
 ): Plugin {
-  const { debug = false, virtualDom = false } = options;
+  const { debug = false, virtualDom = false, useSwc = false } = options;
 
   return {
     name: "lark-template",
@@ -64,7 +65,7 @@ export function larkMvcPlugin(
         const raw = fs.readFileSync(filePath, "utf-8");
         // Auto-extract variables from template for 0-config experience
         const globalVars = await extractGlobalVars(raw);
-        return compileTemplate(raw, { debug, globalVars, virtualDom });
+        return compileTemplate(raw, { debug, globalVars, virtualDom, useSwc });
       }
       return undefined;
     },

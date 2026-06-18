@@ -9,13 +9,13 @@ import * as runtime from "../src/runtime";
  * `new Function` cannot evaluate `import` statements, so we strip the import
  * line and inject the runtime helpers as locals instead.
  */
-function render(
+async function render(
   source: string,
   data: Record<string, unknown> = {},
   options?: { debug?: boolean; file?: string },
-): string {
-  const globalVars = extractGlobalVars(source);
-  const moduleCode = compileTemplate(source, { ...options, globalVars });
+): Promise<string> {
+  const globalVars = await extractGlobalVars(source);
+  const moduleCode = await compileTemplate(source, { ...options, globalVars });
 
   // Replace the static `import { ... } from "@lark.js/mvc/runtime"` with a
   // destructuring `const`, then turn the `export default function` into a
@@ -33,35 +33,35 @@ function render(
 
 describe("compileTemplate", () => {
   describe("{{=}} escaped output", () => {
-    it("outputs variable value", () => {
-      const result = render("{{=name}}", { name: "hello" });
+    it("outputs variable value", async () => {
+      const result = await render("{{=name}}", { name: "hello" });
       expect(result).toBe("hello");
     });
 
-    it("escapes HTML entities", () => {
-      const result = render("{{=html}}", { html: "<b>bold</b>" });
+    it("escapes HTML entities", async () => {
+      const result = await render("{{=html}}", { html: "<b>bold</b>" });
       expect(result).toBe("&lt;b&gt;bold&lt;/b&gt;");
     });
 
-    it("null/undefined converted to empty string", () => {
-      const result1 = render("{{=val}}", { val: null });
+    it("null/undefined converted to empty string", async () => {
+      const result1 = await render("{{=val}}", { val: null });
       expect(result1).toBe("");
 
-      const result2 = render("{{=val}}", { val: undefined });
+      const result2 = await render("{{=val}}", { val: undefined });
       expect(result2).toBe("");
     });
   });
 
   describe("{{!}} raw output", () => {
-    it("outputs without escaping", () => {
-      const result = render("{{!rawHtml}}", { rawHtml: "<b>bold</b>" });
+    it("outputs without escaping", async () => {
+      const result = await render("{{!rawHtml}}", { rawHtml: "<b>bold</b>" });
       expect(result).toBe("<b>bold</b>");
     });
   });
 
   describe("{{forOf}} loop", () => {
-    it("basic array iteration", () => {
-      const result = render(
+    it("basic array iteration", async () => {
+      const result = await render(
         "{{forOf list as item}}<span>{{=item}}</span>{{/forOf}}",
         {
           list: ["a", "b", "c"],
@@ -72,8 +72,8 @@ describe("compileTemplate", () => {
       expect(result).toContain("<span>c</span>");
     });
 
-    it("array iteration with index", () => {
-      const result = render(
+    it("array iteration with index", async () => {
+      const result = await render(
         "{{forOf list as item idx}}[{{=idx}}:{{=item}}]{{/forOf}}",
         {
           list: ["x", "y"],
@@ -83,8 +83,8 @@ describe("compileTemplate", () => {
       expect(result).toContain("[1:y]");
     });
 
-    it("nested loops", () => {
-      const result = render(
+    it("nested loops", async () => {
+      const result = await render(
         "{{forOf outer as o}}{{forOf o as v}}{{=v}}{{/forOf}}{{/forOf}}",
         {
           outer: [
@@ -101,25 +101,25 @@ describe("compileTemplate", () => {
   });
 
   describe("{{if}} / {{else}} / {{else if}} conditionals", () => {
-    it("if condition is true", () => {
-      const result = render("{{if show}}visible{{/if}}", { show: true });
+    it("if condition is true", async () => {
+      const result = await render("{{if show}}visible{{/if}}", { show: true });
       expect(result).toBe("visible");
     });
 
-    it("if condition is false", () => {
-      const result = render("{{if show}}visible{{/if}}", { show: false });
+    it("if condition is false", async () => {
+      const result = await render("{{if show}}visible{{/if}}", { show: false });
       expect(result).toBe("");
     });
 
-    it("if / else", () => {
-      const result = render("{{if active}}on{{else}}off{{/if}}", {
+    it("if / else", async () => {
+      const result = await render("{{if active}}on{{else}}off{{/if}}", {
         active: false,
       });
       expect(result).toBe("off");
     });
 
-    it("if / else if / else", () => {
-      const result1 = render(
+    it("if / else if / else", async () => {
+      const result1 = await render(
         "{{if level > 2}}high{{else if level > 0}}mid{{else}}low{{/if}}",
         {
           level: 3,
@@ -127,7 +127,7 @@ describe("compileTemplate", () => {
       );
       expect(result1).toBe("high");
 
-      const result2 = render(
+      const result2 = await render(
         "{{if level > 2}}high{{else if level > 0}}mid{{else}}low{{/if}}",
         {
           level: 1,
@@ -135,7 +135,7 @@ describe("compileTemplate", () => {
       );
       expect(result2).toBe("mid");
 
-      const result3 = render(
+      const result3 = await render(
         "{{if level > 2}}high{{else if level > 0}}mid{{else}}low{{/if}}",
         {
           level: 0,
@@ -144,8 +144,8 @@ describe("compileTemplate", () => {
       expect(result3).toBe("low");
     });
 
-    it("complex conditional expressions", () => {
-      const result = render("{{if a && b || c}}yes{{/if}}", {
+    it("complex conditional expressions", async () => {
+      const result = await render("{{if a && b || c}}yes{{/if}}", {
         a: true,
         b: false,
         c: true,
@@ -155,8 +155,8 @@ describe("compileTemplate", () => {
   });
 
   describe("{{forIn}} object iteration", () => {
-    it("iterates over object properties", () => {
-      const result = render(
+    it("iterates over object properties", async () => {
+      const result = await render(
         "{{forIn obj as val key}}[{{=key}}:{{=val}}]{{/forIn}}",
         {
           obj: { x: 1, y: 2 },
@@ -168,8 +168,8 @@ describe("compileTemplate", () => {
   });
 
   describe("{{for}} for loop", () => {
-    it("standard for loop", () => {
-      const result = render("{{for(let i=0;i<3;i++)}}{{=i}}{{/for}}", {});
+    it("standard for loop", async () => {
+      const result = await render("{{for(let i=0;i<3;i++)}}{{=i}}{{/for}}", {});
       expect(result).toContain("0");
       expect(result).toContain("1");
       expect(result).toContain("2");
@@ -177,22 +177,25 @@ describe("compileTemplate", () => {
   });
 
   describe("{{set}} variable declaration", () => {
-    it("declares variables and uses them", () => {
-      const result = render("{{set a=20,b=30}}{{=a}}-{{=b}}", {});
+    it("declares variables and uses them", async () => {
+      const result = await render("{{set a=20,b=30}}{{=a}}-{{=b}}", {});
       expect(result).toBe("20-30");
     });
   });
 
   describe("@event attribute handling", () => {
-    it("@click event binding", () => {
-      const result = render('<div @click="handlerName()">click</div>', {});
+    it("@click event binding", async () => {
+      const result = await render(
+        '<div @click="handlerName()">click</div>',
+        {},
+      );
       // @event attribute should include viewId prefix
       expect(result).toContain("@click=");
       expect(result).toContain("handlerName()");
     });
 
-    it("@click with arguments", () => {
-      const result = render(
+    it("@click with arguments", async () => {
+      const result = await render(
         "<div @click=\"handlerName({key: 'value'})\">click</div>",
         {},
       );
@@ -202,11 +205,14 @@ describe("compileTemplate", () => {
   });
 
   describe("HTML comment protection", () => {
-    it("template syntax inside comments is not transformed", () => {
-      const result = render("<!-- {{=shouldNotRender}} --><p>{{=text}}</p>", {
-        text: "visible",
-        shouldNotRender: "hidden",
-      });
+    it("template syntax inside comments is not transformed", async () => {
+      const result = await render(
+        "<!-- {{=shouldNotRender}} --><p>{{=text}}</p>",
+        {
+          text: "visible",
+          shouldNotRender: "hidden",
+        },
+      );
       expect(result).toContain("visible");
       // Comment content should remain unchanged
       expect(result).toContain("shouldNotRender");
@@ -214,55 +220,55 @@ describe("compileTemplate", () => {
   });
 
   describe("viewId injection", () => {
-    it("\\x1f placeholder in template replaced with viewId", () => {
-      const result = render('<div @click="handler()">text</div>', {});
+    it("\\x1f placeholder in template replaced with viewId", async () => {
+      const result = await render('<div @click="handler()">text</div>', {});
       // viewId "testViewId" should appear in output
       expect(result).toContain("testViewId");
     });
   });
 
   describe("debug mode", () => {
-    it("compiles successfully in debug mode", () => {
-      const moduleCode = compileTemplate("{{=name}}", { debug: true });
+    it("compiles successfully in debug mode", async () => {
+      const moduleCode = await compileTemplate("{{=name}}", { debug: true });
       expect(moduleCode).toContain("export default function");
     });
   });
 
   describe("error handling", () => {
-    it("unclosed block throws error", () => {
-      expect(() => {
-        compileTemplate("{{if true}}never closed");
-      }).toThrow();
+    it("unclosed block throws error", async () => {
+      await expect(() => {
+        return compileTemplate("{{if true}}never closed");
+      }).rejects.toThrow();
     });
 
-    it("mismatched block closing throws error", () => {
-      expect(() => {
-        compileTemplate("{{if true}}text{{/forOf}}");
-      }).toThrow();
+    it("mismatched block closing throws error", async () => {
+      await expect(() => {
+        return compileTemplate("{{if true}}text{{/forOf}}");
+      }).rejects.toThrow();
     });
 
-    it("excess block closing throws error", () => {
-      expect(() => {
-        compileTemplate("{{/if}}");
-      }).toThrow();
+    it("excess block closing throws error", async () => {
+      await expect(() => {
+        return compileTemplate("{{/if}}");
+      }).rejects.toThrow();
     });
   });
 
   describe("miscellaneous", () => {
-    it("pure HTML output as-is", () => {
-      const result = render("<div>hello</div>");
+    it("pure HTML output as-is", async () => {
+      const result = await render("<div>hello</div>");
       expect(result).toBe("<div>hello</div>");
     });
 
-    it("empty template outputs empty string", () => {
-      const result = render("");
+    it("empty template outputs empty string", async () => {
+      const result = await render("");
       expect(result).toBe("");
     });
 
-    it("function call output", () => {
+    it("function call output", async () => {
       // `fn` as a CallExpression callee is excluded by extractGlobalVars,
       // so the test passes globalVars manually.
-      const moduleCode = compileTemplate("{{=fn(a,b,c)}}", {
+      const moduleCode = await compileTemplate("{{=fn(a,b,c)}}", {
         globalVars: ["fn", "a", "b", "c"],
       });
       const transformed = moduleCode
@@ -288,37 +294,39 @@ describe("compileTemplate", () => {
 });
 
 describe("extractGlobalVars", () => {
-  it("extracts global variables used in template", () => {
-    const vars = extractGlobalVars("{{=name}}-{{=age}}");
+  it("extracts global variables used in template", async () => {
+    const vars = await extractGlobalVars("{{=name}}-{{=age}}");
     expect(vars).toContain("name");
     expect(vars).toContain("age");
   });
 
-  it("extracts variables from each loop", () => {
-    const vars = extractGlobalVars("{{forOf list as item}}{{=item}}{{/forOf}}");
+  it("extracts variables from each loop", async () => {
+    const vars = await extractGlobalVars(
+      "{{forOf list as item}}{{=item}}{{/forOf}}",
+    );
     expect(vars).toContain("list");
   });
 
-  it("extracts variables from if condition", () => {
-    const vars = extractGlobalVars("{{if visible}}show{{/if}}");
+  it("extracts variables from if condition", async () => {
+    const vars = await extractGlobalVars("{{if visible}}show{{/if}}");
     expect(vars).toContain("visible");
   });
 
-  it("does not extract built-in global variables", () => {
-    const vars = extractGlobalVars("{{=Math.round(val)}}");
+  it("does not extract built-in global variables", async () => {
+    const vars = await extractGlobalVars("{{=Math.round(val)}}");
     // Math is built-in global, should not be extracted
     expect(vars).not.toContain("Math");
     expect(vars).toContain("val");
   });
 
-  it("does not extract local variables declared in {{set}}", () => {
-    const vars = extractGlobalVars("{{set localVar=10}}{{=localVar}}");
+  it("does not extract local variables declared in {{set}}", async () => {
+    const vars = await extractGlobalVars("{{set localVar=10}}{{=localVar}}");
     // localVar is a local variable, should not be extracted
     expect(vars).not.toContain("localVar");
   });
 
-  it("empty template returns empty array", () => {
-    const vars = extractGlobalVars("<div>plain html</div>");
+  it("empty template returns empty array", async () => {
+    const vars = await extractGlobalVars("<div>plain html</div>");
     expect(vars).toEqual([]);
   });
 });
