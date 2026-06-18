@@ -31,7 +31,9 @@
     "rsbuild",
     "touchend",
     "touchmove",
-    "touchstart"
+    "touchstart",
+    "vdom",
+    "vnode"
   ],
   "css.validate": false
 }

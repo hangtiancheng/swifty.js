@@ -7,7 +7,7 @@ import { fileURLToPath } from "url";
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
 export default defineConfig({
-  plugins: [larkMvcPlugin()],
+  plugins: [larkMvcPlugin({ virtualDom: true })],
   root: "./",
   resolve: {
     alias: {
