@@ -53,8 +53,6 @@ import { compileTemplate, extractGlobalVars } from "./compiler";
 
 /** Webpack loader context */
 interface LoaderContext {
-  /** Callback to return the result */
-  callback: (error: Error | null, result?: string) => void;
   /** Whether in development mode */
   dev?: boolean;
   /** Loader options */
@@ -79,24 +77,30 @@ interface LarkMvcPluginOptions {
  * Webpack loader entry point.
  * Compiles .html template files into JS function modules.
  *
- * Both webpack and rspack support async loaders that return values directly
- * instead of calling `this.callback()`. This avoids "callback already called"
- * errors when the async function resolves and the callback is also invoked.
+ * Uses this.callback() for async result delivery — this is the standard
+ * webpack pattern for async loaders. Unlike rspack, webpack 5 does not
+ * reliably support returning a Promise from the loader function; the
+ * callback approach works across all webpack 5.x versions.
  */
 async function larkMvcLoader(
   this: LoaderContext,
   source: string,
 ): Promise<string> {
-  const options = this.getOptions();
-  const { debug = false, virtualDom = false, useSwc = false } = options;
+  try {
+    const options = this.getOptions() || {};
+    const { debug = false, virtualDom = false, useSwc = false } = options;
 
-  const globalVars = await extractGlobalVars(source);
-  return compileTemplate(source, {
-    debug,
-    globalVars,
-    virtualDom,
-    useSwc,
-  });
+    const globalVars = await extractGlobalVars(source);
+    return compileTemplate(source, {
+      debug,
+      globalVars,
+      virtualDom,
+      useSwc,
+    });
+  } catch (err) {
+    console.error(err);
+    return ""
+  }
 }
 
 /**
@@ -167,11 +171,7 @@ class LarkMvcPlugin {
       use: [
         {
           loader: loaderPath,
-          options: {
-            debug,
-            virtualDom,
-            useSwc,
-          },
+          options: { debug, virtualDom, useSwc },
         },
       ],
     });

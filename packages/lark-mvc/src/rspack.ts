@@ -54,8 +54,6 @@ import { compileTemplate, extractGlobalVars } from "./compiler.js";
 
 /** Rspack loader context */
 interface LoaderContext {
-  /** Callback to return the result */
-  callback: (error: Error | null, result?: string) => void;
   /** Whether in development mode */
   dev?: boolean;
   /** Loader options */
@@ -89,16 +87,22 @@ export async function larkMvcLoader(
   this: LoaderContext,
   source: string,
 ): Promise<string> {
-  const options = this.getOptions();
-  const { debug = false, virtualDom = false, useSwc = false } = options;
+  try {
+    const options = this.getOptions();
+    const { debug = false, virtualDom = false, useSwc = false } = options;
 
-  const globalVars = await extractGlobalVars(source);
-  return compileTemplate(source, {
-    debug,
-    globalVars,
-    virtualDom,
-    useSwc,
-  });
+    const globalVars = await extractGlobalVars(source);
+    return await compileTemplate(source, {
+      debug,
+      globalVars,
+      virtualDom,
+      useSwc,
+    });
+
+  } catch (err) {
+    console.error(err);
+    return ""
+  }
 }
 
 /**

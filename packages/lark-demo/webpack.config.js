@@ -54,6 +54,9 @@ export default {
         use: [
           {
             loader: "@lark.js/mvc/webpack",
+            options: {
+              virtualDom: true,
+            },
           },
         ],
         exclude: /index\.html$/,
@@ -110,20 +113,20 @@ export default {
     //
     //   Module Federation shared modules (@lark.js/mvc, singleton: true) must be
     //   synchronously available in the initial chunk so that the shared scope can be
-    //   correctly initialised when remoteEntry.js executes.
+    //   correctly initialized when remoteEntry.js executes.
     //
     //   Failure chain with "all":
     //     1. Host (lark-devtool) calls import("lark-demo/counter-view")
     //     2. Host's MF runtime injects <script src="remoteEntry.js">
-    //     3. remoteEntry.js initialises the shared scope — requires @lark.js/mvc
+    //     3. remoteEntry.js initializes the shared scope — requires @lark.js/mvc
     //        synchronously
     //     4. "all" has already extracted @lark.js/mvc into a separate async vendor chunk
-    //     5. Shared scope initialisation fails — chunk not yet loaded
+    //     5. Shared scope initialization fails — chunk not yet loaded
     //     6. window.__lark_DemoMF is never set
     //     7. Throws: ScriptExternalLoadError: Loading script failed. (missing)
     //
     //   Fix: use "async" so @lark.js/mvc stays in the initial chunk, remains
-    //   synchronously available, and shared scope initialisation succeeds.
+    //   synchronously available, and shared scope initialization succeeds.
     // ────────────────────────────────────────────────────────────────────────────────────
 
     // Split view modules into separate chunks
