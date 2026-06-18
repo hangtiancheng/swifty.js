@@ -86,7 +86,7 @@ export default (env, argv) => {
       // Consumes remote Lark views from lark-demo running on port 3000.
       // At runtime: import('lark-demo/counter-view') loads the remote module.
       new ModuleFederationPlugin({
-        name: "lark-devtool",
+        name: "lark_devtool",
         remotes: {
           "lark-demo": "lark_demo@http://localhost:3000/remoteEntry.js",
         },
