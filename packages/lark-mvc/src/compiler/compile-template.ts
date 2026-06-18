@@ -3,10 +3,11 @@ import {
   processViewEvents,
   protectComments,
   restoreComments,
-} from "./template-syntax.js";
-import type { CompileOptions } from "@/types.js";
-import { compileToVDomFunction } from "./compile-to-vdom-function.js";
-
+} from "./template-syntax";
+import type { CompileOptions } from "@/types";
+import { compileToVDomFunction } from "./compile-to-vdom-function";
+import { extractGlobalVars as extractGlobalVarsSwc } from "./swc/extract-global-vars";
+import { extractGlobalVars } from "./extract-global-vars";
 
 // ─── Phase 3: Compile to template function ───────────────────────────────
 
@@ -157,7 +158,6 @@ function compileToFunction(
   return `($data,$viewId,$refAlt,$encHtml,$strSafe,$encUri,$refFn,$encQuote)=>{${fullSource}}`;
 }
 
-
 // ─── Public API ───────────────────────────────────────────────────────────
 
 /**
@@ -174,11 +174,16 @@ function compileToFunction(
  * @param options - Compilation options
  * @returns ES module source code exporting the compiled template function
  */
-export function compileTemplate(
+export async function compileTemplate(
   source: string,
   options: CompileOptions = {},
-): string {
-  const { debug = false, globalVars = [], file, virtualDom = false } = options;
+  useSwc = false,
+): Promise<string> {
+  const { debug = false, file, virtualDom = false } = options;
+
+  const globalVars =
+    options.globalVars ??
+    (await (useSwc ? extractGlobalVarsSwc(source) : extractGlobalVars(source)));
 
   // Phase 1: Protect comments
   const { protectedSource, comments } = protectComments(source);

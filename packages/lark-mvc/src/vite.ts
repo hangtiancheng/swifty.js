@@ -34,10 +34,16 @@ const LARK_TEMPLATE_SUFFIX = "?lark-template";
  *
  * @param options - Plugin options
  * @param options.debug - Enable debug mode with line tracking (default: false)
+ * @param options.virtualDom - Generate VDOM output instead of HTML string (default: false)
  * @returns Vite plugin instance
  */
-export function larkMvcPlugin(options: { debug?: boolean } = {}): Plugin {
-  const { debug = false } = options;
+export function larkMvcPlugin(
+  options: {
+    debug?: boolean;
+    virtualDom?: boolean;
+  } = {},
+): Plugin {
+  const { debug = false, virtualDom = false } = options;
 
   return {
     name: "lark-template",
@@ -52,13 +58,13 @@ export function larkMvcPlugin(options: { debug?: boolean } = {}): Plugin {
       return undefined;
     },
 
-    load(id) {
+    async load(id) {
       if (id.endsWith(LARK_TEMPLATE_SUFFIX)) {
         const filePath = id.slice(0, -LARK_TEMPLATE_SUFFIX.length);
         const raw = fs.readFileSync(filePath, "utf-8");
         // Auto-extract variables from template for 0-config experience
-        const globalVars = extractGlobalVars(raw);
-        return compileTemplate(raw, { debug, globalVars });
+        const globalVars = await extractGlobalVars(raw);
+        return compileTemplate(raw, { debug, globalVars, virtualDom });
       }
       return undefined;
     },

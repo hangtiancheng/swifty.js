@@ -28,6 +28,7 @@ import {
   encodeURIExtra,
   encodeQ,
 } from "./common";
+import { config } from "./module-loader";
 import { Frame } from "./frame";
 import {
   domGetNode,
@@ -36,7 +37,12 @@ import {
   applyIdUpdates,
   createDomRef,
 } from "./dom";
-import type { UpdaterInterface } from "./types";
+import {
+  vdomCreate,
+  vdomSetChildNodes,
+  createVDomRef,
+} from "./vdom";
+import type { UpdaterInterface, VDomNode, VDomTemplate } from "./types";
 
 // ============================================================
 // Updater class
@@ -78,6 +84,9 @@ export class Updater implements UpdaterInterface {
 
   /** Snapshot of `version` taken by `snapshot()`, used by `altered()`. */
   private snapshotVersion: number | undefined;
+
+  /** Last rendered VDOM tree (only used when virtualDom is enabled) */
+  private vdom?: VDomNode;
 
   constructor(viewId: string) {
     this.viewId = viewId;
@@ -175,43 +184,94 @@ export class Updater implements UpdaterInterface {
     if (changed && view && node && view.signature > 0 && frame) {
       const template = view.template;
       if (typeof template === "function") {
-        // Template rendering: generate HTML from template function
-        const html = template(
-          this.data,
-          this.viewId,
-          this.refData,
-          encodeHTML,
-          encodeSafe,
-          encodeURIExtra,
-          refFn,
-          encodeQ,
-        );
+        if (config.virtualDom) {
+          // ── VDOM rendering path ──
+          const vdomTemplate = template as unknown as VDomTemplate;
+          const newVDom = vdomTemplate(
+            this.data,
+            vdomCreate,
+            this.viewId,
+            encodeURIExtra,
+            this.refData,
+            refFn,
+            encodeQ,
+            Array.isArray,
+          );
 
-        // Parse new DOM from HTML
-        const newDom = domGetNode(html, node);
+          const ref = createVDomRef(this.viewId);
 
-        // Create DOM ref for tracking operations
-        const ref = createDomRef();
+          // ready callback: post-diff operations
+          const ready = (): void => {
+            this.vdom = newVDom;
+            if (ref.changed || !view.rendered) {
+              view.endUpdate(this.viewId);
+            }
+            // Apply deferred DOM property assignments
+            for (const [el, prop, val] of ref.nodeProps) {
+              (el as unknown as Record<string, unknown>)[prop] = val;
+            }
+            // Re-render sub-views that changed
+            for (const v of ref.viewRenders) {
+              if (v.render) {
+                funcWithTry(v.render, [], v, noop);
+              }
+            }
+          };
 
-        // Run DOM diff (in-memory real DOM diff)
-        domSetChildNodes(node, newDom, ref, frame, keys);
+          vdomSetChildNodes(
+            node,
+            this.vdom,
+            newVDom,
+            ref,
+            frame,
+            keys,
+            view,
+            ready,
+          );
 
-        // Apply ID updates
-        applyIdUpdates(ref.idUpdates);
-
-        // Apply DOM operations
-        applyDomOps(ref.domOps);
-
-        // Trigger endUpdate for views that need re-rendering
-        for (const v of ref.views) {
-          if (v.render) {
-            funcWithTry(v.render, [], v, noop);
+          // If no async ops pending, call ready synchronously
+          if (ref.asyncCount === 0) {
+            ready();
           }
-        }
+        } else {
+          // ── String rendering path (existing, unchanged) ──
+          const html = template(
+            this.data,
+            this.viewId,
+            this.refData,
+            encodeHTML,
+            encodeSafe,
+            encodeURIExtra,
+            refFn,
+            encodeQ,
+          );
 
-        // Check if view needs endUpdate
-        if (ref.hasChanged || !view.rendered) {
-          view.endUpdate(this.viewId);
+          // Parse new DOM from HTML
+          const newDom = domGetNode(html, node);
+
+          // Create DOM ref for tracking operations
+          const ref = createDomRef();
+
+          // Run DOM diff (in-memory real DOM diff)
+          domSetChildNodes(node, newDom, ref, frame, keys);
+
+          // Apply ID updates
+          applyIdUpdates(ref.idUpdates);
+
+          // Apply DOM operations
+          applyDomOps(ref.domOps);
+
+          // Trigger endUpdate for views that need re-rendering
+          for (const v of ref.views) {
+            if (v.render) {
+              funcWithTry(v.render, [], v, noop);
+            }
+          }
+
+          // Check if view needs endUpdate
+          if (ref.hasChanged || !view.rendered) {
+            view.endUpdate(this.viewId);
+          }
         }
       }
     }

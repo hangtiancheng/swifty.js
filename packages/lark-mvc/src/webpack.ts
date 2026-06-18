@@ -35,21 +35,29 @@ interface LoaderContext {
   /** Whether in development mode */
   dev?: boolean;
   /** Loader options */
-  getOptions: () => { debug?: boolean };
+  getOptions: () => { debug?: boolean; virtualDom?: boolean };
 }
 
 /**
  * Webpack loader entry point.
  * Compiles .html template files into JS function modules.
  */
-export function larkMvcLoader(this: LoaderContext, source: string): void {
+export async function larkMvcLoader(
+  this: LoaderContext,
+  source: string,
+): Promise<void> {
   const options = this.getOptions();
   const debug = options.debug ?? false;
+  const virtualDom = options.virtualDom ?? false;
 
   try {
     // Auto-extract variables from template for 0-config experience
-    const globalVars = extractGlobalVars(source);
-    const result = compileTemplate(source, { debug, globalVars });
+    const globalVars = await extractGlobalVars(source);
+    const result = await compileTemplate(source, {
+      debug,
+      globalVars,
+      virtualDom,
+    });
     this.callback(null, result);
   } catch (error) {
     this.callback(error instanceof Error ? error : new Error(String(error)));

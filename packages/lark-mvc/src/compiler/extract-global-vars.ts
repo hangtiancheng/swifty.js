@@ -23,7 +23,7 @@ import {
  * @param source - The raw HTML template content (with {{ }} syntax)
  * @returns Array of global variable names found in the template
  */
-export function extractGlobalVars(source: string): string[] {
+export async function extractGlobalVars(source: string): Promise<string[]> {
   // Step 1: Convert {{ }} art syntax to <% %> so we can analyze it
   // (reuse the same pipeline as compilation, but without debug markers)
   const { protectedSource, comments: _comments } = protectComments(source);
