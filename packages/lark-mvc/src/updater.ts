@@ -37,7 +37,7 @@ import {
   applyIdUpdates,
   createDomRef,
 } from "./dom";
-import { vdomCreate, vdomSetChildNodes, createVDomRef } from "./vdom";
+import { vdomSetChildNodes, createVDomRef } from "./vdom";
 import type { UpdaterInterface, VDomNode, VDomTemplate } from "./types";
 
 // ============================================================
@@ -182,16 +182,13 @@ export class Updater implements UpdaterInterface {
       if (typeof template === "function") {
         if (config.virtualDom) {
           // ── VDOM rendering path ──
+          // The compiled VDOM template imports vdomCreate via ES module
+          // import and takes only (data, viewId, refData).
           const vdomTemplate = template as unknown as VDomTemplate;
           const newVDom = vdomTemplate(
             this.data,
-            vdomCreate,
             this.viewId,
-            encodeURIExtra,
             this.refData,
-            refFn,
-            encodeQuote,
-            Array.isArray,
           );
 
           const ref = createVDomRef(this.viewId);

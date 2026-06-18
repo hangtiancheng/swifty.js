@@ -324,18 +324,13 @@ export type VDomCreateFn = (
 
 /**
  * VDOM template function signature.
- * The compiled template calls vdomCreate to build a VNode tree.
- * Deferred to next milestone — defined here for type completeness.
+ * The compiled template imports vdomCreate via ES module import and
+ * takes only (data, viewId, refData). Extra arguments are ignored.
  */
 export type VDomTemplate = (
   data: unknown,
-  create: VDomCreateFn,
   viewId: string,
-  encUri: (v: unknown) => string,
   refData: unknown,
-  refFn: (ref: Record<string, unknown>, value: unknown, key: string) => string,
-  encQuote: (v: unknown) => string,
-  isArray: (v: unknown) => v is unknown[],
 ) => VDomNode;
 
 // ============================== VDOM ==============================

@@ -18,9 +18,11 @@
     "@lark.js/mvc": "workspace:^"
   },
   "devDependencies": {
+    "@module-federation/runtime-tools": "^2.5.1",
     "@rsbuild/core": "^2.0.15",
     "@rspack/cli": "^2.0.8",
     "@rspack/core": "^2.0.8",
+    "@rspack/dev-server": "^2.0.3",
     "@tailwindcss/postcss": "^4.3.1",
     "@types/node": "catalog:",
     "autoprefixer": "^10.5.0",

@@ -361,25 +361,37 @@ export function vdomSetAttributes(
 }
 
 // ============================================================
-// vdomSpecialDiff — Form element state sync
+// vdomSyncFormState — Form element state sync
 // ============================================================
 
 /**
- * Sync form element state properties (value, checked, selected).
- * These carry DOM state not reflected in attributes.
+ * Sync form element state properties (value, checked, selected)
+ * directly from the VDomNode's attrsMap to the real DOM element.
+ *
+ * These properties carry DOM state not reflected in HTML attributes
+ * (e.g., user-typed input value vs. the `value` attribute).
+ *
+ * Replaces the old vdomSpecialDiff approach which created a throwaway
+ * DOM element via vdomCreateNode — that called setAttribute for ALL
+ * attributes (including @event names) on the throwaway, causing
+ * InvalidCharacterError in browsers with strict XML Name validation.
  */
-function vdomSpecialDiff(oldNode: ChildNode, newNode: ChildNode): number {
-  const specials = DOM_SPECIALS[oldNode.nodeName];
+function vdomSyncFormState(
+  realNode: ChildNode,
+  newVDom: VDomNode,
+): number {
+  const specials = DOM_SPECIALS[realNode.nodeName];
   if (!specials) return 0;
 
-  const oldEl = oldNode as unknown as Record<string, unknown>;
-  const newEl = newNode as unknown as Record<string, unknown>;
+  const el = realNode as unknown as Record<string, unknown>;
+  const nMap = newVDom.attrsMap || EMPTY_OBJ;
   let result = 0;
 
   for (const prop of specials) {
-    if (oldEl[prop] !== newEl[prop]) {
+    const newVal = nMap[prop];
+    if (newVal !== undefined && el[prop] !== newVal) {
       result = 1;
-      oldEl[prop] = newEl[prop];
+      el[prop] = newVal;
     }
   }
   return result;
@@ -479,8 +491,10 @@ function vdomSetNode(
       }
     }
 
-    // Form element special diff
-    vdomSpecialDiff(realNode, vdomCreateNode(newVDom, oldParent, ref));
+    // Form element special diff: sync value/checked/selected directly
+    // from VDomNode.attrsMap to avoid creating a throwaway DOM element
+    // (which would call setAttribute for @event attributes and throw).
+    vdomSyncFormState(realNode, newVDom);
 
     // Recursive child diff
     if (updateChildren && !newVDom.selfClose) {

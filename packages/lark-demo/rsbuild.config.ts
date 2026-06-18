@@ -26,7 +26,7 @@ export default defineConfig({
   },
 
   html: {
-    template: "./index.html",
+    template: "./webpack-index.html",
     inject: "body",
   },
 

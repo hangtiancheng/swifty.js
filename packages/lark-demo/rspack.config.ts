@@ -56,7 +56,7 @@ export default defineConfig({
 
   plugins: [
     new rspack.HtmlRspackPlugin({
-      template: "./index.html",
+      template: "./webpack-index.html",
       inject: "body",
       minify: false,
     }),
@@ -81,7 +81,7 @@ export default defineConfig({
 
   devServer: {
     port: 3000,
-    open: true,
+    // open: true,
     hot: true,
     compress: true,
     historyApiFallback: true,
@@ -91,11 +91,6 @@ export default defineConfig({
   },
 
   optimization: {
-    // 使用 "async" 而不是 "all" 的原因:
-    // MF 的 shared 模块 (@lark.js/mvc, singleton: true)
-    // 必须在入口 chunk 中同步可用, shared scope 初始化时才能正确注册
-    // 如果使用 "all", splitChunks 会将 @lark.js/mvc 从入口 chunk 提取到独立的异步 chunk,
-    // 导致 remoteEntry.js 初始化 shared scope 时抛出 ScriptExternalLoadError
     splitChunks: {
       chunks: "async",
       minSize: 0,

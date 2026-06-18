@@ -63,7 +63,7 @@ export default {
 
   plugins: [
     new HtmlWebpackPlugin({
-      template: "./index.html",
+      template: "./webpack-index.html",
       inject: "body",
       minify: false,
     }),
@@ -101,27 +101,30 @@ export default {
 
   optimization: {
     // ────────────────────────────────────────────────────────────────────────────────────
-    // splitChunks.chunks 枚举值
-    //   "initial" 只处理入口 chunk (同步 chunk), 不处理异步 chunk (dynamic import() 产生的 chunk)
-    //   "async"   只处理异步 chunk, 不处理入口 chunk
-    //   "all"     同时处理入口 chunk 和异步 chunk
+    // splitChunks.chunks: "initial" | "async" | "all"
+    //   "initial" – process entry chunks only; ignore async (dynamic-import) chunks
+    //   "async"   – process async chunks only; leave entry chunks untouched
+    //   "all"     – process both entry and async chunks
     //
-    // 使用 "async" 而不是 "all" 的原因
-    //   Module Federation 的 shared 模块 (@lark.js/mvc, singleton: true)
-    //   必须在入口 chunk 中同步可用, shared scope 初始化时才能正确注册
-    //   如果使用 "all", splitChunks 会将 @lark.js/mvc 从入口 chunk 提取到独立的异步 chunk, 导致 shared scope 初始化时, 该模块不是同步加载的
-    //   remoteEntry.js 的 window.__lark_DemoMF 全局变量无法正确设置, 抛出 ScriptExternalLoadError
+    // Why "async" instead of "all":
     //
-    //   故障链路
-    //   Host (lark-devtool) import("lark-demo/counter-view")
-    //   Host 的 MF runtime 加载 remoteEntry.js (<script> 注入)
-    //   remoteEntry.js 初始化 shared scope, 需要 @lark.js/mvc 同步可用
-    //   但是 "all" 模式下 @lark.js/mvc 被提取到 vendor-lark-mvc 异步 chunk
-    //   shared scope 初始化时该 chunk 未加载, 导致初始化失败
-    //   window.__lark_DemoMF 未设置, 抛出 ScriptExternalLoadError: Loading script failed (missing)
+    //   Module Federation shared modules (@lark.js/mvc, singleton: true) must be
+    //   synchronously available in the initial chunk so that the shared scope can be
+    //   correctly initialised when remoteEntry.js executes.
     //
-    //   正确: 使用 "async", @lark.js/mvc 在入口 chunk 中同步可用 → shared scope 初始化成功
-    // ──────────────────────────────────────────────────────────────────────────────────────────
+    //   Failure chain with "all":
+    //     1. Host (lark-devtool) calls import("lark-demo/counter-view")
+    //     2. Host's MF runtime injects <script src="remoteEntry.js">
+    //     3. remoteEntry.js initialises the shared scope — requires @lark.js/mvc
+    //        synchronously
+    //     4. "all" has already extracted @lark.js/mvc into a separate async vendor chunk
+    //     5. Shared scope initialisation fails — chunk not yet loaded
+    //     6. window.__lark_DemoMF is never set
+    //     7. Throws: ScriptExternalLoadError: Loading script failed. (missing)
+    //
+    //   Fix: use "async" so @lark.js/mvc stays in the initial chunk, remains
+    //   synchronously available, and shared scope initialisation succeeds.
+    // ────────────────────────────────────────────────────────────────────────────────────
 
     // Split view modules into separate chunks
     splitChunks: {
