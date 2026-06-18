@@ -109,8 +109,7 @@ export default {
     // 使用 "async" 而不是 "all" 的原因
     //   Module Federation 的 shared 模块 (@lark.js/mvc, singleton: true)
     //   必须在入口 chunk 中同步可用, shared scope 初始化时才能正确注册
-    //   如果使用 "all", splitChunks 会将 @lark.js/mvc 从入口 chunk
-    //   提取到独立的 vendor-lark-mvc 异步 chunk, 导致 shared scope 初始化时, 该模块不是同步加载的
+    //   如果使用 "all", splitChunks 会将 @lark.js/mvc 从入口 chunk 提取到独立的异步 chunk, 导致 shared scope 初始化时, 该模块不是同步加载的
     //   remoteEntry.js 的 window.__lark_DemoMF 全局变量无法正确设置, 抛出 ScriptExternalLoadError
     //
     //   故障链路

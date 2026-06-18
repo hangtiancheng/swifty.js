@@ -49,8 +49,10 @@
  * };
  * ```
  */
+import { fileURLToPath } from "node:url";
 import type { Compiler, RspackPluginInstance } from "@rspack/core";
 import { compileTemplate, extractGlobalVars } from "./compiler.js";
+import { isCjs } from "./common.js";
 
 /** Rspack loader context */
 interface LoaderContext {
@@ -79,27 +81,26 @@ interface LarkMvcPluginOptions {
 /**
  * Rspack loader entry point.
  * Compiles .html template files into JS function modules.
+ *
+ * Unlike the webpack version, rspack async loaders must return the result
+ * directly rather than calling `this.callback()`. Calling callback() inside
+ * an async function causes "callback already called" errors because the
+ * resolved promise also signals completion.
  */
 export async function larkMvcLoader(
   this: LoaderContext,
   source: string,
-): Promise<void> {
+): Promise<string> {
   const options = this.getOptions();
   const { debug = false, virtualDom = false, useSwc = false } = options;
 
-  try {
-    // Auto-extract variables from template for 0-config experience
-    const globalVars = await extractGlobalVars(source);
-    const result = await compileTemplate(source, {
-      debug,
-      globalVars,
-      virtualDom,
-      useSwc,
-    });
-    this.callback(null, result);
-  } catch (error) {
-    this.callback(error instanceof Error ? error : new Error(String(error)));
-  }
+  const globalVars = await extractGlobalVars(source);
+  return compileTemplate(source, {
+    debug,
+    globalVars,
+    virtualDom,
+    useSwc,
+  });
 }
 
 /**
@@ -146,9 +147,9 @@ export class LarkMvcPlugin implements RspackPluginInstance {
   apply(compiler: Compiler): void {
     const { debug, virtualDom, useSwc, test, exclude } = this.options;
 
-    // Resolve the loader path (this file)
-    // In production builds, this will be the compiled rspack.js
-    const loaderPath = __filename;
+    // Resolve the loader path (this file).
+    // ESM uses import.meta.url.
+    const loaderPath = isCjs() ? __filename : fileURLToPath(import.meta.url);
 
     // Push the loader rule into rspack's module.rules
     compiler.options.module = compiler.options.module || {};

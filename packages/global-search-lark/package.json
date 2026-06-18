@@ -16,7 +16,7 @@
     "lark"
   ],
   "dependencies": {
-    "@faker-js/faker": "^10.4.0",
+    "@faker-js/faker": "^10.5.0",
     "@lark.js/mvc": "workspace:^",
     "daisyui": "^5.5.23",
     "msw": "^2.14.6",

@@ -49,7 +49,9 @@
  * };
  * ```
  */
+import { fileURLToPath } from "url";
 import { compileTemplate, extractGlobalVars } from "./compiler";
+import { isCjs } from "./common";
 
 /** Webpack loader context */
 interface LoaderContext {
@@ -78,27 +80,25 @@ interface LarkMvcPluginOptions {
 /**
  * Webpack loader entry point.
  * Compiles .html template files into JS function modules.
+ *
+ * Both webpack and rspack support async loaders that return values directly
+ * instead of calling `this.callback()`. This avoids "callback already called"
+ * errors when the async function resolves and the callback is also invoked.
  */
 async function larkMvcLoader(
   this: LoaderContext,
   source: string,
-): Promise<void> {
+): Promise<string> {
   const options = this.getOptions();
   const { debug = false, virtualDom = false, useSwc = false } = options;
 
-  try {
-    // Auto-extract variables from template for 0-config experience
-    const globalVars = await extractGlobalVars(source);
-    const result = await compileTemplate(source, {
-      debug,
-      globalVars,
-      virtualDom,
-      useSwc,
-    });
-    this.callback(null, result);
-  } catch (error) {
-    this.callback(error instanceof Error ? error : new Error(String(error)));
-  }
+  const globalVars = await extractGlobalVars(source);
+  return compileTemplate(source, {
+    debug,
+    globalVars,
+    virtualDom,
+    useSwc,
+  });
 }
 
 /**
@@ -142,12 +142,18 @@ class LarkMvcPlugin {
    * Webpack plugin entry point.
    * Called by webpack when the plugin is applied.
    */
-  apply(compiler: any): void {
+  apply(compiler: {
+    options: {
+      module: {
+        rules: unknown[];
+      };
+    };
+  }): void {
     const { debug, virtualDom, useSwc, test, exclude } = this.options;
 
     // Resolve the loader path (this file)
     // In production builds, this will be the compiled webpack.js
-    const loaderPath = __filename;
+    const loaderPath = isCjs() ? __filename : fileURLToPath(import.meta.url);
 
     // Push the loader rule into webpack's module.rules
     compiler.options.module = compiler.options.module || {};
@@ -171,3 +177,4 @@ class LarkMvcPlugin {
 }
 
 export { larkMvcLoader, LarkMvcPlugin };
+export { larkMvcLoader as default };

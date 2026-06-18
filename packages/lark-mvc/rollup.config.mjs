@@ -40,10 +40,8 @@ const makeExternal = (external) => (/** @type {string} */ id) => {
     !external &&
     (id === "@babel/parser" ||
       id === "@babel/types" ||
-      id === "@swc/core" ||
       id.startsWith("@babel/parser/") ||
-      id.startsWith("@babel/types/")) ||
-    id.startsWith("@swc/core")
+      id.startsWith("@babel/types/"))
   ) {
     return false;
   }

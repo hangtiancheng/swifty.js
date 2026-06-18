@@ -15,7 +15,7 @@
   },
   "type": "module",
   "dependencies": {
-    "@faker-js/faker": "^10.4.0",
+    "@faker-js/faker": "^10.5.0",
     "daisyui": "^5.5.23",
     "lucide-react": "^0.577.0",
     "msw": "^2.14.6",

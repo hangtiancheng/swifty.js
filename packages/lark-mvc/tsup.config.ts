@@ -23,7 +23,7 @@ export default defineConfig([
     dts: true,
     format: ["esm", "cjs"],
     minify: false,
-    noExternal: ["@babel/parser", "@babel/types", "@swc/core"],
+    noExternal: ["@babel/parser", "@babel/types"],
     sourcemap: false,
     tsconfig: "./tsconfig.build.json",
   },
