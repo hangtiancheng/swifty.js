@@ -2,14 +2,14 @@
  * VDOM Engine for Lark-MVC.
  *
  * Provides virtual DOM node creation, diffing, and DOM conversion.
- * Double-pointer head/tail diff algorithm.
+ * Three-phase diff algorithm: head fast-path, tail fast-path, keyMap reconciliation.
  *
  * When `FrameworkConfig.virtualDom` is true, the Updater uses this engine
  * instead of the string-based DOM diff in dom.ts.
  *
  * Core functions:
  * - vdomCreate: create VDomNode trees (template calls this)
- * - vdomSetChildNodes: double-pointer diff between old and new VDOM trees
+ * - vdomSetChildNodes: diff between old and new VDOM trees
  * - vdomCreateNode: convert a VDomNode to a real DOM node
  * - vdomSetAttributes: diff attributes between VDomNodes
  * - createVDomRef: create a diff operation tracker
@@ -211,33 +211,6 @@ function isSameVDomNode(a: VDomNode, b: VDomNode): boolean {
     a.tag === SPLITTER ||
     b.tag === SPLITTER
   );
-}
-
-// ============================================================
-// getKeyNodes — Build keyed-node index for diff
-// ============================================================
-
-/**
- * Build a map of compareKey → real DOM nodes from a range of old children.
- * Iterates from end to start so that pop() returns nodes in original order.
- */
-function getKeyNodes(
-  list: VDomNode[],
-  nodes: NodeListOf<ChildNode> | ChildNode[],
-  start: number,
-  end: number,
-  realEnd: number,
-): Record<string, ChildNode[]> {
-  const keyedNodes: Record<string, ChildNode[]> = {};
-  for (let i = end, re = realEnd; i >= start; i--, re--) {
-    const oc = list[i];
-    const cKey = oc.compareKey;
-    if (cKey) {
-      const bucket = keyedNodes[cKey] || (keyedNodes[cKey] = []);
-      bucket.push(nodes[re] as ChildNode);
-    }
-  }
-  return keyedNodes;
 }
 
 // ============================================================
@@ -484,13 +457,19 @@ function vdomSetNode(
 }
 
 // ============================================================
-// vdomSetChildNodes — Double-pointer head/tail diff
+// vdomSetChildNodes — Three-phase diff
 // ============================================================
 
 /**
  * Diff children of a real DOM parent against old and new VDOM trees.
  *
- * Uses a double-pointer algorithm (head/tail matching) with keyed lookup
+ * Three-phase algorithm:
+ * 1. Head fast-path: match identical nodes from the start
+ * 2. Tail fast-path: match identical nodes from the end
+ * 3. KeyMap reconciliation: build key→node index, process remaining children
+ *
+ * Old DOM node references are snapshotted before any mutations to ensure
+ * correct removal regardless of DOM position shifts.
  *
  * Fast path: on first render (lastVDom undefined), sets innerHTML directly.
  */
@@ -526,264 +505,175 @@ export function vdomSetChildNodes(
   if (oldLen === 0 && newLen === 0) return;
 
   const nodes = realNode.childNodes;
-  let oldStart = 0;
-  let oldEnd = oldLen - 1;
-  let newStart = 0;
-  let newEnd = newLen - 1;
-  let realStart = oldStart;
-  let realEnd = oldEnd;
-  let keyedNodes: Record<string, ChildNode[]> | undefined;
 
-  const oldReusedTotal = lastVDom.reusedTotal || 0;
-  const newReusedTotal = newVDom.reusedTotal || 0;
+  // ── Snapshot all old DOM node references BEFORE any mutations. ──
+  // This ensures we always know which DOM nodes belong to the old children,
+  // regardless of how insertBefore/removeChild reshuffles the NodeList.
+  const oldDomNodes: ChildNode[] = new Array(oldLen);
+  for (let i = 0; i < oldLen; i++) {
+    oldDomNodes[i] = nodes[i] as ChildNode;
+  }
 
-  let oldStartNode = oldChildren?.[oldStart];
-  let oldEndNode = oldChildren?.[oldEnd];
-  let newStartNode = newChildren?.[newStart];
-  let newEndNode = newChildren?.[newEnd];
+  // Track which old DOM nodes are reused (to remove unused ones later)
+  const usedOldDomNodes = new Set<ChildNode>();
 
-  while (oldStart <= oldEnd && newStart <= newEnd) {
-    // Skip nullified old nodes
-    if (!oldStartNode) {
-      oldStartNode = oldChildren?.[++oldStart];
-      realStart++;
-      continue;
+  let headIdx = 0;
+  let tailIdx = oldLen - 1;
+  let newHead = 0;
+  let newTail = newLen - 1;
+
+  // ── Phase 1: Head fast-path ──
+  // Match identical nodes from the start. No DOM moves — only in-place updates.
+  while (headIdx <= tailIdx && newHead <= newTail) {
+    const oc = oldChildren![headIdx];
+    const nc = newChildren![newHead];
+    if (!isSameVDomNode(nc, oc)) break;
+    if (nc.tag === SPLITTER || oc.tag === SPLITTER) break;
+
+    vdomSetNode(
+      oldDomNodes[headIdx],
+      realNode,
+      oc,
+      nc,
+      ref,
+      frame,
+      keys,
+      view,
+      ready,
+    );
+    usedOldDomNodes.add(oldDomNodes[headIdx]);
+    headIdx++;
+    newHead++;
+  }
+
+  // ── Phase 2: Tail fast-path ──
+  // Match identical nodes from the end. No DOM moves — only in-place updates.
+  while (headIdx <= tailIdx && newHead <= newTail) {
+    const oc = oldChildren![tailIdx];
+    const nc = newChildren![newTail];
+    if (!isSameVDomNode(nc, oc)) break;
+    if (nc.tag === SPLITTER || oc.tag === SPLITTER) break;
+
+    vdomSetNode(
+      oldDomNodes[tailIdx],
+      realNode,
+      oc,
+      nc,
+      ref,
+      frame,
+      keys,
+      view,
+      ready,
+    );
+    usedOldDomNodes.add(oldDomNodes[tailIdx]);
+    tailIdx--;
+    newTail--;
+  }
+
+  // All matched? Early exit
+  if (headIdx > tailIdx && newHead > newTail) {
+    if (ref.asyncCount === 0) callFunction(ready, []);
+    return;
+  }
+
+  // ── Build keyMap from remaining old children ──
+  // Maps compareKey → { domNode, vdomNode } for keyed lookup.
+  const keyMap: Record<
+    string,
+    Array<{ domNode: ChildNode; vdomNode: VDomNode }>
+  > = {};
+  for (let i = headIdx; i <= tailIdx; i++) {
+    const c = oldChildren![i];
+    if (c?.compareKey) {
+      if (!keyMap[c.compareKey]) keyMap[c.compareKey] = [];
+      keyMap[c.compareKey].push({ domNode: oldDomNodes[i], vdomNode: c });
     }
-    if (!oldEndNode) {
-      oldEndNode = oldChildren?.[--oldEnd];
-      realEnd--;
-      continue;
-    }
+  }
 
-    if (isSameVDomNode(newStartNode!, oldStartNode)) {
-      // Head-head match
-      if (newStartNode!.tag === SPLITTER || oldStartNode.tag === SPLITTER) {
+  // Insertion point: where the next node should be placed.
+  // After Phase 1, oldDomNodes[headIdx] is the first unmatched old DOM node.
+  let insertRef: ChildNode | null =
+    headIdx <= tailIdx ? oldDomNodes[headIdx] : null;
+
+  // ── Phase 3: Process remaining children via keyMap ──
+  for (let i = newHead; i <= newTail; i++) {
+    const nc = newChildren![i];
+    const cKey = nc.compareKey;
+
+    if (cKey && keyMap[cKey]?.length) {
+      // Keyed: reuse old DOM node, move to correct position
+      const entry = keyMap[cKey].shift()!;
+      if (keyMap[cKey].length === 0) delete keyMap[cKey];
+
+      usedOldDomNodes.add(entry.domNode);
+
+      if (entry.domNode !== insertRef) {
         ref.changed = 1;
-        domUnmountFrames(frame, realNode);
-        if (newStartNode!.tag === SPLITTER) {
-          // New node is raw HTML: replace with SPLITTER content
-          realNode.innerHTML = newStartNode!.html;
-        } else {
-          // Old node was raw HTML, new is normal: clear and recreate
-          realNode.innerHTML = "";
-          realNode.appendChild(vdomCreateNode(newStartNode!, realNode, ref));
-        }
-      } else {
-        vdomSetNode(
-          nodes[realStart] as ChildNode,
-          realNode,
-          oldStartNode,
-          newStartNode!,
-          ref,
-          frame,
-          keys,
-          view,
-          ready,
-        );
-      }
-      reduceCached(keyedNodes, oldStartNode, nodes[realStart] as ChildNode);
-      realStart++;
-      oldStartNode = oldChildren?.[++oldStart];
-      newStartNode = newChildren?.[++newStart];
-    } else if (isSameVDomNode(newEndNode!, oldEndNode)) {
-      // Tail-tail match
-      if (newEndNode!.tag === SPLITTER || oldEndNode.tag === SPLITTER) {
-        ref.changed = 1;
-        domUnmountFrames(frame, realNode);
-        realNode.innerHTML =
-          newEndNode!.tag === SPLITTER ? newEndNode!.html : "";
-        if (newEndNode!.tag !== SPLITTER) {
-          realNode.appendChild(vdomCreateNode(newEndNode!, realNode, ref));
-        }
-      } else {
-        vdomSetNode(
-          nodes[realEnd] as ChildNode,
-          realNode,
-          oldEndNode,
-          newEndNode!,
-          ref,
-          frame,
-          keys,
-          view,
-          ready,
-        );
-      }
-      reduceCached(keyedNodes, oldEndNode, nodes[realEnd] as ChildNode);
-      realEnd--;
-      oldEndNode = oldChildren?.[--oldEnd];
-      newEndNode = newChildren?.[--newEnd];
-    } else if (isSameVDomNode(newEndNode!, oldStartNode)) {
-      // Old start moves to after tail
-      if (newEndNode!.tag === SPLITTER || oldStartNode.tag === SPLITTER) {
-        ref.changed = 1;
-        domUnmountFrames(frame, realNode);
-        realNode.innerHTML =
-          newEndNode!.tag === SPLITTER ? newEndNode!.html : "";
-        if (newEndNode!.tag !== SPLITTER) {
-          realNode.appendChild(vdomCreateNode(newEndNode!, realNode, ref));
-        }
-      } else {
-        const oi = nodes[realStart] as ChildNode;
-        realNode.insertBefore(oi, nodes[realEnd + 1] || null);
-        vdomSetNode(
-          oi,
-          realNode,
-          oldStartNode,
-          newEndNode!,
-          ref,
-          frame,
-          keys,
-          view,
-          ready,
-        );
-      }
-      reduceCached(keyedNodes, oldStartNode, nodes[realStart] as ChildNode);
-      realStart++;
-      oldStartNode = oldChildren?.[++oldStart];
-      newEndNode = newChildren?.[--newEnd];
-    } else if (isSameVDomNode(newStartNode!, oldEndNode)) {
-      // Old end moves to before head
-      if (newStartNode!.tag === SPLITTER || oldEndNode.tag === SPLITTER) {
-        ref.changed = 1;
-        domUnmountFrames(frame, realNode);
-        realNode.innerHTML =
-          newStartNode!.tag === SPLITTER ? newStartNode!.html : "";
-        if (newStartNode!.tag !== SPLITTER) {
-          realNode.appendChild(vdomCreateNode(newStartNode!, realNode, ref));
-        }
-      } else {
-        const oi = nodes[realEnd] as ChildNode;
-        realNode.insertBefore(oi, nodes[realStart] as ChildNode);
-        vdomSetNode(
-          oi,
-          realNode,
-          oldEndNode,
-          newStartNode!,
-          ref,
-          frame,
-          keys,
-          view,
-          ready,
-        );
-      }
-      reduceCached(keyedNodes, oldEndNode, nodes[realEnd] as ChildNode);
-      realEnd--;
-      oldEndNode = oldChildren?.[--oldEnd];
-      newStartNode = newChildren?.[++newStart];
-    } else {
-      // Keyed lookup
-      if (!keyedNodes && newReusedTotal > 0 && oldReusedTotal > 0) {
-        keyedNodes = getKeyNodes(
-          oldChildren!,
-          nodes,
-          oldStart,
-          oldEnd,
-          realEnd,
-        );
+        realNode.insertBefore(entry.domNode, insertRef);
       }
 
-      const cKey = newStartNode!.compareKey;
-      let found: ChildNode[] | undefined;
-      let compareKey: ChildNode | undefined;
+      vdomSetNode(
+        entry.domNode,
+        realNode,
+        entry.vdomNode,
+        nc,
+        ref,
+        frame,
+        keys,
+        view,
+        ready,
+      );
 
-      if (cKey && keyedNodes) {
-        found = keyedNodes[cKey];
-        compareKey = undefined;
-        // Skip nullified entries (previously matched nodes set to undefined)
-        while (found && found.length > 0) {
-          compareKey = found.pop();
-          if (compareKey) break;
-        }
-        if (found && found.length === 0) delete keyedNodes[cKey];
-      }
-
-      if (compareKey) {
-        // Found in keyed map: move to current position
-        if (compareKey !== nodes[realStart]) {
-          // Scan forward in oldChildren to find and nullify
-          for (let j = oldStart + 1; j <= oldEnd; j++) {
-            const oc = oldChildren?.[j];
-            if (oc && nodes[realStart + (j - oldStart)] === compareKey) {
-              oldChildren[j] = undefined as unknown as VDomNode;
-
-              break;
-            }
-          }
-          realNode.insertBefore(compareKey, nodes[realStart] as ChildNode);
-        }
-        vdomSetNode(
-          compareKey,
-          realNode,
-          oldStartNode,
-          newStartNode!,
-          ref,
-          frame,
-          keys,
-          view,
-          ready,
-        );
-      } else if (
-        (oldStartNode.compareKey &&
-          lastVDom.reused?.[oldStartNode.compareKey] &&
-          newVDom.reused?.[oldStartNode.compareKey]) ||
-        ((nodes[realStart] as Element)?.id &&
-          (realNode as Element).querySelectorAll?.(
-            `#${(nodes[realStart] as Element).id}`,
-          )?.length &&
-          !newStartNode!.isLarkView)
+      // Advance insertRef past the just-placed node
+      insertRef = entry.domNode.nextSibling as ChildNode | null;
+    } else if (!cKey) {
+      // Non-keyed: try in-place update or create new
+      if (
+        insertRef &&
+        (insertRef as Element).nodeType === 1 &&
+        (insertRef as Element).tagName ===
+          (typeof nc.tag === "string" ? nc.tag.toUpperCase() : "")
       ) {
-        // Old start is keyed and still needed later: insert new node
-        ref.changed = 1;
-        const newNode = vdomCreateNode(newStartNode!, realNode, ref);
-        realNode.insertBefore(newNode, nodes[realStart] as ChildNode);
-        realStart--;
-        realEnd++;
-      } else {
-        // In-place update
+        // Same tag: update in place
         vdomSetNode(
-          nodes[realStart] as ChildNode,
+          insertRef,
           realNode,
-          oldStartNode,
-          newStartNode!,
+          oldChildren![headIdx] || nc,
+          nc,
           ref,
           frame,
           keys,
           view,
           ready,
         );
-      }
-
-      realStart++;
-      oldStartNode = oldChildren?.[++oldStart];
-      newStartNode = newChildren?.[++newStart];
-    }
-  }
-
-  // Remaining new nodes: insert
-  if (newStart <= newEnd) {
-    const refNode = nodes[realEnd + 1] || null;
-    for (let i = newStart; i <= newEnd; i++) {
-      ref.changed = 1;
-      const nc = newChildren![i];
-      if (nc.tag === SPLITTER) {
-        domUnmountFrames(frame, realNode);
-        realNode.innerHTML = nc.html;
-        return;
-      }
-      const newNode = vdomCreateNode(nc, realNode, ref);
-      realNode.insertBefore(newNode, refNode);
-    }
-  }
-
-  // Remaining old nodes: remove
-  if (oldStart <= oldEnd) {
-    for (let i = realEnd; i >= realStart; i--) {
-      const node = nodes[i] as ChildNode;
-      if (node) {
-        domUnmountFrames(frame, node);
+        usedOldDomNodes.add(insertRef);
+        insertRef = insertRef.nextSibling as ChildNode | null;
+      } else {
+        // Tag mismatch or no old node: create new
         ref.changed = 1;
-        realNode.removeChild(node);
+        const newNode = vdomCreateNode(nc, realNode, ref);
+        realNode.insertBefore(newNode, insertRef);
       }
+    } else {
+      // New keyed node not in old children: create new
+      ref.changed = 1;
+      const newNode = vdomCreateNode(nc, realNode, ref);
+      realNode.insertBefore(newNode, insertRef);
+    }
+  }
+
+  // ── Remove unused old DOM nodes ──
+  // Uses the snapshot references, not live NodeList positions.
+  for (let i = 0; i < oldLen; i++) {
+    const domNode = oldDomNodes[i];
+    if (
+      domNode &&
+      !usedOldDomNodes.has(domNode) &&
+      domNode.parentNode === realNode
+    ) {
+      domUnmountFrames(frame, domNode);
+      ref.changed = 1;
+      realNode.removeChild(domNode);
     }
   }
 
@@ -795,28 +685,6 @@ export function vdomSetChildNodes(
   // blocking user interaction during large updates.
   if (ref.asyncCount === 0) {
     callFunction(ready, []);
-  }
-}
-
-/**
- * Decrement reused count for a matched keyed node.
- * Precisely finds and nullifies the corresponding DOM node in the bucket
- * (rather than blindly popping) to keep the keyed index consistent.
- */
-function reduceCached(
-  keyedNodes: Record<string, ChildNode[]> | undefined,
-  node: VDomNode,
-  compared: ChildNode,
-): void {
-  if (!keyedNodes || !node.compareKey) return;
-  const bucket = keyedNodes[node.compareKey];
-  if (bucket) {
-    for (let i = bucket.length; i--; ) {
-      if (bucket[i] === compared) {
-        bucket[i] = undefined as unknown as ChildNode;
-        break;
-      }
-    }
   }
 }
 

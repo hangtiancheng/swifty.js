@@ -462,6 +462,139 @@ describe("VDOM Engine", () => {
       expect(el.children[0].textContent).toBe("new");
       cleanup("vdom-test-8");
     });
+    it("replaces all keyed children with entirely new keys", () => {
+      const ref = createVDomRef("test");
+      const el = document.createElement("tbody");
+      // First render: 5 rows with ids 1-5
+      el.innerHTML =
+        '<tr id="row-1"><td>1</td></tr><tr id="row-2"><td>2</td></tr><tr id="row-3"><td>3</td></tr><tr id="row-4"><td>4</td></tr><tr id="row-5"><td>5</td></tr>';
+
+      const frame = makeFrame("vdom-test-replace");
+      const view = { rendered: true, endUpdate: () => {} } as any;
+
+      const oldVDom = vdomCreate("tbody", null, [
+        vdomCreate("tr", { id: "row-1" }, [
+          vdomCreate("td", null, [vdomCreate(0, "1")]),
+        ]),
+        vdomCreate("tr", { id: "row-2" }, [
+          vdomCreate("td", null, [vdomCreate(0, "2")]),
+        ]),
+        vdomCreate("tr", { id: "row-3" }, [
+          vdomCreate("td", null, [vdomCreate(0, "3")]),
+        ]),
+        vdomCreate("tr", { id: "row-4" }, [
+          vdomCreate("td", null, [vdomCreate(0, "4")]),
+        ]),
+        vdomCreate("tr", { id: "row-5" }, [
+          vdomCreate("td", null, [vdomCreate(0, "5")]),
+        ]),
+      ]);
+      // Replace with entirely new ids 101-105
+      const newVDom = vdomCreate("tbody", null, [
+        vdomCreate("tr", { id: "row-101" }, [
+          vdomCreate("td", null, [vdomCreate(0, "101")]),
+        ]),
+        vdomCreate("tr", { id: "row-102" }, [
+          vdomCreate("td", null, [vdomCreate(0, "102")]),
+        ]),
+        vdomCreate("tr", { id: "row-103" }, [
+          vdomCreate("td", null, [vdomCreate(0, "103")]),
+        ]),
+        vdomCreate("tr", { id: "row-104" }, [
+          vdomCreate("td", null, [vdomCreate(0, "104")]),
+        ]),
+        vdomCreate("tr", { id: "row-105" }, [
+          vdomCreate("td", null, [vdomCreate(0, "105")]),
+        ]),
+      ]);
+
+      vdomSetChildNodes(
+        el,
+        oldVDom,
+        newVDom,
+        ref,
+        frame,
+        new Set(),
+        view,
+        () => {},
+      );
+
+      expect(ref.changed).toBe(1);
+      expect(el.children.length).toBe(5);
+      expect(el.children[0].id).toBe("row-101");
+      expect(el.children[1].id).toBe("row-102");
+      expect(el.children[2].id).toBe("row-103");
+      expect(el.children[3].id).toBe("row-104");
+      expect(el.children[4].id).toBe("row-105");
+      expect(el.children[0].querySelector("td")?.textContent).toBe("101");
+      cleanup("vdom-test-replace");
+    });
+
+    it("correctly swaps two keyed rows", () => {
+      const ref = createVDomRef("test");
+      const el = document.createElement("tbody");
+      el.innerHTML =
+        '<tr id="row-1"><td>1</td></tr><tr id="row-2"><td>2</td></tr><tr id="row-3"><td>3</td></tr><tr id="row-4"><td>4</td></tr><tr id="row-5"><td>5</td></tr>';
+
+      const frame = makeFrame("vdom-test-swap");
+      const view = { rendered: true, endUpdate: () => {} } as any;
+
+      const oldVDom = vdomCreate("tbody", null, [
+        vdomCreate("tr", { id: "row-1" }, [
+          vdomCreate("td", null, [vdomCreate(0, "1")]),
+        ]),
+        vdomCreate("tr", { id: "row-2" }, [
+          vdomCreate("td", null, [vdomCreate(0, "2")]),
+        ]),
+        vdomCreate("tr", { id: "row-3" }, [
+          vdomCreate("td", null, [vdomCreate(0, "3")]),
+        ]),
+        vdomCreate("tr", { id: "row-4" }, [
+          vdomCreate("td", null, [vdomCreate(0, "4")]),
+        ]),
+        vdomCreate("tr", { id: "row-5" }, [
+          vdomCreate("td", null, [vdomCreate(0, "5")]),
+        ]),
+      ]);
+      // Swap rows 2 and 4
+      const newVDom = vdomCreate("tbody", null, [
+        vdomCreate("tr", { id: "row-1" }, [
+          vdomCreate("td", null, [vdomCreate(0, "1")]),
+        ]),
+        vdomCreate("tr", { id: "row-4" }, [
+          vdomCreate("td", null, [vdomCreate(0, "4")]),
+        ]),
+        vdomCreate("tr", { id: "row-3" }, [
+          vdomCreate("td", null, [vdomCreate(0, "3")]),
+        ]),
+        vdomCreate("tr", { id: "row-2" }, [
+          vdomCreate("td", null, [vdomCreate(0, "2")]),
+        ]),
+        vdomCreate("tr", { id: "row-5" }, [
+          vdomCreate("td", null, [vdomCreate(0, "5")]),
+        ]),
+      ]);
+
+      vdomSetChildNodes(
+        el,
+        oldVDom,
+        newVDom,
+        ref,
+        frame,
+        new Set(),
+        view,
+        () => {},
+      );
+
+      expect(ref.changed).toBe(1);
+      expect(el.children.length).toBe(5);
+      expect(el.children[0].id).toBe("row-1");
+      expect(el.children[1].id).toBe("row-4");
+      expect(el.children[2].id).toBe("row-3");
+      expect(el.children[3].id).toBe("row-2");
+      expect(el.children[4].id).toBe("row-5");
+      cleanup("vdom-test-swap");
+    });
   });
 
   // ============================================================
