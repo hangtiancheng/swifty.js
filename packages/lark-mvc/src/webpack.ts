@@ -99,7 +99,7 @@ async function larkMvcLoader(
     });
   } catch (err) {
     console.error(err);
-    return ""
+    return "";
   }
 }
 
@@ -153,14 +153,6 @@ class LarkMvcPlugin {
   }): void {
     const { debug, virtualDom, useSwc, test, exclude } = this.options;
 
-    // Deprecated implementation
-    // const loaderPath = isCjs() ? __filename : fileURLToPath(import.meta.url);
-
-    // Resolve the loader path (this file).
-    // __filename is provided by tsup's ESM shim (shims: true) in ESM output,
-    // and is a native CJS global in CJS output.
-    const loaderPath = __filename;
-
     // Push the loader rule into webpack's module.rules
     compiler.options.module = compiler.options.module || {};
     compiler.options.module.rules = compiler.options.module.rules || [];
@@ -170,7 +162,14 @@ class LarkMvcPlugin {
       exclude,
       use: [
         {
-          loader: loaderPath,
+          // Resolve the loader path (this file).
+
+          // Deprecated implementation
+          // isCjs() ? __filename : fileURLToPath(import.meta.url);
+
+          // __filename is provided by tsup's ESM shim (shims: true) in ESM output,
+          // and is a native CJS global in CJS output.
+          loader: __filename,
           options: { debug, virtualDom, useSwc },
         },
       ],
