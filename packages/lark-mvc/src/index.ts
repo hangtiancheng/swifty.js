@@ -21,9 +21,6 @@ export { applyStyle } from "./apply-style";
 // Mark / Unmark (async callback validity tracking)
 export { mark, unmark } from "./mark";
 
-// Safeguard (Proxy-based debug protection)
-export { safeguard } from "./safeguard";
-
 // Cache (LFU-style with frequency eviction)
 export { Cache } from "./cache";
 

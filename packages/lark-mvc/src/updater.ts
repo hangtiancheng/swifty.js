@@ -18,7 +18,6 @@ import {
   funcWithTry,
   EMPTY_STRING_SET,
 } from "./utils";
-import { safeguard } from "./safeguard";
 import {
   SPLITTER,
   isRefToken,
@@ -101,9 +100,6 @@ export class Updater implements UpdaterInterface {
     let result: unknown = this.data;
     if (key) {
       result = this.data[key];
-    }
-    if (typeof window !== "undefined" && window.__lark_Debug) {
-      return safeguard(result) as T;
     }
     return result as T;
   }

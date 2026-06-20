@@ -25,7 +25,6 @@ import {
   keys,
 } from "./utils";
 import { mark, unmark } from "./mark";
-import { safeguard } from "./safeguard";
 import { applyStyle } from "./apply-style";
 import { Cache } from "./cache";
 import { EventEmitter } from "./event-emitter";
@@ -588,11 +587,6 @@ export const Framework: FrameworkInterface = {
    * Generate globally unique ID.
    */
   guid: generateId,
-
-  /**
-   * Proxy-based debug guard.
-   */
-  guard: safeguard,
 
   /**
    * Cache class.

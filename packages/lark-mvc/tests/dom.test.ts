@@ -31,7 +31,7 @@ function cleanup(id: string): void {
   (Frame.getAll() as Map<string, Frame>).delete(id);
 }
 
-describe("DOM", () => {
+describe("DOM Diff Engine", () => {
   describe("domGetNode", () => {
     it("parses a div fragment", () => {
       const ref = document.createElement("div");

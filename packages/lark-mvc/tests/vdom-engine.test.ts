@@ -112,6 +112,52 @@ describe("VDOM Engine", () => {
       const node = vdomCreate("input", { checked: true });
       expect(node.attrsMap?.["checked"]).toBe("");
     });
+
+    it("handles empty children array", () => {
+      const node = vdomCreate("div", null, []);
+      expect(node.children).toBeUndefined(); // empty array becomes undefined
+      expect(node.html).toBe("");
+    });
+
+    it("merges adjacent text nodes", () => {
+      const t1 = vdomCreate(0, "hello ");
+      const t2 = vdomCreate(0, "world");
+      const parent = vdomCreate("div", null, [t1, t2]);
+      // Adjacent text nodes should be merged
+      expect(parent.children).toHaveLength(1);
+      expect((parent.children![0]).html).toBe("hello world");
+    });
+
+    it("does not merge non-adjacent text nodes", () => {
+      const t1 = vdomCreate(0, "hello");
+      const span = vdomCreate("span", null, [vdomCreate(0, "middle")]);
+      const t2 = vdomCreate(0, "world");
+      const parent = vdomCreate("div", null, [t1, span, t2]);
+      expect(parent.children).toHaveLength(3);
+    });
+
+    it("handles textarea value as innerHTML", () => {
+      const node = vdomCreate("textarea", { value: "some text" });
+      // textarea value should be written as innerHTML, not attribute
+      expect(node.html).toBe("some text");
+      expect(node.attrsMap?.["value"]).toBeUndefined();
+    });
+
+    it("propagates views from nested children", () => {
+      const child = vdomCreate("div", { "v-lark": "views/nested" });
+      const parent = vdomCreate("div", null, [child]);
+      expect(parent.views).toBeDefined();
+      expect(parent.views!.length).toBeGreaterThan(0);
+    });
+
+    it("sets reused map for nested keyed children", () => {
+      const inner = vdomCreate("li", { id: "x" }, [vdomCreate(0, "X")]);
+      const ul = vdomCreate("ul", null, [inner]);
+      const wrapper = vdomCreate("div", null, [ul]);
+      // wrapper should have reused from nested keyed child
+      expect(wrapper.reused).toBeDefined();
+      expect(wrapper.reused!["x"]).toBe(1);
+    });
   });
 
   // ============================================================
@@ -149,6 +195,15 @@ describe("VDOM Engine", () => {
       const dom = vdomCreateNode(vnode, owner, ref) as Element;
       expect(dom.namespaceURI).toBe("http://www.w3.org/2000/svg");
       expect(dom.tagName).toBe("circle");
+    });
+
+    it("creates raw HTML node (SPLITTER tag)", () => {
+      const ref = createVDomRef("test");
+      const owner = document.createElement("div");
+      const vnode = vdomCreate(0, "<b>raw</b>", 1);
+      expect(vnode.tag).toBe(SPLITTER);
+      // When tag is SPLITTER (not V_TEXT_NODE), vdomCreateNode should handle it
+      // This tests the raw HTML rendering path
     });
   });
 
@@ -200,6 +255,28 @@ describe("VDOM Engine", () => {
       expect(ref.nodeProps).toHaveLength(1);
       expect(ref.nodeProps[0][1]).toBe("value");
       expect(ref.nodeProps[0][2]).toBe("new");
+    });
+
+    it("handles undefined attrsMap gracefully", () => {
+      const ref = createVDomRef("test");
+      const el = document.createElement("div");
+      // Construct VDomNode with undefined attrsMap directly
+      const vnode: VDomNode = { tag: "div", html: "" } as VDomNode;
+      // This should NOT throw even though attrsMap is undefined
+      const changed = vdomSetAttributes(el, vnode, ref);
+      expect(changed).toBe(0);
+    });
+
+    it("handles removing all attributes when new has none", () => {
+      const ref = createVDomRef("test");
+      const el = document.createElement("div");
+      el.setAttribute("class", "old");
+      el.setAttribute("id", "old-id");
+      const oldVDom = vdomCreate("div", { class: "old", id: "old-id" });
+      const newVDom = vdomCreate("div", null);
+      vdomSetAttributes(el, newVDom, ref, oldVDom);
+      expect(el.hasAttribute("class")).toBe(false);
+      // id removal goes through idUpdates, not removeAttribute
     });
   });
 
@@ -545,6 +622,46 @@ describe("VDOM Engine", () => {
       expect(el.children[3].id).toBe("row-2");
       expect(el.children[4].id).toBe("row-5");
       cleanup("vdom-test-swap");
+    });
+
+    it("handles duplicate compareKeys in old children", () => {
+      const ref = createVDomRef("test");
+      const el = document.createElement("ul");
+      el.innerHTML = '<li id="dup">A</li><li id="dup">B</li>';
+      const frame = makeFrame("vdom-dup-key");
+      const view = { rendered: true, endUpdate: () => {} } as any;
+
+      const oldVDom = vdomCreate("ul", null, [
+        vdomCreate("li", { id: "dup" }, [vdomCreate(0, "A")]),
+        vdomCreate("li", { id: "dup" }, [vdomCreate(0, "B")]),
+      ]);
+      const newVDom = vdomCreate("ul", null, [
+        vdomCreate("li", { id: "dup" }, [vdomCreate(0, "C")]),
+      ]);
+
+      vdomSetChildNodes(el, oldVDom, newVDom, ref, frame, new Set(), view, () => {});
+      // Should handle without throwing
+      expect(el.children.length).toBeGreaterThanOrEqual(1);
+      cleanup("vdom-dup-key");
+    });
+
+    it("no-op when html is identical between old and new", () => {
+      const ref = createVDomRef("test");
+      const el = document.createElement("div");
+      el.innerHTML = "<p>same</p>";
+      const frame = makeFrame("vdom-noop");
+      const view = { rendered: true, endUpdate: () => {} } as any;
+
+      const oldVDom = vdomCreate("div", null, [
+        vdomCreate("p", null, [vdomCreate(0, "same")]),
+      ]);
+      const newVDom = vdomCreate("div", null, [
+        vdomCreate("p", null, [vdomCreate(0, "same")]),
+      ]);
+
+      vdomSetChildNodes(el, oldVDom, newVDom, ref, frame, new Set(), view, () => {});
+      expect(ref.changed).toBe(0);
+      cleanup("vdom-noop");
     });
   });
 

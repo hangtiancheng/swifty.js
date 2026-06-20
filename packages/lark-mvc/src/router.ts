@@ -20,7 +20,6 @@ import {
 import { hasOwnProperty, assign, parseUri, toUri, asRecord } from "./utils";
 import { Cache } from "./cache";
 import { EventEmitter } from "./event-emitter";
-import { safeguard } from "./safeguard";
 import type {
   AnyFunc,
   Location,
@@ -347,11 +346,6 @@ export const Router: RouterInterface = {
       attachViewAndPath(location);
       hrefCache.set(href, location);
     }
-
-    if (typeof window.__lark_Debug !== "undefined" && window.__lark_Debug) {
-      location["params"] = safeguard(location["params"]);
-    }
-
     return location;
   },
 
@@ -375,15 +369,6 @@ export const Router: RouterInterface = {
     }
 
     silent = 0;
-
-    if (
-      typeof window.__lark_Debug !== "undefined" &&
-      window.__lark_Debug &&
-      lastChanged
-    ) {
-      lastChanged = safeguard(lastChanged);
-    }
-
     return lastChanged;
   },
 

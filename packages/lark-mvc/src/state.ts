@@ -9,7 +9,6 @@
 import { RouterEvents } from "./common";
 import { hasOwnProperty, setData, EMPTY_STRING_SET } from "./utils";
 import { EventEmitter } from "./event-emitter";
-import { safeguard } from "./safeguard";
 import type { AnyFunc, ChangeEvent, StateInterface } from "./types";
 
 /** Application state data */
@@ -102,29 +101,6 @@ export const State: StateInterface = {
    */
   get<T = unknown>(key?: string): T {
     const result = key ? appData[key] : appData;
-    if (typeof window.__lark_Debug !== "undefined" && window.__lark_Debug) {
-      return safeguard(
-        result,
-        (dataKey: string) => {
-          if (
-            booted &&
-            hasOwnProperty(dataWhereSet, dataKey) &&
-            dataWhereSet[dataKey] !== window.location.pathname
-          ) {
-            console.warn(
-              `beware! You get state:"{State}.${dataKey}" where it set by page:${dataWhereSet[dataKey]}`,
-            );
-          }
-        },
-        (path: string, _value: unknown) => {
-          const sub = key || path;
-          delayNotify(
-            sub,
-            `beware! You direct modify "{State}.${sub}" You should call State.set() and State.digest() to notify other views`,
-          );
-        },
-      ) as T;
-    }
     return result as T;
   },
 

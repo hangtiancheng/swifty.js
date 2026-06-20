@@ -1195,13 +1195,6 @@ export interface FrameworkInterface {
     callback?: (...modules: unknown[]) => void,
   ): void;
   /**
-   * Protect object from direct modification in debug mode.
-   * Wraps data object with Proxy, intercepts read/write operations, warns to use State.set/digest for state management.
-   * Only effective when `window.__lark_Debug` is true.
-   * @param o Object to protect
-   */
-  guard<T extends object>(o: T): T;
-  /**
    * Dynamically inject CSS styles into page. Returns cleanup function to remove injected styles.
    * Supports single and batch injection.
    * - `Framework.applyStyle("my-style", "body { color: red; }")` single injection

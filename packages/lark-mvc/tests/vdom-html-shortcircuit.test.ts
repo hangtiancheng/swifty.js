@@ -211,4 +211,95 @@ describe("VDOM html short-circuit optimization", () => {
 
     cleanup("html-sc-4");
   });
+
+  it("does NOT short-circuit when html differs", () => {
+    const el = document.createElement("div");
+    el.innerHTML = '<span class="same">old text</span>';
+    const spanBefore = el.querySelector("span")!;
+    const textBefore = spanBefore.firstChild;
+
+    const frame = makeFrame("html-sc-no-skip");
+    const view = { rendered: true, endUpdate: () => {} } as any;
+    const ref = createVDomRef("html-sc-no-skip");
+
+    const spanOld = vdomCreate("span", { class: "same" }, [vdomCreate(0, "old text")]);
+    const containerOld = vdomCreate("div", null, [spanOld]);
+
+    const spanNew = vdomCreate("span", { class: "same" }, [vdomCreate(0, "new text")]);
+    const containerNew = vdomCreate("div", null, [spanNew]);
+
+    vdomSetChildNodes(el, containerOld, containerNew, ref, frame, new Set(), view, () => {});
+
+    // Same span DOM node (tag match, in-place update)
+    expect(el.querySelector("span")).toBe(spanBefore);
+    // But text content should be updated
+    expect(spanBefore.textContent).toBe("new text");
+    // ref.changed should be set
+    expect(ref.changed).toBe(1);
+
+    cleanup("html-sc-no-skip");
+  });
+
+  it("does NOT short-circuit for form elements with hasSpecials even when attrs+html equal", () => {
+    const el = document.createElement("div");
+    const input = document.createElement("input");
+    input.setAttribute("type", "text");
+    input.setAttribute("value", "original");
+    input.value = "user-typed";
+    el.appendChild(input);
+
+    const frame = makeFrame("html-sc-specials");
+    const view = { rendered: true, endUpdate: () => {} } as any;
+    const ref = createVDomRef("html-sc-specials");
+
+    // Old and new have identical attrs and html
+    const inputOld = vdomCreate("input", { type: "text", value: "original" }, null, { value: "value" });
+    const containerOld = vdomCreate("div", null, [inputOld]);
+
+    const inputNew = vdomCreate("input", { type: "text", value: "original" }, null, { value: "value" });
+    // Add a sibling to prevent container-level short-circuit
+    const sibling = vdomCreate("span", null, [vdomCreate(0, "x")]);
+    const containerNew = vdomCreate("div", null, [inputNew, sibling]);
+
+    vdomSetChildNodes(el, containerOld, containerNew, ref, frame, new Set(), view, () => {});
+
+    // Form state should be synced: input.value should be restored to "original"
+    // even though attrs+html were equal, because hasSpecials triggers vdomSyncFormState
+    expect(input.value).toBe("original");
+
+    cleanup("html-sc-specials");
+  });
+
+  it("short-circuit preserves deeply nested unchanged DOM nodes", () => {
+    const el = document.createElement("div");
+    el.innerHTML = '<div class="wrapper"><ul><li id="a"><span>deep</span></li></ul></div>';
+    const deepSpan = el.querySelector("#a span")!;
+    const liA = el.querySelector("#a")!;
+
+    const frame = makeFrame("html-sc-deep");
+    const view = { rendered: true, endUpdate: () => {} } as any;
+    const ref = createVDomRef("html-sc-deep");
+
+    const spanNode = vdomCreate("span", null, [vdomCreate(0, "deep")]);
+    const liNode = vdomCreate("li", { id: "a" }, [spanNode]);
+    const ulNode = vdomCreate("ul", null, [liNode]);
+    const wrapperOld = vdomCreate("div", { class: "wrapper" }, [ulNode]);
+    const containerOld = vdomCreate("div", null, [wrapperOld]);
+
+    // New tree is identical
+    const spanNode2 = vdomCreate("span", null, [vdomCreate(0, "deep")]);
+    const liNode2 = vdomCreate("li", { id: "a" }, [spanNode2]);
+    const ulNode2 = vdomCreate("ul", null, [liNode2]);
+    const wrapperNew = vdomCreate("div", { class: "wrapper" }, [ulNode2]);
+    const containerNew = vdomCreate("div", null, [wrapperNew]);
+
+    vdomSetChildNodes(el, containerOld, containerNew, ref, frame, new Set(), view, () => {});
+
+    // All deeply nested nodes should be the exact same DOM references
+    expect(el.querySelector("#a")).toBe(liA);
+    expect(el.querySelector("#a span")).toBe(deepSpan);
+    expect(ref.changed).toBe(0);
+
+    cleanup("html-sc-deep");
+  });
 });
