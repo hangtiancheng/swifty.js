@@ -110,6 +110,15 @@ export function vdomCreate(
         reusedTotal++;
       }
 
+      // Propagate nested reused keys upward
+      if (c.reused) {
+        if (!reused) reused = {};
+        for (const key in c.reused) {
+          reused[key] = (reused[key] || 0) + c.reused[key];
+          reusedTotal += c.reused[key];
+        }
+      }
+
       // Propagate sub-view references
       if (c.views) {
         if (!viewList) viewList = [];

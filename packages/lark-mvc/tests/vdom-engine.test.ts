@@ -150,7 +150,7 @@ describe("VDOM Engine", () => {
       expect(parent.views!.length).toBeGreaterThan(0);
     });
 
-    it.skip("sets reused map for nested keyed children", () => {
+    it("sets reused map for nested keyed children", () => {
       const inner = vdomCreate("li", { id: "x" }, [vdomCreate(0, "X")]);
       const ul = vdomCreate("ul", null, [inner]);
       const wrapper = vdomCreate("div", null, [ul]);

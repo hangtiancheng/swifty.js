@@ -121,8 +121,12 @@ describe("Framework", () => {
         },
         [],
         null,
+        (e: unknown) => {
+          captured = e;
+        },
       );
       expect(captured).toBeInstanceOf(Error);
+      expect((captured as Error).message).toBe("boom");
     });
 
     it("toUrl constructs URL from path and params", () => {

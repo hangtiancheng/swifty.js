@@ -1126,8 +1126,14 @@ export interface FrameworkInterface {
    * @param fns Function or function array
    * @param args Arguments array passed to functions
    * @param context `this` binding during function execution
+   * @param configError Optional error callback, receives the caught exception
    */
-  toTry(fns: AnyFunc | AnyFunc[], args?: unknown[], context?: unknown): unknown;
+  toTry(
+    fns: AnyFunc | AnyFunc[],
+    args?: unknown[],
+    context?: unknown,
+    configError?: (e: unknown) => void,
+  ): unknown;
   /**
    * Convert path and params to URL string.
    * Example: `Framework.toUrl('/xxx/', {a:'b',c:'d'})` => `/xxx/?a=b&c=d`
