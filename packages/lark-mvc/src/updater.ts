@@ -218,10 +218,10 @@ export class Updater implements UpdaterInterface {
             ready,
           );
 
-          // If no async ops pending, call ready synchronously
-          if (ref.asyncCount === 0) {
-            ready();
-          }
+          // ready() is deferred by vdomSetChildNodes via callFunction at all
+          // exit paths. This gives the browser a chance to process events and
+          // paint between the parent's DOM mutations and sub-view re-renders,
+          // improving main thread responsiveness during large updates.
         } else {
           // ── String rendering path (existing, unchanged) ──
           const html = template(

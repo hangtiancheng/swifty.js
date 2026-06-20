@@ -135,10 +135,7 @@ export function vdomCreate(
     }
 
     // Compare key candidates: #, id
-    if (
-      (prop === "#" || prop === "id") &&
-      !compareKey
-    ) {
+    if ((prop === "#" || prop === "id") && !compareKey) {
       compareKey = value as string;
       if (prop !== "id") {
         delete propsObj[prop];
@@ -389,6 +386,21 @@ function vdomSetNode(
 
   // Element nodes
   if (lastTag === newTag) {
+    // ── Fast path: attrs + html equality short-circuit ──
+    // When both the serialized opening tag (attrs) and serialized innerHTML
+    // (html) are identical, neither attributes nor children changed.
+    // This avoids the O(children) recursive diff and attribute iteration.
+    //
+    // The only exception is form elements with DOM property bindings
+    // (hasSpecials): user interaction may have changed value/checked/selected
+    // independently of the template output, so we still sync form state.
+    if (lastVDom.attrs === newVDom.attrs && lastVDom.html === newVDom.html) {
+      if (newVDom.hasSpecials) {
+        vdomSyncFormState(realNode, newVDom);
+      }
+      return;
+    }
+
     // Attribute diff
     let attrChanged = 0;
     if (lastVDom.attrs !== newVDom.attrs || newVDom.hasSpecials) {
@@ -525,12 +537,14 @@ export function vdomSetChildNodes(
   if (!lastVDom) {
     ref.changed = 1;
     realNode.innerHTML = newVDom.html;
+    callFunction(ready, []);
     return;
   }
 
   // Short-circuit when HTML is identical.
   // Avoids the full diff loop for no-op re-renders (data set but unchanged).
   if (lastVDom.html === newVDom.html) {
+    callFunction(ready, []);
     return;
   }
 
@@ -540,7 +554,10 @@ export function vdomSetChildNodes(
   const newLen = newChildren?.length || 0;
 
   // Both empty: nothing to do
-  if (oldLen === 0 && newLen === 0) return;
+  if (oldLen === 0 && newLen === 0) {
+    callFunction(ready, []);
+    return;
+  }
 
   const nodes = realNode.childNodes;
 
@@ -674,7 +691,7 @@ export function vdomSetChildNodes(
   // Insert all remaining new nodes before the tail anchor.
   if (headIdx > tailIdx) {
     const insertRef: ChildNode | null =
-      tailIdx < oldLen ? oldDomNodes[tailIdx + 1] ?? null : null;
+      tailIdx < oldLen ? (oldDomNodes[tailIdx + 1] ?? null) : null;
     for (let i = newHead; i <= newTail; i++) {
       ref.changed = 1;
       const newNode = vdomCreateNode(newChildren![i], realNode, ref);

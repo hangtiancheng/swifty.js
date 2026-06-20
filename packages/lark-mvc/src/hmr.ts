@@ -26,10 +26,7 @@
  * automatically via the prototype chain.
  */
 import { parseUri } from "./utils";
-import {
-  invalidateViewClass,
-  registerViewClass,
-} from "./view-registry";
+import { invalidateViewClass, registerViewClass } from "./view-registry";
 import { Frame } from "./frame";
 import type { View } from "./view";
 

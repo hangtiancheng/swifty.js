@@ -2,7 +2,12 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { acceptView, disposeView, reloadViews } from "../src/hmr";
 import type { HotContext } from "../src/hmr";
 import { View, defineView } from "../src/view";
-import { Frame, registerViewClass, invalidateViewClass, getViewClassRegistry } from "../src/frame";
+import {
+  Frame,
+  registerViewClass,
+  invalidateViewClass,
+  getViewClassRegistry,
+} from "../src/frame";
 
 /**
  * Creates a mock HotContext that captures accept/dispose callbacks.
