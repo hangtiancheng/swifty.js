@@ -2,38 +2,43 @@
 name: lark-mvc
 description: >
   Comprehensive guide to the Lark MVC Framework (@lark.js/mvc) for building
-  TypeScript SPAs. Use this skill any time the user works with Lark -- creating
-  Views with View.extend() or defineView(), defining zustand-aligned Stores
-  with create() / getState() / setState() / subscribe() / computed() /
-  bindStore(), wiring State for cross-view data, setting up Router (history
-  or hash mode, Router.beforeEach async guards, useUrlState), writing HTML
-  templates with {{=}}/{{forOf}}/{{if}}/@event/v-lark syntax, configuring
-  the Vite plugin (larkMvcPlugin) or Webpack loader (larkMvcLoader),
-  registering Views with registerViewClass, integrating Module Federation
-  with CrossSite, calling Service for API requests with caching/dedup/queue,
-  or anything mentioning Frame trees, history/hash routing, real-DOM diff,
-  capture-phase event delegation, or the v-lark attribute. Also trigger on questions about Lark's three data pipelines
-  (Updater / State / Store) or migration patterns between them.
+  TypeScript single-page applications. Use this skill any time the user works
+  with Lark -- creating Views with View.extend() or defineView(), defining
+  zustand-aligned Stores with create() / getState() / setState() / subscribe()
+  / computed() / bindStore(), wiring State for cross-view data, setting up
+  Router (history or hash mode, Router.beforeEach async guards, useUrlState),
+  writing HTML templates with {{=}}/{{forOf}}/{{if}}/@event/v-lark syntax,
+  configuring the Vite plugin (larkMvcPlugin), Webpack loader (larkMvcLoader),
+  or Rspack loader (larkMvcLoader from @lark.js/mvc/rspack), registering Views
+  with registerViewClass, integrating Module Federation with CrossSite,
+  calling Service for API requests with caching/dedup/queue, or anything
+  mentioning Frame trees, real-DOM diff, virtual-DOM diff with LIS
+  reconciliation, capture-phase event delegation, HMR (import.meta.hot,
+  View.accept, View.dispose, reloadViews), the v-lark attribute, or the
+  Frame Devtool Bridge. Also trigger on questions about Lark's three data
+  pipelines (Updater / State / Store) or migration patterns between them.
 ---
 
 # Lark MVC Framework
 
-`@lark.js/mvc` is a TypeScript MVC framework for single-page applications. It pairs a strict Model-View-Controller layout with zustand-aligned state management, dual-mode routing (history + hash), and a real-DOM diff renderer. The framework treats micro-frontend integration (Module Federation) as a first-class concern.
+`@lark.js/mvc` (v0.0.12) is a TypeScript MVC framework for single-page applications. It pairs a strict Model-View-Controller architecture with zustand-aligned state management, dual-mode routing (history + hash), dual rendering modes (real-DOM diff + virtual-DOM diff with LIS reconciliation), and first-class micro-frontend support via Webpack Module Federation. The framework ships build-time integrations for Vite, Webpack, and Rspack.
 
-This guide walks through architecture, the full public API, project layout, the three data pipelines, the template language, the build-tool integrations, and the common pitfalls. For exhaustive API signatures and template syntax, follow the pointers in [References](#references) at the end.
+This guide covers architecture, the full public API, project layout, the three data pipelines, both rendering modes, the template language, build-tool integrations, HMR, Module Federation, and common pitfalls. For exhaustive API signatures and template syntax, follow the pointers in [References](#references) at the end.
 
 ## When to reach for this skill
 
-Any task that names -- or clearly implies -- Lark:
+Any task that names or clearly implies Lark:
 
 - Creating, extending, or registering Views; wiring view event handlers; setting up view lifecycle (`init`, `make`, `assign`, `render`, `destroy`).
 - Designing state with `create()` (zustand-aligned), `computed()`, `bindStore()`, `getState()` / `setState()` / `subscribe()`, or cross-view sharing through `State`.
 - Routing tasks: history/hash navigation, route guards (`Router.beforeEach`), two-phase `change`/`changed` events, `Router.to(...)`, `useUrlState()`.
 - Authoring `.html` templates with the `{{=}}` / `{{forOf}}` / `{{if}}` / `@event` / `v-lark` syntax.
-- Configuring the Vite plugin (`larkMvcPlugin`) or Webpack loader (`larkMvcLoader`).
+- Configuring the Vite plugin (`larkMvcPlugin`), Webpack loader (`larkMvcLoader`), or Rspack loader (`larkMvcLoader` from `@lark.js/mvc/rspack`).
 - Embedding remote views via Module Federation (`CrossSite`, `FrameworkConfig.require`).
 - API request layers using `Service.extend`, `Service.add`, `service.all/one/save`, `cleanKeys`.
-- Debugging Frame trees, working with the Frame Devtool Bridge.
+- Hot module replacement: `View.accept(hot, viewPath)`, `View.dispose(hot, viewPath)`, `reloadViews(viewPath)`.
+- Debugging Frame trees, working with the Frame Devtool Bridge (`installFrameDevtoolBridge`, `serializeFrameTree`).
+- Choosing between the real-DOM diff renderer and the virtual-DOM diff renderer (`config.virtualDom`).
 
 ## Architecture
 
@@ -48,13 +53,13 @@ Lark separates code along three orthogonal axes:
 Lark exposes three ways to flow data to a view. Pick the simplest one that solves the task.
 
 1. **Updater pipeline** (view-local). Use when only the current view reads and writes the data.
-   `updater.set(data)` -> `updater.digest()` -> compiled template function -> HTML string -> `solidDomGetNode` parses it into a temporary DOM tree -> `solidDomSetChildNodes` diffs against the live DOM using keyed matching -> DOM ops applied -> `endUpdate()` notifies child frames.
+   `updater.set(data)` then `updater.digest()` then compiled template function then HTML string (or VDomNode tree) then DOM diff then DOM mutations then `endUpdate()` notifies child frames.
 
 2. **State pipeline** (simple cross-view, recommended for lightweight shared values like counters, toggles, page title, session info).
-   `State.set(data)` -> `State.digest()` -> `changed` event fires with `keys: ReadonlySet<string>` -> views listening read via `State.get()` in their `assign()` -> standard Updater path. State uses key reference counting; pair with `mixins: [State.clean("a,b")]` so keys are removed when the last view unmounts.
+   `State.set(data)` then `State.digest()` then `changed` event fires with `keys: ReadonlySet<string>` then views listening via `observeState` read via `State.get()` in their `assign()` then standard Updater path. State uses key reference counting; pair with `mixins: [State.clean("a,b")]` so keys are removed when the last observer view unmounts.
 
 3. **Store pipeline** (complex cross-view, zustand-aligned, recommended when you need actions, derived data, or store-internal reactions).
-   `store.setState(partial)` -> shallow merge -> recompute `computed` deps -> `subscribe` listeners fire -> `bindStore` adapter calls `updater.set(data).digest()`. Supports `computed(deps, fn)` for derived state.
+   `store.setState(partial)` then shallow merge then recompute `computed` deps then `subscribe` listeners fire then `bindStore` adapter calls `updater.set(data).digest()`. Supports `computed(deps, fn)` for derived state.
 
 ### Boot sequence (order matters)
 
@@ -66,11 +71,11 @@ Lark exposes three ways to flow data to a view. Pick the simplest one that solve
 4. Subscribe Router and State `changed` events to the dispatcher.
 5. Mark Framework / Router / State as booted.
 6. Install the Frame Devtool Bridge (`postMessage` listener for Devtool).
-7. **Create the root Frame with `Frame.createRoot(config.rootId)` BEFORE step 8.**
-8. **Bind `Router._bind()` so hashchange/popstate/beforeunload fire -- and Router.diff() runs once initially.**
-9. Mount the `defaultView` ONLY if Router didn't already mount one (e.g., after a page reload with `#!/counter`).
+7. Create the root Frame with `Frame.createRoot(config.rootId)` -- must precede step 8.
+8. Bind `Router._bind()` so hashchange/popstate/beforeunload fire and `Router.diff()` runs once initially.
+9. Mount the `defaultView` ONLY if Router did not already mount one (e.g., after a page reload with `#!/counter`).
 
-The root must exist before `Router._bind()` because the initial `diff()` may immediately fire CHANGED -> `dispatcherNotifyChange` -> `Frame.getRoot()`. If the root didn't exist yet, Frame.createRoot() would default to `"root"` and the view would render into the wrong element.
+The root must exist before `Router._bind()` because the initial `diff()` may immediately fire CHANGED, which triggers `dispatcherNotifyChange`, which calls `Frame.getRoot()`. If the root did not exist yet, `Frame.createRoot()` would default to `"root"` and the view would render into the wrong element.
 
 ### Dispatcher: iterative frame-tree walk
 
@@ -98,7 +103,7 @@ After boot, the framework attaches these to `window` for debugging and HMR:
 ```
 project/
 |- index.html            # entry, references <script type="module" src="/src/boot.ts">
-|- vite.config.ts        # OR webpack.config.mjs
+|- vite.config.ts        # OR webpack.config.mjs OR rspack.config.mjs
 +- src/
    |- boot.ts            # registerViewClass(...) + Framework.boot(config)
    |- view.ts            # project-wide base view (re-export of defineView/View.extend)
@@ -127,7 +132,7 @@ pnpm add @lark.js/mvc
 
 ### 2. Configure your bundler
 
-Vite (recommended):
+**Vite (recommended):**
 
 ```ts
 // vite.config.ts
@@ -141,16 +146,17 @@ export default defineConfig({
 });
 ```
 
-The plugin runs in the `pre` phase. Its `resolveId` hook tags `.html` imports with a `?lark-template` suffix so Vite doesn't treat them as static assets, then its `load` hook reads the raw HTML, runs `extractGlobalVars()` (AST-based via @babel/parser) to discover template data variables, and feeds them along with the source to `compileTemplate()`, producing an ES module exporting `(data, viewId, refData) => string`.
+The plugin runs in the `pre` phase. Its `resolveId` hook tags `.html` imports with a `?lark-template` suffix so Vite does not treat them as static assets. Its `load` hook reads the raw HTML, runs `extractGlobalVars()` (AST-based via `@babel/parser`, or `@swc/core` when `useSwc: true`) to discover template data variables, and feeds them along with the source to `compileTemplate()`, producing an ES module exporting `(data, viewId, refData) => string` (or `=> VDomNode` when `virtualDom: true`).
 
-For Webpack, mirror the same idea with the loader:
+Options: `{ debug?: boolean, virtualDom?: boolean, useSwc?: boolean }`.
+
+**Webpack:**
 
 ```js
 // webpack.config.mjs
 import { larkMvcLoader } from "@lark.js/mvc/webpack";
 
 export default {
-  // ...
   module: {
     rules: [
       { test: /\.ts$/, use: "ts-loader", exclude: /node_modules/ },
@@ -164,7 +170,32 @@ export default {
 };
 ```
 
-Both integrations accept `{ debug: true }` to inject source-position markers into the compiled template, so runtime errors point back to the original `.html` line and expression.
+An alternative `LarkMvcPlugin` webpack plugin auto-registers the loader rule. Pass `{ debug: true }` via loader options for source-position markers in compiled templates.
+
+**Rspack:**
+
+```js
+// rspack.config.mjs
+import { larkMvcLoader, LarkMvcPlugin } from "@lark.js/mvc/rspack";
+
+export default {
+  plugins: [new LarkMvcPlugin()],
+  // OR use the loader directly:
+  module: {
+    rules: [
+      {
+        test: /\.html$/,
+        use: [{ loader: larkMvcLoader }],
+        exclude: /index\.html$/,
+      },
+    ],
+  },
+};
+```
+
+The Rspack loader differs from the Webpack loader in one way: it returns a Promise directly (Rspack async loaders must return the result, not call `this.callback()`).
+
+All three integrations accept `{ debug: true }` to inject source-position markers into the compiled template, so runtime errors point back to the original `.html` line and expression.
 
 ### 3. Entry HTML
 
@@ -237,7 +268,7 @@ const config: FrameworkConfig = {
 Framework.boot(config);
 ```
 
-All view classes must be registered _before_ `Framework.boot()`. The registry lives in `src/view-registry.ts` and is exposed through `registerViewClass` (re-exported from `@lark.js/mvc`).
+All view classes must be registered before `Framework.boot()`. The registry lives in `src/view-registry.ts` and is exposed through `registerViewClass` (re-exported from `@lark.js/mvc`).
 
 ## Defining Stores (zustand-aligned)
 
@@ -290,7 +321,7 @@ export default useCountStore;
 
 The creator receives `(set, get)` and runs once at definition time. Lark walks the return value:
 
-- Function entries become **actions** on the store (accessible via `store.getState().increment()`). Actions are not state and are not affected by `setState`.
+- Function entries become actions on the store (accessible via `store.getState().increment()`). Actions are not state and are not affected by `setState`.
 - `computed(deps, fn)` markers occupy a derived state slot. After all other state keys are initialized, `computed` runs `fn()` to produce the initial value. On each `setState`, if any dep key changed, the computed re-evaluates before listeners are notified. Writes to a computed key via `setState` are silently ignored.
 - Everything else becomes initial state.
 
@@ -463,7 +494,7 @@ export default View.extend({
 
 ### View.extend internals
 
-`View.extend(props, statics)` uses ES6 `class extends` for proper constructor chaining. The key implementation detail: extend props (like `template`) are applied as _instance_ properties in the constructor _after_ `super()`, because ES6 class field declarations (`template;` in the base View) set `this.template = undefined` in the constructor body, which would shadow any prototype property. The `render` method is explicitly _not_ copied as an instance property -- it must remain on the prototype where `View.wrapMethod` has already wrapped it with signature checking and resource cleanup.
+`View.extend(props, statics)` uses ES6 `class extends` for proper constructor chaining. The key implementation detail: extend props (like `template`) are applied as instance properties in the constructor after `super()`, because ES6 class field declarations (`template;` in the base View) set `this.template = undefined` in the constructor body, which would shadow any prototype property. The `render` method is explicitly not copied as an instance property -- it must remain on the prototype where `View.wrapMethod` has already wrapped it with signature checking and resource cleanup.
 
 The constructor calls `make()` functions (from `props.make` and mixin `makes`) with arguments `[initParams, { node, deep }]`.
 
@@ -473,7 +504,7 @@ The constructor calls `make()` functions (from `props.make` and mixin `makes`) w
 
 ### Event methods
 
-Lark scans the View prototype once per class (in `View.prepare`) and builds three event maps on the prototype (`$evtObjMap`, `$selMap`, `$globalEvtList`). DOM events are delegated to `document.body` using **capture-phase** listeners with reference counting -- the first binding installs the listener, the last unbinding removes it.
+Lark scans the View prototype once per class (in `View.prepare`) and builds three event maps on the prototype (`$evtObjMap`, `$selMap`, `$globalEvtList`). DOM events are delegated to `document.body` using capture-phase listeners with reference counting -- the first binding installs the listener, the last unbinding removes it.
 
 | Pattern                    | Meaning                                            |
 | -------------------------- | -------------------------------------------------- |
@@ -493,7 +524,7 @@ Each event handler receives an event object with these augmented fields:
 - `e.params` -- parsed parameters from `@event` attributes (URL query string format).
 - All standard DOM Event properties (`type`, `target`, etc.).
 
-When two mixins define the same event method, they're merged into a single function that calls both in sequence via a `handlerList` array.
+When two mixins define the same event method, they are merged into a single function that calls both in sequence via a `handlerList` array.
 
 ### View.wrapMethod (render wrapping)
 
@@ -584,15 +615,18 @@ When State.digest() flips one of these keys, the framework re-renders the view.
 
 ```html
 <div v-lark="components/child-view"></div>
+<div v-lark="components/child-view?title=hello&id=42"></div>
 ```
 
 At mount time, `Frame.mountZone` runs `querySelectorAll("[v-lark]")` on the view's root, creates a child Frame for each match, and mounts the registered View class. The container's inner content is replaced by the child view's rendered output.
 
 For dynamic loading (no upfront `registerViewClass`), `mountView` automatically calls `Framework.use()` to load the View class through the configured `require` hook (see Module Federation below). The async load is guarded by the Frame's `signature` -- if the frame is unmounted during the load, the stale mount is aborted.
 
+When `v-lark` carries a query string, the params are translated into the child view's `init` arguments. If the value contains a SPLITTER reference, `translateData` resolves it via the parent view's refData before the child mounts.
+
 ## Defining the Framework Boot
 
-`Framework.boot(config)` config accepts:
+`Framework.boot(config)` accepts:
 
 ```ts
 interface FrameworkConfig {
@@ -611,6 +645,7 @@ interface FrameworkConfig {
   projectName?: string; // for Module Federation discriminator
   crossConfigs?: CrossSiteConfig[]; // MF remote configs
   require?: (names: string[], params?) => Promise<unknown[]>; // async View loader
+  virtualDom?: boolean; // defaults to false (real-DOM diff mode)
   [k: string]: unknown; // custom keys are allowed
 }
 ```
@@ -644,7 +679,7 @@ const diff = Router.diff(); // last LocationDiff or undefined
 
 Router internally caches parsed locations in an LFU `Cache<Location>` (keyed by href) and diffs in a `Cache<{ changed, diff }>` (keyed by `oldHref + SPLITTER + newHref`). Caches are cleared on each navigation event.
 
-### Two-phase change events (existing API)
+### Two-phase change events
 
 ```ts
 Router.on("change", (e) => {
@@ -746,7 +781,7 @@ AppService.add([
 
 ### Per-subclass isolation
 
-`Service.extend()` produces a subclass with its own `_metaList`, `_payloadCache`, `_pendingCacheKeys`, `_syncFn`, `_staticEmitter`, `_cacheMax`, and `_cacheBuffer` via `static override`. This isolation is intentional -- endpoints registered on one subclass never leak into another. Refactoring these `static override` declarations away would break the isolation.
+`Service.extend()` produces a subclass with its own `_metaList`, `_payloadCache`, `_pendingCacheKeys`, `_syncFn`, `_staticEmitter`, `_cacheMax`, and `_cacheBuffer` via `static override`. This isolation is intentional -- endpoints registered on one subclass never leak into another.
 
 ### Service lifecycle events
 
@@ -760,34 +795,6 @@ Each Service subclass has its own static `EventEmitter`. The lifecycle events fi
 | `end`   | After `done` or `fail`, always fires        |
 
 Subscribe via `AppService.on("begin", (e) => { ... })` (static level).
-
-### Using a service in a view
-
-```ts
-export default View.extend({
-  template,
-  init() {
-    const service = new AppService();
-    this.capture("userService", service, true); // auto-destroy on render
-    this.service = service;
-    this.loadData();
-  },
-  loadData() {
-    this.service.all("userList", (errors, userListPayload) => {
-      if (!errors[0]) {
-        this.updater.set({ users: userListPayload.get("data") }).digest();
-      }
-    });
-  },
-  refreshDetail(id: string) {
-    this.service.save({ name: "userDetail", id }, (errors, payload) => {
-      if (!errors[0]) {
-        this.updater.set({ detail: payload.get("data") }).digest();
-      }
-    });
-  },
-});
-```
 
 ### Service method summary
 
@@ -817,7 +824,9 @@ The compiler (`compiler.ts`) processes templates in four phases:
 3. **Event processing**: `@event` attributes are prefixed with `VIEW_ID_PLACEHOLDER` (U+001F) + `SPLITTER` (U+001E) + handler name. JS object literal params (`{key: 'value'}`) are converted to URL query format (`key=value`).
 4. **Function compilation**: `<% %>` syntax is compiled to a JS arrow function string. The function signature: `($data,$viewId,$refAlt,$encHtml,$strSafe,$encUri,$refFn,$encQuote) => string`.
 
-Global variables are extracted via AST analysis using `@babel/parser` (`extractGlobalVars`). The walker collects all `Identifier` nodes, excludes declared variables (from `VariableDeclarator`, `FunctionDeclaration`), function parameters, and built-in globals (~80 entries: `window`, `document`, `JSON`, `Math`, etc. plus all template runtime helpers like `$data`, `$out`, `$encHtml`). The remaining identifiers are the template data variables that need destructuring from `$data`.
+In VDOM mode, step 4 produces a VDomNode tree instead of an HTML string, using `htmlparser2` to parse the intermediate HTML and emit `vdomCreate()` calls. The VDOM function signature: `($data,$viewId,$refAlt,$n,$refFn,$encUri,$encQuote) => VDomNode` (7 params -- no `$encHtml` because VDOM text nodes use `createTextNode` directly).
+
+Global variables are extracted via AST analysis using `@babel/parser` (`extractGlobalVars`) or `@swc/core` (`extractGlobalVarsSwc` when `useSwc: true`). The walker collects all `Identifier` nodes, excludes declared variables, function parameters, and built-in globals (approximately 100 entries). The remaining identifiers are the template data variables that need destructuring from `$data`.
 
 If AST parsing fails (malformed template), a regex-based fallback extracts variables from `{{=variable}}`, `{{forOf list as ...}}`, and `{{if variable}}` patterns.
 
@@ -840,7 +849,7 @@ value key}} ... {{/forIn}} {{for (let i = 0; i < n; i++)}} ... {{/for}} {{set
 localVar = expr}}
 ```
 
-`forOf` REQUIRES the `as` keyword: `{{forOf list as item}}` is correct; `{{forOf list item}}` is a compile-time error.
+`forOf` REQUIRES the `as` keyword: `{{forOf list item}}` is a compile-time error.
 
 `forOf` supports destructuring in the `as` expression: `{{forOf users as {name, age} idx last first}}` provides `last` (boolean, true on last iteration) and `first` (boolean, true on first iteration) helpers.
 
@@ -865,16 +874,6 @@ The compiler converts JS object literal params (`{a: 1}`) into URL query format 
 
 When `v-lark` carries a query string, the params are translated into the child view's `init` arguments. If the value contains a SPLITTER reference, `translateData` resolves it via the parent view's refData before the child mounts.
 
-### DOM diff engine
-
-The DOM diff (`solid-dom.ts`) operates on real DOM nodes, not a virtual representation. Key characteristics:
-
-- **Keyed matching**: Child nodes are matched by key (`id`, `ldk`, or `v-lark` path). Unkeyed nodes are diffed in order. When a keyed node moves position, it is reattached via `appendChild` without re-creating.
-- **Special element handling**: Form elements (`INPUT`, `TEXTAREA`, `OPTION`) have their `value`, `checked`, and `selected` properties synced directly (not through attributes), because these carry DOM state not reflected in `getAttribute`.
-- **Same v-lark optimization**: When old and new elements have the same `v-lark` path, children are not diffed (the child view manages its own rendering).
-- **HTML parsing**: New DOM is parsed from the template HTML string using a virtual document (`document.implementation.createHTMLDocument("")`). Special elements (table rows, SVG, MathML) are wrapped in their required parent containers before parsing.
-- **Deferred operations**: DOM mutations are collected in a `SolidDomRef.domOps` array and applied in a single batch after the diff completes. ID updates are also deferred and applied separately.
-
 ### DOM optimization hints
 
 | Attribute | Effect                                                                 |
@@ -884,6 +883,42 @@ The DOM diff (`solid-dom.ts`) operates on real DOM nodes, not a virtual represen
 | `lvk`     | "View key" -- assign-optimization marker                               |
 
 Mark large static subtrees with `ldk` to skip rendering work entirely.
+
+## Rendering Modes
+
+Lark supports two rendering modes controlled by `FrameworkConfig.virtualDom`:
+
+### Real-DOM diff mode (default, `virtualDom: false`)
+
+The default rendering path. The compiled template produces an HTML string, which is parsed into a temporary DOM tree using a virtual document (`document.implementation.createHTMLDocument("")`). The engine then diffs this against the live DOM.
+
+Key characteristics:
+
+- **Keyed matching**: Child nodes are matched by key (`id`, `ldk`, or `v-lark` path). Unkeyed nodes are diffed in order. When a keyed node moves position, it is reattached via `appendChild` without re-creating.
+- **Special element handling**: Form elements (`INPUT`, `TEXTAREA`, `OPTION`) have their `value`, `checked`, and `selected` properties synced directly (not through attributes), because these carry DOM state not reflected in `getAttribute`.
+- **Same v-lark optimization**: When old and new elements have the same `v-lark` path, children are not diffed (the child view manages its own rendering).
+- **HTML parsing**: Special elements (table rows, SVG, MathML) are wrapped in their required parent containers before parsing. The engine detects SVG/MathML namespace from the reference node's `namespaceURI`.
+- **Deferred operations**: DOM mutations are collected in a `SolidDomRef.domOps` array and applied in a single batch after the diff completes. ID updates are also deferred and applied separately. DOM ops are encoded as `[opCode, parent, newChild?, oldChild?]` where op codes: 1=appendChild, 2=removeChild, 4=replaceChild, 8=insertBefore.
+
+### Virtual-DOM diff mode (`virtualDom: true`)
+
+Opt-in via `FrameworkConfig.virtualDom`. The compiled template produces a `VDomNode` tree (using `vdomCreate()` calls) instead of an HTML string. The VDOM diff engine reconciles the tree against the live DOM.
+
+Key characteristics:
+
+- **VDomNode structure**: `{ tag, html, attrs, attrsMap, attrsSpecials, children, compareKey, reused, views, selfClose, isLarkView }`. Text nodes use `tag=0`, raw HTML uses `tag=SPLITTER`, elements use the tag name string.
+- **Three-phase diff algorithm** (`vdomSetChildNodes`):
+  1. **Head fast-path**: matches identical nodes from the start, updates in place.
+  2. **Tail fast-path**: matches identical nodes from the end.
+  3. **KeyMap reconciliation**: builds `keyMap` from remaining old children, creates `sequence[]` mapping new to old indices, computes the Longest Increasing Subsequence (LIS) via patience sorting O(n log n), iterates backward: LIS nodes stay in place, others are moved via `insertBefore`, unmatched are created fresh.
+- **Fast paths**: first render sets `innerHTML` directly; when `lastVDom.html === newVDom.html` returns immediately.
+- **`computeLIS(sequence)`**: patience sorting with binary search, returns indices forming the LIS. Entries with value < 0 (unmatched) are skipped.
+- **`vdomSetAttributes`**: diffs attrsMap, handles special DOM properties (value/checked/selected) via deferred `ref.nodeProps`, removes old attrs not in new.
+- **`vdomSyncFormState`**: syncs form element state properties directly from VDomNode.attrsMap.
+- **`createVDomRef(viewId)`**: creates a `VDomRef` with `viewRenders`, `nodeProps`, `asyncCount`, `changed`, `domOps`.
+- **Async handling**: `asyncCount` tracks pending async operations; the `ready()` callback fires post-diff operations (nodeProps, viewRenders) when the count reaches zero.
+
+The VDOM mode avoids HTML string parsing on each render, which can be beneficial for views with complex templates that re-render frequently.
 
 ## Module Federation (micro-frontend)
 
@@ -1000,12 +1035,6 @@ If `chunks: "all"` extracts `@lark.js/mvc` into a separate vendor chunk, the MF 
 
 `Frame.createRoot()` is a singleton -- always returns the first root, ignoring later `id` arguments. For MF containers that need independent rendering contexts, use `new Frame(containerId)` directly so each mount owns its frame tree.
 
-Use the following APIs:
-
-- `Frame.getRoot()` -- pure getter, returns `undefined` if not yet created.
-- `Frame.createRoot(id)` -- idempotent create (Framework.boot calls this).
-- `new Frame(containerId)` -- independent root for MF or for an embeddable widget.
-
 ### Exposed mount function pattern
 
 For React/other-host integrations, expose a mount function rather than raw View classes:
@@ -1049,6 +1078,66 @@ export function mountCounter(container: HTMLElement): () => void {
 
 The MF remote MUST explicitly import its CSS (`import "../index.css"`) -- Webpack only bundles CSS reachable from the exposed module's import graph.
 
+## Hot Module Replacement (HMR)
+
+Lark provides first-class HMR support compatible with both Vite's `import.meta.hot` and Webpack's `module.hot`.
+
+### HotContext interface
+
+```ts
+interface HotContext {
+  accept(cb?: (newModule: unknown) => void): void;
+  dispose(cb: (data: unknown) => void): void;
+  invalidate(): void;
+}
+```
+
+### Setting up HMR in a View module
+
+Each View module that should hot-reload calls `View.accept` and `View.dispose`:
+
+```ts
+// src/views/home.ts
+import View from "../view";
+import template from "./home.html";
+
+const HomeView = View.extend({
+  template,
+  init() {
+    // ...
+  },
+});
+
+// HMR integration
+if (import.meta.hot) {
+  View.accept(import.meta.hot, "views/home");
+  View.dispose(import.meta.hot, "views/home");
+}
+
+export default HomeView;
+```
+
+### How HMR works internally
+
+1. **`View.accept(hot, viewPath)`**: Sets up `hot.accept` handler. When the module is updated:
+   - Extracts the new View class from `newModule.default`.
+   - Calls `registerViewClass(viewPath, NewViewClass)` to update the registry.
+   - Calls `reloadViews(viewPath)` to re-mount all frames using this view path.
+
+2. **`View.dispose(hot, viewPath)`**: Sets up `hot.dispose` handler. When the old module is disposed:
+   - Calls `invalidateViewClass(viewPath)` to remove the old class from the registry.
+
+3. **`reloadViews(viewPath)`**: Iterates `Frame.getAll()`, finds frames whose `viewPath` matches, and calls `frame.mountView(fullPath)` on each. The existing Frame is reused (no unmount/remount of the container), so parent-child relationships and frame state are preserved.
+
+### Importing HMR utilities
+
+```ts
+import { reloadViews } from "@lark.js/mvc";
+import type { HotContext } from "@lark.js/mvc";
+```
+
+The `View.accept` and `View.dispose` static methods are available directly on the `View` class (imported from `@lark.js/mvc`).
+
 ## Three pipelines side-by-side
 
 ```ts
@@ -1088,6 +1177,22 @@ The `EventEmitter` class supports re-entrant safety. While `fire()` is iterating
 
 Events are stored in a `Map<string, EventListenerEntry[]>` where keys are prefixed with `SPLITTER` for namespace isolation.
 
+The emitter also auto-calls `onEventName` methods on `this` if they exist (e.g., `Router.onChanged`, `State.onChanged`, `View.onDestroy`, `View.onRender`).
+
+## EventDelegator internals
+
+`EventDelegator` delegates all DOM events to `document.body` using capture-phase listeners. It maintains reference counts per event type: the first binding adds the capture listener, the last unbinding removes it.
+
+`domEventProcessor(domEvent)` is the main handler:
+
+1. Walks from `e.target` up to `document.body`.
+2. At each level, calls `findFrameInfo(current, eventType)` to find handlers.
+3. For each handler info: looks up the frame, gets the view, finds the method at `handlerName + SPLITTER + eventType` on the view, extends the event with `eventTarget` and `params`, calls via `funcWithTry`.
+4. Checks range events (view boundary) via `data-range-fid`/`data-range-guid` attributes.
+5. Respects `isPropagationStopped()`.
+
+Event info is cached in an LFU `Cache` (maxSize=30, bufferSize=10) keyed by element+eventType.
+
 ## Updater APIs worth knowing
 
 - `updater.get(key?)` -- read data; without key returns the whole data object.
@@ -1096,7 +1201,7 @@ Events are stored in a `Map<string, EventListenerEntry[]>` where keys are prefix
 - `updater.snapshot()` -- record the current `version` (O(1), no serialization); pair with `altered()`.
 - `updater.altered()` -- returns `boolean | undefined`. `undefined` if `snapshot` was never called. Compares current `version` to snapshotted `version`.
 - `updater.translate(value)` -- resolve a `SPLITTER + digits` ref token to its original value. Non-ref strings are returned as-is. The protocol is strict: only `SPLITTER` followed by ASCII digits qualifies.
-- `updater.parse(expr)` -- **safe** path resolver. Accepts a dotted property path (`a.b.c`) or a numeric literal (`42`, `-1.5`). Anything else returns `undefined`. Does NOT eval arbitrary JS -- CSP-safe.
+- `updater.parse(expr)` -- safe path resolver. Accepts a dotted property path (`a.b.c`) or a numeric literal (`42`, `-1.5`). Anything else returns `undefined`. Does NOT eval arbitrary JS -- CSP-safe.
 - `updater.getChangedKeys()` -- `ReadonlySet<string>` of keys changed since the last digest.
 
 ## Frame APIs worth knowing
@@ -1105,7 +1210,7 @@ Events are stored in a `Map<string, EventListenerEntry[]>` where keys are prefix
 - `Frame.getAll()` -- registry as `Map<string, Frame>`.
 - `Frame.getRoot()` -- current root or `undefined`.
 - `Frame.createRoot(id)` -- create root (idempotent; ignores `id` after first creation).
-- `frame.invoke(name, args?)` -- call a method on the frame's view. If the view isn't yet rendered, the call is deferred until render via `invokeList`.
+- `frame.invoke(name, args?)` -- call a method on the frame's view. If the view is not yet rendered, the call is deferred until render via `invokeList`.
 - `frame.invokeTyped<V, K>(name, args)` -- type-safe variant; carries the view's method signature through TS.
 - `frame.children()` -- array of child Frame ids (order is not stable).
 - `frame.parent(level?)` -- ancestor frame; defaults to parent (level=1).
@@ -1114,7 +1219,7 @@ Events are stored in a `Map<string, EventListenerEntry[]>` where keys are prefix
 - `Frame.on("add" | "remove", handler)` -- lifecycle events (static).
 - `frame.on("created" | "alter", handler)` -- fires when all children have rendered / when child content changes. `created` propagates up the tree via `notifyCreated`.
 
-Frame object pooling: destroyed Frame instances are pooled up to `MAX_FRAME_POOL = 64` and reused via `reInitFrame`. Don't hold references to Frame instances after `unmountFrame()`.
+Frame object pooling: destroyed Frame instances are pooled up to `MAX_FRAME_POOL = 64` and reused via `reInitFrame`. Do not hold references to Frame instances after `unmountFrame()`.
 
 ## Framework APIs worth knowing
 
@@ -1123,11 +1228,11 @@ Frame object pooling: destroyed Frame instances are pooled up to `MAX_FRAME_POOL
 - `Framework.setConfig(patch)` -- merge into config; returns the merged result.
 - `Framework.isBooted()` -- boolean.
 - `Framework.use(names, callback?)` -- async View loader. Returns `Promise<unknown[]>` when no callback is passed.
-- `Framework.mark(host, key)` / `Framework.unmark(host)` -- async callback validity tracking. Stored in a module-level `WeakMap`, does NOT pollute the host object with magic keys.
+- `Framework.mark(host, key)` / `Framework.unmark(host)` -- async callback validity tracking. Stored in a module-level `WeakMap`, does NOT pollute the host object with magic keys. Works on frozen objects.
 - `Framework.dispatch(target, type, init?)` -- fire a custom DOM event.
-- `Framework.task(fn, args?, ctx?)` -- schedule a function for chunked execution. Scheduling priority: `scheduler.postTask('background')` (Chrome 94+) -> `requestIdleCallback` (Chrome 47+, Firefox) -> `setTimeout(0)`. Time-slicing uses `deadline.timeRemaining()` when available, falling back to fixed 48ms (`CALL_BREAK_TIME`) budget.
+- `Framework.task(fn, args?, ctx?)` -- schedule a function for chunked execution. Scheduling priority: `scheduler.postTask('background')` (Chrome 94+) then `requestIdleCallback` (Chrome 47+, Firefox) then `setTimeout(0)`. Time-slicing uses `deadline.timeRemaining()` when available, falling back to fixed 48ms (`CALL_BREAK_TIME`) budget.
 - `Framework.delay(ms)` -- Promise-based setTimeout.
-- `Framework.waitZoneViewsRendered(viewId, timeout?)` -- Promise resolving to `Framework.WAIT_OK` (1) or `Framework.WAIT_TIMEOUT_OR_NOT_FOUND` (0). Default timeout is 30 seconds.
+- `Framework.waitZoneViewsRendered(viewId, timeout?)` -- Promise resolving to `Framework.WAIT_OK` (1) or `Framework.WAIT_TIMEOUT_OR_NOT_FOUND` (0). Default timeout is 30 seconds. Polls every 9ms.
 - `Framework.applyStyle(idOrPairs, css?)` -- inject CSS dynamically; returns a cleanup function. Deduplicates by style ID -- calling with the same ID twice is a no-op.
 - `Framework.guid(prefix?)` / `Framework.toMap(list, key?)` / `Framework.toUrl(...)` / `Framework.parseUrl(url)` / `Framework.mix(target, ...sources)` / `Framework.keys(obj)` / `Framework.inside(a, b)` / `Framework.node(idOrEl)` / `Framework.nodeId(el)` -- utility helpers.
 - `Framework.guard(o)` -- Safeguard Proxy wrap (no-op outside debug mode).
@@ -1149,41 +1254,45 @@ Delta updates are pushed automatically on Frame `add`/`remove` events. The bridg
 
 Exported: `installFrameDevtoolBridge()`, `serializeFrameTree()`, `FrameDevtoolBridge` (message type constants), and the serialization types (`SerializedFrameNode`, `SerializedFrameTree`, `SerializedViewInfo`).
 
-## Vite vs Webpack at a glance
+## Build-tool integrations at a glance
 
-| Feature             | Vite (`larkMvcPlugin`)                                   | Webpack (`larkMvcLoader`)                                    |
-| ------------------- | -------------------------------------------------------- | ------------------------------------------------------------ |
-| Import path         | `@lark.js/mvc/vite`                                      | `@lark.js/mvc/webpack`                                       |
-| Type                | Vite plugin (`resolveId` + `load` hooks, `enforce: pre`) | Standard Webpack loader                                      |
-| Configuration       | `plugins: [larkMvcPlugin()]`                             | `module.rules` with the loader rule                          |
-| Debug mode          | `larkMvcPlugin({ debug: true })`                         | `use: [{ loader: larkMvcLoader, options: { debug: true } }]` |
-| HTML entry handling | Vite handles `index.html` natively                       | MUST `exclude: /index\.html$/` so HtmlWebpackPlugin owns it  |
-| Dev server          | Vite dev server (fast HMR)                               | webpack-dev-server                                           |
-| Template pipeline   | Same: `extractGlobalVars` -> `compileTemplate`           | Same: `extractGlobalVars` -> `compileTemplate`               |
+| Feature             | Vite (`larkMvcPlugin`)                                   | Webpack (`larkMvcLoader`)                                    | Rspack (`larkMvcLoader`)                                    |
+| ------------------- | -------------------------------------------------------- | ------------------------------------------------------------ | ----------------------------------------------------------- |
+| Import path         | `@lark.js/mvc/vite`                                      | `@lark.js/mvc/webpack`                                       | `@lark.js/mvc/rspack`                                       |
+| Type                | Vite plugin (`resolveId` + `load` hooks, `enforce: pre`) | Standard Webpack loader                                      | Standard Rspack loader (returns Promise)                    |
+| Configuration       | `plugins: [larkMvcPlugin()]`                             | `module.rules` with the loader rule                          | `module.rules` or `LarkMvcPlugin`                           |
+| Debug mode          | `larkMvcPlugin({ debug: true })`                         | `use: [{ loader: larkMvcLoader, options: { debug: true } }]` | Same as Webpack                                             |
+| VDOM mode           | `larkMvcPlugin({ virtualDom: true })`                    | Not directly (set in FrameworkConfig)                        | Not directly (set in FrameworkConfig)                       |
+| SWC parser          | `larkMvcPlugin({ useSwc: true })`                        | Not directly                                                 | Not directly                                                |
+| HTML entry handling | Vite handles `index.html` natively                       | MUST `exclude: /index\.html$/` so HtmlWebpackPlugin owns it  | MUST `exclude: /index\.html$/` so HtmlRspackPlugin owns it  |
+| Dev server          | Vite dev server (fast HMR)                               | webpack-dev-server                                           | rspack dev server                                           |
+| Template pipeline   | Same: `extractGlobalVars` then `compileTemplate`         | Same: `extractGlobalVars` then `compileTemplate`             | Same: `extractGlobalVars` then `compileTemplate`            |
+| Auto-plugin         | N/A (Vite plugins are explicit)                          | `LarkMvcPlugin` auto-registers loader rule                   | `LarkMvcPlugin` auto-registers loader rule                  |
+| Async pattern       | Standard Vite plugin hooks                               | `this.callback()` for async delivery                         | Returns Promise directly (Rspack async loaders must return) |
 
-Both produce compiled `.html` modules that import their runtime helpers from `@lark.js/mvc/runtime` (a small module containing `encHtml`, `strSafe`, `encUri`, `encQuote`, `refFn`).
+All three produce compiled `.html` modules that import their runtime helpers from `@lark.js/mvc/runtime` (a small module containing `encHtml`, `strSafe`, `encUri`, `encQuote`, `refFn`).
 
 ## Common pitfalls
 
 1. **`boot.ts` must live inside `src/`** -- the entry HTML references `/src/boot.ts`, not `/boot.ts`.
 2. **`registerViewClass` before `Framework.boot()`** -- all view classes (and their sub-components) must be registered before boot, OR you must provide a `FrameworkConfig.require` so unknown paths can be loaded on demand.
-3. **`.html` imports require the bundler integration** -- they only work because the Vite plugin or Webpack loader compiles them at build time.
+3. **`.html` imports require the bundler integration** -- they only work because the Vite plugin, Webpack loader, or Rspack loader compiles them at build time.
 4. **Use `State.set` + `State.digest`, not direct mutation** -- direct mutation bypasses change detection.
 5. **`bindStore` auto-cleans on view destroy** -- `bindStore(this, store)` unsubscribes when the view is destroyed. Manual `store.subscribe(listener)` calls need explicit unsubscribe (e.g. `this.on("destroy", off)`).
 6. **Event method names use `<>`, not `()`** -- the pattern is `name<click>`, not `name(click)`.
-7. **`assign()` must call `snapshot()` and return `altered()`** -- otherwise the framework can't tell if data actually changed.
-8. **Do not modify `view.signature`** -- it's managed internally. Setting it to 0 destroys the view. The wrapped `render()` increments it.
-9. **`v-lark` containers are replaced** -- content inside a `v-lark` element gets replaced by the child view's rendered output. Don't put authoring text there.
-10. **Webpack: exclude `index.html`** -- `larkMvcLoader` must not process the entry HTML; HtmlWebpackPlugin owns it.
-11. **Webpack: import the loader as a value** -- `loader: larkMvcLoader`, not `loader: "larkMvcLoader"`.
+7. **`assign()` must call `snapshot()` and return `altered()`** -- otherwise the framework cannot tell if data actually changed.
+8. **Do not modify `view.signature`** -- it is managed internally. Setting it to 0 destroys the view. The wrapped `render()` increments it.
+9. **`v-lark` containers are replaced** -- content inside a `v-lark` element gets replaced by the child view's rendered output. Do not put authoring text there.
+10. **Webpack/Rspack: exclude `index.html`** -- `larkMvcLoader` must not process the entry HTML; HtmlWebpackPlugin/HtmlRspackPlugin owns it.
+11. **Webpack/Rspack: import the loader as a value** -- `loader: larkMvcLoader`, not `loader: "larkMvcLoader"`.
 12. **Store state is a plain object** -- `store.getState()` returns the actual state object. Reads are direct; mutations must go through `setState()` or actions. Direct mutation of `getState()` fields does NOT notify subscribers.
 13. **`forOf` requires `as`** -- `{{forOf list item}}` is invalid; use `{{forOf list as item}}`.
-14. **`wrapAsync` is signature-based** -- the callback runs only if `view.signature` hasn't changed since `wrapAsync` was called.
-15. **Frame object pooling has a cap** -- destroyed Frame objects are pooled up to `MAX_FRAME_POOL = 64`. Don't hold references to Frame instances after `unmountFrame()`.
+14. **`wrapAsync` is signature-based** -- the callback runs only if `view.signature` has not changed since `wrapAsync` was called.
+15. **Frame object pooling has a cap** -- destroyed Frame objects are pooled up to `MAX_FRAME_POOL = 64`. Do not hold references to Frame instances after `unmountFrame()`.
 16. **Updater supports re-entrant digest** -- calling `updater.digest()` inside an active digest is supported through `digestingQueue`. The `null` sentinel marks digest boundaries.
 17. **Store creator runs once** -- at definition time. State persists across view mounts/unmounts. Call `store.destroy()` to tear it down.
-18. **State for simple, Store for complex** -- use `State.set` + `State.digest` for lightweight shared values. Reach for `create()` when you need actions, derived data via `computed(deps, fn)`, or fine-grained subscriptions. Always pair State writes with `State.clean(keys)` mixin on consumers so data doesn't leak globally.
-19. **MF view paths use the remote project prefix** -- `v-lark="remote-app/views/home"` triggers async loading through `FrameworkConfig.require` if the path isn't yet registered. Ensure `require` is configured AND `ModuleFederationPlugin` shares `@lark.js/mvc` as a singleton.
+18. **State for simple, Store for complex** -- use `State.set` + `State.digest` for lightweight shared values. Reach for `create()` when you need actions, derived data via `computed(deps, fn)`, or fine-grained subscriptions. Always pair State writes with `State.clean(keys)` mixin on consumers so data does not leak globally.
+19. **MF view paths use the remote project prefix** -- `v-lark="remote-app/views/home"` triggers async loading through `FrameworkConfig.require` if the path is not yet registered. Ensure `require` is configured AND `ModuleFederationPlugin` shares `@lark.js/mvc` as a singleton.
 20. **`CrossSite` is the export name** -- register it as `registerViewClass("cross-site", CrossSite)`.
 21. **CrossSite uses `view=` not `xview=`** -- `v-lark="cross-site?view=remote-app/views/home"`.
 22. **`Framework.use()` returns a Promise** -- without the optional callback, it resolves to `unknown[]`. Without a configured `require`, it falls back to dynamic `import()`.
@@ -1191,16 +1300,18 @@ Both produce compiled `.html` modules that import their runtime helpers from `@l
 24. **`LarkInnerKeys` for DOM short-circuits** -- `ldk` skips the entire diff for static elements; `lak` skips attribute diff but still diffs children; `lvk` is an assign-optimization marker.
 25. **MF: `splitChunks.chunks` MUST be `"async"`** -- using `"all"` extracts `@lark.js/mvc` into a separate vendor chunk, breaking shared-scope initialization. The error surfaces as `ScriptExternalLoadError: Loading script failed (missing)`.
 26. **MF: `new Frame(containerId)` for independent contexts** -- `Frame.createRoot()` is a singleton that ignores later id arguments. Each MF mount needs its own `new Frame()`.
-27. **MF: remote must explicitly import CSS** -- Webpack bundles only CSS reachable from the exposed module's import graph. Without an `import "../index.css"` in the exposed entry, host pages won't receive utility classes used in the templates.
+27. **MF: remote must explicitly import CSS** -- Webpack bundles only CSS reachable from the exposed module's import graph. Without an `import "../index.css"` in the exposed entry, host pages will not receive utility classes used in the templates.
 28. **Sub-component `v-lark` paths must match exactly** -- template strings embed the paths at build time; renaming a `registerViewClass` path without updating the template breaks the load.
 29. **Dynamic `import()` shape is unknown** -- for chunk splitting, use a small `extractDefault()` helper to unwrap the ESM default, then cast with `as typeof View` (NOT `as any`).
 30. **`capture` with one argument is a getter** -- `this.capture("key")` returns the previously captured resource, not undefined. Only `this.capture("key", resource, destroyOnRender)` stores.
 31. **`View.prepare` runs once per class** -- guarded by `makes` marker on the constructor. Calling it twice is a no-op. This is why mixin event maps are frozen after first mount.
 32. **EventEmitter is re-entrant safe** -- `off()` during `fire()` defers removal until all nested `fire()` calls complete. Handlers replaced with `noop` are compacted when `firingDepth` returns to 0.
+33. **VDOM mode requires `virtualDom: true` in config** -- the default rendering mode uses real-DOM diff. VDOM mode changes the compilation output and the diff engine. Setting `virtualDom: true` on the Vite plugin alone is not sufficient; also set it in `FrameworkConfig` (or the Vite plugin will pass it through to `compileTemplate` but the runtime will still use the string rendering path).
+34. **Rspack loader returns Promise, not callback** -- unlike the Webpack loader which uses `this.callback()`, the Rspack loader returns the compiled result as a Promise. Do not mix the two import paths.
 
 ## References
 
 For deeper detail than this guide:
 
-- `references/api-reference.md` -- Complete API signatures for every Lark module.
-- `references/template-syntax.md` -- Full template language reference, including compilation pipeline, operators, control flow, encoders, and debug mode.
+- `references/api-reference.md` -- Complete API signatures for every Lark module (Framework, Router, State, View, Updater, Frame, Store, Service, CrossSite, Cache, EventEmitter, EventDelegator, Devtool Bridge, Compiler, Template Runtime, Constants, Vite/Webpack/Rspack integrations).
+- `references/template-syntax.md` -- Full template language reference, including compilation pipeline, operators, control flow, event binding, sub-view embedding, special attributes, compiled function signature, built-in encoding functions, HTML comment handling, debug mode, and global variable extraction.

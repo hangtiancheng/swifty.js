@@ -15,6 +15,7 @@ This document provides a comprehensive reference for the Lark template syntax us
 - [HTML Comment Handling](#html-comment-handling)
 - [Debug Mode](#debug-mode)
 - [Global Variable Extraction](#global-variable-extraction)
+- [VDOM Compilation Mode](#vdom-compilation-mode)
 
 ## Compilation Pipeline
 
@@ -346,12 +347,12 @@ These parameters are parsed and passed to the child View as `initParams` during 
 
 ## Special Attributes
 
-| Attribute | Description                                                                                                                                       |
-| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `v-lark`  | Declares a child view slot. Value is the registered view path, optionally with query parameters for initParams                                    |
+| Attribute | Description                                                                                                                                      |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `v-lark`  | Declares a child view slot. Value is the registered view path, optionally with query parameters for initParams                                   |
 | `ldk`     | Provides a comparison key for DOM diff optimization. Elements with the same `ldk` value skip diff entirely (no attribute or children comparison) |
-| `lak`     | Provides a comparison key for attribute-only diff optimization. Elements with the same `lak` value skip attribute diff but still diff children    |
-| `lvk`     | Provides a view key for assign optimization. When `lvk` values match, the view's `assign()` method is called instead of full unmount/remount      |
+| `lak`     | Provides a comparison key for attribute-only diff optimization. Elements with the same `lak` value skip attribute diff but still diff children   |
+| `lvk`     | Provides a view key for assign optimization. When `lvk` values match, the view's `assign()` method is called instead of full unmount/remount     |
 
 ### ldk Usage
 
@@ -495,7 +496,7 @@ The analysis:
 
 1. Converts `{{ }}` template expressions to `<% %>` internal format.
 2. Replaces HTML text between template expressions with unique placeholders.
-3. Parses the resulting code using `@babel/parser`.
+3. Parses the resulting code using `@babel/parser` (or `@swc/core` when `useSwc: true`).
 4. Walks the AST to find all `Identifier` nodes.
 5. Tracks local variable declarations (`VariableDeclarator`) and function parameters as non-global.
 6. Skips `MemberExpression` properties (e.g., `obj.prop` -- `prop` is not a standalone variable).
@@ -511,3 +512,39 @@ The exclusion list includes:
 - Framework references (`Lark`)
 
 If AST parsing fails (malformed templates), a fallback regex-based extraction is used.
+
+## VDOM Compilation Mode
+
+When `virtualDom: true` is passed to `compileTemplate` (or via the Vite plugin `larkMvcPlugin({ virtualDom: true })`), the compiler produces VDOM output instead of HTML strings. The compilation pipeline uses `htmlparser2` to parse the intermediate HTML and emit `vdomCreate()` call trees.
+
+### VDOM compilation steps
+
+1. Extracts `<% %>` blocks into an expression store, replaces with `\x00N\x00` placeholders.
+2. Parses the protected source with `parseDocument(protectedSource, {recognizeSelfClosing, lowerCaseTags: false})` from `htmlparser2`.
+3. Walks the DOM tree recursively, emitting `$c()` (vdomCreate) calls:
+   - Text nodes: `$c(0, 'text')` or expression via `emitExpr`.
+   - Elements: `$c('tag', props, children)` with allocated `$vN` variables.
+   - Void elements: `children=1` (self-closing marker).
+4. Returns `$c($viewId, 0, $rootVar)` as root VDomNode.
+
+### VDOM function signature
+
+The compiled VDOM function has 7 parameters (no `$encHtml` -- VDOM text nodes use `createTextNode` directly):
+
+```typescript
+(
+  $data: unknown, // Template data (all variables destructured from this)
+  $viewId: string, // View ID for event delegation
+  $refAlt: unknown, // Reference data for $refFn lookup
+  $n: Function, // strSafe (null-safe toString)
+  $refFn: Function, // Reference lookup in refData
+  $encUri: Function, // URI encoding with extra character handling
+  $encQuote: Function, // Quote encoding for attribute embedding
+) => VDomNode;
+```
+
+The output module imports `vdomCreate` and `createVDomRef` from `@lark.js/mvc` instead of the runtime helpers.
+
+### VDOM attribute resolution
+
+`vdomResolveAttrValue` resolves `\x00N\x00` placeholders and `\x1f` (viewId) in attribute values, producing JS expression strings with `$n()` (strSafe), `$refFn()`, `$encUri()` calls. Attributes with special DOM semantics (`value`, `checked`, `selected`) are routed through the `specials` parameter to `vdomCreate`, which defers them to `ref.nodeProps` for direct property assignment rather than attribute setting.

@@ -6,6 +6,7 @@ This document is the complete API reference for every public module in `@lark.js
 
 - [Framework](#framework)
 - [Router](#router)
+- [useUrlState](#useurlstate)
 - [State](#state)
 - [View](#view)
 - [defineView](#defineview)
@@ -18,11 +19,13 @@ This document is the complete API reference for every public module in `@lark.js
 - [Cache](#cache)
 - [EventEmitter](#eventemitter)
 - [EventDelegator](#eventdelegator)
+- [HMR](#hmr)
+- [VDOM](#vdom)
 - [Frame Devtool Bridge](#frame-devtool-bridge)
 - [Template Runtime](#template-runtime)
 - [Compiler](#compiler)
 - [Utilities & Constants](#utilities--constants)
-- [Vite / Webpack integrations](#vite--webpack-integrations)
+- [Vite / Webpack / Rspack integrations](#vite--webpack--rspack-integrations)
 
 ---
 
@@ -304,6 +307,35 @@ interface ParamDiff {
 ### Hashbang mode
 
 Default hashbang is `"#!"`. URLs look like `http://localhost/#!/home?count=5`.
+
+---
+
+## useUrlState
+
+Sync view state with URL query parameters. Imported via `import { useUrlState } from '@lark.js/mvc'`.
+
+### useUrlState(view, initialState?)
+
+Returns a `[state, setState]` tuple. Reads URL query parameters into a state object and provides a `setState` function that writes back to the URL via `Router.to()`. Automatically calls `view.observeLocation(keys)` so the view re-renders when the URL changes.
+
+```ts
+function useUrlState<S extends Record<string, string>>(
+  view: ViewInterface,
+  initialState?: S,
+): [S, (patch: Partial<S> | ((prev: S) => Partial<S>)) => void];
+```
+
+- `initialState` provides default values and determines which URL params are observed.
+- `setState` accepts a partial object or an updater function `(prev) => partial`.
+- Works with both history and hash routing modes.
+- The returned `state` object always reflects the current URL params merged with defaults.
+
+```ts
+const [state, setState] = useUrlState(this, { page: "1", size: "20" });
+// state.page, state.size are read from URL or defaults
+setState({ page: "2" }); // writes ?page=2 to URL, keeps size=20
+setState((prev) => ({ page: String(Number(prev.page) + 1) }));
+```
 
 ---
 
@@ -1023,6 +1055,149 @@ EventDelegator.nextElementGuid(): number
 
 ---
 
+## HMR
+
+Hot Module Replacement support compatible with Vite's `import.meta.hot` and Webpack's `module.hot`. Imported via `import { reloadViews, View } from '@lark.js/mvc'`.
+
+### HotContext
+
+Interface compatible with both Vite and Webpack HMR APIs:
+
+```ts
+interface HotContext {
+  accept(cb?: (newModule: unknown) => void): void;
+  dispose(cb: (data: unknown) => void): void;
+  invalidate(): void;
+}
+```
+
+### View.accept(hot, viewPath)
+
+Set up HMR accept handler for a View module. When the module is hot-updated:
+
+1. Extracts the new View class from `newModule.default`.
+2. Calls `registerViewClass(viewPath, NewViewClass)` to update the registry.
+3. Calls `reloadViews(viewPath)` to re-mount all frames using this view path.
+
+```ts
+View.accept(hot: HotContext, viewPath: string): void
+```
+
+### View.dispose(hot, viewPath)
+
+Set up HMR dispose handler. When the old module is disposed, calls `invalidateViewClass(viewPath)` to remove the old class from the registry.
+
+```ts
+View.dispose(hot: HotContext, viewPath: string): void
+```
+
+### reloadViews(viewPath)
+
+Iterate `Frame.getAll()`, find frames whose `viewPath` matches, and call `frame.mountView(fullPath)` on each. The existing Frame is reused (no unmount/remount of the container), preserving parent-child relationships and frame state.
+
+```ts
+function reloadViews(viewPath: string): void;
+```
+
+### Usage pattern
+
+```ts
+// src/views/home.ts
+import View from "../view";
+import template from "./home.html";
+
+const HomeView = View.extend({
+  template,
+  init() {
+    /* ... */
+  },
+});
+
+if (import.meta.hot) {
+  View.accept(import.meta.hot, "views/home");
+  View.dispose(import.meta.hot, "views/home");
+}
+
+export default HomeView;
+```
+
+---
+
+## VDOM
+
+Virtual DOM types and functions. Used when `FrameworkConfig.virtualDom` is `true`. Imported via `import { vdomCreate, createVDomRef } from '@lark.js/mvc'`.
+
+### VDomNode
+
+```ts
+interface VDomNode {
+  tag: string | number; // tag name, 0 for text, SPLITTER for raw HTML
+  html: string; // inner HTML or text content
+  attrs?: string; // serialized opening tag with attributes
+  attrsMap?: Record<string, unknown>;
+  attrsSpecials?: Record<string, string>; // DOM property names (value, checked, selected)
+  hasSpecials?: Record<string, string> | undefined;
+  children?: VDomNode[] | undefined;
+  compareKey?: string | undefined; // from id, #, or v-lark path
+  reused?: Record<string, number> | undefined; // keyed children count map
+  reusedTotal?: number;
+  views?: [string, string, string, Record<string, string>][] | undefined;
+  selfClose?: boolean;
+  isLarkView?: string | undefined;
+}
+```
+
+### VDomRef
+
+```ts
+interface VDomRef {
+  viewId: string;
+  viewRenders: ViewInterface[];
+  nodeProps: [Element, string, unknown][];
+  asyncCount: number;
+  changed: number;
+  domOps: DomOp[];
+}
+```
+
+### vdomCreate(tag, props?, children?, specials?)
+
+Create a VDomNode. The compiled VDOM template calls this function for every element and text node.
+
+```ts
+function vdomCreate(
+  tag: string | number,
+  props?: Record<string, unknown> | number | null,
+  children?: VDomNode[] | number | null,
+  specials?: Record<string, string>,
+): VDomNode;
+```
+
+- Text node: `tag=0`, `html=text content`.
+- Raw HTML: `tag=SPLITTER`, `html=raw string`.
+- Element: serializes opening tag, builds `attrsMap`, detects `v-lark` sub-views, extracts `compareKey` from `#` or `id` or `v-lark` path, propagates `reused` keys upward, merges adjacent text nodes.
+- Self-closing: when `children === 1`.
+
+### createVDomRef(viewId)
+
+Create a VDomRef for tracking VDOM diff operations:
+
+```ts
+function createVDomRef(viewId: string): VDomRef;
+```
+
+### VDOM diff algorithm
+
+The VDOM diff engine (`vdomSetChildNodes`) uses a three-phase algorithm:
+
+1. **Head fast-path**: matches identical nodes from the start, updates in place.
+2. **Tail fast-path**: matches identical nodes from the end.
+3. **KeyMap reconciliation with LIS**: builds `keyMap` from remaining old children, creates `sequence[]` mapping new to old indices, computes the Longest Increasing Subsequence via patience sorting O(n log n). Iterates backward: LIS nodes stay in place, others are moved via `insertBefore`, unmatched nodes are created fresh.
+
+`computeLIS(sequence)` uses patience sorting with binary search. Entries with value < 0 (unmatched) are skipped.
+
+---
+
 ## Frame Devtool Bridge
 
 `postMessage` bridge for the Lark Devtool panel.
@@ -1090,6 +1265,8 @@ function compileTemplate(
     debug?: boolean; // inject line markers + try-catch wrapper for debugging
     globalVars?: string[]; // pre-declared global variable names (destructured from $data)
     file?: string; // file path used in error messages
+    virtualDom?: boolean; // generate VDOM output instead of HTML string (default: false)
+    useSwc?: boolean; // use @swc/core instead of @babel/parser for global var extraction (default: false)
   },
 ): string;
 ```
@@ -1101,9 +1278,11 @@ import { encHtml as __larkEncHtml, strSafe as __larkStrSafe, encUri as __larkEnc
 export default function(data, viewId, refData) { ... }
 ```
 
+When `virtualDom: true`, the output imports `vdomCreate` from `@lark.js/mvc` and produces a function returning `VDomNode` instead of a string. The VDOM function signature has 7 parameters (no `$encHtml`): `($data,$viewId,$refAlt,$n,$refFn,$encUri,$encQuote) => VDomNode`.
+
 ### extractGlobalVars(source)
 
-AST-based extraction of variable names referenced by the template. Used by `larkMvcPlugin`/`larkMvcLoader` to inject `let varName = $data.varName` destructure into the compiled function body.
+AST-based extraction of variable names referenced by the template. Uses `@babel/parser` to parse the template, walks the AST to collect `Identifier` nodes, excludes locals and built-in globals (approximately 100 entries including template runtime helpers, JS built-ins, DOM globals).
 
 ```ts
 function extractGlobalVars(source: string): string[];
@@ -1111,17 +1290,25 @@ function extractGlobalVars(source: string): string[];
 
 If parsing fails (malformed template), falls back to a regex-based extractor.
 
+### extractGlobalVarsSwc(source)
+
+Same algorithm as `extractGlobalVars` but uses `@swc/core` `parseSync` instead of `@babel/parser`. Lazy-loads the SWC native binding. Falls back to regex on failure.
+
+```ts
+function extractGlobalVarsSwc(source: string): string[];
+```
+
 ---
 
 ## Utilities & Constants
 
 Exported from the main entry.
 
-| Name              | Signature                                                   | Purpose                                                                  |
-| ----------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------ |
-| `applyStyle`      | `(idOrPairs, css?) => () => void`                           | Inject CSS into `<style>` tags; returns cleanup fn                       |
-| `mark` / `unmark` | `mark(host, key) => () => boolean` / `unmark(host) => void` | Async callback validity tracking (module-level WeakMap)                  |
-| `useUrlState`     | `(view, config?) => void`                                   | Sync view state with URL search params                                   |
+| Name              | Signature                                                   | Purpose                                                 |
+| ----------------- | ----------------------------------------------------------- | ------------------------------------------------------- |
+| `applyStyle`      | `(idOrPairs, css?) => () => void`                           | Inject CSS into `<style>` tags; returns cleanup fn      |
+| `mark` / `unmark` | `mark(host, key) => () => boolean` / `unmark(host) => void` | Async callback validity tracking (module-level WeakMap) |
+| `useUrlState`     | `(view, config?) => void`                                   | Sync view state with URL search params                  |
 
 Internal utilities (`noop`, `hasOwnProperty`, `assign`, `keys`, `generateId`, `funcWithTry`, `setData`, `translateData`, `getById`, `ensureElementId`, `nodeInside`, `parseUri`, `toUri`, `toMap`, `now`, `isPlainObject`, `getAttribute`, `EMPTY_STRING_SET`, etc.) are NOT exported from the public entry. They live in `utils.ts` and `constants.ts` for framework-internal use.
 
@@ -1140,24 +1327,34 @@ Internal utilities (`noop`, `hasOwnProperty`, `assign`, `keys`, `generateId`, `f
 
 ---
 
-## Vite / Webpack integrations
+## Vite / Webpack / Rspack integrations
 
 ```ts
 import { larkMvcPlugin } from "@lark.js/mvc/vite";
 import { larkMvcLoader } from "@lark.js/mvc/webpack";
+import {
+  larkMvcLoader as larkMvcLoaderRspack,
+  LarkMvcPlugin,
+} from "@lark.js/mvc/rspack";
 ```
 
 ### larkMvcPlugin(options?)
 
-Vite plugin. `enforce: "pre"`. Tags `.html` imports with `?lark-template`, then compiles them in the `load` hook.
+Vite plugin. `enforce: "pre"`. Tags `.html` imports with `?lark-template`, then compiles them in the `load` hook. The `resolveId` hook handles Rolldown URL-style paths (newer Vite versions).
 
 ```ts
-larkMvcPlugin(options?: { debug?: boolean }): Plugin
+larkMvcPlugin(options?: {
+  debug?: boolean;       // enable debug line markers
+  virtualDom?: boolean;  // generate VDOM template output
+  useSwc?: boolean;      // use @swc/core instead of @babel/parser
+}): Plugin
 ```
 
-### larkMvcLoader
+Also exports `larkMvcPluginLegacy` (simpler resolveId without Rolldown handling) for older Vite versions.
 
-Webpack loader. Standard loader signature. Pass `{ debug: true }` via the loader options to enable line markers.
+### larkMvcLoader (Webpack)
+
+Webpack loader. Standard loader signature. Uses `this.callback()` for async delivery (standard webpack 5 pattern). Pass `{ debug: true }` via the loader options to enable line markers.
 
 ```js
 {
@@ -1166,5 +1363,21 @@ Webpack loader. Standard loader signature. Pass `{ debug: true }` via the loader
   exclude: /index\.html$/,
 }
 ```
+
+`LarkMvcPlugin` (Webpack) -- webpack plugin that auto-registers the loader rule for `.html` files. Pushes `{test, exclude, use: [{loader: __filename, options}]}` into `compiler.options.module.rules`.
+
+### larkMvcLoader (Rspack)
+
+Rspack loader. Same compilation pipeline as the Webpack loader, but returns a Promise directly instead of calling `this.callback()`. Rspack async loaders must return the result as a Promise.
+
+```js
+{
+  test: /\.html$/,
+  use: [{ loader: larkMvcLoader, options: { debug: true } }],
+  exclude: /index\.html$/,
+}
+```
+
+`LarkMvcPlugin` (Rspack) -- implements `RspackPluginInstance`, uses `Compiler` type from `@rspack/core`. Auto-registers the loader rule for `.html` files.
 
 ---

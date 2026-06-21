@@ -31,8 +31,8 @@ add_definitions(-DNAPI_DISABLE_CPP_EXCEPTIONS)
 # clang-format
 find_program(CLANG_FORMAT_EXE NAMES clang-format)
 file(GLOB_RECURSE SOURCE_FILES
-  "${CMAKE_SOURCE_DIR}/*.cc"
   "${CMAKE_SOURCE_DIR}/*.h"
+  "${CMAKE_SOURCE_DIR}/*.cc"
   "${CMAKE_SOURCE_DIR}/src/*.cc"
 )
 
