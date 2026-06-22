@@ -68,12 +68,18 @@ const docsConfig: DocsConfig = {
     { text: "Markdown", link: "/docs/markdown/" },
     { text: "Router", link: "/docs/router/" },
     { text: "Styling", link: "/docs/style/" },
+    { text: "Search", link: "/docs/search/" },
+    { text: "Theme", link: "/docs/theme/" },
+    { text: "API", link: "/docs/api/" },
   ],
   sidebar: {
     "/docs/get-started/": "auto",
     "/docs/markdown/": "auto",
     "/docs/router/": "auto",
     "/docs/style/": "auto",
+    "/docs/search/": "auto",
+    "/docs/theme/": "auto",
+    "/docs/api/": "auto",
   },
   highlight: {
     theme: "github-dark",

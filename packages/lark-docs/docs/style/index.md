@@ -1,12 +1,12 @@
 ---
 title: "Styling"
-description: "Tailwind CSS and DaisyUI integration"
+description: "Tailwind CSS v4 and DaisyUI v5 integration"
 sidebar_position: 1
 ---
 
 # Styling
 
-`@lark.js/docs` uses **Tailwind CSS** and **DaisyUI** for all theme styling. The theme templates use only Tailwind utility classes and DaisyUI component classes — no custom CSS is written or needed.
+`@lark.js/docs` uses Tailwind CSS v4 and DaisyUI v5 for all theme styling. The theme templates use only Tailwind utility classes and DaisyUI component classes -- no custom CSS classes are written or needed.
 
 ## Setup
 
@@ -21,7 +21,13 @@ Create a CSS entry file:
 ```css
 /* main.css */
 @import "tailwindcss";
+
+/* Scan theme templates for Tailwind class names */
+@source "../../src/theme/*.html";
+@source "../../src/theme/*.ts";
+
 @plugin "daisyui";
+@plugin "@tailwindcss/typography";
 ```
 
 Import it in your boot file:
@@ -32,92 +38,156 @@ import "./main.css";
 ```
 
 ::: tip
-`@tailwindcss/typography` is a peer dependency that provides the `prose` class used for rendered markdown content. It adds proper typographic styles to headings, paragraphs, lists, tables, and code blocks.
+The `@source` directives tell Tailwind CSS where to scan for class names. Without them, classes used in the theme templates will be purged from the production build. Adjust the paths to match your project structure.
 :::
+
+::: warning
+`@tailwindcss/typography` is required for the `prose` class that styles rendered markdown content. Without it, headings, paragraphs, lists, tables, and code blocks inside the content area will have no typographic styling.
+:::
+
+## Why `@source` is needed
+
+Tailwind CSS v4 scans project files to detect which utility classes are actually used. When `@lark.js/docs` is consumed as a library, the theme templates live inside `node_modules/` which Tailwind does not scan by default. The `@source` directives ensure Tailwind finds and preserves every class used in the templates.
+
+When developing within the `@lark.js/docs` package itself (e.g., `docs/app/main.css`), the paths point to the local `src/theme/` directory:
+
+```css
+@source "../../src/theme/*.html";
+@source "../../src/theme/*.ts";
+```
 
 ## Theme Structure
 
 The documentation site is composed of five theme views:
 
-| View          | Role                                          | Key DaisyUI Components             |
-| ------------- | --------------------------------------------- | ---------------------------------- |
-| **DocLayout** | Root layout: navbar + sidebar + content + TOC | `navbar`, `btn-ghost`, `menu`      |
-| **Sidebar**   | Navigation tree                               | `menu`, `menu-sm`, `menu-active`   |
-| **Content**   | Rendered markdown body                        | `prose`, `max-w-none`              |
-| **TOC**       | Right-side heading outline                    | `menu`, `menu-sm`, `menu-active`   |
-| **Search**    | Full-text search dialog                       | `modal`, `input`, `input-bordered` |
+| View          | Role                                          | Key DaisyUI Components                        |
+| ------------- | --------------------------------------------- | --------------------------------------------- |
+| **DocLayout** | Root layout: navbar + sidebar + content + TOC | `navbar`, `btn-ghost`, `menu menu-horizontal` |
+| **Sidebar**   | Navigation tree                               | `menu menu-sm`, `menu-active`                 |
+| **Content**   | Rendered markdown body                        | `prose prose-lg` (typography plugin)          |
+| **TOC**       | Right-side heading outline                    | `menu menu-xs`, `menu-active`                 |
+| **Search**    | Full-text search dialog (local provider)      | `modal`, `input input-lg`, `kbd`              |
 
 ## Layout
 
 The DocLayout provides a three-column responsive structure:
 
 ```
-┌─────────────────────────────────────────────────────┐
-│  Navbar (sticky top)                                │
-├────────┬──────────────────────────┬─────────────────┤
-│        │                          │                 │
-│Sidebar │      Main Content        │      TOC        │
-│  64w   │      (flex-1)            │      56w        │
-│        │      prose prose-lg      │                 │
-│        │                          │                 │
-│        │                          │                 │
-│        ├──────────────────────────┤                 │
-│        │  Prev / Next Navigation  │                 │
-│        │                          │                 │
-└────────┴──────────────────────────┴─────────────────┘
+navbar (sticky, backdrop-blur, shadow-sm)
+  navbar-start   -> site title
+  navbar-center  -> nav items (hidden below lg)
+  navbar-end     -> search button or DocSearch container
+mx-auto flex max-w-7xl
+  aside (left, w-64, hidden below lg)
+    sidebar view
+  main (flex-1, px-8 py-10)
+    article.prose.prose-lg
+      content view
+    prev/next navigation
+  aside (right, w-56, hidden below xl)
+    TOC view
 ```
 
-- Sidebar is visible on `lg:` (1024px+) screens
-- TOC is visible on `xl:` (1280px+) screens
-- On smaller screens, only the main content is shown
+Responsive breakpoints:
+
+| Breakpoint            | Visible components      |
+| --------------------- | ----------------------- |
+| `< lg` (below 1024px) | Content only            |
+| `lg:` (1024px+)       | Sidebar + content       |
+| `xl:` (1280px+)       | Sidebar + content + TOC |
+
+## Navbar
+
+The navbar uses DaisyUI's `navbar` component with three slots:
+
+```html
+<div class="navbar bg-base-100/80 sticky top-0 z-50 shadow-sm backdrop-blur">
+  <div class="navbar-start">
+    <!-- Site title -->
+  </div>
+  <div class="navbar-center hidden lg:flex">
+    <!-- Navigation menu (hidden on mobile) -->
+  </div>
+  <div class="navbar-end gap-2">
+    <!-- Search button or DocSearch container -->
+  </div>
+</div>
+```
+
+The `bg-base-100/80` with `backdrop-blur` creates a frosted-glass effect on scroll.
 
 ## Color System
 
-All colors use DaisyUI semantic color names, which automatically adapt to the active theme:
+All colors use DaisyUI semantic color names, which adapt to the active theme:
 
 | Usage              | Color Class            |
 | ------------------ | ---------------------- |
 | Page background    | `bg-base-100`          |
-| Navbar background  | `bg-base-200`          |
-| Borders            | `border-base-300`      |
+| Navbar background  | `bg-base-100/80`       |
+| Borders            | `border-base-200`      |
 | Primary text       | `text-base-content`    |
-| Muted text         | `text-base-content/70` |
+| Muted text         | `text-base-content/50` |
 | Active links       | `text-primary`         |
+| Active background  | `bg-primary/10`        |
 | Tip containers     | `alert-info`           |
 | Warning containers | `alert-warning`        |
 | Danger containers  | `alert-error`          |
 
 ::: tip
-Because DaisyUI colors are semantic (not fixed hex values), switching themes automatically updates all colors throughout the site.
+Because DaisyUI colors are semantic (not fixed hex values), switching themes automatically updates all colors throughout the site without changing any class names.
 :::
+
+## Typography Plugin
+
+The `@tailwindcss/typography` plugin provides the `prose` class that styles rendered markdown content. It adds proper typographic rules for:
+
+- Headings (h1-h6) with appropriate sizing and spacing
+- Paragraphs with readable line height and margins
+- Lists (ordered, unordered) with proper indentation
+- Blockquotes with left border styling
+- Tables with borders and padding
+- Inline and block code with background colors
+- Links with color and hover states
+- Images with max-width constraints
+- Horizontal rules
+
+The content view wraps markdown output in `prose prose-lg max-w-none` for large, unconstrained content:
+
+```html
+<article class="prose prose-lg max-w-none">
+  <div v-lark="theme/content"></div>
+</article>
+```
 
 ## Code Block Styling
 
-Code blocks are styled by Shiki at build time. Shiki produces HTML with **inline styles** — no CSS classes are needed for syntax highlighting. The output includes:
+Code blocks are styled by Shiki at build time. Shiki produces HTML with inline styles -- no CSS classes are needed for syntax highlighting. The output includes:
 
 - Background color via `style="background-color:#..."` on `<pre>`
 - Per-token colors via `style="color:#..."` on `<span>` elements
-- Theme name as a class for identification: `class="shiki github-dark"`
+- Theme name as a class: `class="shiki github-dark"`
 
 When Shiki is not configured, code blocks fall back to DaisyUI styling:
 
 ```html
-<pre
-  class="bg-neutral text-neutral-content rounded-box overflow-x-auto p-4"
-></pre>
+<pre class="bg-neutral text-neutral-content rounded-box overflow-x-auto p-4">
+  <code class="language-{lang}">...</code>
+</pre>
 ```
 
 ## Icons
 
-Theme icons use [lucide-static](https://lucide.dev) imported as raw SVG strings via Vite's `?raw` suffix. Icons are rendered with `{{!icons.name}}` and inherit `currentColor` from their parent:
+Theme icons use `lucide-static` imported as raw SVG strings via Vite's `?raw` suffix:
 
 ```html
-<span class="h-5 w-5 [&>svg]:h-full [&>svg]:w-full"> {{!icons.search}} </span>
+<span class="h-4 w-4 [&>svg]:h-full [&>svg]:w-full"> {{!icons.search}} </span>
 ```
 
-## Custom Themes
+Icons are complete `<svg>...</svg>` markup strings. They inherit `currentColor` from the parent element, so color is controlled via Tailwind text-color utilities.
 
-DaisyUI supports 30+ built-in themes. Switch themes in your Tailwind config:
+## Switching DaisyUI Themes
+
+DaisyUI supports 30+ built-in themes. Configure themes in your CSS:
 
 ```css
 @import "tailwindcss";
@@ -130,3 +200,23 @@ DaisyUI supports 30+ built-in themes. Switch themes in your Tailwind config:
     cyberpunk;
 }
 ```
+
+All `@lark.js/docs` theme templates use semantic color names (`base-100`, `primary`, `base-content`, etc.) so they adapt to any DaisyUI theme without modification.
+
+## Custom CSS
+
+If you need to add project-specific styles, import additional CSS in your boot file:
+
+```ts
+// boot.ts
+import "./main.css"; // Tailwind + DaisyUI + typography
+import "./custom.css"; // your overrides
+```
+
+Keep custom CSS minimal -- Tailwind utilities and DaisyUI components cover most use cases.
+
+## Next Steps
+
+- [Theme Architecture](/docs/theme/) -- view hierarchy and customization approaches
+- [Search](/docs/search/) -- DocSearch widget styling and integration
+- [API Reference](/docs/api/) -- theme factory functions and type definitions

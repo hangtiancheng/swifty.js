@@ -39,7 +39,7 @@ const LARK_TEMPLATE_SUFFIX = "?lark-template";
  */
 export function larkMvcPlugin(
   options: {
-    debug?: boolean
+    debug?: boolean;
     virtualDom?: boolean;
     useSwc?: boolean;
   } = {},
@@ -138,7 +138,7 @@ export function larkMvcPluginLegacy(
 
 export function larkMvcPlugin7(
   options: {
-    debug?: boolean
+    debug?: boolean;
     virtualDom?: boolean;
     useSwc?: boolean;
   } = {},

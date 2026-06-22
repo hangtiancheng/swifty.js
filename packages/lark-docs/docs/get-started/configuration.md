@@ -160,10 +160,23 @@ Type: `SearchOptions`
 
 ```ts
 search: {
-  provider: "local",  // "local" for client-side full-text search
-                      // "none" to disable search
+  provider: "local",      // "local" | "docsearch" | "none"
 }
 ```
+
+| Provider      | Description                                                         |
+| ------------- | ------------------------------------------------------------------- |
+| `"local"`     | Built-in modal dialog with substring matching (default)             |
+| `"docsearch"` | Algolia DocSearch widget with scored ranking and keyboard shortcuts |
+| `"none"`      | Disable search entirely                                             |
+
+The `"docsearch"` provider uses the DocSearch UI widget but queries the same local search index -- no Algolia account or API key is required. Install the additional packages:
+
+```bash
+pnpm add @docsearch/js @docsearch/css
+```
+
+See [Search](/docs/search/) for a detailed comparison of providers and scoring algorithms.
 
 ## Complete Example
 
@@ -193,6 +206,13 @@ export default defineConfig({
     theme: "github-dark",
     languages: ["typescript", "javascript", "html", "css", "json", "bash"],
   },
-  search: { provider: "local" },
+  search: { provider: "docsearch" },
 });
 ```
+
+## Next Steps
+
+- [Markdown](/docs/markdown/) -- frontmatter, containers, code highlighting, anchors
+- [Search](/docs/search/) -- provider comparison and scoring details
+- [Theme Architecture](/docs/theme/) -- view hierarchy and customization
+- [API Reference](/docs/api/) -- complete public API documentation
