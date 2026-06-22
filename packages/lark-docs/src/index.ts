@@ -23,7 +23,7 @@ export type {
   CompileMarkdownOptions,
 } from "./types";
 
-// Configuration helper
+// Configuration helper (scans docs, generates routes, returns typed config)
 export { defineConfig } from "./define-config";
 
 // Scanner

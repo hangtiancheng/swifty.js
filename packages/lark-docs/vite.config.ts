@@ -18,7 +18,7 @@ import { resolve } from "node:path";
 import { larkMvcPlugin7 } from "@lark.js/mvc/vite";
 import tailwindcss from "@tailwindcss/vite";
 import { larkDocsPlugin } from "./src/vite";
-import { defineConfig as defineDocsConfig } from "./src/config/define-config";
+import { defineConfig as defineDocsConfig } from "./src/define-config";
 
 // === Shared constants ===
 

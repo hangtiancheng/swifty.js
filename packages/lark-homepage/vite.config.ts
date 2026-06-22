@@ -8,16 +8,16 @@ import { defineConfig, Plugin, type PluginOption, type UserConfig } from "vite";
 import { resolve } from "node:path";
 import path from "node:path";
 import fs from "node:fs";
-import { larkDocsPlugin } from "@lark.js/docs/vite";
-import { larkMvcPlugin7 } from "@lark.js/mvc/vite";
-import tailwindcss from "@tailwindcss/vite";
 import {
+  larkDocsPlugin,
   scanDocsDir,
   generateRouteMap,
   generateSidebar,
   buildSearchIndex,
-} from "@lark.js/docs";
-import type { DocsConfig, SidebarConfig } from "@lark.js/docs";
+} from "@lark.js/docs/vite";
+import type { DocsConfig, SidebarConfig } from "@lark.js/docs/vite";
+import { larkMvcPlugin7 } from "@lark.js/mvc/vite";
+import tailwindcss from "@tailwindcss/vite";
 import docsConfig from "./lark-docs.config";
 
 const PKG_DIR = import.meta.dirname;
@@ -42,6 +42,11 @@ function docsSiteConfig(): UserConfig {
       }) as Plugin,
       tailwindcss() as PluginOption,
     ],
+    // resolve: {
+    //   alias: {
+    //     "@lark.js/docs": resolve(PKG_DIR, "../lark-docs/src"),
+    //   },
+    // },
     build: {
       outDir: resolve(PKG_DIR, "dist-docs"),
       emptyOutDir: true,
