@@ -30,7 +30,10 @@ export function generateRouteMap(routes: DocsRoute[]): Record<string, string> {
  */
 export function generateBootModule(routes: DocsRoute[]): string {
   const imports = routes
-    .map((r, i) => `import view${i} from ${JSON.stringify(r.filePath)};`)
+    .map(
+      (r, i) => `// @ts-ignore
+    import view${i} from ${JSON.stringify(r.filePath)};`,
+    )
     .join("\n");
 
   const registrations = routes

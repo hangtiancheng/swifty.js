@@ -16,6 +16,15 @@
 import type { DocsConfig } from "./types";
 import { compileMarkdown } from "./compile-markdown";
 
+// Re-export build-time utilities for use in rspack.config
+// (avoids importing from main entry which pulls in lucide-static SVG ?raw imports)
+export { scanDocsDir } from "./scanner";
+export { generateRouteMap, generateBootModule } from "./route-map";
+export { generateSidebar } from "./sidebar-generator";
+export { buildSearchIndex } from "./search-index";
+export type { DocsConfig, SidebarConfig } from "./types";
+
+
 export interface LarkDocsRspackOptions {
   /** Full docs config. */
   config: DocsConfig;

@@ -21,7 +21,7 @@
  * `process.cwd()`, which is the project root in most Vite/Webpack/Rspack
  * setups.
  */
-import type { DocsConfig, SidebarConfig } from "./types";
+import type { DocsConfig, SidebarConfig } from "../types";
 import { scanDocsDir } from "../scanner";
 import { generateRouteMap } from "../route-map";
 import { generateSidebar } from "../sidebar-generator";
