@@ -1,15 +1,7 @@
-import { State, Router, View as ViewClass } from "@lark.js/mvc";
+import { State, Router, View as ViewClass, type ViewInterface } from "@lark.js/mvc";
 import { icons as defaultIcons } from "./icons";
 import { createLocalSearchClient } from "./docsearch-local";
-import type { DocsConfig, SearchItem } from "@/types";
-import type { PageData } from "../../dist";
-
-export interface DocsLayoutViewDef {
-  template: unknown;
-  init(): void;
-  assign(): boolean | undefined;
-  render(): void;
-}
+import type { DocsConfig, PageData, SearchEntry } from "@/types";
 
 /**
  * DocsLayout view definition factory.
@@ -134,7 +126,7 @@ export function createDocsLayoutView(
       // searchIndex is injected at build time by defineConfig() and is not
       // part of the user-facing DocsConfig type.
       const searchIndex =
-        (docsConfig as DocsConfig & { searchIndex: SearchItem[] })
+        (docsConfig as DocsConfig & { searchIndex: SearchEntry[] })
           .searchIndex || [];
       const localClient = createLocalSearchClient(searchIndex);
 

@@ -7,7 +7,7 @@ import { State, View as ViewClass } from "@lark.js/mvc";
  * Supports scroll-spy to highlight the currently visible heading.
  */
 
-export function createTocView(View: typeof ViewClass, template: string) {
+export function createTocView(View: typeof ViewClass, template: unknown) {
   return View.extend({
     template,
 

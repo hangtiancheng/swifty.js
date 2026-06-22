@@ -21,7 +21,7 @@
  * `process.cwd()`, which is the project root in most Vite/Webpack/Rspack
  * setups.
  */
-import type { DocsConfig, SearchItem, SidebarConfig } from "./types";
+import type { DocsConfig, SearchEntry, SidebarConfig } from "./types";
 import { scanDocsDir } from "./scanner";
 import { generateSidebar } from "./sidebar-generator";
 import { buildSearchIndex } from "./search-index";
@@ -67,7 +67,7 @@ function generateRoutesFile(config: DocsConfig, projectRoot: string): void {
   }
 
   // Build search index (skip when provider is "none")
-  const searchIndex: SearchItem[] =
+  const searchIndex: SearchEntry[] =
     config.search?.provider === "none" ? [] : buildSearchIndex(routes);
 
   const generatedDir = resolve(projectRoot, ".lark-docs/generated");

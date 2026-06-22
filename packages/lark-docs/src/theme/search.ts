@@ -10,15 +10,20 @@
  * button can toggle this sub-view without a direct reference.
  */
 import MiniSearch from "minisearch";
-import { State, Router, View as ViewClass } from "@lark.js/mvc";
+import {
+  State,
+  Router,
+  View as ViewClass,
+  type ViewInterface,
+} from "@lark.js/mvc";
 import { icons as defaultIcons } from "./icons";
-import type { DocsConfig, SearchItem } from "@/types";
+import type { DocsConfig, SearchEntry } from "@/types";
 
 export function createSearchView(View: typeof ViewClass, template: unknown) {
   return View.extend({
     template,
 
-    init() {
+    init(this: SearchViewThis) {
       this.updater.set({ icons: defaultIcons });
       this._mini = null;
       // Re-render when the layout toggles searchOpen.
@@ -59,7 +64,7 @@ export function createSearchView(View: typeof ViewClass, template: unknown) {
       // Prevent click propagation from modal-box to modal overlay.
     },
 
-    "onSearchInput<input>"(e: Event) {
+    "onSearchInput<input>"(this: SearchViewThis, e: Event) {
       const input = e.target as HTMLInputElement;
       const query = input?.value || "";
 
@@ -72,7 +77,7 @@ export function createSearchView(View: typeof ViewClass, template: unknown) {
 
       const mini = this._ensureMiniSearch();
 
-      let raw: SearchItem[] = [];
+      let raw: SearchEntry[] = [];
       if (mini) {
         try {
           raw = mini.search(query);
@@ -111,14 +116,17 @@ export function createSearchView(View: typeof ViewClass, template: unknown) {
      * MiniSearch requires a unique `id` field, which we synthesize from the
      * array index since SearchEntry has no natural id.
      */
-    _ensureMiniSearch(): MiniSearch | null {
+    _ensureMiniSearch(this: SearchViewThis): MiniSearch | null {
       if (this._mini) return this._mini;
       const index =
-        (State.get("docsConfig") as DocsConfig & { searchIndex: SearchItem[] })
+        (State.get("docsConfig") as DocsConfig & { searchIndex: SearchEntry[] })
           ?.searchIndex || [];
       if (!index.length) return null;
 
-      const docs = index.map((entry: SearchItem, i: number) => ({ ...entry, id: i }));
+      const docs = index.map((entry: SearchEntry, i: number) => ({
+        ...entry,
+        id: i,
+      }));
       this._mini = new MiniSearch({
         fields: ["title", "headings", "excerpt"],
         storeFields: ["title", "link", "headings", "excerpt"],

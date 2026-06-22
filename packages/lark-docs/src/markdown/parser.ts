@@ -10,7 +10,7 @@
  * - Code block plugin (language tags, line numbers)
  */
 import MarkdownIt from "markdown-it";
-import type { MarkdownOptions } from "../types";
+import type { MarkdownOptions } from "@/types";
 import { anchorPlugin } from "./plugins/anchors";
 import { tocPlugin } from "./plugins/toc";
 import { containerPlugin } from "./plugins/containers";

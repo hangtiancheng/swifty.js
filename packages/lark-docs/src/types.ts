@@ -229,10 +229,3 @@ export interface CompileMarkdownOptions {
   /** Enable debug line markers. */
   debug?: boolean;
 }
-
-export interface SearchItem {
-  title: string;
-  link: string;
-  headings: string[];
-  excerpt: string;
-}
