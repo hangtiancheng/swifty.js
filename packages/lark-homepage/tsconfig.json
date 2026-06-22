@@ -1,15 +1,19 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
     "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true
+    "skipLibCheck": true,
+    "strict": true,
+    "target": "ES2022",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@lark-docs/generated/*": ["./.lark-docs/generated/*"]
+    }
   },
-  "include": ["docs/app/**/*.ts", "vite.config.ts", "lark-docs.config.ts"]
+  "include": ["**/*.ts"]
 }

@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+@source "../../../node_modules/@lark.js/docs/src/theme/*.html";
+@source "../../../node_modules/@lark.js/docs/src/theme/*.ts";
+
+@plugin "daisyui";
+@plugin "@tailwindcss/typography";
+
+@theme {
+  --font-sans:
+    Iosevka, Maple Mono, Menlo, Cascadia Code, Sarasa Gothic SC, PingFang SC,
+    Microsoft YaHei;
+
+  --font-mono:
+    Iosevka, Maple Mono, Menlo, Cascadia Code, Sarasa Gothic SC, PingFang SC,
+    Microsoft YaHei;
+}
