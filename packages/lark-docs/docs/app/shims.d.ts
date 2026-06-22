@@ -15,3 +15,32 @@ declare module "*.html" {
   const content: string;
   export default content;
 }
+
+// Auto-generated routes module (produced by vite.config.ts into node_modules/@lark-docs/generated/)
+declare module "@lark.js/docs/generated" {
+  /** Route map: URL path → viewId */
+  export const routes: Record<string, string>;
+
+  /** Site metadata including title, nav, sidebar, search index */
+  export const siteData: {
+    title: string;
+    description: string;
+    lang: string;
+    nav: Array<{ text: string; link: string }>;
+    sidebar: Record<
+      string,
+      Array<{
+        text: string;
+        link?: string;
+        collapsed?: boolean;
+        items?: Array<{ text: string; link: string }>;
+      }>
+    >;
+    searchIndex: Array<{
+      title: string;
+      link: string;
+      headings: string[];
+      excerpt: string;
+    }>;
+  };
+}

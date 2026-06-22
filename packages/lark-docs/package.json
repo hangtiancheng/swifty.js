@@ -1,10 +1,11 @@
 {
   "name": "@lark.js/docs",
   "version": "0.0.1",
-  "description": "Docs site generator for @lark.js/mvc",
+  "description": "Documentation site generator for @lark.js/mvc",
   "keywords": [
-    "lark",
+    "@lark.js",
     "markdown",
+    "documentation",
     "docs"
   ],
   "license": "MIT",
@@ -77,14 +78,24 @@
         "types": "./dist/runtime.d.cts",
         "default": "./dist/runtime.cjs"
       }
+    },
+    "./theme": {
+      "import": {
+        "types": "./src/theme/index.ts"
+      }
+    },
+    "./theme/*.html": {
+      "import": {
+        "default": "./src/theme/*.html"
+      }
     }
   },
   "scripts": {
     "prepublish": "pnpm build",
-    "build": "vite build --mode lib && node scripts/copy-dcts.mjs",
-    "build:docs": "vite build --mode site",
-    "dev:docs": "vite --mode site",
-    "preview:docs": "vite preview --mode site --outDir dist-site",
+    "build": "vite build --mode lib && node scripts/copy-dts.mjs",
+    "build:docs": "vite build --mode docs",
+    "dev:docs": "vite --mode docs",
+    "preview:docs": "vite preview --mode docs --outDir dist-docs",
     "format": "prettier -w ./ --experimental-cli",
     "typecheck": "tsc -p tsconfig.build.json --noEmit",
     "test": "vitest run",
