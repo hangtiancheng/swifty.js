@@ -1,54 +1,62 @@
 /**
- * SearchView - client-side full-text search dialog.
+ * SearchView - client-side full-text search dialog (local provider).
  *
- * Renders a modal search dialog. The search index is loaded lazily
- * when the dialog first opens. Uses the searchDocs() runtime helper.
+ * Uses MiniSearch (same engine as VitePress) for prefix matching, fuzzy
+ * matching, and field-weighted scoring. The search index is built at
+ * compile time (buildSearchIndex) and embedded in docsConfig.searchIndex;
+ * this view lazily constructs a MiniSearch instance on first query.
+ *
+ * Open/close state is driven by State.searchOpen so the layout's navbar
+ * button can toggle this sub-view without a direct reference.
  */
+import MiniSearch from "minisearch";
+import { State, Router, View as ViewClass } from "@lark.js/mvc";
+import { icons as defaultIcons } from "./icons";
+import type { DocsConfig, SearchItem } from "@/types";
 
-export function createSearchView(View: any, template: any): any {
+export function createSearchView(View: typeof ViewClass, template: unknown) {
   return View.extend({
     template,
 
     init() {
-      this.searchIndex = null;
-      this.assign();
+      this.updater.set({ icons: defaultIcons });
+      this._mini = null;
+      // Re-render when the layout toggles searchOpen.
+      this.observeState("searchOpen");
+      this.assign?.();
     },
 
     assign() {
       this.updater.snapshot();
+      const isOpen = !!State.get("searchOpen");
       this.updater.set({
-        isOpen: false,
+        isOpen,
         results: [],
         hasSearched: false,
+        query: "",
       });
       return this.updater.altered();
     },
 
     render() {
       this.updater.digest();
-    },
-
-    "openSearch<click>"() {
-      this.updater
-        .set({ isOpen: true, results: [], hasSearched: false })
-        .digest();
-      // Focus the input after the modal renders
-      setTimeout(() => {
-        const input = document.getElementById(
-          "docs-search-input",
-        ) as HTMLInputElement;
-        input?.focus();
-      }, 100);
+      if (this.updater.get("isOpen")) {
+        // Focus the input after the modal renders.
+        setTimeout(() => {
+          const input = document.getElementById(
+            "docs-search-input",
+          ) as HTMLInputElement;
+          input?.focus();
+        }, 50);
+      }
     },
 
     "closeSearch<click>"() {
-      this.updater
-        .set({ isOpen: false, results: [], hasSearched: false })
-        .digest();
+      State.set({ searchOpen: false }).digest();
     },
 
     "noop<click>"() {
-      // Prevent click propagation from modal-box to modal overlay
+      // Prevent click propagation from modal-box to modal overlay.
     },
 
     "onSearchInput<input>"(e: Event) {
@@ -56,62 +64,95 @@ export function createSearchView(View: any, template: any): any {
       const query = input?.value || "";
 
       if (!query.trim()) {
-        this.updater.set({ results: [], hasSearched: false }).digest();
+        this.updater
+          .set({ results: [], hasSearched: false, query: "" })
+          .digest();
         return;
       }
 
-      // Lazy-load search index
-      if (!this.searchIndex) {
-        const State = (this.owner as any)?.constructor?.State;
-        this.searchIndex = State?.get?.("searchIndex") || [];
+      const mini = this._ensureMiniSearch();
+
+      let raw: SearchItem[] = [];
+      if (mini) {
+        try {
+          raw = mini.search(query);
+        } catch {
+          raw = [];
+        }
       }
 
-      // Import searchDocs at runtime to avoid circular dependency
-      // The searchDocs function is simple enough to inline here
-      const results = simpleSearch(this.searchIndex, query);
-      this.updater.set({ results, hasSearched: true }).digest();
+      const results = raw.map((r) => ({
+        title: r.title || "",
+        link: r.link || "",
+        excerpt: r.excerpt || "",
+        highlightedTitle: highlightMatch(r.title, query),
+        highlightedExcerpt: highlightMatch(r.excerpt, query),
+      }));
+
+      this.updater.set({ results, hasSearched: true, query }).digest();
     },
 
     "goToResult<click>"(e: Event) {
-      const target = e.target as HTMLElement;
-      const href = target.dataset.href;
-      if (href) {
-        const Router = (this.owner as any)?.constructor?.Router;
-        Router?.to?.(href);
-        this.updater
-          .set({ isOpen: false, results: [], hasSearched: false })
-          .digest();
+      // The click may land on a child element (<p>, <mark>) inside the <a>,
+      // so walk up to find the element carrying data-href.
+      let target = e.target as HTMLElement | null;
+      while (target && !target.dataset["href"]) {
+        target = target.parentElement;
       }
+      const href = target?.dataset["href"];
+      if (href) {
+        Router.to(href);
+        State.set({ searchOpen: false }).digest();
+      }
+    },
+
+    /**
+     * Lazily build the MiniSearch instance from the build-time search index.
+     * MiniSearch requires a unique `id` field, which we synthesize from the
+     * array index since SearchEntry has no natural id.
+     */
+    _ensureMiniSearch(): MiniSearch | null {
+      if (this._mini) return this._mini;
+      const index =
+        (State.get("docsConfig") as DocsConfig & { searchIndex: SearchItem[] })
+          ?.searchIndex || [];
+      if (!index.length) return null;
+
+      const docs = index.map((entry: SearchItem, i: number) => ({ ...entry, id: i }));
+      this._mini = new MiniSearch({
+        fields: ["title", "headings", "excerpt"],
+        storeFields: ["title", "link", "headings", "excerpt"],
+        searchOptions: {
+          prefix: true,
+          fuzzy: 0.2,
+          boost: { title: 2, headings: 1.5 },
+        },
+      });
+      this._mini.addAll(docs);
+      return this._mini;
     },
   });
 }
 
 /**
- * Simple inline search function to avoid importing the runtime module.
- * Matches all terms (AND) against title + headings + excerpt.
+ * Wrap each query term occurrence in <mark> for highlighting.
+ * Used with the raw {{!}} output operator in the template.
  */
-function simpleSearch(
-  index: Array<{
-    title: string;
-    link: string;
-    headings: string[];
-    excerpt: string;
-  }>,
-  query: string,
-): Array<{ title: string; link: string; headings: string[]; excerpt: string }> {
+function highlightMatch(text: string, query: string): string {
+  if (!text) return "";
+  if (!query) return text;
   const terms = query
     .toLowerCase()
     .split(/\s+/)
     .filter((t) => t.length > 0);
+  let result = text;
+  for (const term of terms) {
+    const regex = new RegExp(`(${escapeRegExp(term)})`, "gi");
+    result = result.replace(regex, "<mark>$1</mark>");
+  }
+  return result;
+}
 
-  if (terms.length === 0) return [];
-
-  return index
-    .filter((entry) => {
-      const haystack = [entry.title, ...entry.headings, entry.excerpt]
-        .join(" ")
-        .toLowerCase();
-      return terms.every((term) => haystack.includes(term));
-    })
-    .slice(0, 20);
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

@@ -70,10 +70,10 @@ export function generateSidebar(
   return items;
 }
 
-function normalizePrefix(baseUrl: string, prefix: string): string {
-  const base = baseUrl.replace(/\/+$/, "") + "/";
-  const p = prefix.replace(/^\//, "").replace(/\/+$/, "");
-  return p ? base + p + "/" : base;
+function normalizePrefix(_baseUrl: string, prefix: string): string {
+  // prefix already includes the baseUrl (e.g. "/docs/get-started/"),
+  // so we only normalize trailing slashes — no concatenation needed.
+  return prefix.replace(/\/+$/, "") + "/";
 }
 
 function sortRoutes(routes: DocsRoute[]): void {

@@ -26,8 +26,7 @@ describe("compileMarkdown", () => {
     });
 
     expect(result).toContain("export const pageData");
-    expect(result).toContain("export default");
-    expect(result).toContain("template:");
+    expect(result).toContain("export const contentHtml");
     expect(result).toContain("Hello World");
     expect(result).toContain("This is a test.");
   });
@@ -105,15 +104,16 @@ Content here.
     expect(result).toContain('"title": "Home"');
   });
 
-  it("escapes template literals in HTML", async () => {
+  it("preserves template literal syntax in contentHtml", async () => {
     const source = "Use `${variable}` for template literals.";
     const result = await compileMarkdown(source, {
       config: baseConfig,
       filePath: "docs/test.md",
     });
 
-    // The ${ should be escaped so it doesn't break the template literal
-    expect(result).toContain("\\${");
+    // contentHtml is emitted as a JSON string literal, so ${...} is preserved
+    // as-is — it is NOT interpreted as JS template interpolation.
+    expect(result).toContain("${variable}");
   });
 
   it("renders code blocks without highlight config", async () => {

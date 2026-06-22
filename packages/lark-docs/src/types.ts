@@ -101,7 +101,8 @@ export interface HighlightOptions {
 export interface SearchOptions {
   /**
    * Search provider.
-   * - "local": built-in search modal with simple substring matching.
+   * - "local": MiniSearch-powered modal with prefix matching, fuzzy matching,
+   *   field-weighted scoring, and result highlighting (same engine as VitePress).
    * - "docsearch": Algolia DocSearch UI widget backed by the local search index
    *   (no Algolia account required).
    * - "none": disable search entirely.
@@ -227,4 +228,11 @@ export interface CompileMarkdownOptions {
   filePath: string;
   /** Enable debug line markers. */
   debug?: boolean;
+}
+
+export interface SearchItem {
+  title: string;
+  link: string;
+  headings: string[];
+  excerpt: string;
 }

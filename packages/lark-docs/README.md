@@ -13,7 +13,7 @@ If `@lark.js/mvc` is to React or Vue, then `@lark.js/docs` is to Docusaurus or V
 - Code syntax highlighting: Shiki-powered highlighting with lazy WASM initialization and singleton caching
 - Admonition containers: `::: tip`, `::: warning`, `::: danger`, `::: details` rendered as DaisyUI alert components
 - Auto-generated sidebar: directory-structure-based navigation with `sidebarPosition` and `sidebarLabel` frontmatter overrides
-- Three search providers: built-in local search modal, Algolia DocSearch UI with local index (no account required), or disabled
+- Three search providers: MiniSearch-powered local modal (same engine as VitePress), Algolia DocSearch UI with local index (no account required), or disabled
 - Table of contents: per-page heading outline with smooth-scroll navigation
 - Three-column responsive layout: Tailwind CSS v4 + DaisyUI v5 with sticky navbar, frosted glass effect, and mobile-responsive sidebars
 - Three bundler integrations: Vite, Webpack, and Rspack / Rsbuild
@@ -439,14 +439,14 @@ The wrapper `<span>` controls sizing. Tailwind utilities `[&>svg]:w-full [&>svg]
 
 ### Local Search (provider: "local")
 
-The built-in search provides a modal dialog with:
+The built-in search is powered by [MiniSearch](https://github.com/lucaong/minisearch) (the same engine used by VitePress). It provides a modal dialog with:
 
-- Case-insensitive substring matching across title, headings, and excerpt
-- AND logic: all query terms must match at least one field
-- Weighted scoring: title match = 10 points, heading match = 5 points, excerpt match = 1 point
-- Per-field boundary checking: each term is matched against individual fields independently to avoid false matches across field boundaries (e.g., term spanning title and heading)
-- Results sorted by score descending, then alphabetically by title
-- Configurable result limit (default: 20)
+- Prefix matching: typing "conf" matches "configuration"
+- Fuzzy matching: tolerates typos (fuzzy factor 0.2)
+- Field-weighted scoring: title matches boosted 2x, headings 1.5x, excerpt 1x
+- Highlighted results: matched terms wrapped in `<mark>` in both title and excerpt
+- Lazy index construction: the MiniSearch instance is built on first query from the build-time `searchIndex`, then reused for subsequent searches
+- Open/close state driven by `State.searchOpen` so the navbar button can toggle the modal without a direct view reference
 
 ### DocSearch Integration (provider: "docsearch")
 

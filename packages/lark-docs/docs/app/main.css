@@ -4,23 +4,47 @@
 @source "../../src/theme/*.html";
 @source "../../src/theme/*.ts";
 
-@plugin "daisyui";
+/* daisyUI v5 with light (default) + dark (prefers-color-scheme) themes */
+@plugin "daisyui" {
+  themes:
+    light --default,
+    dark --prefersdark;
+}
+
 @plugin "@tailwindcss/typography";
 
 @theme {
   --font-sans:
     Iosevka, Maple Mono, Menlo, Cascadia Code, Sarasa Gothic SC, PingFang SC,
     Microsoft YaHei;
-
   --font-mono:
     Iosevka, Maple Mono, Menlo, Cascadia Code, Sarasa Gothic SC, PingFang SC,
     Microsoft YaHei;
 }
 
-/* Override daisyUI input/textarea focus styles to use 1px orange border */
+/* Override daisyUI input/textarea focus styles to use a subtle border */
 .input:focus,
 .input:focus-within,
 .textarea:focus,
 .textarea:focus-within {
-  @apply border-blue-400 shadow-none outline-none;
+  @apply border-primary/40 shadow-none outline-none;
+}
+
+/* Search result highlighting (MiniSearch <mark> wrappers) */
+mark {
+  @apply bg-primary/20 rounded px-0.5 text-inherit;
+}
+
+/* VitePress-style prose tweaks for compiled markdown content */
+.prose :where(h1, h2, h3, h4):not(:where([class~="not-prose"] *)) {
+  @apply scroll-mt-20;
+}
+
+.prose :where(a):not(:where([class~="not-prose"] *)) {
+  @apply text-primary no-underline hover:underline;
+}
+
+/* Shiki code blocks: ensure they blend with the page background */
+.prose :where(pre):not(:where([class~="not-prose"] *)) {
+  @apply border-base-300 rounded-lg border;
 }

@@ -1,3 +1,5 @@
+import { State, View as ViewClass } from "@lark.js/mvc";
+
 /**
  * TocView - right-side heading outline.
  *
@@ -5,22 +7,20 @@
  * Supports scroll-spy to highlight the currently visible heading.
  */
 
-export function createTocView(View: any, template: any): any {
+export function createTocView(View: typeof ViewClass, template: string) {
   return View.extend({
     template,
 
     init() {
-      this.assign();
+      // Re-render when the layout publishes new headings for the current page.
+      this.observeState("currentPageHeadings");
+      this.assign?.();
     },
 
     assign() {
       this.updater.snapshot();
-
-      const params = (this as any)._initParams || {};
-      this.updater.set({
-        headings: params.headings || [],
-      });
-
+      const headings = State.get("currentPageHeadings") || [];
+      this.updater.set({ headings });
       return this.updater.altered();
     },
 
@@ -30,7 +30,7 @@ export function createTocView(View: any, template: any): any {
 
     "scrollToHeading<click>"(e: Event) {
       const target = e.target as HTMLElement;
-      const slug = target.dataset.slug;
+      const slug = target.dataset["slug"];
       if (slug) {
         const el = document.getElementById(slug);
         if (el) {

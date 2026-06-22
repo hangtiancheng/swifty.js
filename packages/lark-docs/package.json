@@ -114,6 +114,7 @@
     "lucide-static": "^1.21.0",
     "markdown-it": "^14.2.0",
     "markdown-it-container": "^4.0.0",
+    "minisearch": "^7.2.0",
     "shiki": "^4.2.0"
   },
   "devDependencies": {

@@ -361,12 +361,13 @@ import {
   createTocView,
   createSearchView,
 } from "@lark.js/docs/theme";
+import { View as ViewClass } from "@lark.js/mvc"
 
-function createDocsLayoutView(View: any, template: any): any;
-function createSidebarView(View: any, template: any): any;
-function createContentView(View: any, template: any): any;
-function createTocView(View: any, template: any): any;
-function createSearchView(View: any, template: any): any;
+function createDocsLayoutView(View: typeof ViewClass, template: unknown): unknown;
+function createSidebarView(View: typeof ViewClass, template: unknown): unknown;
+function createContentView(View: typeof ViewClass, template: unknown): unknown;
+function createTocView(View: typeof ViewClass, template: unknown): unknown;
+function createSearchView(View: typeof ViewClass, template: unknown): unknown;
 ```
 
 Each factory takes the lark-mvc `View` class and a compiled HTML template, returning a View subclass. Register the result with `registerViewClass()`.
@@ -382,7 +383,7 @@ function createLocalSearchClient(index: SearchEntry[]): {
       indexName: string;
       params: { query: string; hitsPerPage?: number };
     }>,
-  ): Promise<{ results: any[] }>;
+  ): Promise<{ results: unknown[] }>;
 };
 ```
 

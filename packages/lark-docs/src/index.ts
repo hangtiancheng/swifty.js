@@ -54,7 +54,6 @@ export { searchDocs, slugify } from "./runtime";
 export {
   createDocsLayoutView,
   createSidebarView,
-  createContentView,
   createTocView,
   createSearchView,
   createLocalSearchClient,

@@ -29,7 +29,7 @@ describe("generateSidebar", () => {
       makeRoute("/docs/guide/plugins", "Plugins"),
     ];
 
-    const items = generateSidebar(routes, "/guide/", "/docs/");
+    const items = generateSidebar(routes, "/docs/guide/", "/docs/");
 
     expect(items.length).toBeGreaterThan(0);
     const allTexts = items.flatMap((item) =>
@@ -47,7 +47,7 @@ describe("generateSidebar", () => {
       makeRoute("/docs/guide/intro", "Introduction", { sidebarPosition: 2 }),
     ];
 
-    const items = generateSidebar(routes, "/guide/", "/docs/");
+    const items = generateSidebar(routes, "/docs/guide/", "/docs/");
 
     // All items should be under a group or at root level
     const flatItems = items.flatMap((item) => item.items || [item]);
@@ -63,7 +63,7 @@ describe("generateSidebar", () => {
       }),
     ];
 
-    const items = generateSidebar(routes, "/guide/", "/docs/");
+    const items = generateSidebar(routes, "/docs/guide/", "/docs/");
     const flatItems = items.flatMap((item) => item.items || [item]);
     expect(flatItems[0].text).toBe("Config");
   });
@@ -75,7 +75,7 @@ describe("generateSidebar", () => {
       makeRoute("/docs/guide/api/state", "State API"),
     ];
 
-    const items = generateSidebar(routes, "/guide/", "/docs/");
+    const items = generateSidebar(routes, "/docs/guide/", "/docs/");
 
     // Should have root items and an "Api" group
     const groups = items.filter((item) => item.items && item.items.length > 0);
@@ -88,14 +88,14 @@ describe("generateSidebar", () => {
   });
 
   it("handles empty routes", () => {
-    const items = generateSidebar([], "/guide/", "/docs/");
+    const items = generateSidebar([], "/docs/guide/", "/docs/");
     expect(items).toEqual([]);
   });
 
   it("handles no matching routes for prefix", () => {
     const routes: DocsRoute[] = [makeRoute("/docs/api/router", "Router")];
 
-    const items = generateSidebar(routes, "/guide/", "/docs/");
+    const items = generateSidebar(routes, "/docs/guide/", "/docs/");
     expect(items).toEqual([]);
   });
 });

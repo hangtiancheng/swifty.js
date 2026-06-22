@@ -1,6 +1,8 @@
+import { State, Router, View as ViewClass } from "@lark.js/mvc";
 import { icons as defaultIcons } from "./icons";
 import { createLocalSearchClient } from "./docsearch-local";
-import type { DocsConfig } from "@/types";
+import type { DocsConfig, SearchItem } from "@/types";
+import type { PageData } from "../../dist";
 
 export interface DocsLayoutViewDef {
   template: unknown;
@@ -28,45 +30,77 @@ export interface DocsLayoutViewDef {
  * registerViewClass("theme/docs-layout", createDocsLayoutView(View, template));
  * ```
  */
-export function createDocsLayoutView(View: any, template: any): any {
+export function createDocsLayoutView(
+  View: typeof ViewClass,
+  template: unknown,
+) {
   return View.extend({
     template,
 
     init() {
-      // Icons are static data -- set once in init(), not in assign()
+      // Icons are static data -- set once in init(), not in render()
       this.updater.set({ icons: defaultIcons });
 
-      // Observe path changes so layout re-renders on navigation
+      // Observe path changes so layout re-renders on navigation.
+      // The layout view stays mounted (all /docs/* routes map to this view),
+      // so observeLocation triggers an async render to reload content.
       this.observeLocation([], true);
-      this.assign();
 
-      // Initialize DocSearch widget if configured
-      const State = (this.owner as any)?.constructor?.State;
-      const docsConfig = State?.get?.("docsConfig") || {};
+      // Initialize DocSearch widget if configured.
+      const docsConfig = (State.get("docsConfig") || {}) as DocsConfig;
       if (docsConfig.search?.provider === "docsearch") {
-        this._initDocSearch(State, docsConfig);
+        this._initDocSearch(docsConfig);
       }
+
+      // Initial content load happens in render() (async).
     },
 
-    assign() {
-      this.updater.snapshot();
+    /**
+     * Async render: load the content module for the current route path,
+     * publish page headings to State (for the TOC sub-view), then digest.
+     *
+     * Because all /docs/* routes map to this same viewId, lark-mvc does NOT
+     * unmount/remount the layout on navigation — it only re-runs render().
+     * The signature guard short-circuits stale loads when the user navigates
+     * again before the previous import resolves.
+     */
+    async render() {
+      const docsConfig: DocsConfig = State.get("docsConfig") || {};
+      const loadContent = State.get("loadContent") as
+        | ((
+            path: string,
+          ) => Promise<{ pageData: PageData; contentHtml: string } | null>)
+        | undefined;
+      const path = Router.parse().path || "/docs/";
 
-      // Read site data from State (set during boot)
-      const State = (this.owner as any)?.constructor?.State;
-      const docsConfig = State?.get?.("docsConfig") || {};
+      const sig = this.signature;
+      let content: {
+        pageData: PageData;
+        contentHtml: string;
+      } | null = null;
+      try {
+        content = loadContent ? await loadContent(path) : null;
+      } catch (err) {
+        console.warn("[@lark.js/docs] Failed to load content for", path, err);
+      }
+      if (this.signature !== sig) return; // superseded by a newer render
+
+      if (content) {
+        // Publish current page headings so the TOC sub-view can render.
+        State.set({
+          currentPageHeadings: content.pageData.headings || [],
+          currentPageTitle: content.pageData.title || "",
+        }).digest();
+      }
 
       this.updater.set({
         siteTitle: docsConfig.title || "Documentation",
         navItems: docsConfig.nav || [],
         searchProvider: docsConfig.search?.provider || "local",
+        contentHtml: content?.contentHtml || "<p>Page not found.</p>",
         prevPage: null,
         nextPage: null,
       });
-
-      return this.updater.altered();
-    },
-
-    render() {
       this.updater.digest();
     },
 
@@ -74,20 +108,16 @@ export function createDocsLayoutView(View: any, template: any): any {
       const target = e.target as HTMLElement;
       const href = target.dataset["href"];
       if (href) {
-        // Delegate to lark-mvc Router via the Framework
-        const Router = (this.owner as any)?.constructor?.Router;
-        Router?.to?.(href);
+        Router.to(href);
       }
     },
 
     "navigateHome<click>"() {
-      const Router = (this.owner as any)?.constructor?.Router;
-      Router?.to?.("/");
+      Router.to("/docs/");
     },
 
     "openSearch<click>"() {
-      const State = (this.owner as any)?.constructor?.State;
-      State?.set?.({ searchOpen: true })?.digest?.();
+      State.set({ searchOpen: true }).digest();
     },
 
     /**
@@ -100,8 +130,12 @@ export function createDocsLayoutView(View: any, template: any): any {
      * Uses createLocalSearchClient() to query the pre-built search index
      * instead of Algolia's hosted API -- no credentials required.
      */
-    _initDocSearch(State: any, docsConfig: DocsConfig) {
-      const searchIndex = State?.get?.("docsConfig")?.searchIndex || [];
+    _initDocSearch(docsConfig: DocsConfig) {
+      // searchIndex is injected at build time by defineConfig() and is not
+      // part of the user-facing DocsConfig type.
+      const searchIndex =
+        (docsConfig as DocsConfig & { searchIndex: SearchItem[] })
+          .searchIndex || [];
       const localClient = createLocalSearchClient(searchIndex);
 
       import("@docsearch/css");
@@ -119,7 +153,8 @@ export function createDocsLayoutView(View: any, template: any): any {
             indexName: "local",
             transformSearchClient: (client) => {
               // Replace the Algolia search method with our local index search
-              (client as any).search = localClient.search;
+              // client.search = localClient.search;
+              Reflect.set(client, "search", localClient.search);
               return client;
             },
           });

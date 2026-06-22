@@ -31,10 +31,10 @@
             data-href="{{=result.link}}"
             @click="goToResult()"
           >
-            <p class="text-sm font-medium">{{=result.title}}</p>
+            <p class="text-sm font-medium">{{!result.highlightedTitle}}</p>
             {{if result.excerpt}}
             <p class="text-base-content/60 line-clamp-2 text-xs">
-              {{=result.excerpt}}
+              {{!result.highlightedExcerpt}}
             </p>
             {{/if}}
           </a>
