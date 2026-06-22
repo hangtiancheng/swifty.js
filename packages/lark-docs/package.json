@@ -81,7 +81,12 @@
     },
     "./theme": {
       "import": {
-        "types": "./src/theme/index.ts"
+        "types": "./dist/theme.d.ts",
+         "default": "./dist/theme.js"
+      },
+      "require": {
+        "types": "./dist/theme.d.cts",
+        "default": "./dist/theme.cjs"
       }
     },
     "./theme/*.html": {

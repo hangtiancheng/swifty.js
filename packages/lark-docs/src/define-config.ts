@@ -125,14 +125,14 @@ export const docsConfig = ${JSON.stringify(runtimeConfig, null, 2)};
     "utf-8",
   );
 
-  // Write package.json so Node/Vite can resolve the bare module name
-  fs.writeFileSync(
-    path.resolve(generatedDir, "package.json"),
-    JSON.stringify(
-      { name: "@lark.js/docs/generated", type: "module", main: "index.ts" },
-      null,
-      2,
-    ),
-    "utf-8",
-  );
+  // // Write package.json so Node/Vite can resolve the bare module name
+  // fs.writeFileSync(
+  //   path.resolve(generatedDir, "package.json"),
+  //   JSON.stringify(
+  //     { name: "@lark.js/docs/generated", type: "module", main: "index.ts" },
+  //     null,
+  //     2,
+  //   ),
+  //   "utf-8",
+  // );
 }

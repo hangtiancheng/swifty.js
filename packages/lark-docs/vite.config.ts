@@ -35,6 +35,10 @@ const EXTERNAL_PKGS = [
   "@tailwindcss/typography",
   "daisyui",
   "tailwindcss",
+  "node:fs",
+  "node:path",
+  "node:process",
+  "node:url",
 ];
 
 /**
@@ -60,20 +64,20 @@ const docsConfig = defineDocsConfig({
   nav: [
     { text: "Get Started", link: "/docs/get-started/" },
     { text: "Markdown", link: "/docs/markdown/" },
-    { text: "Router", link: "/docs/router/" },
-    { text: "Styling", link: "/docs/style/" },
-    { text: "Search", link: "/docs/search/" },
     { text: "Theme", link: "/docs/theme/" },
+    { text: "Styling", link: "/docs/style/" },
+    { text: "Router", link: "/docs/router/" },
+    { text: "Search", link: "/docs/search/" },
     { text: "API", link: "/docs/api/" },
   ],
   sidebar: {
+    "/docs/api/": "auto",
     "/docs/get-started/": "auto",
     "/docs/markdown/": "auto",
     "/docs/router/": "auto",
-    "/docs/style/": "auto",
     "/docs/search/": "auto",
+    "/docs/style/": "auto",
     "/docs/theme/": "auto",
-    "/docs/api/": "auto",
   },
   highlight: {
     theme: "github-dark",
@@ -113,6 +117,7 @@ function libConfig(): UserConfig {
           webpack: resolve(PKG_DIR, "src/webpack.ts"),
           rspack: resolve(PKG_DIR, "src/rspack.ts"),
           runtime: resolve(PKG_DIR, "src/runtime.ts"),
+          theme: resolve(PKG_DIR, "src/theme/index.ts")
         },
         formats: ["es", "cjs"] satisfies LibraryFormats[],
         fileName: (format: string, entryName: string) =>

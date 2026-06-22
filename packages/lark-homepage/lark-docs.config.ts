@@ -1,4 +1,4 @@
-import { defineConfig } from "@lark.js/docs";
+import { defineConfig } from "@lark.js/docs/vite";
 
 export default defineConfig({
   docs: "docs",
