@@ -35,7 +35,7 @@ State.set({ docsConfig, loadContent });
 const config: FrameworkConfig = {
   rootId: "app",
   routeMode: "history",
-  defaultPath: "/docs/",
+  defaultPath: "/lark/",
   // All /docs/* routes map to "theme/docs-layout" (see generated routes).
   // The layout stays mounted across navigation; observeLocation triggers
   // an async render that loads the matching .md content via loadContent.

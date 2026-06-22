@@ -1,5 +1,8 @@
-{{if isOpen}}
-<div class="modal modal-open" @click="closeSearch()">
+<div
+  class="modal{{if isOpen}} modal-open{{/if}}"
+  id="docs-search-modal"
+  @click="onModalClick()"
+>
   <div class="modal-box max-w-xl p-0" @click.stop="noop()">
     <!-- Search input -->
     <div class="border-base-300 border-b px-4 py-3">
@@ -53,4 +56,3 @@
     </div>
   </div>
 </div>
-{{/if}}

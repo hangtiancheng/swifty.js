@@ -21,13 +21,8 @@ const PKG_DIR = import.meta.dirname;
 // === Mode router ===
 
 export default defineConfig(() => {
-  return docsSiteConfig();
-});
-
-// === Documentation site build ===
-
-function docsSiteConfig(): UserConfig {
   return {
+    base: "lark",
     root: resolve(PKG_DIR, "app"),
     plugins: [
       larkDocsPlugin({ config: docsConfig }) as Plugin,
@@ -52,4 +47,4 @@ function docsSiteConfig(): UserConfig {
       open: true,
     },
   };
-}
+});

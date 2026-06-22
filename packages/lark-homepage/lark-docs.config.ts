@@ -2,19 +2,19 @@ import { defineConfig } from "@lark.js/docs/vite";
 
 export default defineConfig({
   docs: "docs",
-  baseUrl: "/docs/",
+  baseUrl: "/lark/",
   routeMode: "history",
   title: "Lark Homepage",
-  description: "@lark.js/docs -- Documentation site generator demo",
+  description: "@lark.js/lark -- Documentation site generator (Homepage)",
   nav: [
-    { text: "Base", link: "/docs/base/" },
-    { text: "Frontend", link: "/docs/frontend/" },
-    { text: "Backend", link: "/docs/backend/" },
+    { text: "Base", link: "/lark/base/" },
+    { text: "Frontend", link: "/lark/frontend/" },
+    { text: "Backend", link: "/lark/backend/" },
   ],
   sidebar: {
-    "/docs/base/": "auto",
-    "/docs/frontend/": "auto",
-    "/docs/backend/": "auto",
+    "/lark/base/": "auto",
+    "/lark/frontend/": "auto",
+    "/lark/backend/": "auto",
   },
   highlight: {
     theme: "github-light",

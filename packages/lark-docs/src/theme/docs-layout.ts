@@ -54,7 +54,6 @@ export function createDocsLayoutView(
 
       // Initialize DocSearch widget if configured.
       const docsConfig = (State.get("docsConfig") || {}) as DocsConfig;
-      console.log("[@lark.js/docs] Docs config:", docsConfig);
       if (docsConfig.search?.provider === "docsearch") {
         this._initDocSearch(docsConfig);
       }
@@ -124,6 +123,10 @@ export function createDocsLayoutView(
     },
 
     "openSearch<click>"() {
+      // Toggle searchOpen via State. The SearchView observes this key and
+      // re-renders with `class="modal modal-open"` (via {{if isOpen}} in the
+      // template), so modal visibility is fully driven by the Updater
+      // pipeline — no manual DOM manipulation.
       State.set({ searchOpen: true }).digest();
     },
 

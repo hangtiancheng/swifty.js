@@ -1,11 +1,10 @@
-name: Deploy Index to GitHub Pages
+name: Deploy https://hangtiancheng.github.io/lark homepage
 
 on:
   push:
     branches: [main]
     paths:
-      - packages/lark-index/**
-      - packages/lark-mvc/**
+      - packages/lark-homepage/**
       - .github/workflows/deploy.yml
 
   workflow_dispatch:
@@ -21,10 +20,11 @@ concurrency:
 
 jobs:
   build:
+    if: "${{ github.event_name == 'workflow_dispatch' || github.event.head_commit.message == 'ci: Deploy homepage' }}"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - name: Setup pnpm
@@ -32,7 +32,7 @@ jobs:
         with:
           version: 10.33.0
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: pnpm
@@ -42,14 +42,17 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Build lark-mvc
         run: pnpm --filter @lark.js/mvc build
-      - name: Build lark-index
-        run: pnpm --filter lark-index build
+      - name: Build lark-docs
+        run: pnpm --filter @lark.js/docs build
+      - name: Build lark-homepage
+        run: pnpm --filter lark-homepage build
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./packages/lark-index/dist
+          path: ./packages/lark-homepage/dist
 
   deploy:
+    if: "${{ github.event_name == 'workflow_dispatch' || github.event.head_commit.message == 'ci: Deploy homepage' }}"
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

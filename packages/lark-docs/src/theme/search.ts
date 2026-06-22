@@ -34,40 +34,51 @@ export function createSearchView(View: typeof ViewClass, template: unknown) {
     template,
 
     init(this: SearchViewThis) {
-      this.updater.set({ icons: defaultIcons });
-      this._mini = null;
-      // Re-render when the layout toggles searchOpen.
-      this.observeState("searchOpen");
-      this.assign?.();
-    },
-
-    assign() {
-      this.updater.snapshot();
-      const isOpen = !!State.get("searchOpen");
       this.updater.set({
-        isOpen,
+        icons: defaultIcons,
         results: [],
         hasSearched: false,
         query: "",
       });
+      this._mini = null;
+      // Re-render when the layout toggles searchOpen via State.
+      this.observeState("searchOpen");
+      this.assign?.();
+    },
+
+    /**
+     * Pull isOpen from State. Only updates isOpen — results/hasSearched/query
+     * are managed by onSearchInput so they survive open/close cycles.
+     */
+    assign() {
+      this.updater.snapshot();
+      const isOpen = !!State.get("searchOpen");
+      this.updater.set({ isOpen });
       return this.updater.altered();
     },
 
     render() {
+      // observeState triggers render (not assign), so re-read State here
+      // to refresh isOpen before digesting.
+      this.assign?.();
       this.updater.digest();
       if (this.updater.get("isOpen")) {
-        // Focus the input after the modal renders.
-        setTimeout(() => {
+        // Focus the input after the modal opens.
+        requestAnimationFrame(() => {
           const input = document.getElementById(
             "docs-search-input",
-          ) as HTMLInputElement;
+          ) as HTMLInputElement | null;
           input?.focus();
-        }, 50);
+        });
       }
     },
 
-    "closeSearch<click>"() {
-      State.set({ searchOpen: false }).digest();
+    "onModalClick<click>"(e: { eventTarget?: HTMLElement }) {
+      // Only close when the click lands on the modal backdrop itself,
+      // not on content inside the modal-box (input, results, etc.).
+      if (e.eventTarget?.id === "docs-search-modal") {
+        State.set({ searchOpen: false }).digest();
+      }
     },
 
     "noop<click>"() {
