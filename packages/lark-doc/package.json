@@ -1,13 +1,126 @@
 {
-  "name": "@lark.js/doc",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "name": "@lark.js/docs",
+  "version": "0.0.1",
+  "description": "Docs site generator for @lark.js/mvc",
+  "keywords": [
+    "lark",
+    "markdown",
+    "docs"
+  ],
+  "license": "MIT",
+  "author": "https://github.com/hangtiancheng",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./compiler": {
+      "import": {
+        "types": "./dist/compiler.d.ts",
+        "default": "./dist/compiler.js"
+      },
+      "require": {
+        "types": "./dist/compiler.d.cts",
+        "default": "./dist/compiler.cjs"
+      }
+    },
+    "./vite": {
+      "import": {
+        "types": "./dist/vite.d.ts",
+        "default": "./dist/vite.js"
+      },
+      "require": {
+        "types": "./dist/vite.d.cts",
+        "default": "./dist/vite.cjs"
+      }
+    },
+    "./webpack": {
+      "import": {
+        "types": "./dist/webpack.d.ts",
+        "default": "./dist/webpack.js"
+      },
+      "require": {
+        "types": "./dist/webpack.d.cts",
+        "default": "./dist/webpack.cjs"
+      }
+    },
+    "./rspack": {
+      "import": {
+        "types": "./dist/rspack.d.ts",
+        "default": "./dist/rspack.js"
+      },
+      "require": {
+        "types": "./dist/rspack.d.cts",
+        "default": "./dist/rspack.cjs"
+      }
+    },
+    "./runtime": {
+      "import": {
+        "types": "./dist/runtime.d.ts",
+        "default": "./dist/runtime.js"
+      },
+      "require": {
+        "types": "./dist/runtime.d.cts",
+        "default": "./dist/runtime.cjs"
+      }
+    }
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "scripts": {
+    "prepublish": "pnpm build",
+    "build": "TODO: Use vite to bundle @lark.js/docs",
+    "build:site": "TODO: Use vite to bundle ./docs site",
+    "dev:site": "TODO: Use vite to dev ./docs site",
+    "preview:site": "TODO: Use vite to preview ./docs site",
+    "format": "prettier -w ./ --experimental-cli",
+    "typecheck": "tsc -p tsconfig.build.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "js-yaml": "^5.0.0",
+    "lucide-static": "^1.21.0",
+    "markdown-it": "^14.2.0",
+    "markdown-it-container": "^4.0.0",
+    "shiki": "^4.2.0"
+  },
+  "devDependencies": {
+    "@lark.js/mvc": "workspace:^",
+    "@types/js-yaml": "^4.0.9",
+    "@types/markdown-it": "^14.1.2",
+    "@types/markdown-it-container": "^4.0.0",
+    "@types/node": "^24.13.2",
+    "@vitest/coverage-v8": "4.1.9",
+    "prettier": "^3.8.4",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.5",
+    "vitest": "^4.1.9"
+  },
+  "peerDependencies": {
+    "@lark.js/mvc": ">=0.0.12",
+    "@tailwindcss/typography": "^0.5.0",
+    "daisyui": "^5.0.0",
+    "tailwindcss": "^4.0.0"
+  },
+  "lint-staged": {
+    "*.{json,jsonc,js,cjs,mjs,ts,cts,mts,html,css,md}": [
+      "pnpm format"
+    ]
+  },
   "packageManager": "pnpm@10.33.1"
 }

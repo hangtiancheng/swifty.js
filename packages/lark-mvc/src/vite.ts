@@ -22,6 +22,7 @@
  * ```
  */
 import type { Plugin } from "vite";
+import type { Plugin as Plugin7 } from "vite7";
 import path from "path";
 import fs from "fs";
 import { compileTemplate, extractGlobalVars } from "./compiler";
@@ -33,18 +34,16 @@ const LARK_TEMPLATE_SUFFIX = "?lark-template";
  * Create a Vite plugin that compiles .html template files.
  *
  * @param options - Plugin options
- * @param options.debug - Enable debug mode with line tracking (default: false)
  * @param options.virtualDom - Generate VDOM output instead of HTML string (default: false)
  * @returns Vite plugin instance
  */
 export function larkMvcPlugin(
   options: {
-    debug?: boolean;
     virtualDom?: boolean;
     useSwc?: boolean;
   } = {},
 ): Plugin {
-  const { debug = false, virtualDom = false, useSwc = false } = options;
+  const { virtualDom = false, useSwc = false } = options;
   let root = __dirname;
 
   return {
@@ -93,7 +92,7 @@ export function larkMvcPlugin(
         const raw = fs.readFileSync(filePath, "utf-8");
         // Auto-extract variables from template for 0-config experience
         const globalVars = await extractGlobalVars(raw);
-        return compileTemplate(raw, { debug, globalVars, virtualDom, useSwc });
+        return compileTemplate(raw, { globalVars, virtualDom, useSwc });
       }
       return undefined;
     },
@@ -104,12 +103,11 @@ export default larkMvcPlugin;
 
 export function larkMvcPluginLegacy(
   options: {
-    debug?: boolean;
     virtualDom?: boolean;
     useSwc?: boolean;
   } = {},
 ): Plugin {
-  const { debug = false, virtualDom = false, useSwc = false } = options;
+  const { virtualDom = false, useSwc = false } = options;
 
   return {
     name: "lark-template",
@@ -130,9 +128,27 @@ export function larkMvcPluginLegacy(
         const raw = fs.readFileSync(filePath, "utf-8");
         // Auto-extract variables from template for 0-config experience
         const globalVars = await extractGlobalVars(raw);
-        return compileTemplate(raw, { debug, globalVars, virtualDom, useSwc });
+        return compileTemplate(raw, { globalVars, virtualDom, useSwc });
       }
       return undefined;
     },
   };
+}
+
+export function larkMvcPlugin7(
+  options: {
+    virtualDom?: boolean;
+    useSwc?: boolean;
+  } = {},
+): Plugin7 {
+  return larkMvcPlugin(options) as Plugin7;
+}
+
+export function larkMvcPluginLegacy7(
+  options: {
+    virtualDom?: boolean;
+    useSwc?: boolean;
+  } = {},
+): Plugin7 {
+  return larkMvcPluginLegacy(options) as Plugin7;
 }

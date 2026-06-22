@@ -1,0 +1,31 @@
+{{if isOpen}}
+<div class="modal modal-open" @click="closeSearch()">
+  <div class="modal-box max-w-2xl" @click.stop="noop()">
+    <input
+      type="text"
+      class="input input-bordered mb-4 w-full"
+      placeholder="Search documentation..."
+      @input="onSearchInput()"
+      id="doc-search-input"
+    />
+    <div class="max-h-96 overflow-y-auto">
+      {{if results.length > 0}} {{forOf results as result}}
+      <a
+        class="hover:bg-base-200 border-base-200 block cursor-pointer rounded-lg border-b p-3 last:border-0"
+        @click="goToResult({href: '{{=result.link}}'})"
+      >
+        <p class="text-sm font-medium">{{=result.title}}</p>
+        {{if result.excerpt}}
+        <p class="text-base-content/60 mt-1 text-xs">{{=result.excerpt}}</p>
+        {{/if}}
+      </a>
+      {{/forOf}} {{else}} {{if hasSearched}}
+      <p class="text-base-content/50 py-8 text-center">No results found</p>
+      {{/if}} {{/if}}
+    </div>
+    <div class="modal-action">
+      <button class="btn btn-sm" @click="closeSearch()">Close</button>
+    </div>
+  </div>
+</div>
+{{/if}}

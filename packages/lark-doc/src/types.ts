@@ -1,0 +1,222 @@
+/**
+ * @lark.js/doc type definitions.
+ * All shared types for the documentation site generator.
+ */
+
+// ============================================================
+// Configuration types
+// ============================================================
+
+/**
+ * Top-level configuration for @lark.js/doc.
+ * Passed to defineConfig() in the user's lark-doc.config.ts.
+ */
+export interface DocConfig {
+  /** Docs source directory, relative to project root. Default: "docs" */
+  docs: string;
+
+  /** Base URL prefix for all generated routes. Default: "/docs/" */
+  baseUrl: string;
+
+  /** Routing mode. Maps to @lark.js/mvc Router's routeMode. Default: "history" */
+  routeMode: "history" | "hash";
+
+  /** Site title displayed in the navbar. */
+  title: string;
+
+  /** Site description for meta tags. */
+  description?: string;
+
+  /** Language code. Default: "en-US" */
+  lang?: string;
+
+  /** Top navigation items. */
+  nav?: NavItem[];
+
+  /**
+   * Sidebar configuration per path prefix.
+   * "auto" generates the sidebar from the directory structure.
+   * An array of SidebarItem provides manual configuration.
+   */
+  sidebar?: Record<string, SidebarConfig>;
+
+  /** Markdown processing options. */
+  markdown?: MarkdownOptions;
+
+  /** Code syntax highlighting options (Shiki). */
+  highlight?: HighlightOptions;
+
+  /** Search configuration. */
+  search?: SearchOptions;
+}
+
+/** Navigation item in the top navbar. */
+export interface NavItem {
+  /** Display text. */
+  text: string;
+  /** Link URL (internal or external). */
+  link: string;
+  /** Nested dropdown items. */
+  items?: NavItem[];
+}
+
+/** Sidebar config: "auto" for filesystem-based, or explicit items. */
+export type SidebarConfig = "auto" | SidebarItem[];
+
+/** Sidebar navigation item. */
+export interface SidebarItem {
+  /** Display text. */
+  text: string;
+  /** Link URL. Optional for group headers. */
+  link?: string;
+  /** Whether the group starts collapsed. Default: false */
+  collapsed?: boolean;
+  /** Child items (for groups). */
+  items?: SidebarItem[];
+  /** Whether this item matches the current route (set at runtime). */
+  isActive?: boolean;
+}
+
+/** Markdown processing options. */
+export interface MarkdownOptions {
+  /** Show line numbers in code blocks. Default: false */
+  lineNumbers?: boolean;
+  /** Heading anchor options. */
+  anchor?: { permalink?: boolean };
+  /** TOC extraction levels. Default: [2, 3] */
+  toc?: { level?: number[] };
+  /** Custom container labels. Keys: tip, warning, danger, details. */
+  containers?: Record<string, { label: string }>;
+}
+
+/** Code syntax highlighting options. */
+export interface HighlightOptions {
+  /** Shiki theme name. Default: "github-dark" */
+  theme?: string;
+  /** Languages to load. Default: common web languages. */
+  languages?: string[];
+}
+
+/** Search configuration. */
+export interface SearchOptions {
+  /** Search provider. Default: "local" */
+  provider: "local" | "none";
+}
+
+// ============================================================
+// Page data types
+// ============================================================
+
+/** Metadata extracted from a single .md file's frontmatter + content. */
+export interface PageData {
+  /** Page title (from frontmatter or first h1). */
+  title: string;
+  /** Page description (from frontmatter). */
+  description?: string;
+  /** Sort position in sidebar (from frontmatter sidebar_position). */
+  sidebarPosition?: number;
+  /** Override sidebar label (from frontmatter sidebar_label). */
+  sidebarLabel?: string;
+  /** Sidebar group name (from frontmatter sidebar_group). */
+  sidebarGroup?: string;
+  /** If true, excluded from production builds. */
+  draft?: boolean;
+  /** Extracted h2/h3 headings for TOC. */
+  headings: HeadingInfo[];
+  /** Path relative to the docs directory. */
+  relativePath: string;
+  /** Last modified timestamp (ms since epoch). */
+  lastUpdated?: number;
+}
+
+/** A heading extracted from markdown content. */
+export interface HeadingInfo {
+  /** Heading level (2 for h2, 3 for h3). */
+  level: number;
+  /** Plain text content. */
+  text: string;
+  /** URL-safe slug for anchor links. */
+  slug: string;
+}
+
+// ============================================================
+// Route types
+// ============================================================
+
+/** Generated route entry for a single .md file. */
+export interface DocRoute {
+  /** Full route path including baseUrl prefix. e.g. "/docs/guide/config" */
+  path: string;
+  /** View ID for registerViewClass. e.g. "docs-guide-config" */
+  viewId: string;
+  /** Absolute file path to the .md source. */
+  filePath: string;
+  /** Extracted page metadata. */
+  pageData: PageData;
+}
+
+// ============================================================
+// Sidebar types
+// ============================================================
+
+/** Sidebar data passed to the Sidebar View at runtime. */
+export interface SidebarData {
+  /** Sidebar item tree. */
+  items: SidebarItem[];
+  /** Currently active route path. */
+  currentPath: string;
+}
+
+// ============================================================
+// TOC types
+// ============================================================
+
+/** TOC data passed to the TocView at runtime. */
+export interface TocData {
+  /** Headings to display. */
+  headings: HeadingInfo[];
+  /** Currently visible heading slug. */
+  activeSlug?: string;
+}
+
+// ============================================================
+// Search types
+// ============================================================
+
+/** Search index entry for a single doc page. */
+export interface SearchEntry {
+  /** Page title. */
+  title: string;
+  /** Route link. */
+  link: string;
+  /** All heading texts on the page. */
+  headings: string[];
+  /** First ~200 chars of plain text content. */
+  excerpt: string;
+}
+
+// ============================================================
+// Frontmatter types
+// ============================================================
+
+/** Result of frontmatter extraction from a .md file. */
+export interface FrontmatterResult {
+  /** Parsed YAML frontmatter as key-value pairs. */
+  data: Record<string, unknown>;
+  /** Markdown content with frontmatter stripped. */
+  content: string;
+}
+
+// ============================================================
+// Compiler types
+// ============================================================
+
+/** Options for compileMarkdown(). */
+export interface CompileMarkdownOptions {
+  /** Full doc config. */
+  config: DocConfig;
+  /** Absolute path to the .md file being compiled. */
+  filePath: string;
+  /** Enable debug line markers. */
+  debug?: boolean;
+}

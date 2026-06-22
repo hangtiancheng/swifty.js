@@ -115,11 +115,12 @@
     "@rollup/plugin-typescript": "^12.3.0",
     "@types/node": "^24.13.2",
     "@vitest/coverage-v8": "4.1.6",
-    "rollup": "^4.62.0",
+    "rollup": "^4.62.2",
     "rollup-plugin-dts": "^6.4.1",
     "tsup": "^8.5.1",
     "typescript": "^5.9.3",
     "vite": "^8.0.16",
+    "vite7": "npm:vite@7.3.5",
     "vitest": "^4.1.9"
   },
   "peerDependencies": {

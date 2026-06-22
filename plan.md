@@ -52,7 +52,7 @@ Non-goals:
 ```
 getting-started.md
   |
-  v  [1] gray-matter: extract YAML frontmatter
+  v  [1] js-yaml + regex: extract YAML frontmatter
   |
   v  [2] markdown-it: parse to token stream
   |
@@ -94,7 +94,7 @@ packages/lark-doc/
     route-map.ts               # file paths -> lark-mvc routes config
     markdown/
       parser.ts                # markdown-it setup with plugin chain
-      frontmatter.ts           # gray-matter integration
+      frontmatter.ts           # js-yaml frontmatter extraction
       renderer.ts              # custom markdown-it renderer -> lark template
       plugins/
         containers.ts          # ::: tip, ::: warning, ::: danger, ::: details
@@ -207,7 +207,7 @@ packages/lark-doc/
   },
   "dependencies": {
     "markdown-it": "^14.0.0",
-    "gray-matter": "^4.0.3",
+    "js-yaml": "^4.1.0",
     "shiki": "^3.0.0",
   },
   "devDependencies": {
@@ -249,7 +249,7 @@ export default defineConfig([
     format: ["esm", "cjs"],
     dts: true,
     tsconfig: "./tsconfig.build.json",
-    noExternal: ["markdown-it", "gray-matter"],
+    noExternal: ["markdown-it", "js-yaml"],
   },
   // Group 3: Build plugins (Vite / Webpack / Rspack)
   {
@@ -668,7 +668,9 @@ export function createParser(options?: MarkdownOptions): MarkdownIt {
 
 ```ts
 // src/compiler/extract-frontmatter.ts
-import matter from "gray-matter";
+import { load as yamlLoad } from "js-yaml";
+
+const FRONTMATTER_REGEX = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/;
 
 export interface FrontmatterResult {
   data: Record<string, unknown>;
@@ -676,7 +678,25 @@ export interface FrontmatterResult {
 }
 
 export function extractFrontmatter(source: string): FrontmatterResult {
-  const { data, content } = matter(source);
+  const match = source.match(FRONTMATTER_REGEX);
+
+  if (!match) {
+    return { data: {}, content: source };
+  }
+
+  const yamlStr = match[1];
+  const content = source.slice(match[0].length);
+
+  let data: Record<string, unknown> = {};
+  try {
+    const parsed = yamlLoad(yamlStr);
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      data = parsed as Record<string, unknown>;
+    }
+  } catch {
+    return { data: {}, content: source };
+  }
+
   return { data, content };
 }
 ```
@@ -1903,7 +1923,7 @@ export default {
 ### Phase 1: Core Pipeline (Week 1-2)
 
 - [ ] Package scaffolding (package.json, tsconfig, tsup, vitest)
-- [ ] Markdown parser setup (markdown-it + gray-matter)
+- [ ] Markdown parser setup (markdown-it + js-yaml)
 - [ ] Frontmatter extraction
 - [ ] Custom markdown-it plugins (anchors, containers, code blocks, TOC)
 - [ ] Custom renderer (tokens to lark-mvc template string)
@@ -1957,7 +1977,7 @@ export default {
 | Package        | Purpose                                 | Size Impact               |
 | -------------- | --------------------------------------- | ------------------------- |
 | `markdown-it`  | Markdown parser (token-stream based)    | ~50 KB                    |
-| `gray-matter`  | YAML frontmatter extraction             | ~15 KB                    |
+| `js-yaml`     | YAML frontmatter parsing (regex + parse) | ~40 KB                    |
 | `shiki`        | Syntax highlighting (TextMate grammars) | ~5 MB (lazy-loaded, WASM) |
 | `@lark.js/mvc` | Framework (peer dependency)             | existing                  |
 | `tailwindcss`  | Utility-first CSS                       | build-only                |
