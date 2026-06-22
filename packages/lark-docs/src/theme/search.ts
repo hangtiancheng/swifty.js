@@ -9,7 +9,7 @@
  * Open/close state is driven by State.searchOpen so the layout's navbar
  * button can toggle this sub-view without a direct reference.
  */
-import MiniSearch from "minisearch";
+import MiniSearch, { type SearchResult } from "minisearch";
 import {
   State,
   Router,
@@ -18,6 +18,16 @@ import {
 } from "@lark.js/mvc";
 import { icons as defaultIcons } from "./icons";
 import type { DocsConfig, SearchEntry } from "@/types";
+
+/**
+ * Shape of `this` inside SearchView methods. Custom state (_mini) and helper
+ * (_ensureMiniSearch) are not on ViewInterface, so they must be declared
+ * explicitly via a `this:` parameter annotation.
+ */
+interface SearchViewThis extends ViewInterface {
+  _mini: MiniSearch | null;
+  _ensureMiniSearch(): MiniSearch | null;
+}
 
 export function createSearchView(View: typeof ViewClass, template: unknown) {
   return View.extend({
@@ -77,7 +87,7 @@ export function createSearchView(View: typeof ViewClass, template: unknown) {
 
       const mini = this._ensureMiniSearch();
 
-      let raw: SearchEntry[] = [];
+      let raw: (SearchResult & Partial<SearchEntry>)[] = [];
       if (mini) {
         try {
           raw = mini.search(query);
@@ -90,8 +100,8 @@ export function createSearchView(View: typeof ViewClass, template: unknown) {
         title: r.title || "",
         link: r.link || "",
         excerpt: r.excerpt || "",
-        highlightedTitle: highlightMatch(r.title, query),
-        highlightedExcerpt: highlightMatch(r.excerpt, query),
+        highlightedTitle: highlightMatch(r.title || "", query),
+        highlightedExcerpt: highlightMatch(r.excerpt || "", query),
       }));
 
       this.updater.set({ results, hasSearched: true, query }).digest();
