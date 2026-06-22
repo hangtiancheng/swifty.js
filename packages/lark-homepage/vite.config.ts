@@ -28,7 +28,7 @@ export default defineConfig(() => {
 
 function docsSiteConfig(): UserConfig {
   return {
-    root: resolve(PKG_DIR, "docs/app"),
+    root: resolve(PKG_DIR, "app"),
     plugins: [
       larkDocsPlugin({ config: docsConfig }) as Plugin,
       larkMvcPlugin7({
