@@ -213,3 +213,6 @@ dist-rspack
 
 dist-rsbuild
 **/dist-rsbuild
+
+dist-docs
+**/dist-docs
