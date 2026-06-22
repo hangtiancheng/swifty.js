@@ -13,3 +13,6 @@ declare module "*.css" {
   const content: string;
   export default content;
 }
+
+// Algolia DocSearch CSS (side-effect import from node_modules)
+declare module "@docsearch/css";

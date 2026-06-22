@@ -14,12 +14,16 @@
         </li>
         {{/forOf}}
       </ul>
-      <!-- Search button -->
+      <!-- Search -->
+      {{if searchProvider === "local"}}
       <label class="btn btn-ghost btn-circle" @click="openSearch()">
         <span class="h-5 w-5 [&>svg]:h-full [&>svg]:w-full">
           {{!icons.search}}
         </span>
       </label>
+      {{else if searchProvider === "docsearch"}}
+      <div id="docsearch-container"></div>
+      {{/if}}
     </div>
   </nav>
 
@@ -71,6 +75,8 @@
     </aside>
   </div>
 
-  <!-- Search modal -->
+  <!-- Search modal (local provider only; DocSearch manages its own modal) -->
+  {{if searchProvider === "local"}}
   <div v-lark="theme/search"></div>
+  {{/if}}
 </div>

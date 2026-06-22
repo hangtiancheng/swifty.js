@@ -99,8 +99,16 @@ export interface HighlightOptions {
 
 /** Search configuration. */
 export interface SearchOptions {
-  /** Search provider. Default: "local" */
-  provider: "local" | "none";
+  /**
+   * Search provider.
+   * - "local": built-in search modal with simple substring matching.
+   * - "docsearch": Algolia DocSearch UI widget backed by the local search index
+   *   (no Algolia account required).
+   * - "none": disable search entirely.
+   *
+   * Default: "local"
+   */
+  provider: "local" | "docsearch" | "none";
 }
 
 // ============================================================

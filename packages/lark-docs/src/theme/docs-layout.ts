@@ -1,4 +1,6 @@
 import { icons as defaultIcons } from "./icons";
+import { createLocalSearchClient } from "./docsearch-local";
+import type { DocsConfig } from "@/types";
 
 export interface DocsLayoutViewDef {
   template: unknown;
@@ -37,6 +39,13 @@ export function createDocsLayoutView(View: any, template: any): any {
       // Observe path changes so layout re-renders on navigation
       this.observeLocation([], true);
       this.assign();
+
+      // Initialize DocSearch widget if configured
+      const State = (this.owner as any)?.constructor?.State;
+      const docsConfig = State?.get?.("docsConfig") || {};
+      if (docsConfig.search?.provider === "docsearch") {
+        this._initDocSearch(State, docsConfig);
+      }
     },
 
     assign() {
@@ -44,11 +53,12 @@ export function createDocsLayoutView(View: any, template: any): any {
 
       // Read site data from State (set during boot)
       const State = (this.owner as any)?.constructor?.State;
-      const siteData = State?.get?.("siteData") || {};
+      const docsConfig = State?.get?.("docsConfig") || {};
 
       this.updater.set({
-        siteTitle: siteData.title || "Documentation",
-        navItems: siteData.nav || [],
+        siteTitle: docsConfig.title || "Documentation",
+        navItems: docsConfig.nav || [],
+        searchProvider: docsConfig.search?.provider || "local",
         prevPage: null,
         nextPage: null,
       });
@@ -62,7 +72,7 @@ export function createDocsLayoutView(View: any, template: any): any {
 
     "navigateTo<click>"(e: Event) {
       const target = e.target as HTMLElement;
-      const href = target.dataset.href;
+      const href = target.dataset["href"];
       if (href) {
         // Delegate to lark-mvc Router via the Framework
         const Router = (this.owner as any)?.constructor?.Router;
@@ -78,6 +88,45 @@ export function createDocsLayoutView(View: any, template: any): any {
     "openSearch<click>"() {
       const State = (this.owner as any)?.constructor?.State;
       State?.set?.({ searchOpen: true })?.digest?.();
+    },
+
+    /**
+     * Initialize the Algolia DocSearch widget with local search index.
+     *
+     * Dynamically imports @docsearch/js and @docsearch/css, then mounts
+     * the widget into #docsearch-container. The widget provides its own
+     * styled button and search modal with keyboard shortcut (Ctrl+K).
+     *
+     * Uses createLocalSearchClient() to query the pre-built search index
+     * instead of Algolia's hosted API -- no credentials required.
+     */
+    _initDocSearch(State: any, docsConfig: DocsConfig) {
+      const searchIndex = State?.get?.("docsConfig")?.searchIndex || [];
+      const localClient = createLocalSearchClient(searchIndex);
+
+      import("@docsearch/css");
+      import("@docsearch/js")
+        .then(({ default: docsearch }) => {
+          const container = document.getElementById("docsearch-container");
+          if (!container) return;
+
+          docsearch({
+            container,
+            // Dummy credentials -- the actual search is handled by our local
+            // client injected via transformSearchClient below.
+            appId: "local",
+            apiKey: "local",
+            indexName: "local",
+            transformSearchClient: (client) => {
+              // Replace the Algolia search method with our local index search
+              (client as any).search = localClient.search;
+              return client;
+            },
+          });
+        })
+        .catch((e: unknown) => {
+          console.warn("[@lark.js/docs] Failed to initialize DocSearch:", e);
+        });
     },
   });
 }

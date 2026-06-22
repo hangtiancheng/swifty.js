@@ -18,7 +18,7 @@ import { resolve } from "node:path";
 import { larkMvcPlugin7 } from "@lark.js/mvc/vite";
 import tailwindcss from "@tailwindcss/vite";
 import { larkDocsPlugin } from "./src/vite";
-import type { DocsConfig } from "./src/types";
+import type { DocsConfig, SidebarConfig } from "./src/types";
 import { scanDocsDir } from "./src/scanner";
 import { generateRouteMap } from "./src/route-map";
 import { generateSidebar } from "./src/sidebar-generator";
@@ -88,7 +88,7 @@ const docsConfig: DocsConfig = {
       "markdown",
     ],
   },
-  search: { provider: "local" },
+  search: { provider: "docsearch" },
 };
 
 // === Mode router ===
@@ -99,7 +99,7 @@ export default defineConfig(({ mode }) => {
   }
   // Docs mode: generate routes.ts before returning config
   generateRoutesFile(docsConfig);
-  return docsSiteConfig();
+  return docsUserConfig();
 });
 
 // === Library build ===
@@ -149,7 +149,7 @@ function libConfig(): UserConfig {
 
 // === Documentation site build ===
 
-function docsSiteConfig(): UserConfig {
+function docsUserConfig(): UserConfig {
   return {
     root: resolve(PKG_DIR, "docs/app"),
     plugins: [
@@ -199,7 +199,7 @@ function generateRoutesFile(config: DocsConfig): void {
   const routeMap = generateRouteMap(routes);
 
   // Build sidebar
-  const sidebar: Record<string, unknown> = {};
+  const sidebar: Record<string, SidebarConfig> = {};
   if (config.sidebar) {
     for (const [prefix, sidebarConfig] of Object.entries(config.sidebar)) {
       if (sidebarConfig === "auto") {
@@ -221,17 +221,17 @@ function generateRoutesFile(config: DocsConfig): void {
     .map((r, i) => {
       // Use absolute path for reliable resolution
       return `// @ts-ignore
-      import view${i} from ${r.filePath};`;
+      import view${i} from ${JSON.stringify(r.filePath)};`;
     })
     .join("\n");
 
   // Generate registerViewClass calls
   const registrations = routes
-    .map((r, i) => `registerViewClass(${r.viewId}, view${i});`)
+    .map((r, i) => `registerViewClass(${JSON.stringify(r.viewId)}, view${i});`)
     .join("\n");
 
-  // Compose siteData
-  const siteData = {
+  // Compose docsConfig
+  const docsConfig: DocsConfig = {
     title: config.title,
     description: config.description || "",
     lang: config.lang || "en-US",
@@ -249,9 +249,9 @@ ${imports}
 
 ${registrations}
 
-export const routes = ${JSON.stringify(routeMap, null, 2)};
+export const routes: Record<string, string> = ${JSON.stringify(routeMap, null, 2)};
 
-export const siteData = ${JSON.stringify(siteData, null, 2)};
+export const docsConfig = ${JSON.stringify(docsConfig, null, 2)};
 `;
 
   // Write generated module to node_modules/@lark.js/docs/generated/
@@ -268,20 +268,4 @@ export const siteData = ${JSON.stringify(siteData, null, 2)};
     ),
     "utf-8",
   );
-
-  // Write .d.ts for TypeScript type resolution
-  const dtsContent = `import type { DocsConfig, SidebarItem, SearchEntry } from "../../../src/types";
-
-export const routes: Record<string, string>;
-
-export const siteData: {
-  title: string;
-  description: string;
-  lang: string;
-  nav: DocsConfig["nav"];
-  sidebar: Record<string, SidebarItem[]>;
-  searchIndex: SearchEntry[];
-};
-`;
-  fs.writeFileSync(resolve(generatedDir, "index.d.ts"), dtsContent, "utf-8");
 }

@@ -86,7 +86,7 @@ The boot file registers theme views, imports compiled `.md` files, and starts th
 ```ts
 // boot.ts
 import { Framework, View, State, registerViewClass } from "@lark.js/mvc";
-import { routes, siteData } from "./routes";
+import { routes, docsConfig } from "./routes";
 
 import {
   createDocLayoutView,
@@ -115,7 +115,7 @@ registerViewClass("theme/toc", createTocView(View, tocTemplate));
 registerViewClass("theme/search", createSearchView(View, searchTemplate));
 
 // Inject site data
-State.set({ siteData });
+State.set({ docsConfig });
 
 // Boot
 Framework.boot({

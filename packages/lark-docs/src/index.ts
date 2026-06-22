@@ -57,6 +57,7 @@ export {
   createContentView,
   createTocView,
   createSearchView,
+  createLocalSearchClient,
 } from "./theme/index";
 
 // Theme icons (lucide-static raw SVG strings)

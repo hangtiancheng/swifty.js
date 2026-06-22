@@ -10,4 +10,5 @@ export { createSidebarView } from "./sidebar";
 export { createContentView } from "./content";
 export { createTocView } from "./toc";
 export { createSearchView } from "./search";
+export { createLocalSearchClient } from "./docsearch-local";
 export { icons } from "./icons";
