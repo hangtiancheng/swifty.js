@@ -24,7 +24,7 @@ export type {
 } from "./types";
 
 // Configuration helper
-export { defineConfig } from "./config/define-config";
+export { defineConfig } from "./define-config";
 
 // Scanner
 export { scanDocsDir } from "./scanner";
@@ -45,7 +45,7 @@ export { renderToLarkTemplate } from "./markdown/renderer";
 export { getHighlighter, highlightCode } from "./markdown/highlighter";
 
 // Compiler (for advanced users; also available at @lark.js/docs/compiler)
-export { compileMarkdown } from "./compiler/compile-markdown";
+export { compileMarkdown } from "./compile-markdown";
 
 // Runtime search (also available at @lark.js/docs/runtime)
 export { searchDocs, slugify } from "./runtime";

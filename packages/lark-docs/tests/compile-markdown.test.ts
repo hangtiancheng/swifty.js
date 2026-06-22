@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { compileMarkdown } from "../src/compiler/compile-markdown";
+import { compileMarkdown } from "../src/compile-markdown";
 import type { DocsConfig } from "../src/types";
 
 const baseConfig: DocsConfig = {

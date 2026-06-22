@@ -13,16 +13,16 @@
  * 5. Extract page metadata (title, headings)
  * 6. Wrap HTML in a JS module exporting pageData + template
  */
-import { extractFrontmatter } from "../markdown/frontmatter";
-import { createParser } from "../markdown/parser";
-import { renderToLarkTemplate } from "../markdown/renderer";
-import { getHighlighter, highlightCode } from "../markdown/highlighter";
-import type { CompileMarkdownOptions } from "../types";
-import { deriveTitleFromPath } from "../utils/derive-title";
+import { extractFrontmatter } from "./markdown/frontmatter";
+import { createParser } from "./markdown/parser";
+import { renderToLarkTemplate } from "./markdown/renderer";
+import { getHighlighter, highlightCode } from "./markdown/highlighter";
+import type { CompileMarkdownOptions } from "./types";
+import { deriveTitleFromPath } from "./utils/derive-title";
 import {
   extractFirstHeading,
   extractHeadings,
-} from "../utils/heading-extraction";
+} from "./utils/heading-extraction";
 
 /**
  * Compile a .md file source into a JS module string.

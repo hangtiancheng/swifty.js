@@ -18,13 +18,8 @@ import { resolve } from "node:path";
 import { larkMvcPlugin7 } from "@lark.js/mvc/vite";
 import tailwindcss from "@tailwindcss/vite";
 import { larkDocsPlugin } from "./src/vite";
-import type { DocsConfig, SidebarConfig } from "./src/types";
-import { scanDocsDir } from "./src/scanner";
-import { generateRouteMap } from "./src/route-map";
-import { generateSidebar } from "./src/sidebar-generator";
-import { buildSearchIndex } from "./src/search-index";
-import path from "node:path";
-import fs from "node:fs";
+import type { DocsConfig } from "./src/types";
+import { defineConfig as defineDocsConfig } from "./src/config/define-config";
 
 // === Shared constants ===
 
@@ -56,7 +51,7 @@ const CJS_SHIMS = [
 ].join("\n");
 
 /** Documentation site configuration used in docs mode. */
-const docsConfig: DocsConfig = {
+const docsConfig = defineDocsConfig({
   docs: "docs",
   baseUrl: "/docs/",
   routeMode: "history",
@@ -95,7 +90,7 @@ const docsConfig: DocsConfig = {
     ],
   },
   search: { provider: "docsearch" },
-};
+});
 
 // === Mode router ===
 
@@ -103,8 +98,6 @@ export default defineConfig(({ mode }) => {
   if (mode === "lib") {
     return libConfig();
   }
-  // Docs mode: generate routes.ts before returning config
-  generateRoutesFile(docsConfig);
   return docsUserConfig();
 });
 

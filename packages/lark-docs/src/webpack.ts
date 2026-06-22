@@ -14,7 +14,7 @@
  * ```
  */
 import type { DocsConfig } from "./types";
-import { compileMarkdown } from "./compiler/compile-markdown";
+import { compileMarkdown } from "./compile-markdown";
 
 export interface LarkDocsWebpackOptions {
   /** Full docs config. */

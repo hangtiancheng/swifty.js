@@ -16,7 +16,7 @@
  */
 import fs from "node:fs";
 import type { DocsConfig } from "./types";
-import { compileMarkdown } from "./compiler/compile-markdown";
+import { compileMarkdown } from "./compile-markdown";
 import type { Plugin } from "vite";
 
 export interface LarkDocsVitePluginOptions {
