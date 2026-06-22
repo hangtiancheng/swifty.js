@@ -60,12 +60,13 @@ export function createDocsLayoutView(View: any, template: any): any {
       this.updater.digest();
     },
 
-    "navigateTo<click>"(e: Record<string, unknown>) {
-      const params = e["params"] as Record<string, string> | undefined;
-      if (params?.["href"]) {
+    "navigateTo<click>"(e: Event) {
+      const target = e.target as HTMLElement;
+      const href = target.dataset.href;
+      if (href) {
         // Delegate to lark-mvc Router via the Framework
         const Router = (this.owner as any)?.constructor?.Router;
-        Router?.to?.(params["href"]);
+        Router?.to?.(href);
       }
     },
 

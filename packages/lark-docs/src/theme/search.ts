@@ -72,11 +72,12 @@ export function createSearchView(View: any, template: any): any {
       this.updater.set({ results, hasSearched: true }).digest();
     },
 
-    "goToResult<click>"(e: Record<string, unknown>) {
-      const params = e["params"] as Record<string, string> | undefined;
-      if (params?.["href"]) {
+    "goToResult<click>"(e: Event) {
+      const target = e.target as HTMLElement;
+      const href = target.dataset.href;
+      if (href) {
         const Router = (this.owner as any)?.constructor?.Router;
-        Router?.to?.(params["href"]);
+        Router?.to?.(href);
         this.updater
           .set({ isOpen: false, results: [], hasSearched: false })
           .digest();

@@ -10,7 +10,7 @@
       <ul class="menu menu-horizontal px-1">
         {{forOf navItems as item idx}}
         <li>
-          <a @click="navigateTo({href: '{{=item.link}}'})">{{=item.text}}</a>
+          <a data-href="{{=item.link}}" @click="navigateTo()">{{=item.text}}</a>
         </li>
         {{/forOf}}
       </ul>
@@ -43,7 +43,8 @@
         {{if prevPage}}
         <a
           class="btn btn-outline btn-sm"
-          @click="navigateTo({href: '{{=prevPage.link}}'})"
+          data-href="{{=prevPage.link}}"
+          @click="navigateTo()"
         >
           &larr; {{=prevPage.text}}
         </a>
@@ -52,7 +53,8 @@
         {{/if}} {{if nextPage}}
         <a
           class="btn btn-outline btn-sm"
-          @click="navigateTo({href: '{{=nextPage.link}}'})"
+          data-href="{{=nextPage.link}}"
+          @click="navigateTo()"
         >
           {{=nextPage.text}} &rarr;
         </a>

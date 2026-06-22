@@ -11,7 +11,8 @@
       <a
         class="{{if heading.isActive}}menu-active text-primary font-medium{{/if}}"
         href="#{{=heading.slug}}"
-        @click="scrollToHeading({slug: '{{=heading.slug}}'})"
+        data-slug="{{=heading.slug}}"
+        @click="scrollToHeading()"
       >
         {{=heading.text}}
       </a>

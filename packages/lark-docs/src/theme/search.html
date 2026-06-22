@@ -12,7 +12,8 @@
       {{if results.length > 0}} {{forOf results as result}}
       <a
         class="hover:bg-base-200 border-base-200 block cursor-pointer rounded-lg border-b p-3 last:border-0"
-        @click="goToResult({href: '{{=result.link}}'})"
+        data-href="{{=result.link}}"
+        @click="goToResult()"
       >
         <p class="text-sm font-medium">{{=result.title}}</p>
         {{if result.excerpt}}

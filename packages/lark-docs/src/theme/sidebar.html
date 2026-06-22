@@ -13,7 +13,8 @@
       <li>
         <a
           class="{{if item.isActive}}menu-active font-medium{{/if}}"
-          @click="navigateTo({href: '{{=item.link}}'})"
+          data-href="{{=item.link}}"
+          @click="navigateTo()"
         >
           {{=item.text}}
         </a>

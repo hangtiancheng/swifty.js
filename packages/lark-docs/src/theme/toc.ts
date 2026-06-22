@@ -28,10 +28,11 @@ export function createTocView(View: any, template: any): any {
       this.updater.digest();
     },
 
-    "scrollToHeading<click>"(e: Record<string, unknown>) {
-      const params = e["params"] as Record<string, string> | undefined;
-      if (params?.["slug"]) {
-        const el = document.getElementById(params["slug"]);
+    "scrollToHeading<click>"(e: Event) {
+      const target = e.target as HTMLElement;
+      const slug = target.dataset.slug;
+      if (slug) {
+        const el = document.getElementById(slug);
         if (el) {
           el.scrollIntoView({ behavior: "smooth", block: "start" });
         }

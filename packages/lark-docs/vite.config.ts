@@ -156,7 +156,6 @@ function docsSiteConfig(): UserConfig {
       larkDocsPlugin({ config: docsConfig }),
       larkMvcPlugin7({
         debug: true,
-        virtualDom: true,
         useSwc: true,
       }),
       tailwindcss() as PluginOption,
@@ -180,14 +179,14 @@ function docsSiteConfig(): UserConfig {
 // === Routes file generator ===
 
 /**
- * Generate a physical routes module into `node_modules/@lark-docs/generated/`.
+ * Generate a physical routes module into `node_modules/@lark.js/docs/generated/`.
  *
  * This file is regenerated each time `vite --mode docs` starts (dev or build).
  * It imports all .md files (compiled by larkDocsPlugin), registers each as a
  * View class, and exports the route map + site data for boot.ts to consume.
  *
  * Written to node_modules so it can be imported with a bare module name
- * (`@lark-docs/generated`), which TypeScript can resolve via ambient
+ * (`@lark.js/docs/generated`), which TypeScript can resolve via ambient
  * `declare module` — relative module names are not valid in ambient
  * module declarations.
  */
@@ -216,12 +215,12 @@ function generateRoutesFile(config: DocsConfig): void {
     config.search?.provider === "none" ? [] : buildSearchIndex(routes);
 
   // Generate import statements for each .md file.
-  // Paths are relative from node_modules/@lark-docs/generated/ to docs/*.md.
-  const generatedDir = resolve(PKG_DIR, "node_modules/@lark-docs/generated");
+  // Use absolute paths to avoid resolution issues from node_modules location.
+  const generatedDir = resolve(PKG_DIR, "node_modules/@lark.js/docs/generated");
   const imports = routes
     .map((r, i) => {
-      const relPath = path.relative(generatedDir, r.filePath);
-      return `import view${i} from ${JSON.stringify("./" + relPath)};`;
+      // Use absolute path for reliable resolution
+      return `import view${i} from ${JSON.stringify(r.filePath)};`;
     })
     .join("\n");
 
@@ -254,7 +253,7 @@ export const routes = ${JSON.stringify(routeMap, null, 2)};
 export const siteData = ${JSON.stringify(siteData, null, 2)};
 `;
 
-  // Write generated module to node_modules/@lark-docs/generated/
+  // Write generated module to node_modules/@lark.js/docs/generated/
   fs.mkdirSync(generatedDir, { recursive: true });
   fs.writeFileSync(resolve(generatedDir, "index.ts"), fileContent, "utf-8");
 
@@ -262,7 +261,7 @@ export const siteData = ${JSON.stringify(siteData, null, 2)};
   fs.writeFileSync(
     resolve(generatedDir, "package.json"),
     JSON.stringify(
-      { name: "@lark-docs/generated", type: "module", main: "index.ts" },
+      { name: "@lark.js/docs/generated", type: "module", main: "index.ts" },
       null,
       2,
     ),
