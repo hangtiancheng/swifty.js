@@ -1,10 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { buildSearchIndex, emitSearchIndexModule } from "../src/search-index";
-import type { DocRoute } from "../src/types";
+import type { DocsRoute } from "../src/types";
 
 describe("buildSearchIndex", () => {
   it("builds search entries from routes", () => {
-    const routes: DocRoute[] = [
+    const routes: DocsRoute[] = [
       {
         path: "/docs/guide/",
         viewId: "guide-index",
@@ -42,7 +42,7 @@ describe("buildSearchIndex", () => {
   });
 
   it("excludes draft pages", () => {
-    const routes: DocRoute[] = [
+    const routes: DocsRoute[] = [
       {
         path: "/docs/draft-page",
         viewId: "draft",
@@ -61,7 +61,7 @@ describe("buildSearchIndex", () => {
   });
 
   it("uses empty excerpt when no description", () => {
-    const routes: DocRoute[] = [
+    const routes: DocsRoute[] = [
       {
         path: "/docs/test",
         viewId: "test",

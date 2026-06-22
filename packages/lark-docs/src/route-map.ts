@@ -1,10 +1,10 @@
 /**
  * Route map generator.
  *
- * Converts scanned DocRoute[] into the format expected by
+ * Converts scanned DocsRoute[] into the format expected by
  * @lark.js/mvc's FrameworkConfig.routes.
  */
-import type { DocRoute } from "./types";
+import type { DocsRoute } from "./types";
 
 /**
  * Generate a routes map object for Framework.boot({ routes }).
@@ -14,7 +14,7 @@ import type { DocRoute } from "./types";
  * { "/docs/guide/": "docs-guide-index", "/docs/guide/config": "docs-guide-config" }
  * ```
  */
-export function generateRouteMap(routes: DocRoute[]): Record<string, string> {
+export function generateRouteMap(routes: DocsRoute[]): Record<string, string> {
   const map: Record<string, string> = {};
   for (const route of routes) {
     map[route.path] = route.viewId;
@@ -23,12 +23,12 @@ export function generateRouteMap(routes: DocRoute[]): Record<string, string> {
 }
 
 /**
- * Generate a JS module source string that imports all compiled doc views
+ * Generate a JS module source string that imports all compiled docs views
  * and registers them with registerViewClass.
  *
  * This is emitted as a virtual module by the build plugins.
  */
-export function generateBootModule(routes: DocRoute[]): string {
+export function generateBootModule(routes: DocsRoute[]): string {
   const imports = routes
     .map((r, i) => `import view${i} from ${JSON.stringify(r.filePath)};`)
     .join("\n");

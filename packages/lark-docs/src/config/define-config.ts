@@ -15,8 +15,8 @@
  * });
  * ```
  */
-import type { DocConfig } from "../types";
+import type { DocsConfig } from "../types";
 
-export function defineConfig(config: DocConfig): DocConfig {
+export function defineConfig(config: DocsConfig): DocsConfig {
   return config;
 }

@@ -6,7 +6,7 @@
       class="input input-bordered mb-4 w-full"
       placeholder="Search documentation..."
       @input="onSearchInput()"
-      id="doc-search-input"
+      id="docs-search-input"
     />
     <div class="max-h-96 overflow-y-auto">
       {{if results.length > 0}} {{forOf results as result}}

@@ -1,11 +1,11 @@
 /**
  * Search index builder.
  *
- * Builds a JSON-serializable search index from all doc routes.
+ * Builds a JSON-serializable search index from all docs routes.
  * The index is embedded into a virtual module and loaded lazily
  * at runtime when the user opens the search dialog.
  */
-import type { DocRoute, SearchEntry } from "./types";
+import type { DocsRoute, SearchEntry } from "./types";
 
 /**
  * Build search entries from all scanned routes.
@@ -13,7 +13,7 @@ import type { DocRoute, SearchEntry } from "./types";
  * Each entry contains the page title, link, heading texts,
  * and a plain-text excerpt (first ~200 chars of content).
  */
-export function buildSearchIndex(routes: DocRoute[]): SearchEntry[] {
+export function buildSearchIndex(routes: DocsRoute[]): SearchEntry[] {
   return routes
     .filter((r) => !r.pageData.draft)
     .map((route) => ({

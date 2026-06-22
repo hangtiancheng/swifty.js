@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { generateRouteMap, generateBootModule } from "../src/route-map";
-import type { DocRoute } from "../src/types";
+import type { DocsRoute } from "../src/types";
 
-const mockRoutes: DocRoute[] = [
+const mockRoutes: DocsRoute[] = [
   {
     path: "/docs/",
     viewId: "docs-index",

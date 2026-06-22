@@ -1,6 +1,5 @@
 # @lark.js/docs
 
-
 Documentation site generator for [@lark.js/mvc](https://github.com/hangtiancheng/lark/tree/main/packages/lark-mvc).
 
 If `@lark.js/mvc` is to React/Vue, then `@lark.js/docs` is to Docusaurus/VitePress -- providing an out-of-the-box documentation site experience.
@@ -71,34 +70,34 @@ export default defineConfig({
 **Vite:**
 
 ```ts
-import { larkDocPlugin } from "@lark.js/docs/vite";
+import { larkDocsPlugin } from "@lark.js/docs/vite";
 import { larkMvcPlugin } from "@lark.js/mvc/vite";
-import docConfig from "./lark-docs.config";
+import docsConfig from "./lark-docs.config";
 
 export default defineConfig({
-  plugins: [larkDocPlugin({ config: docConfig }), larkMvcPlugin()],
+  plugins: [larkDocsPlugin({ config: docsConfig }), larkMvcPlugin()],
 });
 ```
 
 **Webpack:**
 
 ```ts
-import { LarkDocPlugin } from "@lark.js/docs/webpack";
-import docConfig from "./lark-docs.config";
+import { LarkDocsPlugin } from "@lark.js/docs/webpack";
+import docsConfig from "./lark-docs.config";
 
 export default {
-  plugins: [new LarkDocPlugin({ config: docConfig })],
+  plugins: [new LarkDocsPlugin({ config: docsConfig })],
 };
 ```
 
 **Rspack:**
 
 ```ts
-import { LarkDocPlugin } from "@lark.js/docs/rspack";
-import docConfig from "./lark-docs.config";
+import { LarkDocsPlugin } from "@lark.js/docs/rspack";
+import docsConfig from "./lark-docs.config";
 
 export default {
-  plugins: [new LarkDocPlugin({ config: docConfig })],
+  plugins: [new LarkDocsPlugin({ config: docsConfig })],
 };
 ```
 
@@ -254,7 +253,7 @@ Auto-generate sidebar items from scanned routes.
 
 ### `buildSearchIndex(routes)`
 
-Build a search index from all doc routes.
+Build a search index from all docs routes.
 
 ### `compileMarkdown(source, options)`
 
@@ -266,7 +265,7 @@ Client-side full-text search over the pre-built index.
 
 ### Theme View Factories
 
-- `createDocLayoutView(View, template)` -- main layout
+- `createDocsLayoutView(View, template)` -- main layout
 - `createSidebarView(View, template)` -- sidebar navigation
 - `createContentView(View, template)` -- content area
 - `createTocView(View, template)` -- right-side heading outline

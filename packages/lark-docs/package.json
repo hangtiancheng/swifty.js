@@ -1,5 +1,5 @@
 {
-  "name": "@lark.js/docss",
+  "name": "@lark.js/docs",
   "version": "0.0.1",
   "description": "Docs site generator for @lark.js/mvc",
   "keywords": [
@@ -81,10 +81,10 @@
   },
   "scripts": {
     "prepublish": "pnpm build",
-    "build": "TODO: Use vite to bundle @lark.js/docss",
-    "build:site": "TODO: Use vite to bundle ./docs site",
-    "dev:site": "TODO: Use vite to dev ./docs site",
-    "preview:site": "TODO: Use vite to preview ./docs site",
+    "build": "vite build --mode lib && node scripts/copy-dcts.mjs",
+    "build:docs": "vite build --mode site",
+    "dev:docs": "vite --mode site",
+    "preview:docs": "vite preview --mode site --outDir dist-site",
     "format": "prettier -w ./ --experimental-cli",
     "typecheck": "tsc -p tsconfig.build.json --noEmit",
     "test": "vitest run",
@@ -106,9 +106,9 @@
     "@types/node": "^24.13.2",
     "@vitest/coverage-v8": "4.1.9",
     "prettier": "^3.8.4",
-    "tsup": "^8.5.1",
     "typescript": "^5.9.3",
     "vite": "^7.3.5",
+    "vite-plugin-dts": "^5.0.2",
     "vitest": "^4.1.9"
   },
   "peerDependencies": {

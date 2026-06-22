@@ -1,12 +1,12 @@
 import { describe, it, expect } from "vitest";
 import { generateSidebar } from "../src/sidebar-generator";
-import type { DocRoute } from "../src/types";
+import type { DocsRoute } from "../src/types";
 
 function makeRoute(
   path: string,
   title: string,
   opts?: { sidebarPosition?: number; sidebarLabel?: string },
-): DocRoute {
+): DocsRoute {
   return {
     path,
     viewId: path.replace(/\//g, "-"),
@@ -23,7 +23,7 @@ function makeRoute(
 
 describe("generateSidebar", () => {
   it("generates sidebar items from routes", () => {
-    const routes: DocRoute[] = [
+    const routes: DocsRoute[] = [
       makeRoute("/docs/guide/", "Guide Home"),
       makeRoute("/docs/guide/config", "Configuration"),
       makeRoute("/docs/guide/plugins", "Plugins"),
@@ -41,7 +41,7 @@ describe("generateSidebar", () => {
   });
 
   it("sorts by sidebarPosition", () => {
-    const routes: DocRoute[] = [
+    const routes: DocsRoute[] = [
       makeRoute("/docs/guide/plugins", "Plugins", { sidebarPosition: 3 }),
       makeRoute("/docs/guide/config", "Configuration", { sidebarPosition: 1 }),
       makeRoute("/docs/guide/intro", "Introduction", { sidebarPosition: 2 }),
@@ -57,7 +57,7 @@ describe("generateSidebar", () => {
   });
 
   it("uses sidebarLabel when available", () => {
-    const routes: DocRoute[] = [
+    const routes: DocsRoute[] = [
       makeRoute("/docs/guide/config", "Configuration", {
         sidebarLabel: "Config",
       }),
@@ -69,7 +69,7 @@ describe("generateSidebar", () => {
   });
 
   it("groups by subdirectory", () => {
-    const routes: DocRoute[] = [
+    const routes: DocsRoute[] = [
       makeRoute("/docs/guide/getting-started", "Getting Started"),
       makeRoute("/docs/guide/api/router", "Router API"),
       makeRoute("/docs/guide/api/state", "State API"),
@@ -93,7 +93,7 @@ describe("generateSidebar", () => {
   });
 
   it("handles no matching routes for prefix", () => {
-    const routes: DocRoute[] = [makeRoute("/docs/api/router", "Router")];
+    const routes: DocsRoute[] = [makeRoute("/docs/api/router", "Router")];
 
     const items = generateSidebar(routes, "/guide/", "/docs/");
     expect(items).toEqual([]);

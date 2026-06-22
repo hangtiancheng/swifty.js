@@ -2,11 +2,11 @@
  * Recursive docs directory scanner.
  *
  * Walks the filesystem to discover .md files, extracts frontmatter
- * and headings from each, and produces DocRoute entries.
+ * and headings from each, and produces DocsRoute entries.
  */
 import fs from "node:fs";
 import path from "node:path";
-import type { DocRoute, PageData } from "./types";
+import type { DocsRoute, PageData } from "./types";
 import { extractFrontmatter } from "./markdown/frontmatter";
 import { deriveTitleFromPath } from "./utils/derive-title";
 import {
@@ -38,8 +38,8 @@ export function scanDocsDir(
   docsDir: string,
   baseUrl: string,
   options?: { excludeDrafts?: boolean },
-): DocRoute[] {
-  const routes: DocRoute[] = [];
+): DocsRoute[] {
+  const routes: DocsRoute[] = [];
   const normalizedBase = normalizeBase(baseUrl);
 
   function walk(dir: string, prefix: string): void {

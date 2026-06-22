@@ -1,6 +1,6 @@
 import { icons as defaultIcons } from "./icons";
 
-export interface DocLayoutViewDef {
+export interface DocsLayoutViewDef {
   template: unknown;
   init(): void;
   assign(): boolean | undefined;
@@ -8,7 +8,7 @@ export interface DocLayoutViewDef {
 }
 
 /**
- * DocLayout view definition factory.
+ * DocsLayout view definition factory.
  *
  * Call this with the compiled template and lark-mvc View class
  * to produce a registered view.
@@ -19,14 +19,14 @@ export interface DocLayoutViewDef {
  *
  * Usage in user's boot.ts:
  * ```ts
- * import { createDocLayoutView, icons } from "@lark.js/docs";
- * import template from "@lark.js/docs/theme/doc-layout.html";
+ * import { createDocsLayoutView, icons } from "@lark.js/docs";
+ * import template from "@lark.js/docs/theme/docs-layout.html";
  * import { View } from "@lark.js/mvc";
  *
- * registerViewClass("theme/doc-layout", createDocLayoutView(View, template));
+ * registerViewClass("theme/docs-layout", createDocsLayoutView(View, template));
  * ```
  */
-export function createDocLayoutView(View: any, template: any): any {
+export function createDocsLayoutView(View: any, template: any): any {
   return View.extend({
     template,
 

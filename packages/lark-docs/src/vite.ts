@@ -1,60 +1,52 @@
 /**
  * Vite plugin for @lark.js/docs.
  *
- * Transforms .md file imports into JS modules that export lark-mvc Views.
+ * Transforms `.md` file imports into JS modules that export lark-mvc Views.
+ * Any `import ... from "./foo.md"` is intercepted and compiled through
+ * the full markdown pipeline (frontmatter, markdown-it, Shiki).
  *
  * Usage:
  * ```ts
- * import { larkDocPlugin } from "@lark.js/docs/vite";
+ * import { larkDocsPlugin } from "@lark.js/docs/vite";
  *
  * export default defineConfig({
- *   plugins: [larkDocPlugin({ config: docConfig })],
+ *   plugins: [larkDocsPlugin({ config: docsConfig })],
  * });
  * ```
  */
-import path from "node:path";
 import fs from "node:fs";
-import type { DocConfig } from "./types";
+import type { DocsConfig } from "./types";
 import { compileMarkdown } from "./compiler/compile-markdown";
+import type { Plugin } from "vite";
 
-export interface LarkDocVitePluginOptions {
-  /** Full doc config. */
-  config: DocConfig;
+export interface LarkDocsVitePluginOptions {
+  /** Full docs config. */
+  config: DocsConfig;
   /** Enable debug mode. */
   debug?: boolean;
 }
 
-interface VitePlugin {
-  name: string;
-  enforce: "pre" | "post";
-  resolveId?(source: string, importer?: string): string | null;
-  load?(id: string): Promise<string | null> | string | null;
-}
+// Suffix used to mark compiled .md files in the module graph
+const MD_SUFFIX = "?lark-docs";
 
-const SUFFIX = "?lark-docs";
-
-export function larkDocPlugin(options: LarkDocVitePluginOptions): VitePlugin {
+export function larkDocsPlugin(options: LarkDocsVitePluginOptions): Plugin {
   const { config, debug } = options;
 
   return {
     name: "lark-docs",
     enforce: "pre",
 
-    resolveId(source, importer) {
-      if (!source.endsWith(".md")) return null;
-
-      // Resolve relative to importer
-      const resolved = importer
-        ? path.resolve(path.dirname(importer), source)
-        : path.resolve(source);
-
-      return resolved + SUFFIX;
+    resolveId(source: string) {
+      if (source.endsWith(".md") && !source.includes("?")) {
+        return source + MD_SUFFIX;
+      }
+      return null;
     },
 
-    async load(id) {
-      if (!id.endsWith(SUFFIX)) return null;
+    async load(id: string) {
+      if (!id.endsWith(MD_SUFFIX)) return null;
 
-      const filePath = id.slice(0, -SUFFIX.length);
+      const filePath = id.slice(0, -MD_SUFFIX.length);
       const source = fs.readFileSync(filePath, "utf-8");
 
       return await compileMarkdown(source, {

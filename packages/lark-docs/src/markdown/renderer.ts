@@ -3,7 +3,7 @@
  *
  * The rendered HTML is designed to be embedded directly into a lark-mvc
  * template function. Internal links use `data-lark-nav` attributes (handled
- * at runtime by the DocView's event delegation), and code blocks are
+ * at runtime by the DocsView's event delegation), and code blocks are
  * pre-rendered at build time.
  */
 import type MarkdownIt from "markdown-it";

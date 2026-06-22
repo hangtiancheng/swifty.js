@@ -4,7 +4,7 @@
  * Groups routes by directory, sorts by sidebarPosition (frontmatter)
  * then alphabetically, and produces a SidebarItem[] tree.
  */
-import type { DocRoute, SidebarItem } from "./types";
+import type { DocsRoute, SidebarItem } from "./types";
 
 /**
  * Auto-generate sidebar items for routes under a given prefix.
@@ -16,7 +16,7 @@ import type { DocRoute, SidebarItem } from "./types";
  * 4. Nested directories become collapsible sub-groups
  */
 export function generateSidebar(
-  routes: DocRoute[],
+  routes: DocsRoute[],
   prefix: string,
   baseUrl: string,
 ): SidebarItem[] {
@@ -26,7 +26,7 @@ export function generateSidebar(
   );
 
   // Group by subdirectory
-  const groups = new Map<string, DocRoute[]>();
+  const groups = new Map<string, DocsRoute[]>();
 
   for (const route of prefixRoutes) {
     const relativePath = route.path.slice(normalizedPrefix.length);
@@ -76,7 +76,7 @@ function normalizePrefix(baseUrl: string, prefix: string): string {
   return p ? base + p + "/" : base;
 }
 
-function sortRoutes(routes: DocRoute[]): void {
+function sortRoutes(routes: DocsRoute[]): void {
   routes.sort((a, b) => {
     const posA = a.pageData.sidebarPosition ?? 999;
     const posB = b.pageData.sidebarPosition ?? 999;

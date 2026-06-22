@@ -6,19 +6,19 @@
  *
  * Usage:
  * ```ts
- * import { LarkDocPlugin } from "@lark.js/docs/rspack";
+ * import { LarkDocsPlugin } from "@lark.js/docs/rspack";
  *
  * export default {
- *   plugins: [new LarkDocPlugin({ config: docConfig })],
+ *   plugins: [new LarkDocsPlugin({ config: docsConfig })],
  * };
  * ```
  */
-import type { DocConfig } from "./types";
+import type { DocsConfig } from "./types";
 import { compileMarkdown } from "./compiler/compile-markdown";
 
-export interface LarkDocRspackOptions {
-  /** Full doc config. */
-  config: DocConfig;
+export interface LarkDocsRspackOptions {
+  /** Full docs config. */
+  config: DocsConfig;
   /** Enable debug mode. */
   debug?: boolean;
   /** Test regex. Default: /\.md$/ */
@@ -28,7 +28,7 @@ export interface LarkDocRspackOptions {
 }
 
 interface RspackLoaderContext {
-  getOptions: () => LarkDocRspackOptions;
+  getOptions: () => LarkDocsRspackOptions;
   resourcePath: string;
 }
 
@@ -36,7 +36,7 @@ interface RspackLoaderContext {
  * Rspack loader function.
  * Returns a Promise directly (Rspack async loaders must return the result).
  */
-export async function larkDocLoader(
+export async function larkDocsLoader(
   this: RspackLoaderContext,
   source: string,
 ): Promise<string> {
@@ -51,10 +51,10 @@ export async function larkDocLoader(
 /**
  * Rspack plugin that auto-registers the .md loader rule.
  */
-export class LarkDocPlugin {
-  private options: LarkDocRspackOptions;
+export class LarkDocsPlugin {
+  private options: LarkDocsRspackOptions;
 
-  constructor(options: LarkDocRspackOptions) {
+  constructor(options: LarkDocsRspackOptions) {
     this.options = options;
   }
 

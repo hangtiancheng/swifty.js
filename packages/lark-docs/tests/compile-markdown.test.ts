@@ -1,15 +1,15 @@
 import { describe, it, expect } from "vitest";
 import { compileMarkdown } from "../src/compiler/compile-markdown";
-import type { DocConfig } from "../src/types";
+import type { DocsConfig } from "../src/types";
 
-const baseConfig: DocConfig = {
+const baseConfig: DocsConfig = {
   docs: "docs",
   baseUrl: "/docs/",
   routeMode: "history",
   title: "Test",
 };
 
-const highlightConfig: DocConfig = {
+const highlightConfig: DocsConfig = {
   ...baseConfig,
   highlight: {
     theme: "github-dark",

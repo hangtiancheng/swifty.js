@@ -6,7 +6,7 @@
 
 // Types
 export type {
-  DocConfig,
+  DocsConfig,
   NavItem,
   SidebarConfig,
   SidebarItem,
@@ -15,7 +15,7 @@ export type {
   SearchOptions,
   PageData,
   HeadingInfo,
-  DocRoute,
+  DocsRoute,
   SidebarData,
   TocData,
   SearchEntry,
@@ -52,7 +52,7 @@ export { searchDocs, slugify } from "./runtime";
 
 // Theme view factories
 export {
-  createDocLayoutView,
+  createDocsLayoutView,
   createSidebarView,
   createContentView,
   createTocView,

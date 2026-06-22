@@ -35,7 +35,7 @@ export function createSearchView(View: any, template: any): any {
       // Focus the input after the modal renders
       setTimeout(() => {
         const input = document.getElementById(
-          "doc-search-input",
+          "docs-search-input",
         ) as HTMLInputElement;
         input?.focus();
       }, 100);

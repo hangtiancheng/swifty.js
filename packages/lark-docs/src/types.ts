@@ -11,7 +11,7 @@
  * Top-level configuration for @lark.js/docs.
  * Passed to defineConfig() in the user's lark-docs.config.ts.
  */
-export interface DocConfig {
+export interface DocsConfig {
   /** Docs source directory, relative to project root. Default: "docs" */
   docs: string;
 
@@ -144,7 +144,7 @@ export interface HeadingInfo {
 // ============================================================
 
 /** Generated route entry for a single .md file. */
-export interface DocRoute {
+export interface DocsRoute {
   /** Full route path including baseUrl prefix. e.g. "/docs/guide/config" */
   path: string;
   /** View ID for registerViewClass. e.g. "docs-guide-config" */
@@ -183,7 +183,7 @@ export interface TocData {
 // Search types
 // ============================================================
 
-/** Search index entry for a single doc page. */
+/** Search index entry for a single docs page. */
 export interface SearchEntry {
   /** Page title. */
   title: string;
@@ -213,8 +213,8 @@ export interface FrontmatterResult {
 
 /** Options for compileMarkdown(). */
 export interface CompileMarkdownOptions {
-  /** Full doc config. */
-  config: DocConfig;
+  /** Full docs config. */
+  config: DocsConfig;
   /** Absolute path to the .md file being compiled. */
   filePath: string;
   /** Enable debug line markers. */

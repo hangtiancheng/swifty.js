@@ -6,19 +6,19 @@
  *
  * Usage:
  * ```ts
- * import { LarkDocPlugin } from "@lark.js/docs/webpack";
+ * import { LarkDocsPlugin } from "@lark.js/docs/webpack";
  *
  * export default {
- *   plugins: [new LarkDocPlugin({ config: docConfig })],
+ *   plugins: [new LarkDocsPlugin({ config: docsConfig })],
  * };
  * ```
  */
-import type { DocConfig } from "./types";
+import type { DocsConfig } from "./types";
 import { compileMarkdown } from "./compiler/compile-markdown";
 
-export interface LarkDocWebpackOptions {
-  /** Full doc config. */
-  config: DocConfig;
+export interface LarkDocsWebpackOptions {
+  /** Full docs config. */
+  config: DocsConfig;
   /** Enable debug mode. */
   debug?: boolean;
   /** Test regex. Default: /\.md$/ */
@@ -29,7 +29,7 @@ export interface LarkDocWebpackOptions {
 
 interface WebpackLoaderContext {
   callback: (err: Error | null, result?: string) => void;
-  getOptions: () => LarkDocWebpackOptions;
+  getOptions: () => LarkDocsWebpackOptions;
   resourcePath: string;
 }
 
@@ -38,7 +38,7 @@ interface WebpackLoaderContext {
  * Uses this.callback() for async delivery (standard webpack 5 pattern).
  * compileMarkdown is async (Shiki init), so we chain .then/.catch.
  */
-export function larkDocLoader(
+export function larkDocsLoader(
   this: WebpackLoaderContext,
   source: string,
 ): void {
@@ -59,10 +59,10 @@ export function larkDocLoader(
 /**
  * Webpack plugin that auto-registers the .md loader rule.
  */
-export class LarkDocPlugin {
-  private options: LarkDocWebpackOptions;
+export class LarkDocsPlugin {
+  private options: LarkDocsWebpackOptions;
 
-  constructor(options: LarkDocWebpackOptions) {
+  constructor(options: LarkDocsWebpackOptions) {
     this.options = options;
   }
 

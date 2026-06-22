@@ -1,7 +1,7 @@
 /**
  * Lightweight runtime helpers for @lark.js/docs.
  *
- * This module is imported by compiled doc views at runtime.
+ * This module is imported by compiled docs views at runtime.
  * It is kept small to avoid dragging build-time dependencies
  * into the browser bundle.
  */
