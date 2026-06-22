@@ -1,7 +1,21 @@
-import { State, Router, View as ViewClass, type ViewInterface } from "@lark.js/mvc";
+import {
+  State,
+  Router,
+  View as ViewClass,
+  type ViewInterface,
+} from "@lark.js/mvc";
 import { icons as defaultIcons } from "./icons";
 import { createLocalSearchClient } from "./docsearch-local";
 import type { DocsConfig, PageData, SearchEntry } from "@/types";
+
+/**
+ * Shape of `this` inside DocsLayoutView methods. The custom helper
+ * (_initDocSearch) is not on ViewInterface, so it must be declared
+ * explicitly via a `this:` parameter annotation.
+ */
+interface DocsLayoutViewThis extends ViewInterface {
+  _initDocSearch(docsConfig: DocsConfig): void;
+}
 
 /**
  * DocsLayout view definition factory.
@@ -29,7 +43,7 @@ export function createDocsLayoutView(
   return View.extend({
     template,
 
-    init() {
+    init(this: DocsLayoutViewThis) {
       // Icons are static data -- set once in init(), not in render()
       this.updater.set({ icons: defaultIcons });
 
