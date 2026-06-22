@@ -13,7 +13,7 @@
  * 4. Return the rest as content
  */
 import { load as yamlLoad } from "js-yaml";
-import type { FrontmatterResult } from "@/types";
+import type { FrontmatterResult } from "../types";
 
 const FRONTMATTER_REGEX = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/;
 

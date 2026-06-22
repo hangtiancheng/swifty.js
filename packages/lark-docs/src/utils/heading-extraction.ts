@@ -28,7 +28,7 @@ export function stripCodeBlocks(content: string): string {
 export function extractFirstHeading(content: string): string | undefined {
   const stripped = stripCodeBlocks(content);
   const match = stripped.match(/^#\s+(.+)$/m);
-  return match?.[1]?.trim();
+  return match?.[1] ? cleanInlineMarkdown(match[1].trim()) : undefined;
 }
 
 /**
@@ -44,11 +44,31 @@ export function extractHeadings(content: string): HeadingInfo[] {
   let m: RegExpExecArray | null;
   while ((m = regex.exec(stripped)) !== null) {
     const rawText = m[2].trim();
+    const text = cleanInlineMarkdown(rawText);
     headings.push({
       level: m[1].length,
-      text: rawText,
-      slug: slugify(rawText),
+      text,
+      slug: slugify(text),
     });
   }
   return headings;
+}
+
+/**
+ * Strip inline markdown syntax from heading text so that the TOC and search
+ * index display clean readable text (e.g. `\`@keyframes\` key frames` → `@keyframes key frames`).
+ *
+ * Handles: inline code, bold, italic, and link text extraction.
+ * The order matters: code spans first (to protect their content from
+ * bold/italic stripping), then bold, then italic, then links.
+ */
+export function cleanInlineMarkdown(text: string): string {
+  return text
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/__([^_]+)__/g, "$1")
+    .replace(/\*([^*]+)\*/g, "$1")
+    .replace(/_([^_]+)_/g, "$1")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .trim();
 }
