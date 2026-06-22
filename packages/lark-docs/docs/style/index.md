@@ -56,9 +56,9 @@ The DocLayout provides a three-column responsive structure:
 │  Navbar (sticky top)                                │
 ├────────┬──────────────────────────┬─────────────────┤
 │        │                          │                 │
-│Sidebar │      Main Content       │      TOC        │
-│  64w   │      (flex-1)           │      56w        │
-│        │      prose prose-lg     │                 │
+│Sidebar │      Main Content        │      TOC        │
+│  64w   │      (flex-1)            │      56w        │
+│        │      prose prose-lg      │                 │
 │        │                          │                 │
 │        │                          │                 │
 │        ├──────────────────────────┤                 │
@@ -121,6 +121,7 @@ DaisyUI supports 30+ built-in themes. Switch themes in your Tailwind config:
 
 ```css
 @import "tailwindcss";
+
 @plugin "daisyui" {
   themes:
     light --default,

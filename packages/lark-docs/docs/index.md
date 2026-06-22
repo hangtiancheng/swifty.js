@@ -34,7 +34,7 @@ Configure your bundler, write markdown files, and boot the site. See [Get Starte
 ```
 docs/                    Build Time                          Runtime (Browser)
   index.md               ┌──────────────────┐               ┌────────────────────┐
-  get-started/     ───▶  │ larkDocPlugin    │  ───▶         │ lark-mvc Framework │
+  get-started/     ───>  │ larkDocPlugin    │  ───>         │ lark-mvc Framework │
     index.md             │ (compiles .md    │               │   Router + Views   │
     configuration.md     │  to JS modules)  │               │   + Frame tree     │
   markdown/              └──────────────────┘               └────────────────────┘

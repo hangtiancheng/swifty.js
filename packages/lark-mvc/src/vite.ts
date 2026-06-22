@@ -39,11 +39,12 @@ const LARK_TEMPLATE_SUFFIX = "?lark-template";
  */
 export function larkMvcPlugin(
   options: {
+    debug?: boolean
     virtualDom?: boolean;
     useSwc?: boolean;
   } = {},
 ): Plugin {
-  const { virtualDom = false, useSwc = false } = options;
+  const { debug = false, virtualDom = false, useSwc = false } = options;
   let root = __dirname;
 
   return {
@@ -92,7 +93,7 @@ export function larkMvcPlugin(
         const raw = fs.readFileSync(filePath, "utf-8");
         // Auto-extract variables from template for 0-config experience
         const globalVars = await extractGlobalVars(raw);
-        return compileTemplate(raw, { globalVars, virtualDom, useSwc });
+        return compileTemplate(raw, { debug, globalVars, virtualDom, useSwc });
       }
       return undefined;
     },
@@ -137,6 +138,7 @@ export function larkMvcPluginLegacy(
 
 export function larkMvcPlugin7(
   options: {
+    debug?: boolean
     virtualDom?: boolean;
     useSwc?: boolean;
   } = {},

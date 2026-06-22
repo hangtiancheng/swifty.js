@@ -220,13 +220,14 @@ function generateRoutesFile(config: DocsConfig): void {
   const imports = routes
     .map((r, i) => {
       // Use absolute path for reliable resolution
-      return `import view${i} from ${JSON.stringify(r.filePath)};`;
+      return `// @ts-ignore
+      import view${i} from ${r.filePath};`;
     })
     .join("\n");
 
   // Generate registerViewClass calls
   const registrations = routes
-    .map((r, i) => `registerViewClass(${JSON.stringify(r.viewId)}, view${i});`)
+    .map((r, i) => `registerViewClass(${r.viewId}, view${i});`)
     .join("\n");
 
   // Compose siteData
