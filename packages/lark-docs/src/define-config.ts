@@ -115,9 +115,5 @@ export const docsConfig = ${JSON.stringify(runtimeConfig, null, 2)};
 
   // Write generated module to .lark-docs/generated/
   mkdirSync(generatedDir, { recursive: true });
-  writeFileSync(
-    resolve(generatedDir, "index.ts"),
-    fileContent,
-    "utf-8",
-  );
+  writeFileSync(resolve(generatedDir, "index.ts"), fileContent, "utf-8");
 }

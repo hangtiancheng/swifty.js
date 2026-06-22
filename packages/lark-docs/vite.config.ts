@@ -117,7 +117,7 @@ function libConfig(): UserConfig {
           webpack: resolve(PKG_DIR, "src/webpack.ts"),
           rspack: resolve(PKG_DIR, "src/rspack.ts"),
           runtime: resolve(PKG_DIR, "src/runtime.ts"),
-          theme: resolve(PKG_DIR, "src/theme/index.ts")
+          theme: resolve(PKG_DIR, "src/theme/index.ts"),
         },
         formats: ["es", "cjs"] satisfies LibraryFormats[],
         fileName: (format: string, entryName: string) =>

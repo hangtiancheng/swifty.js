@@ -81,11 +81,11 @@
     },
     "./theme": {
       "import": {
-        "types": "./dist/theme.d.ts",
-         "default": "./dist/theme.js"
+        "types": "./dist/theme/index.d.ts",
+        "default": "./dist/theme.js"
       },
       "require": {
-        "types": "./dist/theme.d.cts",
+        "types": "./dist/theme/index.d.cts",
         "default": "./dist/theme.cjs"
       }
     },

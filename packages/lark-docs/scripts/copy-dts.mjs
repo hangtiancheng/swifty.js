@@ -5,22 +5,31 @@
  * but our package.json exports map requires both .d.ts and .d.cts
  * for dual-format (ESM + CJS) type support.
  *
- * This script simply copies each .d.ts to its .d.cts counterpart.
+ * Recursively walks dist/ to handle subdirectories (e.g. dist/theme/).
  */
-import { readdirSync, copyFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { readdirSync, copyFileSync, statSync } from "node:fs";
+import { resolve, relative } from "node:path";
 
 const distDir = resolve(import.meta.dirname, "../dist");
 
-const dtsFiles = readdirSync(distDir).filter(
-  (f) => f.endsWith(".d.ts") && !/-[A-Z0-9]{6,}\./i.test(f),
-);
+let count = 0;
 
-for (const file of dtsFiles) {
-  const src = resolve(distDir, file);
-  const dest = resolve(distDir, file.replace(/\.d\.ts$/, ".d.cts"));
-  copyFileSync(src, dest);
-  console.log(`  ${file} → ${file.replace(/\.d\.ts$/, ".d.cts")}`);
+function walk(dir) {
+  for (const entry of readdirSync(dir)) {
+    const full = resolve(dir, entry);
+    const stat = statSync(full);
+
+    if (stat.isDirectory()) {
+      walk(full);
+    } else if (entry.endsWith(".d.ts") && !/-[A-Z0-9]{6,}\./i.test(entry)) {
+      const dest = full.replace(/\.d\.ts$/, ".d.cts");
+      copyFileSync(full, dest);
+      console.log(`  ${relative(distDir, full)} → ${relative(distDir, dest)}`);
+      count++;
+    }
+  }
 }
 
-console.log(`\nCopied ${dtsFiles.length} .d.ts → .d.cts`);
+walk(distDir);
+
+console.log(`\nCopied ${count} .d.ts → .d.cts`);

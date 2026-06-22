@@ -213,3 +213,5 @@ dist-docs
 **/dist-docs
 
 packages/lark-homepage/docs
+
+**/.lark-docs/generated

@@ -34,10 +34,7 @@ import "./main.css";
 
 // === Register theme views ===
 
-registerViewClass(
-  "theme/docs-layout",
-  createDocsLayoutView(View, docLayout),
-);
+registerViewClass("theme/docs-layout", createDocsLayoutView(View, docLayout));
 registerViewClass("theme/sidebar", createSidebarView(View, sidebar));
 registerViewClass("theme/content", createContentView(View, content));
 registerViewClass("theme/toc", createTocView(View, toc));
