@@ -1,5 +1,6 @@
 # @lark.js/docs
 
+
 Documentation site generator for [@lark.js/mvc](https://github.com/hangtiancheng/lark/tree/main/packages/lark-mvc).
 
 If `@lark.js/mvc` is to React/Vue, then `@lark.js/docs` is to Docusaurus/VitePress -- providing an out-of-the-box documentation site experience.
