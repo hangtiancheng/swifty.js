@@ -21,7 +21,7 @@ const IGNORED_DIRS = new Set([
   "__fixtures__",
   ".git",
   ".vitepress",
-  ".lark-doc",
+  ".lark-docs",
   "dist",
 ]);
 

@@ -1,11 +1,11 @@
 /**
- * Vite plugin for @lark.js/doc.
+ * Vite plugin for @lark.js/docs.
  *
  * Transforms .md file imports into JS modules that export lark-mvc Views.
  *
  * Usage:
  * ```ts
- * import { larkDocPlugin } from "@lark.js/doc/vite";
+ * import { larkDocPlugin } from "@lark.js/docs/vite";
  *
  * export default defineConfig({
  *   plugins: [larkDocPlugin({ config: docConfig })],
@@ -31,13 +31,13 @@ interface VitePlugin {
   load?(id: string): Promise<string | null> | string | null;
 }
 
-const SUFFIX = "?lark-doc";
+const SUFFIX = "?lark-docs";
 
 export function larkDocPlugin(options: LarkDocVitePluginOptions): VitePlugin {
   const { config, debug } = options;
 
   return {
-    name: "lark-doc",
+    name: "lark-docs",
     enforce: "pre",
 
     resolveId(source, importer) {

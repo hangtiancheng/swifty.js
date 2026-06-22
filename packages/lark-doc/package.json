@@ -1,5 +1,5 @@
 {
-  "name": "@lark.js/docs",
+  "name": "@lark.js/docss",
   "version": "0.0.1",
   "description": "Docs site generator for @lark.js/mvc",
   "keywords": [
@@ -81,7 +81,7 @@
   },
   "scripts": {
     "prepublish": "pnpm build",
-    "build": "TODO: Use vite to bundle @lark.js/docs",
+    "build": "TODO: Use vite to bundle @lark.js/docss",
     "build:site": "TODO: Use vite to bundle ./docs site",
     "dev:site": "TODO: Use vite to dev ./docs site",
     "preview:site": "TODO: Use vite to preview ./docs site",

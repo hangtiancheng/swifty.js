@@ -19,8 +19,8 @@ export interface DocLayoutViewDef {
  *
  * Usage in user's boot.ts:
  * ```ts
- * import { createDocLayoutView, icons } from "@lark.js/doc";
- * import template from "@lark.js/doc/theme/doc-layout.html";
+ * import { createDocLayoutView, icons } from "@lark.js/docs";
+ * import template from "@lark.js/docs/theme/doc-layout.html";
  * import { View } from "@lark.js/mvc";
  *
  * registerViewClass("theme/doc-layout", createDocLayoutView(View, template));

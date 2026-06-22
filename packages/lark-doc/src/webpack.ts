@@ -1,12 +1,12 @@
 /**
- * Webpack loader and plugin for @lark.js/doc.
+ * Webpack loader and plugin for @lark.js/docs.
  *
  * The loader transforms .md files into JS modules that export lark-mvc Views.
  * The plugin auto-registers the loader rule for .md files.
  *
  * Usage:
  * ```ts
- * import { LarkDocPlugin } from "@lark.js/doc/webpack";
+ * import { LarkDocPlugin } from "@lark.js/docs/webpack";
  *
  * export default {
  *   plugins: [new LarkDocPlugin({ config: docConfig })],

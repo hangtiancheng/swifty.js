@@ -1,12 +1,12 @@
 /**
- * Rspack loader and plugin for @lark.js/doc.
+ * Rspack loader and plugin for @lark.js/docs.
  *
  * Mirrors the Webpack integration but returns a Promise directly
  * (Rspack async loaders must return the result, not call this.callback()).
  *
  * Usage:
  * ```ts
- * import { LarkDocPlugin } from "@lark.js/doc/rspack";
+ * import { LarkDocPlugin } from "@lark.js/docs/rspack";
  *
  * export default {
  *   plugins: [new LarkDocPlugin({ config: docConfig })],

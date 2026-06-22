@@ -1,5 +1,5 @@
 /**
- * Rollup configuration for @lark.js/doc
+ * Rollup configuration for @lark.js/docs
  *
  * Builds the package with multiple entry points:
  * - index: main API

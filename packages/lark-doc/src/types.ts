@@ -1,5 +1,5 @@
 /**
- * @lark.js/doc type definitions.
+ * @lark.js/docs type definitions.
  * All shared types for the documentation site generator.
  */
 
@@ -8,8 +8,8 @@
 // ============================================================
 
 /**
- * Top-level configuration for @lark.js/doc.
- * Passed to defineConfig() in the user's lark-doc.config.ts.
+ * Top-level configuration for @lark.js/docs.
+ * Passed to defineConfig() in the user's lark-docs.config.ts.
  */
 export interface DocConfig {
   /** Docs source directory, relative to project root. Default: "docs" */

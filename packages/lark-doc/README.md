@@ -1,8 +1,8 @@
-# @lark.js/doc
+# @lark.js/docs
 
 Documentation site generator for [@lark.js/mvc](https://github.com/hangtiancheng/lark/tree/main/packages/lark-mvc).
 
-If `@lark.js/mvc` is to React/Vue, then `@lark.js/doc` is to Docusaurus/VitePress -- providing an out-of-the-box documentation site experience.
+If `@lark.js/mvc` is to React/Vue, then `@lark.js/docs` is to Docusaurus/VitePress -- providing an out-of-the-box documentation site experience.
 
 ## Features
 
@@ -24,7 +24,7 @@ If `@lark.js/mvc` is to React/Vue, then `@lark.js/doc` is to Docusaurus/VitePres
 ### 1. Install
 
 ```bash
-pnpm add @lark.js/doc @lark.js/mvc tailwindcss daisyui
+pnpm add @lark.js/docs @lark.js/mvc tailwindcss daisyui
 ```
 
 The theme templates use Tailwind CSS utility classes and DaisyUI components. Both are peer dependencies -- your project must have them installed and configured in your CSS entry:
@@ -37,10 +37,10 @@ The theme templates use Tailwind CSS utility classes and DaisyUI components. Bot
 
 ### 2. Configure
 
-Create `lark-doc.config.ts`:
+Create `lark-docs.config.ts`:
 
 ```ts
-import { defineConfig } from "@lark.js/doc";
+import { defineConfig } from "@lark.js/docs";
 
 export default defineConfig({
   docs: "docs",
@@ -70,9 +70,9 @@ export default defineConfig({
 **Vite:**
 
 ```ts
-import { larkDocPlugin } from "@lark.js/doc/vite";
+import { larkDocPlugin } from "@lark.js/docs/vite";
 import { larkMvcPlugin } from "@lark.js/mvc/vite";
-import docConfig from "./lark-doc.config";
+import docConfig from "./lark-docs.config";
 
 export default defineConfig({
   plugins: [larkDocPlugin({ config: docConfig }), larkMvcPlugin()],
@@ -82,8 +82,8 @@ export default defineConfig({
 **Webpack:**
 
 ```ts
-import { LarkDocPlugin } from "@lark.js/doc/webpack";
-import docConfig from "./lark-doc.config";
+import { LarkDocPlugin } from "@lark.js/docs/webpack";
+import docConfig from "./lark-docs.config";
 
 export default {
   plugins: [new LarkDocPlugin({ config: docConfig })],
@@ -93,8 +93,8 @@ export default {
 **Rspack:**
 
 ```ts
-import { LarkDocPlugin } from "@lark.js/doc/rspack";
-import docConfig from "./lark-doc.config";
+import { LarkDocPlugin } from "@lark.js/docs/rspack";
+import docConfig from "./lark-docs.config";
 
 export default {
   plugins: [new LarkDocPlugin({ config: docConfig })],
@@ -137,7 +137,7 @@ See [Configuration Guide](/docs/guide/config) for details.
 
 ```ts
 import { Framework, registerViewClass, State } from "@lark.js/mvc";
-import { scanDocsDir, generateRouteMap, generateSidebar } from "@lark.js/doc";
+import { scanDocsDir, generateRouteMap, generateSidebar } from "@lark.js/docs";
 
 const routes = scanDocsDir("docs", "/docs/");
 const routeMap = generateRouteMap(routes);
@@ -152,14 +152,14 @@ Framework.boot({
 
 ## Package Exports
 
-| Sub-path                | Description                                           |
-| ----------------------- | ----------------------------------------------------- |
-| `@lark.js/doc`          | Main API (scanner, route-map, sidebar, config, theme) |
-| `@lark.js/doc/compiler` | Markdown-to-JS compiler                               |
-| `@lark.js/doc/vite`     | Vite plugin for `.md` files                           |
-| `@lark.js/doc/webpack`  | Webpack loader + plugin for `.md` files               |
-| `@lark.js/doc/rspack`   | Rspack loader + plugin for `.md` files                |
-| `@lark.js/doc/runtime`  | Lightweight runtime helpers (search, slugify)         |
+| Sub-path                 | Description                                           |
+| ------------------------ | ----------------------------------------------------- |
+| `@lark.js/docs`          | Main API (scanner, route-map, sidebar, config, theme) |
+| `@lark.js/docs/compiler` | Markdown-to-JS compiler                               |
+| `@lark.js/docs/vite`     | Vite plugin for `.md` files                           |
+| `@lark.js/docs/webpack`  | Webpack loader + plugin for `.md` files               |
+| `@lark.js/docs/rspack`   | Rspack loader + plugin for `.md` files                |
+| `@lark.js/docs/runtime`  | Lightweight runtime helpers (search, slugify)         |
 
 ## Icons
 

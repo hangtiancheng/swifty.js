@@ -1,5 +1,5 @@
 /**
- * @lark.js/doc barrel exports.
+ * @lark.js/docs barrel exports.
  *
  * Main entry point re-exporting all public APIs.
  */
@@ -44,10 +44,10 @@ export { extractFrontmatter } from "./markdown/frontmatter";
 export { renderToLarkTemplate } from "./markdown/renderer";
 export { getHighlighter, highlightCode } from "./markdown/highlighter";
 
-// Compiler (for advanced users; also available at @lark.js/doc/compiler)
+// Compiler (for advanced users; also available at @lark.js/docs/compiler)
 export { compileMarkdown } from "./compiler/compile-markdown";
 
-// Runtime search (also available at @lark.js/doc/runtime)
+// Runtime search (also available at @lark.js/docs/runtime)
 export { searchDocs, slugify } from "./runtime";
 
 // Theme view factories

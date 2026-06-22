@@ -5,7 +5,7 @@ import path from "node:path";
 import os from "node:os";
 
 function createTempDocs(files: Record<string, string>): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "lark-doc-test-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "lark-docs-test-"));
   for (const [filePath, content] of Object.entries(files)) {
     const fullPath = path.join(dir, filePath);
     fs.mkdirSync(path.dirname(fullPath), { recursive: true });

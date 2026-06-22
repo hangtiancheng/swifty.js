@@ -6,7 +6,7 @@
  *
  * Usage:
  * ```ts
- * import { defineConfig } from "@lark.js/doc";
+ * import { defineConfig } from "@lark.js/docs";
  *
  * export default defineConfig({
  *   docs: "docs",

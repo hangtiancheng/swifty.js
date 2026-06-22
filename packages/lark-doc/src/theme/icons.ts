@@ -1,5 +1,5 @@
 /**
- * Centralized icon registry for @lark.js/doc theme views.
+ * Centralized icon registry for @lark.js/docs theme views.
  *
  * Imports individual SVG files from lucide-static as raw strings (Vite ?raw).
  * Each icon is a complete `<svg>...</svg>` markup string at build time.
