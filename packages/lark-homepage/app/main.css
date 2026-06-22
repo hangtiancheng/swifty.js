@@ -42,7 +42,6 @@
   @apply border-primary/40 shadow-none outline-none;
 }
 
-
 /* Search result highlighting (MiniSearch <mark> wrappers) */
 mark {
   @apply bg-primary/20 rounded px-0.5 text-inherit;

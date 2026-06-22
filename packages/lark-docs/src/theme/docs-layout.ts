@@ -5,7 +5,7 @@ import {
   type ViewInterface,
 } from "@lark.js/mvc";
 import { icons as defaultIcons } from "./icons";
-import { createLocalSearchClient } from "./docsearch-local";
+import { createLocalSearchClient } from "./docs-search-local";
 import type { DocsConfig, PageData, SearchEntry } from "../types";
 
 /**
@@ -77,7 +77,7 @@ export function createDocsLayoutView(
             path: string,
           ) => Promise<{ pageData: PageData; contentHtml: string } | null>)
         | undefined;
-      const path = Router.parse().path || "/docs/";
+      const path = Router.parse().path || docsConfig.baseUrl || "/docs/";
 
       const sig = this.signature;
       let content: {
@@ -119,7 +119,8 @@ export function createDocsLayoutView(
     },
 
     "navigateHome<click>"() {
-      Router.to("/docs/");
+      const docsConfig = State.get("docsConfig") as DocsConfig | undefined;
+      Router.to(docsConfig?.baseUrl || "/docs/");
     },
 
     "openSearch<click>"() {

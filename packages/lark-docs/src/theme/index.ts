@@ -9,5 +9,5 @@ export { createDocsLayoutView } from "./docs-layout";
 export { createSidebarView } from "./sidebar";
 export { createTocView } from "./toc";
 export { createSearchView } from "./search";
-export { createLocalSearchClient } from "./docsearch-local";
+export { createLocalSearchClient } from "./docs-search-local";
 export { icons } from "./icons";

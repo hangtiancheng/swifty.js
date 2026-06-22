@@ -44,6 +44,8 @@ jobs:
         run: pnpm --filter @lark.js/mvc build
       - name: Build lark-docs
         run: pnpm --filter @lark.js/docs build
+      - name: Sync Docs
+        run: pnpm --filter lark-homepage sync
       - name: Build lark-homepage
         run: pnpm --filter lark-homepage build
       - name: Upload artifact
