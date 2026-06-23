@@ -43,8 +43,8 @@ The extension activates when the workspace contains any `package.json` file (`wo
 
 Once activated, it determines whether the workspace is a Lark project through a two-step detection process:
 
-1. Checks whether `package.json` lists `@lark.js/mvc` under `dependencies` or `devDependencies`.
-2. If step 1 does not match, scans bundler configuration files (`vite.config.*`, `webpack.config.*`) for references to `larkMvcPlugin` or `larkMvcLoader`.
+1. **Package scan**: Uses `git ls-files` to locate all `package.json` files (falling back to a manual recursive scan up to 5 levels deep, skipping `node_modules`, `dist`, `.git`, etc.). Checks whether each `package.json` lists `@lark.js/mvc` under `dependencies` or `devDependencies`.
+2. **Bundler fallback**: If step 1 does not match, scans bundler configuration files (`vite.config.*`, `webpack.config.*`) for references to `larkMvcPlugin` or `larkMvcLoader`.
 
 When detection succeeds the extension sets the context key `vs-lark:isLark`. All Lark-specific features (definition, completion, folding, copy view path) are gated behind this context and remain inactive in non-Lark workspaces.
 
@@ -56,14 +56,14 @@ Cmd+Click (macOS) or Ctrl+Click (Windows/Linux) to jump to the precise source lo
 
 In HTML templates:
 
-- `v-lark="components/child"` resolves to `src/components/child.ts`, `.js`, or `.html` under the workspace root.
+- `v-lark="components/child"` resolves to `src/components/child.ts`, `.js`, or `.html` under the detected Lark root.
 - `@click="handlerName(...)"` jumps to the method definition in the paired TypeScript file. Methods following the Lark naming convention `"handlerName<click>"` are matched first; plain `handlerName` is used as a fallback.
 
 In TypeScript/JavaScript files:
 
 - `import template from "./home.html"` jumps to the referenced HTML template file.
 
-Jump targets include exact line and column positions, computed from byte offsets in the SWC AST.
+Jump targets include exact line and column positions, computed from character offsets in the Babel AST (byte offsets are converted to character offsets for correct UTF-16 positioning).
 
 ### Autocompletion
 
@@ -81,13 +81,15 @@ touchend, touchmove
 
 Selecting an item inserts the full attribute pattern, e.g. `@click="$1()"`.
 
+> Note: The `@` trigger character is currently disabled to avoid conflicting with external tool shortcuts (e.g. Claude Code's Cmd+Option+K). Completion triggers on `"` and `'` instead.
+
 Handler method suggestions:
 
 After typing `@eventType="`, the extension parses the paired View TypeScript file and presents all available method names. Methods that use the `<eventType>` suffix convention are displayed without the suffix for readability.
 
 Template variable suggestions:
 
-Inside `{{= }}` expressions, the extension offers variable names extracted from the template context through `@lark.js/mvc`'s `extractGlobalVars` utility.
+Inside `{{= }}`, `{{! }}`, `{{: }}`, or `{{@ }}` expressions, the extension offers variable names extracted from the template context through `@lark.js/mvc`'s `extractGlobalVars` utility. Results are cached per document version to avoid redundant parsing.
 
 ### Syntax Highlighting
 
@@ -101,6 +103,8 @@ A TextMate grammar (`text.html.lark-template`) is injected into `text.html.basic
 - Event binding attributes: `@click="handler()"`
 - Sub-view directives: `v-lark="path"`
 - Optimization attributes: `ldk`, `lak`, `lvk`
+
+The language configuration (`language-configuration.json`) also enables `{{` / `}}` auto-closing and bracket matching for template expressions.
 
 ### Template Folding
 
@@ -155,7 +159,7 @@ All settings live under the `lark` namespace in VS Code settings.
 Type: `Array<{ name: string; url: string }>`
 Default: `[]`
 
-Defines status bar shortcut buttons. Each entry must include a display `name` and a target `url`. The schema is validated at runtime with zod.
+Defines status bar shortcut buttons. Each entry must include a display `name` and a target `url`. The schema is validated at runtime with zod (`z.url()` for URL validation).
 
 Example (`settings.json`):
 
@@ -168,54 +172,65 @@ Example (`settings.json`):
 }
 ```
 
+### CSS Validation
+
+When the extension detects a Lark project, it automatically disables VS Code's built-in CSS validation (`css.validate: false`) at workspace level. This suppresses false-positive errors from Lark template interpolation syntax inside `style=""` attributes (e.g. `style="padding-top:{{=topPad}}px"` triggers errors like "Empty rule-set", "Identifier expected", or "} expected" from the CSS language server).
+
 ## Output Logs
 
-Runtime diagnostics are written to the VS Code Output panel under the channel name "Lark MVC". To view logs:
+Runtime diagnostics are written to the VS Code Output panel under the channel name "Lark vscode". To view logs:
 
 1. Open the bottom panel (Cmd+J / Ctrl+J).
 2. Switch to the Output tab.
-3. Select "Lark MVC" from the channel dropdown.
+3. Select "Lark vscode" from the channel dropdown.
 
-Logs include: activation status, project detection results, file index counts, file change events, SWC parser loading, definition resolution steps, and error details.
+Logs include: activation status, project detection results, file index counts, file change events, Babel parser usage, definition resolution steps, and error details. Each log line is timestamped with millisecond precision (`HH:mm:ss.SSS`).
 
 ## Architecture
 
 ```
 src/
   extension.ts                  Entry point (activate/deactivate)
-  activation.ts                 Lark project detection (git ls-files + fallback scan)
-  logger.ts                     Output channel logger
+  activation.ts                 Lark project detection (git ls-files + fallback recursive scan)
+  logger.ts                     Output channel logger ("Lark vscode", timestamped)
+  config/
+    css-validation.ts           Disables CSS validation for template syntax compatibility
   model/
-    method-info.ts              Method metadata type
-    view-file-info.ts           View file mapping type
+    constants.ts                Shared regex patterns for template import detection
+    method-info.ts              MethodInfo type + parseEventMethodName()
+    view-file-info.ts           ViewFileInfo type
   analyzer/
-    view-analyzer.ts            SWC-based parser for View.extend() / defineView() methods
+    view-analyzer.ts            Babel-based parser for View.extend() / defineView() methods
     template-analyzer.ts        Extracts events, v-lark refs, and template variables
   cache/
-    view-file-cache.ts          Bidirectional HTML <-> TS file mapping
+    view-file-cache.ts          Bidirectional HTML <-> TS file mapping with fallback resolution
     view-method-cache.ts        LRU cache (max 500 entries) with mtime-based invalidation
   provider/
-    completion-provider.ts      Event type and handler method completions
+    completion-provider.ts      Event type, handler method, and template variable completions
     definition-provider.ts      Go-to-definition for v-lark, @event, and template imports
     folding-range-provider.ts   Stack-based folding for template control-flow blocks
-    hover-provider.ts           Image path hover preview (local + remote)
+    hover-provider.ts           Image path hover preview (local + remote URLs)
   command/
     copy-view-path-command.ts   Copies stripped view path to clipboard
-    open-in-github-command.ts   Opens file/directory in GitHub
+    open-in-github-command.ts   Opens file/directory in GitHub (SSH + HTTPS remotes)
   status-bar/
-    status-bar-manager.ts       Manages configurable shortcut buttons
+    status-bar-manager.ts       Configurable shortcut buttons with zod schema validation
   watcher/
-    file-watcher.ts             File system watchers for cache invalidation
+    file-watcher.ts             File system watchers for cache invalidation (src/**/*.{ts,js,html})
 syntaxes/
   lark-template.tmLanguage.json TextMate grammar injection into HTML
+language-configuration.json     Bracket pairs, auto-closing, and folding markers for {{ }}
 ```
 
 ### Key Design Decisions
 
-- SWC is loaded lazily at runtime to avoid slowing extension startup.
-- The view method cache uses an LRU eviction strategy (500 entries max) and checks file mtime before returning cached results, ensuring stale data is never served after edits.
-- The view file cache maintains a bidirectional mapping between HTML templates and their paired TypeScript/JavaScript files, enabling instant lookups in either direction.
-- File watchers invalidate relevant cache entries on create, rename, and delete events.
+- Babel (@babel/parser) is used for TypeScript/JavaScript AST parsing. The pure-JS parser avoids native binding distribution issues and works across all platforms without per-OS binaries.
+- The view method cache uses an LRU eviction strategy (500 entries max) backed by `Map` insertion order and checks file `mtime` before returning cached results, ensuring stale data is never served after edits.
+- The view file cache maintains a bidirectional mapping between HTML templates and their paired TypeScript/JavaScript files. Pairing is detected first by `import ... from "*.html"` statements, then by same-name co-location as a fallback. A secondary `fallbackCache` map avoids repeated `fs.existsSync` calls for files without explicit imports.
+- File watchers target `src/**/*.{ts,js,html}` and invalidate relevant cache entries on create, change, and delete events.
+- Template analysis results are cached per document version (`document.version`) so that repeated completions on the same unchanged document are instant.
+- Project detection uses `git ls-files` for fast package.json discovery, falling back to a depth-limited recursive scan that skips common non-source directories (`node_modules`, `dist`, `.git`, `.turbo`, etc.).
+- CSS validation is disabled at workspace level on activation because Lark's `{{=variable}}` interpolation inside `style=""` attributes triggers false-positive diagnostics from VS Code's CSS language server.
 
 ## Development
 
@@ -241,21 +256,22 @@ pnpm package
 pnpm code
 ```
 
-The build is handled by tsup. Packaging uses `@vscode/vsce` with `--no-dependencies` since all runtime dependencies are bundled.
+The build is handled by tsup (CJS format, target node18). `vscode` is external; all other dependencies (including `zod`) are bundled into the output. Packaging uses `@vscode/vsce` with `--no-dependencies` since all runtime dependencies are bundled.
 
 ## Dependencies
 
 Runtime:
 
+- `@babel/parser` + `@babel/types` -- AST parsing for TypeScript View files (pure JS, no native bindings)
 - `@lark.js/mvc` -- provides `extractGlobalVars` for template variable extraction
-- `zod` -- runtime validation of configuration schemas
+- `zod` -- runtime validation of configuration schemas (bundled via `noExternal`)
 
 Development / Build:
 
-- `@swc/core` -- AST parsing for TypeScript View files (bundled into the extension via a copy script)
 - `tsup` -- bundler
 - `@vscode/vsce` -- extension packaging
 - `typescript` -- type checking
+- `oxfmt` -- code formatter
 
 Engine requirement: VS Code ^1.120.0
 

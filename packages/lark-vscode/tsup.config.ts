@@ -7,7 +7,7 @@ export default defineConfig({
   outDir: "dist",
   clean: true,
   sourcemap: true,
-  external: ["vscode", "@swc/core"],
+  external: ["vscode"],
   noExternal: ["zod"],
   shims: false,
   splitting: false,

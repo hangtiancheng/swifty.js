@@ -1,35 +1,10 @@
 import * as fs from "node:fs/promises";
-import type {
-  CallExpression,
-  Expression,
-  KeyValueProperty,
-  Module,
-  ObjectExpression,
-  Property,
-} from "@swc/core";
+import { parse as babelParse } from "@babel/parser";
+import type * as t from "@babel/types";
 import type { MethodInfo } from "../model/method-info.js";
 import type { ViewFileInfo } from "../model/view-file-info.js";
 import { parseEventMethodName } from "../model/method-info.js";
 import { log, logError } from "../logger.js";
-
-type ParseFn = typeof import("@swc/core").parse;
-let parser: ParseFn | null = null;
-let parserLoadAttempted = false;
-
-async function getParser(): Promise<ParseFn | null> {
-  if (!parserLoadAttempted) {
-    parserLoadAttempted = true;
-    log("Loading @swc/core parser");
-    try {
-      const swc = await import("@swc/core");
-      parser = swc.parse;
-      log("@swc/core parser loaded");
-    } catch (error: unknown) {
-      logError("Failed to load @swc/core", error);
-    }
-  }
-  return parser;
-}
 
 export async function analyzeViewFile(filePath: string): Promise<ViewFileInfo | null> {
   let content: string;
@@ -44,18 +19,17 @@ export async function analyzeViewFile(filePath: string): Promise<ViewFileInfo | 
 }
 
 async function analyzeViewContent(content: string, filePath: string): Promise<ViewFileInfo | null> {
-  const parse = await getParser();
-  if (parse === null) {
-    return null;
-  }
   const isTs = filePath.endsWith(".ts");
 
-  let module: Module;
+  let program: t.Program;
   try {
-    module = await parse(content, {
-      syntax: isTs ? "typescript" : "ecmascript",
-      target: "es2022",
+    log("Parsing view file with @babel/parser");
+    const ast = babelParse(content, {
+      sourceType: "module",
+      plugins: isTs ? ["typescript"] : [],
+      allowImportExportEverywhere: true,
     });
+    program = ast.program;
   } catch (e) {
     logError(`Failed to parse view file: ${filePath}`, e);
     return null;
@@ -64,7 +38,7 @@ async function analyzeViewContent(content: string, filePath: string): Promise<Vi
   const methods: MethodInfo[] = [];
 
   // Find View.extend({...}) or defineView({...}) call
-  const objectExpr = findViewObjectExpression(module);
+  const objectExpr = findViewObjectExpression(program);
   if (objectExpr === null) {
     return null;
   }
@@ -74,7 +48,8 @@ async function analyzeViewContent(content: string, filePath: string): Promise<Vi
     if (prop.type === "SpreadElement") {
       continue;
     }
-    const methodInfo = extractMethodFromProperty(prop);
+    // After filtering SpreadElement, prop is ObjectProperty | ObjectMethod
+    const methodInfo = extractMethodFromProperty(prop as t.ObjectProperty | t.ObjectMethod);
     if (methodInfo !== null) {
       methods.push(methodInfo);
     }
@@ -95,12 +70,17 @@ async function analyzeViewContent(content: string, filePath: string): Promise<Vi
   };
 }
 
-function findViewObjectExpression(module: Module): ObjectExpression | null {
-  for (const item of module.body) {
-    let expr: Expression | null = null;
+function findViewObjectExpression(program: t.Program): t.ObjectExpression | null {
+  for (const item of program.body) {
+    let expr: t.Expression | null = null;
 
-    if (item.type === "ExportDefaultExpression") {
-      expr = item.expression;
+    // Babel uses ExportDefaultDeclaration.
+    // The .declaration can be a FunctionDeclaration, ClassDeclaration, or Expression.
+    if (item.type === "ExportDefaultDeclaration") {
+      const decl = item.declaration;
+      if (decl.type !== "FunctionDeclaration" && decl.type !== "ClassDeclaration") {
+        expr = decl as t.Expression;
+      }
     } else if (
       item.type === "ExpressionStatement" &&
       item.expression.type === "AssignmentExpression"
@@ -119,7 +99,7 @@ function findViewObjectExpression(module: Module): ObjectExpression | null {
   }
 
   // Also check variable declarations with export
-  for (const item of module.body) {
+  for (const item of program.body) {
     if (item.type === "VariableDeclaration") {
       for (const decl of item.declarations) {
         if (decl.init !== undefined && decl.init !== null) {
@@ -135,26 +115,31 @@ function findViewObjectExpression(module: Module): ObjectExpression | null {
   return null;
 }
 
-function extractObjectFromExpr(expr: Expression): ObjectExpression | null {
+function extractObjectFromExpr(expr: t.Expression): t.ObjectExpression | null {
   if (expr.type !== "CallExpression") {
     return null;
   }
 
-  const call = expr as CallExpression;
+  const call = expr as t.CallExpression;
 
   if (isExtendOrDefineViewCall(call) && call.arguments.length > 0) {
     const firstArg = call.arguments[0];
-    if (firstArg !== undefined && firstArg.expression.type === "ObjectExpression") {
-      return firstArg.expression;
+    if (
+      firstArg !== undefined &&
+      firstArg.type !== "SpreadElement" &&
+      firstArg.type !== "ArgumentPlaceholder" &&
+      firstArg.type === "ObjectExpression"
+    ) {
+      return firstArg;
     }
   }
 
   return null;
 }
 
-function isExtendOrDefineViewCall(call: CallExpression): boolean {
+function isExtendOrDefineViewCall(call: t.CallExpression): boolean {
   // defineView({...})
-  if (call.callee.type === "Identifier" && call.callee.value === "defineView") {
+  if (call.callee.type === "Identifier" && call.callee.name === "defineView") {
     return true;
   }
 
@@ -162,7 +147,8 @@ function isExtendOrDefineViewCall(call: CallExpression): boolean {
   if (
     call.callee.type === "MemberExpression" &&
     call.callee.property.type === "Identifier" &&
-    call.callee.property.value === "extend"
+    !call.callee.computed &&
+    call.callee.property.name === "extend"
   ) {
     return true;
   }
@@ -170,53 +156,43 @@ function isExtendOrDefineViewCall(call: CallExpression): boolean {
   return false;
 }
 
-function extractMethodFromProperty(prop: Property): MethodInfo | null {
-  if (prop.type === "KeyValueProperty") {
-    const kvProp = prop as KeyValueProperty;
-    const key = getPropertyKeyString(kvProp.key);
+function extractMethodFromProperty(prop: t.ObjectProperty | t.ObjectMethod): MethodInfo | null {
+  if (prop.type === "ObjectProperty") {
+    const key = getPropertyKeyString(prop.key);
     if (key === null) {
       return null;
     }
 
     // Check if value is a function
-    if (
-      kvProp.value.type === "FunctionExpression" ||
-      kvProp.value.type === "ArrowFunctionExpression"
-    ) {
-      return createMethodInfo(key, kvProp.key.span);
+    if (prop.value.type === "FunctionExpression" || prop.value.type === "ArrowFunctionExpression") {
+      return createMethodInfo(key, prop.key);
     }
     return null;
   }
 
-  if (prop.type === "MethodProperty") {
-    const key = getPropertyKeyString(prop.key);
-    if (key === null) {
-      return null;
-    }
-    return createMethodInfo(key, prop.key.span);
+  // prop.type === "ObjectMethod"
+  const key = getPropertyKeyString(prop.key);
+  if (key === null) {
+    return null;
   }
-
-  return null;
+  return createMethodInfo(key, prop.key);
 }
 
-function getPropertyKeyString(key: KeyValueProperty["key"]): string | null {
+function getPropertyKeyString(key: t.Expression | t.PrivateName): string | null {
   if (key.type === "Identifier") {
-    return key.value;
+    return key.name;
   }
   if (key.type === "StringLiteral") {
     return key.value;
   }
-  if (key.type === "Computed" && key.expression.type === "StringLiteral") {
-    return key.expression.value;
-  }
   return null;
 }
 
-function createMethodInfo(rawName: string, span: { start: number }): MethodInfo {
+function createMethodInfo(rawName: string, keyNode: { start?: number | null }): MethodInfo {
   const { eventType } = parseEventMethodName(rawName);
   return {
     name: rawName,
     eventType,
-    byteOffset: span.start,
+    byteOffset: keyNode.start ?? 0,
   };
 }
