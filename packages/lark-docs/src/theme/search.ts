@@ -53,7 +53,10 @@ export function createSearchView(View: typeof ViewClass, template: unknown) {
     assign() {
       this.updater.snapshot();
       const isOpen = !!State.get("searchOpen");
-      this.updater.set({ isOpen });
+      this.updater.set({
+        isOpen,
+        modalClass: isOpen ? "modal modal-open" : "modal",
+      });
       return this.updater.altered();
     },
 

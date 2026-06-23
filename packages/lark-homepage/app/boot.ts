@@ -17,21 +17,13 @@ import {
 // CSS
 import "./main.css";
 
-// === Register theme views ===
-
-registerThemeViews(View);
-
-// === Inject site data + content loader into State ===
-
-State.set({ docsConfig, loadContent, getSearchIndex });
-
-// === Boot ===
+// === Config ===
 
 const config: FrameworkConfig = {
   rootId: "app",
   routeMode: "hash",
   routes,
-  virtualDom: false,
+  virtualDom: true,
   defaultPath: "/lark/",
   // All /docs/* routes map to "theme/docs-layout" (see generated routes).
   // The layout stays mounted across navigation; observeLocation triggers
@@ -42,5 +34,17 @@ const config: FrameworkConfig = {
     console.error("[lark-homepage]", e);
   },
 };
+
+// === Register theme views ===
+// Pass config so registerThemeViews selects the correct template mode
+// (string vs VDOM) based on virtualDom. Must be called before Framework.boot()
+// so views are registered when the default view is mounted during boot.
+registerThemeViews(View, config);
+
+// === Inject site data + content loader into State ===
+
+State.set({ docsConfig, loadContent, getSearchIndex });
+
+// === Boot ===
 
 Framework.boot(config);

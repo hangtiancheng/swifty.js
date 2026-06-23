@@ -19,7 +19,19 @@ export function createTocView(View: typeof ViewClass, template: unknown) {
 
     assign() {
       this.updater.snapshot();
-      const headings = State.get("currentPageHeadings") || [];
+      const rawHeadings = (State.get("currentPageHeadings") || []) as Array<{
+        level: number;
+        slug: string;
+        text: string;
+        isActive?: boolean;
+      }>;
+      const headings = rawHeadings.map((h) => ({
+        ...h,
+        liClass: h.level === 3 ? "pl-2" : "",
+        itemClass: h.isActive
+          ? "menu-active text-primary font-medium rounded-field text-base-content/60 text-xs"
+          : "rounded-field text-base-content/60 text-xs",
+      }));
       this.updater.set({ headings });
       return this.updater.altered();
     },

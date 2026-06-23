@@ -7,9 +7,9 @@
   {{if headings.length > 0}}
   <ul class="menu menu-xs gap-0 p-0">
     {{forOf headings as heading}}
-    <li class="{{if heading.level === 3}}pl-2{{/if}}">
+    <li class="{{=heading.liClass}}">
       <a
-        class="{{if heading.isActive}}menu-active text-primary font-medium{{/if}} rounded-field text-base-content/60 text-xs"
+        class="{{=heading.itemClass}}"
         href="#{{=heading.slug}}"
         data-slug="{{=heading.slug}}"
         @click="scrollToHeading()"

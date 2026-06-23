@@ -16,7 +16,7 @@ import {
 } from "vite";
 import dts from "vite-plugin-dts";
 import { resolve } from "node:path";
-import { larkMvcPlugin7 } from "@lark.js/mvc/vite";
+import { compileTemplate, extractGlobalVarsSwc } from "@lark.js/mvc/compiler";
 import tailwindcss from "@tailwindcss/vite";
 import { larkDocsPlugin } from "./src/vite";
 import { defineConfig as defineDocsConfig } from "./src/define-config";
@@ -131,6 +131,176 @@ function copyAssetsPlugin(): Rollup.Plugin {
   };
 }
 
+// === themeDualMode: dual-mode template compilation plugin ===
+
+/**
+ * Regex matching ES named imports: `import { x as y, ... } from "source";`
+ *
+ * Used by mergeImports() to split compiled template import lines into
+ * (specifiers, sourceModule) pairs so overlapping imports from string-mode
+ * and VDOM-mode compilation can be deduplicated per-module.
+ *
+ * Handles: optional semicolon, both quote styles, aliased specifiers (x as y).
+ */
+const IMPORT_RE = /^import\s+\{([^}]+)\}\s+from\s+["']([^"']+)["'];?\s*$/;
+
+/**
+ * Split compiled template output into import lines and function body.
+ *
+ * compileTemplate() returns ES module source: import statements followed
+ * by `export default function(...) { ... }`. This separates them so the
+ * imports can be merged/deduplicated and the body reassigned to a const.
+ */
+function splitModule(source: string): {
+  imports: string[];
+  body: string;
+} {
+  const lines = source.split("\n");
+  const imports: string[] = [];
+  const bodyLines: string[] = [];
+  for (const line of lines) {
+    if (line.startsWith("import ")) {
+      imports.push(line);
+    } else {
+      bodyLines.push(line.replace(/^export default /, ""));
+    }
+  }
+  return { imports, body: bodyLines.join("\n") };
+}
+
+/**
+ * Merge import statements that share the same source module.
+ *
+ * String-mode and VDOM-mode compile output import overlapping but not
+ * identical specifier sets from the same modules. E.g.:
+ *   string: import { encHtml, strSafe, encUri, encQuote, refFn } from "@lark.js/mvc/runtime";
+ *   vdom:   import { strSafe, encUri, encQuote, refFn } from "@lark.js/mvc/runtime";
+ *
+ * This deduplicates per-module and emits one merged import per source.
+ */
+function mergeImports(allImports: string[]): string[] {
+  // Map<sourceModule, Map<localName, importedName>>
+  const perModule = new Map<string, Map<string, string>>();
+
+  for (const imp of allImports) {
+    const match = imp.match(IMPORT_RE);
+    if (!match) continue;
+
+    const specifiers = match[1];
+    const source = match[2];
+
+    if (!perModule.has(source)) perModule.set(source, new Map());
+    const specMap = perModule.get(source)!;
+
+    for (const spec of specifiers.split(",")) {
+      const trimmed = spec.trim();
+      if (!trimmed) continue;
+      // "x as y" → importedName=x, localName=y; "x" → both=x
+      const parts = trimmed.split(/\s+as\s+/);
+      const importedName = parts[0].trim();
+      const localName = parts.length > 1 ? parts[1].trim() : importedName;
+      specMap.set(localName, importedName);
+    }
+  }
+
+  const result: string[] = [];
+  for (const [source, specMap] of perModule) {
+    const specs = [...specMap.entries()]
+      .map(([local, imported]) =>
+        local === imported ? local : `${imported} as ${local}`,
+      )
+      .join(", ");
+    result.push(`import { ${specs} } from "${source}";`);
+  }
+  return result;
+}
+
+/**
+ * Vite plugin: compiles theme .html templates in BOTH string and VDOM modes
+ * so the bundled theme.js can serve either at runtime depending on the
+ * consumer's FrameworkConfig.virtualDom setting.
+ *
+ * Uses virtual modules (virtual:lark-docs/<name>) to avoid conflicts with
+ * larkMvcPlugin7 which intercepts all .html imports via resolveId. Virtual
+ * module IDs never end in .html, so neither larkMvcPlugin7 nor Vite's
+ * built-in HTML asset handler can intercept them — no suffix tricks needed.
+ *
+ * Each virtual module exports { __str, __vdom } — two pre-compiled template
+ * functions. Imports from the two compilation modes are merged and
+ * deduplicated so shared helpers (@lark.js/mvc/runtime) appear only once.
+ */
+function themeDualMode(options?: { debug?: boolean }): PluginOption {
+  const { debug = false } = options ?? {};
+  const THEME_DIR = resolve(PKG_DIR, "src", "theme");
+  const VIRTUAL_PREFIX = "virtual:lark-docs/";
+  // \0 prefix is the Rollup convention for marking resolved IDs as
+  // "owned by this plugin" — prevents other plugins from loading them.
+  const RESOLVED_PREFIX = "\0virtual:lark-docs/";
+  const TEMPLATE_NAMES = ["docs-layout", "sidebar", "toc", "search"];
+
+  return {
+    name: "theme-dual-mode",
+    enforce: "pre",
+
+    resolveId(source: string) {
+      if (source.startsWith(VIRTUAL_PREFIX)) {
+        return "\0" + source;
+      }
+      return undefined;
+    },
+
+    async load(id: string) {
+      if (!id.startsWith(RESOLVED_PREFIX)) return null;
+
+      const name = id.slice(RESOLVED_PREFIX.length);
+      if (!TEMPLATE_NAMES.includes(name)) return null;
+
+      const filePath = resolve(THEME_DIR, name + ".html");
+      const { readFile } = await import("node:fs/promises");
+      const raw = await readFile(filePath, "utf-8");
+      const globalVars = await extractGlobalVarsSwc(raw);
+
+      const [strResult, vdomResult] = await Promise.all([
+        compileTemplate(raw, { globalVars, useSwc: true, virtualDom: false }),
+        compileTemplate(raw, { globalVars, useSwc: true, virtualDom: true }),
+      ]);
+
+      // DEBUG: Write strResult, vdomResult to tmp file
+      // e.g. Write to .lark-docs/tmp/theme-dual-mode.jsonl
+      // [{ strResult }, { vdomResult }]
+
+      const strMod = splitModule(strResult);
+      const vdomMod = splitModule(vdomResult);
+
+      // DEBUG: Update strMod, vdomMod to tmp file
+      // e.g. Write to .lark-docs/tmp/theme-dual-mode.jsonl
+      // [{ strMod: { imports, body } }, { vdomMod: { imports, body } }]
+
+      // Merge and deduplicate import lines across both modes.
+      const uniqueImports = mergeImports([
+        ...strMod.imports,
+        ...vdomMod.imports,
+      ]);
+
+      const content = [
+        ...uniqueImports,
+        "",
+        "const __str = " + strMod.body,
+        "",
+        "const __vdom = " + vdomMod.body,
+        "",
+        "export { __str, __vdom };",
+      ].join("\n");
+
+      // DEBUG: Update content to tmp file
+      // e.g. Write to .lark-docs/tmp/theme-dual-mode.jsonl
+      // { content }
+
+      return content
+    },
+  };
+}
+
 function libConfig(): UserConfig {
   return {
     build: {
@@ -158,9 +328,9 @@ function libConfig(): UserConfig {
       sourcemap: false,
     },
     plugins: [
-      // Compile .html template imports in theme/ into JS functions so
-      // they are bundled into theme.js — consumers never import .html.
-      larkMvcPlugin7({ useSwc: true }) as PluginOption,
+      // Compile .html template imports in theme/ into JS functions in BOTH
+      // string and VDOM modes so consumers can use either rendering mode.
+      themeDualMode({ debug: true }) as PluginOption,
       {
         name: "cjs-shims",
         renderChunk(code, _chunk, outputOptions) {
@@ -188,6 +358,10 @@ function docsUserConfig(): UserConfig {
   return {
     root: resolve(PKG_DIR, "docs/app"),
     plugins: [
+      // Virtual module plugin — no ordering constraint needed since virtual
+      // module IDs (virtual:lark-docs/*) are never intercepted by
+      // larkMvcPlugin7 or Vite's built-in HTML handler.
+      themeDualMode({ debug: true }) as PluginOption,
       ...larkDocsPlugin({
         config: docsConfig,
         virtualDom: false,

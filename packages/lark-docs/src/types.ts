@@ -72,6 +72,8 @@ export interface SidebarItem {
   items?: SidebarItem[];
   /** Whether this item matches the current route (set at runtime). */
   isActive?: boolean;
+  /** Pre-computed CSS class string (set at runtime by sidebar view). */
+  itemClass?: string;
 }
 
 /** Markdown processing options. */

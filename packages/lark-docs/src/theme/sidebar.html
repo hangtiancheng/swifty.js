@@ -12,7 +12,7 @@
       {{forOf group.items as item}}
       <li>
         <a
-          class="{{if item.isActive}}menu-active bg-primary/10 text-primary font-medium{{/if}} rounded-field text-xs"
+          class="{{=item.itemClass}}"
           data-href="{{=item.link}}"
           @click="navigateTo()"
         >

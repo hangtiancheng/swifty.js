@@ -68,10 +68,14 @@ export function createSidebarView(View: typeof ViewClass, template: unknown) {
  */
 function markActive(items: SidebarItem[], currentPath: string): SidebarItem[] {
   return items.map((item) => {
+    const isActive = item.link === currentPath;
     const result: SidebarItem = {
       text: item.text,
       link: item.link,
-      isActive: item.link === currentPath,
+      isActive,
+      itemClass: isActive
+        ? "menu-active bg-primary/10 text-primary font-medium rounded-field text-xs"
+        : "rounded-field text-xs",
     };
     if (Array.isArray(item.items) && item.items.length > 0) {
       result.collapsed = item.collapsed;
