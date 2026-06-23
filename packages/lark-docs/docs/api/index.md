@@ -483,7 +483,7 @@ Same as Webpack, but the loader returns a `Promise<string>` directly (Rspack asy
 
 ```ts
 interface DocsRoute {
-  path: string; // full route path (e.g. "/docs/guide/")
+  path: string; // full route path (e.g. "/docs/guide")
   viewId: string; // view ID for registerViewClass
   filePath: string; // absolute file path to .md source
   pageData: PageData; // extracted page metadata
@@ -496,7 +496,7 @@ interface DocsRoute {
 interface PageData {
   title: string; // page title
   description?: string; // from frontmatter
-  sidebarPosition?: number; // sort position (default: 999)
+  sidebarPosition?: number; // sort position (all-or-nothing rule: if any page lacks it, all sort by filename)
   sidebarLabel?: string; // override sidebar text
   sidebarGroup?: string; // group assignment
   draft?: boolean; // exclude from production
@@ -523,7 +523,7 @@ interface SearchEntry {
   title: string; // page title
   link: string; // route link
   headings: string[]; // all heading texts
-  excerpt: string; // description or empty string
+  excerpt: string; // description or filename-derived title
 }
 ```
 
@@ -551,7 +551,7 @@ The `@lark-docs/generated` module (ambient declaration via `@lark.js/docs/client
 
 ```ts
 declare module "@lark-docs/generated" {
-  import type { DocsConfig, PageData } from "@lark.js/docs/types";
+  import type { DocsConfig, PageData } from "@lark.js/docs";
 
   export function loadContent(
     path: string,

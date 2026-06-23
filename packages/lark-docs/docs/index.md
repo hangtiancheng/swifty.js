@@ -13,7 +13,7 @@ description: "Documentation site generator for @lark.js/mvc"
 - Dual routing modes -- supports `@lark.js/mvc` Router in both `history` and `hash` modes
 - Markdown compilation pipeline -- `markdown-it` with four custom plugins (anchors, TOC, containers, code blocks)
 - YAML frontmatter -- metadata extraction via `js-yaml` for page titles, descriptions, sidebar positioning, and draft control
-- Shiki-powered code highlighting -- lazy WASM initialization and singleton caching for 100+ languages
+- Shiki-powered code highlighting -- lazy WASM initialization and singleton caching with 44 default languages (Shiki supports 100+)
 - Admonition containers -- `::: tip`, `::: warning`, `::: danger`, `::: details` rendered as DaisyUI alert components
 - Auto-generated sidebar -- directory-structure-based navigation with frontmatter overrides
 - Three search providers -- MiniSearch-powered local modal, Algolia DocSearch UI with local index, or disabled

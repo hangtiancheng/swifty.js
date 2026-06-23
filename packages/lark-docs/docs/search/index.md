@@ -27,13 +27,18 @@ export default defineConfig({
 
 ## Search Index
 
-The search index is built lazily at runtime, not at build time. The generated module exports a `getSearchIndex()` function that loads all `.md` modules on first call and extracts page data:
+The search index is built lazily at runtime, not at build time. The generated module exports a `getSearchIndex()` function that loads all non-virtual `.md` modules on first call (filtering through `_searchablePaths` to exclude virtual index routes) and extracts page data:
 
 ```js
 // In .lark-docs/generated/index.js
+const _searchablePaths = new Set(["/docs", "/docs/get-started", ...]);
+
 let _searchIndex = null;
 export async function getSearchIndex() {
   if (_searchIndex) return _searchIndex;
+  const entries = Object.entries(loaders).filter(([k]) =>
+    _searchablePaths.has(k),
+  );
   const mods = await Promise.all(entries.map(([, loader]) => loader()));
   _searchIndex = mods.map((mod, i) => ({
     title: mod.pageData?.title || "",

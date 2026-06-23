@@ -49,7 +49,7 @@ description: "Learn how to install and configure the framework"
 
 Type: `number`
 
-Controls the sort order in auto-generated sidebars. Lower numbers appear first. Pages without this field sort after all pages with it (default: 999).
+Controls the sort order in auto-generated sidebars. Lower numbers appear first. Uses an all-or-nothing rule: if all pages in a group have this field, they sort by position then filename; if any page lacks it, all pages in that group sort by filename only.
 
 ```yaml
 sidebar_position: 1    # appears first
@@ -114,8 +114,8 @@ When frontmatter fields are missing, the system uses these fallbacks:
 | Field              | Fallback Chain                                     |
 | ------------------ | -------------------------------------------------- |
 | `title`            | frontmatter → first `# heading` → filename-derived |
-| `description`      | frontmatter → empty string                         |
-| `sidebar_position` | frontmatter → 999 (sorts last)                     |
+| `description`      | frontmatter → filename-derived title               |
+| `sidebar_position` | frontmatter → all-or-nothing rule (see above)      |
 | `sidebar_label`    | frontmatter → `title` value                        |
 
 For example, a file `docs/api/router.md` with no frontmatter and no `# heading` would get the title "Router" (derived from the filename).

@@ -43,28 +43,7 @@ describe("Framework", () => {
   });
 
   // ============================================================
-  // B. config() deprecated method
-  // ============================================================
-
-  describe("config() deprecated method", () => {
-    it("config() with no arg returns config object", () => {
-      const cfg = Framework.config();
-      expect(cfg).toBeTypeOf("object");
-    });
-
-    it("config(string) returns that key value", () => {
-      Framework.setConfig({ rootId: "config-dep-test" });
-      expect(Framework.config("rootId")).toBe("config-dep-test");
-    });
-
-    it("config(object) merges into config", () => {
-      Framework.config({ rootId: "config-dep-merge" } as any);
-      expect(Framework.getConfig("rootId")).toBe("config-dep-merge");
-    });
-  });
-
-  // ============================================================
-  // C. Utility proxies
+  // B. Utility proxies
   // ============================================================
 
   describe("utility proxies", () => {
@@ -292,7 +271,7 @@ describe("Framework", () => {
   });
 
   // ============================================================
-  // D. delay
+  // C. delay
   // ============================================================
 
   describe("delay", () => {
@@ -309,7 +288,7 @@ describe("Framework", () => {
   });
 
   // ============================================================
-  // E. Base (EventEmitter)
+  // D. Base (EventEmitter)
   // ============================================================
 
   describe("Base (EventEmitter)", () => {
@@ -348,7 +327,7 @@ describe("Framework", () => {
   });
 
   // ============================================================
-  // F. Module access
+  // E. Module access
   // ============================================================
 
   describe("module access", () => {
@@ -392,7 +371,7 @@ describe("Framework", () => {
   });
 
   // ============================================================
-  // G. Cache class
+  // F. Cache class
   // ============================================================
 
   describe("Cache class", () => {
@@ -459,7 +438,7 @@ describe("Framework", () => {
   });
 
   // ============================================================
-  // H. Boot lifecycle
+  // G. Boot lifecycle
   //
   // NOTE: boot() sets module-level `booted = true` with no way to
   // reset it. Tests in this section assume boot has not been called
@@ -533,7 +512,7 @@ describe("Framework", () => {
   });
 
   // ============================================================
-  // I. WAIT_OK / WAIT_TIMEOUT_OR_NOT_FOUND constants
+  // H. WAIT_OK / WAIT_TIMEOUT_OR_NOT_FOUND constants
   // ============================================================
 
   describe("constants", () => {
@@ -547,7 +526,7 @@ describe("Framework", () => {
   });
 
   // ============================================================
-  // J. Additional coverage: mark/unmark, dispatch, guard, applyStyle
+  // I. Additional coverage: mark/unmark, dispatch, guard, applyStyle
   // ============================================================
 
   describe("mark and unmark", () => {

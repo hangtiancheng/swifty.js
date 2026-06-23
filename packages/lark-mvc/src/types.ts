@@ -1087,22 +1087,11 @@ export interface FrameworkInterface {
 
   /**
    * Merge a patch into the framework configuration and return the merged
-   * config object. Replaces the dual-purpose overload of `config()`.
+   * config object.
    */
   setConfig<T extends object = Partial<FrameworkConfig>>(
     patch: Partial<FrameworkConfig> & T,
   ): FrameworkConfig & T;
-
-  /**
-   * @deprecated Use `getConfig()` / `getConfig(key)` for reads and
-   * `setConfig(patch)` for writes. The overloaded `config()` blurred the
-   * two and confused TypeScript inference; the split is a drop-in upgrade.
-   */
-  config<T extends object = Partial<FrameworkConfig>>(
-    cfg?: Partial<FrameworkConfig> & T,
-  ): FrameworkConfig & T;
-  /** @deprecated See above. */
-  config(key: string): unknown;
   /**
    * App initialization entry point, starts framework and renders root view.
    * After invocation: merge config → bind route events → create root Frame → mount default view.

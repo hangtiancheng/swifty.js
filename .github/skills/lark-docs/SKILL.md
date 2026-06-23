@@ -1,7 +1,7 @@
 ---
 name: lark-docs
 description: >
-  Comprehensive guide to @lark.js/docs (v0.0.2), the documentation site generator
+  Comprehensive guide to @lark.js/docs (v0.0.3), the documentation site generator
   for @lark.js/mvc (analogous to VitePress for Vue or Docusaurus for React).
   Use this skill any time the user works with documentation site generation
   using Lark -- configuring defineConfig() in lark-docs.config.ts, setting up
@@ -23,7 +23,7 @@ description: >
 
 # @lark.js/docs
 
-`@lark.js/docs` (v0.0.2) is a documentation site generator built on `@lark.js/mvc`. It scans a `docs/` directory of Markdown files, compiles each into a module exporting `pageData` and `contentHtml`, auto-generates routes/sidebars/search index, and provides a four-view theme system (layout, sidebar, TOC, search) styled with Tailwind CSS v4 + DaisyUI v5. It ships build-time plugins for Vite, Webpack, and Rspack.
+`@lark.js/docs` (v0.0.3) is a documentation site generator built on `@lark.js/mvc`. It scans a `docs/` directory of Markdown files, compiles each into a module exporting `pageData` and `contentHtml`, auto-generates routes/sidebars/search index, and provides a four-view theme system (layout, sidebar, TOC, search) styled with Tailwind CSS v4 + DaisyUI v5. It ships build-time plugins for Vite, Webpack, and Rspack.
 
 This guide covers the three-phase architecture, the full configuration API, the Markdown compilation pipeline, the theme system, all three search providers, bundler plugin internals, generated output conventions, TypeScript setup, and common pitfalls. For the lark-mvc framework itself (Views, Router, State, templates), see the `lark-mvc` skill.
 
@@ -61,7 +61,7 @@ When the bundler loads `lark-docs.config.ts`, `defineConfig()` runs synchronousl
    - `loadContent(path)` function that imports and returns `{ pageData, contentHtml }`
    - Exported `routes: Record<string, string>` (path to `"theme/docs-layout"`)
    - Exported `docsConfig` (title, description, lang, nav, sidebar)
-   - `getSearchIndex()` that lazily builds the search index on first call
+   - `getSearchIndex()` that lazily builds the search index on first call (filtering out virtual index routes)
 
 This phase runs in Node.js. It has access to `node:fs`, `node:path`, and all build-time dependencies. It does NOT have access to the browser DOM.
 
@@ -226,7 +226,7 @@ interface SidebarItem {
 
 ```ts
 interface MarkdownOptions {
-  lineNumbers?: boolean; // Code block line numbers (default: false)
+  lineNumbers?: boolean; // Reserved for future line number support (not yet implemented)
   anchor?: { permalink?: boolean }; // Heading permalink anchors
   toc?: { level?: number[] }; // TOC extraction levels (default: [2, 3])
   containers?: Record<string, { label: string }>; // Custom container labels
@@ -274,8 +274,8 @@ draft: false
 | Field              | Type      | Description                                                |
 | ------------------ | --------- | ---------------------------------------------------------- |
 | `title`            | `string`  | Page title. Falls back to first `# heading`, then filename |
-| `description`      | `string`  | Meta description and search excerpt                        |
-| `sidebar_position` | `number`  | Sort order in auto-sidebar (lower = higher). Default: 999  |
+| `description`      | `string`  | Meta description and search excerpt. Falls back to filename-derived title |
+| `sidebar_position` | `number`  | Sort order in auto-sidebar (lower = higher). Uses all-or-nothing rule: if any page in a group lacks this field, all pages in that group sort by filename only |
 | `sidebar_label`    | `string`  | Override sidebar display text                              |
 | `sidebar_group`    | `string`  | Sidebar group name                                         |
 | `draft`            | `boolean` | Exclude from production builds                             |
@@ -393,7 +393,7 @@ Theme views use `v-lark="theme/..."` in templates to mount child views. The layo
 When `search.provider === "docsearch"`, the layout View's `init()` method:
 
 1. Reads `getSearchIndex` from `State.get("getSearchIndex")`.
-2. Calls `await getSearchIndex()` to lazily build the search index (loads all .md modules on first call).
+2. Calls `await getSearchIndex()` to lazily build the search index (loads all non-virtual .md modules on first call).
 3. Creates a local search client via `createLocalSearchClient(searchIndex)`.
 4. Dynamically imports `@docsearch/css` and `@docsearch/js`.
 5. Mounts the widget into `#docsearch-container` with dummy credentials.
@@ -428,13 +428,17 @@ interface SearchEntry {
 
 ### Lazy search index
 
-The search index is NOT serialized into the generated file. Instead, `getSearchIndex()` in the generated module lazily loads all `.md` modules on first search call:
+The search index is NOT serialized into the generated file. Instead, `getSearchIndex()` in the generated module lazily loads all non-virtual `.md` modules on first search call (filtering through `_searchablePaths` to exclude virtual index routes):
 
 ```js
 // In .lark-docs/generated/index.js
 let _searchIndex = null;
 export async function getSearchIndex() {
   if (_searchIndex) return _searchIndex;
+  // Filter to canonical content paths (excludes virtual index routes)
+  const entries = Object.entries(loaders).filter(([k]) =>
+    _searchablePaths.has(k),
+  );
   const mods = await Promise.all(entries.map(([, loader]) => loader()));
   _searchIndex = mods.map((mod, i) => ({
     title: mod.pageData?.title || "",
@@ -502,8 +506,8 @@ Only `webpack.ts` and `rspack.ts` use `__filename` (to self-reference as bundler
 const LAYOUT_VIEW = "theme/docs-layout";
 
 const loaders = {
-  "/docs/": () => import("/absolute/path/to/docs/index.md"),
-  "/docs/guide/": () => import("/absolute/path/to/docs/guide/index.md"),
+  "/docs": () => import("/absolute/path/to/docs/index.md"),
+  "/docs/guide": () => import("/absolute/path/to/docs/guide/index.md"),
 };
 
 export async function loadContent(path) {
@@ -560,7 +564,7 @@ declare module "*.html" {
 }
 declare module "@docsearch/css";
 declare module "@lark-docs/generated" {
-  import type { DocsConfig, PageData } from "@lark.js/docs/types";
+  import type { DocsConfig, PageData } from "@lark.js/docs";
   export function loadContent(
     path: string,
   ): Promise<{ pageData: PageData; contentHtml: string } | null>;
@@ -581,7 +585,7 @@ declare module "@lark-docs/generated" {
 When referencing type declarations inside `node_modules`, always use `/// <reference types="..." />`:
 
 - `/// <reference types="@lark.js/docs/client" />` uses TypeScript's full module resolution algorithm. It reads `package.json` exports, resolves pnpm workspace symlinks correctly, and maintains proper resolution context for the referenced file's internal `import type` statements.
-- `/// <reference path="../node_modules/@lark.js/docs/dist/client.d.ts" />` performs a raw filesystem path lookup. It does not understand package structure or symlink resolution. Under `moduleResolution: "bundler"`, the referenced file's internal `import type { ... } from "@lark.js/docs/types"` may fail to resolve because the resolution context is lost, silently invalidating the ambient `declare module` block.
+- `/// <reference path="../node_modules/@lark.js/docs/dist/client.d.ts" />` performs a raw filesystem path lookup. It does not understand package structure or symlink resolution. Under `moduleResolution: "bundler"`, the referenced file's internal `import type { ... } from "@lark.js/docs"` may fail to resolve because the resolution context is lost, silently invalidating the ambient `declare module` block.
 
 This is a common pitfall in pnpm workspaces where packages are symlinked.
 
@@ -607,7 +611,7 @@ This works alongside the `/// <reference types>` directive: the reference provid
 
 - Skips entries starting with `_` or `.`
 - Skips directories: `node_modules`, `__tests__`, `__fixtures__`, `.git`, `.vitepress`, `.lark-docs`, `dist`
-- `index.md` maps to directory root: `guide/index.md` becomes `/docs/guide/`
+- `index.md` maps to directory root: `guide/index.md` becomes `/docs/guide`
 - Other files: `guide/config.md` becomes `/docs/guide/config`
 - View IDs: `guide-config`, `guide-index`, etc. (slashes become dashes, `index` suffix for root files)
 - Draft files (`draft: true` in frontmatter) excluded when `excludeDrafts` option is set

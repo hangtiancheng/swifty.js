@@ -49,7 +49,7 @@ The Shiki color theme. Any built-in Shiki theme is supported:
 
 Type: `string[]`
 
-Languages to load. Shiki supports 100+ languages via TextMate grammars. Common choices:
+Languages to load. Shiki supports 100+ languages via TextMate grammars; 44 are loaded by default. Common choices:
 
 ```ts
 languages: [

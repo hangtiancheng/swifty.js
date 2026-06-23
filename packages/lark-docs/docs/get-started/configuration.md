@@ -221,8 +221,8 @@ export default defineConfig({
 const LAYOUT_VIEW = "theme/docs-layout";
 
 const loaders = {
-  "/docs/": () => import("/absolute/path/to/docs/index.md"),
-  "/docs/guide/": () => import("/absolute/path/to/docs/guide/index.md"),
+  "/docs": () => import("/absolute/path/to/docs/index.md"),
+  "/docs/guide": () => import("/absolute/path/to/docs/guide/index.md"),
 };
 
 export async function loadContent(path) {
@@ -247,7 +247,7 @@ The generated module exports four things:
 - `loadContent(path)` -- dynamically imports the compiled `.md` module for a given route path
 - `routes` -- maps every docs path to `"theme/docs-layout"` (all routes share one layout view)
 - `docsConfig` -- the runtime site configuration (title, description, lang, nav, sidebar)
-- `getSearchIndex()` -- lazily builds the search index on first call
+- `getSearchIndex()` -- lazily builds the search index on first call (filtering out virtual index routes)
 
 This directory should be added to `.gitignore`. It is regenerated each time `defineConfig()` runs (on every dev server start and build).
 

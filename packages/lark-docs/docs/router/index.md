@@ -14,19 +14,19 @@ Each `.md` file in the docs directory becomes one route:
 
 | File Path                 | Generated Route         |
 | ------------------------- | ----------------------- |
-| `docs/index.md`           | `/docs/`                |
+| `docs/index.md`           | `/docs`                 |
 | `docs/getting-started.md` | `/docs/getting-started` |
-| `docs/guide/index.md`     | `/docs/guide/`          |
+| `docs/guide/index.md`     | `/docs/guide`           |
 | `docs/guide/config.md`    | `/docs/guide/config`    |
 | `docs/api/router.md`      | `/docs/api/router`      |
 
 Rules:
 
-- `index.md` maps to the directory root (with trailing `/`)
+- `index.md` maps to the directory root (without trailing `/`)
 - Other files map to their stem without `.md` extension
 - All paths are prefixed with `baseUrl`
 - Files/directories starting with `_` or `.` are ignored
-- `node_modules`, `__tests__`, `.git`, `dist` directories are skipped
+- `node_modules`, `__tests__`, `__fixtures__`, `.git`, `.vitepress`, `.lark-docs`, `dist` directories are skipped
 
 ## Route Map
 
@@ -41,10 +41,10 @@ export const routes = Object.fromEntries(
 );
 // Result:
 // {
-//   "/docs/": "theme/docs-layout",
-//   "/docs/get-started/": "theme/docs-layout",
+//   "/docs": "theme/docs-layout",
+//   "/docs/get-started": "theme/docs-layout",
 //   "/docs/get-started/configuration": "theme/docs-layout",
-//   "/docs/markdown/": "theme/docs-layout",
+//   "/docs/markdown": "theme/docs-layout",
 //   "/docs/markdown/frontmatter": "theme/docs-layout",
 // }
 ```

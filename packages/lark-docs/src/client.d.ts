@@ -13,7 +13,7 @@ declare module "*.html" {
 declare module "@docsearch/css";
 
 declare module "@lark-docs/generated" {
-  import type { DocsConfig, PageData } from "@lark.js/docs/types";
+  import type { DocsConfig, PageData } from "@lark.js/docs";
 
   export function loadContent(
     path: string,

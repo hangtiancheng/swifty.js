@@ -289,12 +289,12 @@ Auto-generated sidebars group routes by subdirectory, sort by `sidebarPosition` 
 
 ### MarkdownOptions
 
-| Field              | Type                                | Default    | Description                       |
-| ------------------ | ----------------------------------- | ---------- | --------------------------------- |
-| `lineNumbers`      | `boolean`                           | `false`    | Show line numbers in code blocks  |
-| `anchor.permalink` | `boolean`                           | `true`     | Add permalink anchors to h1-h3    |
-| `toc.level`        | `number[]`                          | `[2, 3]`   | Heading levels to extract for TOC |
-| `containers`       | `Record<string, { label: string }>` | (built-in) | Custom container labels           |
+| Field              | Type                                | Default    | Description                             |
+| ------------------ | ----------------------------------- | ---------- | --------------------------------------- |
+| `lineNumbers`      | `boolean`                           | `false`    | Reserved for future line number support |
+| `anchor.permalink` | `boolean`                           | `true`     | Add permalink anchors to h1-h3          |
+| `toc.level`        | `number[]`                          | `[2, 3]`   | Heading levels to extract for TOC       |
+| `containers`       | `Record<string, { label: string }>` | (built-in) | Custom container labels                 |
 
 ### HighlightOptions
 
@@ -328,14 +328,14 @@ draft: false
 ---
 ```
 
-| Field              | Type      | Description                                                              |
-| ------------------ | --------- | ------------------------------------------------------------------------ |
-| `title`            | `string`  | Page title. Falls back to first `# heading`, then filename-derived title |
-| `description`      | `string`  | Page description for meta tags and search index                          |
-| `sidebar_position` | `number`  | Sort order in auto-generated sidebar (lower = higher). Default: 999      |
-| `sidebar_label`    | `string`  | Override sidebar display text                                            |
-| `sidebar_group`    | `string`  | Sidebar group name for grouping                                          |
-| `draft`            | `boolean` | When `true`, excluded from production builds via `excludeDrafts` option  |
+| Field              | Type      | Description                                                                                                                                               |
+| ------------------ | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `title`            | `string`  | Page title. Falls back to first `# heading`, then filename-derived title                                                                                  |
+| `description`      | `string`  | Page description for meta tags and search index. Falls back to filename-derived title                                                                     |
+| `sidebar_position` | `number`  | Sort order in auto-generated sidebar (lower = higher). Uses all-or-nothing rule: if any page in a group lacks this field, all pages sort by filename only |
+| `sidebar_label`    | `string`  | Override sidebar display text                                                                                                                             |
+| `sidebar_group`    | `string`  | Sidebar group name for grouping                                                                                                                           |
+| `draft`            | `boolean` | When `true`, excluded from production builds via `excludeDrafts` option                                                                                   |
 
 ### Title Resolution Chain
 
@@ -567,7 +567,7 @@ Registers all four theme views (layout, sidebar, TOC, search) with the lark-mvc 
 
 ### `scanDocsDir(docsDir: string, baseUrl: string, options?: { excludeDrafts?: boolean }): DocsRoute[]`
 
-Recursively scans a docs directory and returns route entries. Skips entries starting with `_` or `.`, plus `node_modules`, `__tests__`, `__fixtures__`, `.git`, `.vitepress`, `.lark-docs`, and `dist`. `index.md` maps to the directory root with trailing `/`. Generates a unique `viewId` from the route path.
+Recursively scans a docs directory and returns route entries. Skips entries starting with `_` or `.`, plus `node_modules`, `__tests__`, `__fixtures__`, `.git`, `.vitepress`, `.lark-docs`, and `dist`. `index.md` maps to the directory root without trailing `/`. Generates a unique `viewId` from the route path.
 
 ### `generateRouteMap(routes: DocsRoute[]): Record<string, string>`
 
@@ -631,8 +631,6 @@ import type {
 } from "@lark.js/docs";
 ```
 
-Types can also be imported from the dedicated `@lark.js/docs/types` sub-path.
-
 ## Generated Output
 
 `defineConfig()` writes a generated module to `.lark-docs/generated/index.js` (a dot directory at project root, similar to VitePress's `.vitepress/` and Docusaurus's `.docusaurus/`). This directory should be added to `.gitignore`.
@@ -642,7 +640,7 @@ The generated module exports:
 - `loadContent(path)` -- dynamically imports the compiled `.md` module for a given route path, returns `{ pageData, contentHtml }` or `null`
 - `routes: Record<string, string>` -- maps every docs path to the layout view `"theme/docs-layout"`
 - `docsConfig` -- the runtime site configuration (title, description, lang, nav, sidebar)
-- `getSearchIndex()` -- lazily builds the search index by loading all `.md` modules on first call, returns `SearchEntry[]`
+- `getSearchIndex()` -- lazily builds the search index by loading all non-virtual `.md` modules on first call (filtering through `_searchablePaths` to exclude virtual index routes), returns `SearchEntry[]`
 
 ```ts
 // vite.config.ts
@@ -681,4 +679,4 @@ Type declarations for `@lark-docs/generated` are provided by the `@lark.js/docs/
 
 ## License
 
-ISC
+MIT

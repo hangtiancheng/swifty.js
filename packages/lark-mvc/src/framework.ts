@@ -427,22 +427,6 @@ export const Framework: FrameworkInterface = {
   },
 
   /**
-   * @deprecated Use `getConfig()` / `setConfig()`. Behavior unchanged.
-   */
-  config(cfg?: FrameworkConfig | string): FrameworkConfig | unknown {
-    if (!cfg) {
-      return config;
-    }
-
-    if (typeof cfg === "string") {
-      return config[cfg];
-    }
-
-    assign(config, cfg);
-    return config;
-  },
-
-  /**
    * Boot the framework.
    */
   boot(cfg?: FrameworkConfig): void {
