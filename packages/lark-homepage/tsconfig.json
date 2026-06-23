@@ -12,7 +12,10 @@
     "target": "ES2022",
     "paths": {
       "@/*": ["./src/*"],
-      "@lark-docs/generated": ["./.lark-docs/generated/index", "../lark-docs/src/generated.d.ts"]
+      "@lark-docs/generated": [
+        "./.lark-docs/generated/index",
+        "../lark-docs/src/generated.d.ts"
+      ]
     }
   },
   "include": ["**/*.ts"]

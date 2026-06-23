@@ -5,9 +5,9 @@
  * to `.lark-docs/generated/` so that `boot.ts` can import routes and site
  * data via the `@lark-docs/generated` alias.
  *
- * The generated file is a plain `.js` (runtime) + `.d.ts` (types). A static
- * fallback `generated.d.ts` ships with the package so IDE type-checking works
- * even before the dev server / build has generated the real file.
+ * The generated file is a plain `.js` runtime module. Type declarations for
+ * `@lark-docs/generated` are provided by `src/shims.d.ts` (ambient module
+ * declaration), so IDE type-checking works without a generated `.d.ts` file.
  *
  * Usage:
  * ```ts
@@ -28,11 +28,18 @@
 import type { DocsConfig, SidebarConfig } from "./types";
 import { scanDocsDir } from "./scanner";
 import { generateSidebar } from "./sidebar-generator";
-import { isAbsolute, resolve } from "node:path";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { dirname, isAbsolute, resolve } from "node:path";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import ejs from "ejs";
-import fileContentTemplate from "./file-content.ejs?raw";
-import generatedDts from "./generated.d.ts?raw";
+
+const _filename = fileURLToPath(import.meta.url);
+const _dirname = dirname(_filename);
+
+const fileContentTemplate = readFileSync(
+  resolve(_dirname, "file-content.ejs"),
+  "utf-8",
+);
 
 export function defineConfig(
   config: DocsConfig,
@@ -45,10 +52,8 @@ export function defineConfig(
 /**
  * Generate a runtime module into `{projectRoot}/.lark-docs/generated/`.
  *
- * Outputs two files:
- *   - `index.js`  — runtime code (loaders, loadContent, routes, docsConfig,
- *                   getSearchIndex) rendered from `file-content.ejs`
- *   - `index.d.ts` — static type declarations (copied from `generated.d.ts`)
+ * Outputs `index.js` — runtime code (loaders, loadContent, routes, docsConfig,
+ * getSearchIndex) rendered from `file-content.ejs`.
  *
  * Written to `.lark-docs/` (a dot directory at project root, similar to
  * `.vitepress/` or `.docusaurus/`) so it can be gitignored. Consumers import
@@ -108,5 +113,4 @@ function generateRoutesFile(config: DocsConfig, projectRoot: string): void {
   // Write generated module to .lark-docs/generated/
   mkdirSync(generatedDir, { recursive: true });
   writeFileSync(resolve(generatedDir, "index.js"), fileContent, "utf-8");
-  writeFileSync(resolve(generatedDir, "index.d.ts"), generatedDts, "utf-8");
 }

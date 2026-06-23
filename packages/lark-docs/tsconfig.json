@@ -16,7 +16,7 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "paths": {
-      "@lark-docs/generated": ["./.lark-docs/generated/index", "./src/generated.d.ts"],
+      "@lark-docs/generated/*": ["./.lark-docs/generated/*"],
       "@lark.js/docs/*": ["./src/*"]
     },
     "rootDir": "./",
@@ -27,5 +27,5 @@
     "types": ["node", "vitest/globals"],
     "verbatimModuleSyntax": true
   },
-  "include": ["./**/*.ts"]
+  "include": ["./**/*.ts", "./**/*.d.ts"]
 }
