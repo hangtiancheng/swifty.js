@@ -6,7 +6,7 @@ import {
 } from "@lark.js/mvc";
 import { icons as defaultIcons } from "./icons";
 import { createLocalSearchClient } from "./docs-search-local";
-import type { DocsConfig, PageData, SearchEntry } from "../types";
+import type { DocsConfig, PageData } from "../types";
 
 /**
  * Shape of `this` inside DocsLayoutView methods. The custom helper
@@ -14,7 +14,7 @@ import type { DocsConfig, PageData, SearchEntry } from "../types";
  * explicitly via a `this:` parameter annotation.
  */
 interface DocsLayoutViewThis extends ViewInterface {
-  _initDocSearch(docsConfig: DocsConfig): void;
+  _initDocSearch(): Promise<void>;
 }
 
 /**
@@ -55,7 +55,7 @@ export function createDocsLayoutView(
       // Initialize DocSearch widget if configured.
       const docsConfig = (State.get("docsConfig") || {}) as DocsConfig;
       if (docsConfig.search?.provider === "docsearch") {
-        this._initDocSearch(docsConfig);
+        this._initDocSearch();
       }
 
       // Initial content load happens in render() (async).
@@ -141,12 +141,20 @@ export function createDocsLayoutView(
      * Uses createLocalSearchClient() to query the pre-built search index
      * instead of Algolia's hosted API -- no credentials required.
      */
-    _initDocSearch(docsConfig: DocsConfig) {
-      // searchIndex is injected at build time by defineConfig() and is not
-      // part of the user-facing DocsConfig type.
-      const searchIndex =
-        (docsConfig as DocsConfig & { searchIndex: SearchEntry[] })
-          .searchIndex || [];
+    async _initDocSearch(this: DocsLayoutViewThis) {
+      // searchIndex is lazily built at runtime via getSearchIndex (loading
+      // all .md modules on first search) — no build-time serialization.
+      const getSearchIndex = State.get("getSearchIndex") as
+        | (() => Promise<
+            {
+              title: string;
+              link: string;
+              headings: string[];
+              excerpt: string;
+            }[]
+          >)
+        | undefined;
+      const searchIndex = getSearchIndex ? await getSearchIndex() : [];
       const localClient = createLocalSearchClient(searchIndex);
 
       import("@docsearch/css");

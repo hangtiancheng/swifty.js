@@ -1,15 +1,10 @@
+/// <reference types="vite/client" />
 /**
- * Type shim for Vite's ?raw SVG imports.
- *
- * Vite resolves `*.svg?raw` to a plain string containing the SVG markup.
- * TypeScript needs this declaration to accept the import shape.
+ * Lark .html template files — compiled by larkMvcPlugin into
+ * (data, viewId, refData) => string functions at build time.
+ * At type-check time they are treated as string modules.
  */
-declare module "*.svg?raw" {
-  const content: string;
-  export default content;
-}
-
-declare module "*.css" {
+declare module "*.html" {
   const content: string;
   export default content;
 }

@@ -26,7 +26,7 @@ import type { DocsConfig, SearchEntry } from "../types";
  */
 interface SearchViewThis extends ViewInterface {
   _mini: MiniSearch | null;
-  _ensureMiniSearch(): MiniSearch | null;
+  _ensureMiniSearch(): Promise<MiniSearch | null>;
 }
 
 export function createSearchView(View: typeof ViewClass, template: unknown) {
@@ -85,7 +85,7 @@ export function createSearchView(View: typeof ViewClass, template: unknown) {
       // Prevent click propagation from modal-box to modal overlay.
     },
 
-    "onSearchInput<input>"(this: SearchViewThis, e: Event) {
+    async "onSearchInput<input>"(this: SearchViewThis, e: Event) {
       const input = e.target as HTMLInputElement;
       const query = input?.value || "";
 
@@ -96,7 +96,7 @@ export function createSearchView(View: typeof ViewClass, template: unknown) {
         return;
       }
 
-      const mini = this._ensureMiniSearch();
+      const mini = await this._ensureMiniSearch();
 
       let raw: (SearchResult & Partial<SearchEntry>)[] = [];
       if (mini) {
@@ -133,18 +133,28 @@ export function createSearchView(View: typeof ViewClass, template: unknown) {
     },
 
     /**
-     * Lazily build the MiniSearch instance from the build-time search index.
-     * MiniSearch requires a unique `id` field, which we synthesize from the
-     * array index since SearchEntry has no natural id.
+     * Lazily build the MiniSearch instance. The search index is built on
+     * first query by loading all .md modules (via getSearchIndex from State)
+     * and extracting pageData — no build-time searchIndex serialization.
+     * MiniSearch requires a unique `id` field, synthesized from array index.
      */
-    _ensureMiniSearch(this: SearchViewThis): MiniSearch | null {
+    async _ensureMiniSearch(this: SearchViewThis): Promise<MiniSearch | null> {
       if (this._mini) return this._mini;
-      const index =
-        (State.get("docsConfig") as DocsConfig & { searchIndex: SearchEntry[] })
-          ?.searchIndex || [];
+      const getSearchIndex = State.get("getSearchIndex") as
+        | (() => Promise<
+            {
+              title: string;
+              link: string;
+              headings: string[];
+              excerpt: string;
+            }[]
+          >)
+        | undefined;
+      if (!getSearchIndex) return null;
+      const index = await getSearchIndex();
       if (!index.length) return null;
 
-      const docs = index.map((entry: SearchEntry, i: number) => ({
+      const docs = index.map((entry, i) => ({
         ...entry,
         id: i,
       }));

@@ -12,6 +12,7 @@
   "author": "https://github.com/hangtiancheng",
   "files": [
     "dist",
+    "src/shims.d.ts",
     "README.md"
   ],
   "type": "module",
@@ -88,11 +89,6 @@
         "types": "./dist/theme/index.d.cts",
         "default": "./dist/theme.cjs"
       }
-    },
-    "./theme/*.html": {
-      "import": {
-        "default": "./src/theme/*.html"
-      }
     }
   },
   "scripts": {
@@ -110,6 +106,7 @@
   "dependencies": {
     "@docsearch/css": "^4.6.3",
     "@docsearch/js": "^4.6.3",
+    "ejs": "^3.1.10",
     "js-yaml": "^5.0.0",
     "lucide-static": "^1.21.0",
     "markdown-it": "^14.2.0",
@@ -120,6 +117,7 @@
   "devDependencies": {
     "@lark.js/mvc": "workspace:^",
     "@tailwindcss/vite": "^4.3.1",
+    "@types/ejs": "^3.1.5",
     "@types/js-yaml": "^4.0.9",
     "@types/markdown-it": "^14.1.2",
     "@types/markdown-it-container": "^4.0.0",

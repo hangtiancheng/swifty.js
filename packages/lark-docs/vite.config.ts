@@ -129,6 +129,9 @@ function libConfig(): UserConfig {
       sourcemap: false,
     },
     plugins: [
+      // Compile .html template imports in theme/ into JS functions so
+      // they are bundled into theme.js — consumers never import .html.
+      larkMvcPlugin7({ useSwc: true }) as PluginOption,
       {
         name: "cjs-shims",
         renderChunk(code, _chunk, outputOptions) {
