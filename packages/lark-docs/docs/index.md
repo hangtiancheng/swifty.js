@@ -5,45 +5,48 @@ description: "Documentation site generator for @lark.js/mvc"
 
 # @lark.js/docs
 
-`@lark.js/docs` is to `@lark.js/mvc` what VitePress is to Vue3 — an out-of-the-box documentation site generator that produces a complete documentation site with navigation, sidebar, search, and syntax highlighting.
+`@lark.js/docs` is to `@lark.js/mvc` what VitePress is to Vue -- an out-of-the-box documentation site generator that produces a complete documentation site with navigation, sidebar, search, and syntax highlighting.
 
 ## Features
 
-- **File-based routing** — Recursively scans a `docs/` directory and generates routes from `.md` files
-- **Dual routing modes** — Supports `@lark.js/mvc` Router in both `history` and `hash` modes
-- **Configurable base URL** — Pass `baseUrl` as a common route prefix (e.g. `/docs/`)
-- **Professional markdown parsing** — Powered by `markdown-it` with custom plugins for anchors, TOC, containers, and code blocks
-- **YAML frontmatter** — Per-page metadata for titles, descriptions, sidebar ordering, and draft exclusion
-- **Syntax highlighting** — Shiki-powered code blocks with VSCode-quality TextMate grammars, singleton-cached
-- **Admonition containers** — `::: tip`, `::: warning`, `::: danger`, `::: details` with customizable labels
-- **Auto-generated sidebar** — From directory structure with frontmatter-based sorting and collapsible groups
-- **Dual search providers** — Built-in local modal or Algolia DocSearch widget, both backed by a build-time search index
-- **Responsive theme** — Tailwind CSS v4 + DaisyUI v5, three-column layout with sticky navbar, sidebar, and TOC
-- **Multi-bundler support** — Vite plugin, Webpack loader, and Rspack loader sharing the same compilation pipeline
-
-## Quick Start
-
-```bash
-pnpm add @lark.js/docs @lark.js/mvc tailwindcss daisyui
-```
-
-Configure your bundler, write markdown files, and boot the site. See [Get Started](/docs/get-started/) for the full guide.
+- File-based routing -- recursively scans a `docs/` directory and generates SPA routes
+- Dual routing modes -- supports `@lark.js/mvc` Router in both `history` and `hash` modes
+- Markdown compilation pipeline -- `markdown-it` with four custom plugins (anchors, TOC, containers, code blocks)
+- YAML frontmatter -- metadata extraction via `js-yaml` for page titles, descriptions, sidebar positioning, and draft control
+- Shiki-powered code highlighting -- lazy WASM initialization and singleton caching for 100+ languages
+- Admonition containers -- `::: tip`, `::: warning`, `::: danger`, `::: details` rendered as DaisyUI alert components
+- Auto-generated sidebar -- directory-structure-based navigation with frontmatter overrides
+- Three search providers -- MiniSearch-powered local modal, Algolia DocSearch UI with local index, or disabled
+- Table of contents -- per-page heading outline with smooth-scroll navigation
+- Three-column responsive layout -- Tailwind CSS v4 + DaisyUI v5 with sticky navbar and frosted glass effect
+- Three bundler integrations -- Vite, Webpack, and Rspack / Rsbuild
+- Zero-config boot -- `defineConfig()` auto-generates routes, sidebars, and search index into `.lark-docs/generated/`
+- Single-call theme registration -- `registerThemeViews(View)` registers all theme components at once
+- Dual-format library build -- ships ESM + CJS with full TypeScript declarations
 
 ## How It Works
 
-```
-docs/                    Build Time                       Runtime (Browser)
-  index.md               ┌─────────────────-────┐         ┌────────────────────┐
-  get-started/     ───>  │ larkDocsPlugin       │  ───>   │ lark-mvc Framework │
-    index.md             │ 1. extractFrontmatter│         │   Router + Views   │
-    configuration.md     │ 2. markdown-it parse │         │   + Frame tree     │
-  markdown/              │ 3. Shiki highlight   │         │   + State (cross-  │
-    index.md             │ 4. render to HTML    │         │     view data)     │
-  search/                │ 5. emit JS module    │         └────────────────────┘
-    index.md             └────────────────────-─┘
-```
+`@lark.js/docs` operates in three phases:
 
-Each `.md` file is compiled at build time into a lark-mvc View module. At runtime, the Router handles navigation and the theme Views (layout, sidebar, content, TOC, search) render the documentation interface.
+**Phase 1 -- Configuration (build startup).** `defineConfig()` scans the docs directory, extracts frontmatter and headings from every `.md` file, auto-generates sidebar trees per path prefix, and writes a generated module to `.lark-docs/generated/index.js`. This module provides dynamic content loaders, a route map, runtime site configuration, and a lazy search index builder.
+
+**Phase 2 -- Compilation (bundler plugin).** Each `.md` import is intercepted by the bundler plugin and compiled through `compileMarkdown()`. The pipeline extracts YAML frontmatter, initializes the Shiki highlighter on first call, parses the markdown body with `markdown-it` plus four custom plugins, renders to HTML, builds page metadata, and emits a JS module that exports `pageData` and `contentHtml`.
+
+**Phase 3 -- Runtime (browser).** The `@lark.js/mvc` Framework boots with the generated routes. The layout view stays mounted across navigation and asynchronously loads page content via `loadContent()`. Four theme Views (layout, sidebar, TOC, search) render the documentation UI.
+
+```
+lark-docs.config.ts          Bundler Plugin              Browser Runtime
+       |                            |                          |
+  defineConfig()              compileMarkdown()          Framework.boot()
+       |                            |                          |
+  scanDocsDir()               extractFrontmatter         registerThemeViews(View)
+  generateSidebar()           createParser()             routes + loadContent
+       |                      getHighlighter()           from generated module
+       |                            |                          |
+  .lark-docs/generated/        JS module string          4 theme Views
+  index.js                   ({pageData,                 render the docs UI
+                               contentHtml})
+```
 
 ## Documentation
 

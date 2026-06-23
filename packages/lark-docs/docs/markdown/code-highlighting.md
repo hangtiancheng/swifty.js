@@ -86,8 +86,6 @@ const x: number = 42;
 ```
 ````
 
-````
-
 This produces syntax-highlighted output:
 
 ```typescript
@@ -96,7 +94,7 @@ const greeting: string = "Hello, World!";
 function add(a: number, b: number): number {
   return a + b;
 }
-````
+```
 
 ## How It Works
 

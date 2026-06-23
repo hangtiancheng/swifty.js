@@ -10,33 +10,40 @@ This page documents every public export from `@lark.js/docs`. All types are re-e
 
 ## Entry Points
 
-| Import path              | Description                             |
-| ------------------------ | --------------------------------------- |
-| `@lark.js/docs`          | Main barrel -- all exports              |
-| `@lark.js/docs/vite`     | Vite plugin                             |
-| `@lark.js/docs/webpack`  | Webpack plugin and loader               |
-| `@lark.js/docs/rspack`   | Rspack plugin and loader                |
-| `@lark.js/docs/compiler` | `compileMarkdown` function              |
-| `@lark.js/docs/runtime`  | `searchDocs`, `slugify` runtime helpers |
-| `@lark.js/docs/theme`    | View factories, icons, DocSearch client |
+| Import path              | Description                                         |
+| ------------------------ | --------------------------------------------------- |
+| `@lark.js/docs`          | Main barrel -- all exports                          |
+| `@lark.js/docs/vite`     | Vite plugin + `defineConfig` + build-time utilities |
+| `@lark.js/docs/webpack`  | Webpack plugin and loader                           |
+| `@lark.js/docs/rspack`   | Rspack plugin and loader                            |
+| `@lark.js/docs/compiler` | `compileMarkdown` function                          |
+| `@lark.js/docs/runtime`  | `searchDocs`, `slugify` runtime helpers             |
+| `@lark.js/docs/theme`    | `registerThemeViews`, view factories, icons         |
+| `@lark.js/docs/client`   | Types-only: ambient module declarations             |
+
+The `/vite`, `/webpack`, and `/rspack` sub-paths re-export build-time utilities (`scanDocsDir`, `generateRouteMap`, `generateSidebar`, `buildSearchIndex`, `defineConfig`) to avoid pulling in the main entry's `lucide-static` SVG `?raw` imports, which are not valid in Node.js contexts.
+
+The `/client` sub-path is types-only (no runtime code). It ships `client.d.ts` which provides `declare module "@lark-docs/generated"` and `declare module "*.html"` ambient declarations. Consumer projects reference it via `/// <reference types="@lark.js/docs/client" />` in their `shims.d.ts`.
 
 ## Configuration
 
 ### `defineConfig`
 
 ```ts
-import { defineConfig } from "@lark.js/docs";
+import { defineConfig } from "@lark.js/docs/vite";
 
-function defineConfig(config: DocsConfig): DocsConfig;
+function defineConfig(config: DocsConfig, projectRoot?: string): DocsConfig;
 ```
 
-Type-safe identity function. Returns the argument unchanged. Exists for TypeScript inference and autocompletion at the call site.
+Type-safe identity function. Returns the argument unchanged. When called, also triggers route generation: scanning the docs directory, building sidebar trees, and writing the generated module to `.lark-docs/generated/index.js`.
+
+The optional `projectRoot` parameter controls path resolution for the `docs` directory and the generated output. Defaults to `process.cwd()`.
 
 ### `DocsConfig`
 
 ```ts
 interface DocsConfig {
-  docs: string; // docs source directory
+  docs: string; // docs source directory (relative to project root)
   baseUrl: string; // URL prefix for all routes
   routeMode: "history" | "hash"; // routing mode
   title: string; // site title (navbar)
@@ -117,11 +124,79 @@ interface SearchOptions {
 }
 ```
 
-| Provider      | Description                                             |
-| ------------- | ------------------------------------------------------- |
-| `"local"`     | Built-in modal dialog with substring matching (default) |
-| `"docsearch"` | Algolia DocSearch widget backed by local index          |
-| `"none"`      | Disable search entirely                                 |
+| Provider      | Description                                            |
+| ------------- | ------------------------------------------------------ |
+| `"local"`     | Built-in modal dialog with MiniSearch engine (default) |
+| `"docsearch"` | Algolia DocSearch widget backed by local index         |
+| `"none"`      | Disable search entirely                                |
+
+## Theme
+
+### `registerThemeViews`
+
+```ts
+import { registerThemeViews } from "@lark.js/docs/theme";
+
+function registerThemeViews(ViewClass: typeof View): void;
+```
+
+Registers all four theme views (layout, sidebar, TOC, search) with the lark-mvc view registry. Imports the `.html` templates internally so consumers don't need to handle them. Call this once in `boot.ts` before `Framework.boot()`.
+
+```ts
+import { View } from "@lark.js/mvc";
+import { registerThemeViews } from "@lark.js/docs/theme";
+
+registerThemeViews(View);
+```
+
+### View Factories
+
+```ts
+import {
+  createDocsLayoutView,
+  createSidebarView,
+  createTocView,
+  createSearchView,
+} from "@lark.js/docs/theme";
+import { View as ViewClass } from "@lark.js/mvc";
+
+function createDocsLayoutView(
+  View: typeof ViewClass,
+  template: unknown,
+): unknown;
+function createSidebarView(View: typeof ViewClass, template: unknown): unknown;
+function createTocView(View: typeof ViewClass, template: unknown): unknown;
+function createSearchView(View: typeof ViewClass, template: unknown): unknown;
+```
+
+Each factory takes the lark-mvc `View` class and a compiled HTML template, returning a View subclass. Register the result with `registerViewClass()`. These are available for advanced customization -- most users should use `registerThemeViews()` instead.
+
+### `createLocalSearchClient`
+
+```ts
+import { createLocalSearchClient } from "@lark.js/docs/theme";
+
+function createLocalSearchClient(index: SearchEntry[]): {
+  search(
+    requests: Array<{
+      indexName: string;
+      params: { query: string; hitsPerPage?: number };
+    }>,
+  ): Promise<{ results: unknown[] }>;
+};
+```
+
+Creates an Algolia-compatible search client backed by the local index. Used by the DocSearch provider's `transformSearchClient`.
+
+### `icons`
+
+```ts
+import { icons } from "@lark.js/docs/theme";
+
+const icons: { search: string };
+```
+
+Icon registry. Each value is a complete `<svg>...</svg>` markup string from `lucide-static`. Icons inherit `currentColor`.
 
 ## Build-Time Functions
 
@@ -139,7 +214,7 @@ function scanDocsDir(
 
 Recursively walks the docs directory, reads each `.md` file, extracts frontmatter and headings, and returns route entries.
 
-**Skipped entries:**
+Skipped entries:
 
 - Files/directories starting with `_` or `.`
 - `node_modules`, `__tests__`, `__fixtures__`, `.git`, `.vitepress`, `.lark-docs`, `dist`
@@ -178,7 +253,7 @@ function generateSidebar(
 
 Auto-generates sidebar items for routes under a given prefix.
 
-**Grouping rules:**
+Grouping rules:
 
 1. Routes grouped by subdirectory under the prefix
 2. Root-level items processed first
@@ -218,16 +293,16 @@ async function compileMarkdown(
 ): Promise<string>;
 ```
 
-Compiles a `.md` source string into a JS module that exports a lark-mvc View.
+Compiles a `.md` source string into a JS module that exports `pageData` (metadata object) and `contentHtml` (rendered HTML string).
 
-**Pipeline:**
+Pipeline:
 
 1. Extract YAML frontmatter
-2. Create markdown-it parser with plugins
+2. Create markdown-it parser with four plugins (anchors, TOC, containers, code blocks)
 3. Initialize Shiki highlighter (async, singleton-cached)
 4. Parse tokens and render to HTML
-5. Build page metadata (title, headings)
-6. Generate JS module string
+5. Build page metadata (title, headings, description)
+6. Emit JS module string exporting `{ pageData, contentHtml }`
 
 ### `CompileMarkdownOptions`
 
@@ -256,7 +331,7 @@ Creates a configured `markdown-it` instance with all four plugins:
 3. **Containers** -- `::: tip/warning/danger/details`
 4. **Code blocks** -- fence renderer override
 
-**Base configuration:**
+Base configuration:
 
 - `html: true` -- raw HTML passthrough
 - `linkify: true` -- auto-detect URLs
@@ -272,7 +347,7 @@ function extractFrontmatter(source: string): FrontmatterResult;
 
 Parses YAML frontmatter from a markdown source string. Returns `{ data, content }` where `data` is the parsed YAML object and `content` is the markdown with frontmatter stripped.
 
-**Graceful degradation:** Returns empty data on malformed YAML or missing frontmatter.
+Graceful degradation: returns empty data on malformed YAML or missing frontmatter.
 
 ### `FrontmatterResult`
 
@@ -319,7 +394,7 @@ function highlightCode(
 ): string;
 ```
 
-Highlights a code string using the Shiki highlighter. Falls back to escaped plain text on unsupported languages or errors.
+Highlights a code string using the Shiki highlighter. Falls back to escaped plain text on unsupported languages or error.
 
 ## Runtime Helpers
 
@@ -337,7 +412,7 @@ function searchDocs(
 
 Client-side full-text search with scored ranking.
 
-**Scoring per term:** title = 10pts, heading = 5pts, excerpt = 1pt. AND logic across all terms. Results sorted by score descending.
+Scoring per term: title = 10pts, heading = 5pts, excerpt = 1pt. AND logic across all terms. Per-field boundary checking prevents false matches spanning field boundaries. Results sorted by score descending, then alphabetically by title.
 
 ### `slugify`
 
@@ -347,60 +422,7 @@ import { slugify } from "@lark.js/docs/runtime";
 function slugify(text: string): string;
 ```
 
-Converts text to a URL-safe slug. Lowercases, removes non-word characters, replaces spaces with dashes.
-
-## Theme
-
-### View Factories
-
-```ts
-import {
-  createDocsLayoutView,
-  createSidebarView,
-  createContentView,
-  createTocView,
-  createSearchView,
-} from "@lark.js/docs/theme";
-import { View as ViewClass } from "@lark.js/mvc";
-
-function createDocsLayoutView(
-  View: typeof ViewClass,
-  template: unknown,
-): unknown;
-function createSidebarView(View: typeof ViewClass, template: unknown): unknown;
-function createContentView(View: typeof ViewClass, template: unknown): unknown;
-function createTocView(View: typeof ViewClass, template: unknown): unknown;
-function createSearchView(View: typeof ViewClass, template: unknown): unknown;
-```
-
-Each factory takes the lark-mvc `View` class and a compiled HTML template, returning a View subclass. Register the result with `registerViewClass()`.
-
-### `createLocalSearchClient`
-
-```ts
-import { createLocalSearchClient } from "@lark.js/docs/theme";
-
-function createLocalSearchClient(index: SearchEntry[]): {
-  search(
-    requests: Array<{
-      indexName: string;
-      params: { query: string; hitsPerPage?: number };
-    }>,
-  ): Promise<{ results: unknown[] }>;
-};
-```
-
-Creates an Algolia-compatible search client backed by the local index. Used by the DocSearch provider's `transformSearchClient`.
-
-### `icons`
-
-```ts
-import { icons } from "@lark.js/docs/theme";
-
-const icons: { search: string };
-```
-
-Icon registry. Each value is a complete `<svg>...</svg>` markup string from `lucide-static`. Icons inherit `currentColor`.
+Converts text to a URL-safe slug. Lowercases, removes non-word characters (except spaces and dashes), replaces whitespace with dashes, collapses consecutive dashes.
 
 ## Bundler Plugins
 
@@ -434,7 +456,7 @@ class LarkDocsPlugin {
 function larkDocsLoader(this: LoaderContext, source: string): void;
 ```
 
-The plugin pushes a loader rule onto `compiler.options.module.rules`. The loader uses `this.callback()` for async delivery (Webpack 5 convention).
+The plugin pushes a loader rule onto `compiler.options.module.rules`. The loader uses `this.callback()` for async delivery (Webpack 5 convention). Self-references via `__filename` to resolve the loader path.
 
 ### Rspack Plugin and Loader
 
@@ -520,5 +542,32 @@ interface SidebarData {
 interface TocData {
   headings: HeadingInfo[];
   activeSlug?: string; // currently visible heading
+}
+```
+
+## Generated Module Types
+
+The `@lark-docs/generated` module (ambient declaration via `@lark.js/docs/client`) exports:
+
+```ts
+declare module "@lark-docs/generated" {
+  import type { DocsConfig, PageData } from "@lark.js/docs/types";
+
+  export function loadContent(
+    path: string,
+  ): Promise<{ pageData: PageData; contentHtml: string } | null>;
+
+  export const routes: Record<string, string>;
+
+  export const docsConfig: DocsConfig;
+
+  export interface SearchEntry {
+    title: string;
+    link: string;
+    headings: string[];
+    excerpt: string;
+  }
+
+  export function getSearchIndex(): Promise<SearchEntry[]>;
 }
 ```

@@ -1,6 +1,6 @@
 ---
 title: "Get Started"
-description: "Install, configure, and build your first documentation site"
+description: "Install, configure, and build your first documentation site with @lark.js/docs"
 sidebar_position: 1
 ---
 
@@ -11,12 +11,43 @@ This guide walks through installing `@lark.js/docs`, configuring your bundler, w
 ## Installation
 
 ```bash
-pnpm add @lark.js/docs @lark.js/mvc tailwindcss daisyui
+pnpm add @lark.js/docs @lark.js/mvc tailwindcss daisyui @tailwindcss/typography
 ```
 
 ::: tip
-Your project must have Tailwind CSS and DaisyUI installed. The theme templates use Tailwind utility classes and DaisyUI components — they are peer dependencies of `@lark.js/docs`.
+Your project must have Tailwind CSS, DaisyUI, and the Typography plugin installed. The theme templates use Tailwind utility classes and DaisyUI components -- they are peer dependencies of `@lark.js/docs`.
 :::
+
+## Configuration
+
+Create `lark-docs.config.ts` at your project root:
+
+```ts
+import { defineConfig } from "@lark.js/docs/vite";
+
+export default defineConfig({
+  docs: "docs",
+  baseUrl: "/docs/",
+  routeMode: "history",
+  title: "My Library",
+  description: "Documentation for My Library",
+  nav: [
+    { text: "Guide", link: "/docs/guide/" },
+    { text: "API", link: "/docs/api/" },
+  ],
+  sidebar: {
+    "/docs/guide/": "auto",
+    "/docs/api/": "auto",
+  },
+  highlight: {
+    theme: "github-dark",
+    languages: ["typescript", "javascript", "html", "css", "bash", "json"],
+  },
+  search: { provider: "local" },
+});
+```
+
+`defineConfig()` is an identity function that also triggers route generation at configuration load time. See [Configuration](/docs/get-started/configuration/) for the full reference.
 
 ## Bundler Configuration
 
@@ -25,39 +56,50 @@ Your project must have Tailwind CSS and DaisyUI installed. The theme templates u
 ```ts
 // vite.config.ts
 import { defineConfig } from "vite";
-import { larkDocPlugin } from "@lark.js/docs/vite";
-import { larkMvcPlugin } from "@lark.js/mvc/vite";
+import { larkDocsPlugin } from "@lark.js/docs/vite";
+import { larkMvcPlugin7 } from "@lark.js/mvc/vite";
 import tailwindcss from "@tailwindcss/vite";
-import docConfig from "./lark-docs.config";
+import docsConfig from "./lark-docs.config";
+import { resolve } from "node:path";
+
+const PKG_DIR = import.meta.dirname;
 
 export default defineConfig({
+  root: resolve(PKG_DIR, "app"),
   plugins: [
-    larkDocPlugin({ config: docConfig }),
-    larkMvcPlugin(),
+    larkDocsPlugin({ config: docsConfig }),
+    larkMvcPlugin7({ debug: true, useSwc: true }),
     tailwindcss(),
   ],
+  resolve: {
+    alias: {
+      "@lark-docs/generated": resolve(PKG_DIR, ".lark-docs/generated"),
+    },
+  },
 });
 ```
+
+The `@lark-docs/generated` alias points to the directory where `defineConfig()` writes the generated module. See [Generated Output](/docs/get-started/configuration/#generated-output) for details.
 
 ### Webpack
 
 ```ts
-import { LarkDocPlugin } from "@lark.js/docs/webpack";
-import docConfig from "./lark-docs.config";
+import { LarkDocsPlugin } from "@lark.js/docs/webpack";
+import docsConfig from "./lark-docs.config";
 
 export default {
-  plugins: [new LarkDocPlugin({ config: docConfig })],
+  plugins: [new LarkDocsPlugin({ config: docsConfig })],
 };
 ```
 
 ### Rspack
 
 ```ts
-import { LarkDocPlugin } from "@lark.js/docs/rspack";
-import docConfig from "./lark-docs.config";
+import { LarkDocsPlugin } from "@lark.js/docs/rspack";
+import docsConfig from "./lark-docs.config";
 
 export default {
-  plugins: [new LarkDocPlugin({ config: docConfig })],
+  plugins: [new LarkDocsPlugin({ config: docsConfig })],
 };
 ```
 
@@ -79,61 +121,99 @@ Create a minimal HTML entry point:
 </html>
 ```
 
-## Boot File
-
-The boot file registers theme views, imports compiled `.md` files, and starts the framework:
-
-```ts
-// boot.ts
-import { Framework, View, State, registerViewClass } from "@lark.js/mvc";
-import { routes, docsConfig } from "./routes";
-
-import {
-  createDocLayoutView,
-  createSidebarView,
-  createContentView,
-  createTocView,
-  createSearchView,
-} from "@lark.js/docs/theme";
-
-import docLayoutTemplate from "@lark.js/docs/theme/docs-layout.html";
-import sidebarTemplate from "@lark.js/docs/theme/sidebar.html";
-import contentTemplate from "@lark.js/docs/theme/content.html";
-import tocTemplate from "@lark.js/docs/theme/toc.html";
-import searchTemplate from "@lark.js/docs/theme/search.html";
-
-import "./main.css";
-
-// Register theme views
-registerViewClass(
-  "theme/docs-layout",
-  createDocLayoutView(View, docLayoutTemplate),
-);
-registerViewClass("theme/sidebar", createSidebarView(View, sidebarTemplate));
-registerViewClass("theme/content", createContentView(View, contentTemplate));
-registerViewClass("theme/toc", createTocView(View, tocTemplate));
-registerViewClass("theme/search", createSearchView(View, searchTemplate));
-
-// Inject site data
-State.set({ docsConfig });
-
-// Boot
-Framework.boot({
-  rootId: "app",
-  routeMode: "history",
-  defaultPath: "/docs/",
-  defaultView: "index",
-  routes,
-});
-```
-
 ## CSS Entry
 
 ```css
 /* main.css */
 @import "tailwindcss";
 @plugin "daisyui";
+@plugin "@tailwindcss/typography";
 ```
+
+Import it in your boot file:
+
+```ts
+// boot.ts
+import "./main.css";
+```
+
+::: warning
+`@tailwindcss/typography` is required for the `prose` class that styles rendered markdown content. Without it, headings, paragraphs, lists, tables, and code blocks inside the content area will have no typographic styling.
+:::
+
+## Boot File
+
+The boot file registers theme views, injects site data into State, and starts the framework:
+
+```ts
+// app/boot.ts
+import { Framework, View, State } from "@lark.js/mvc";
+import type { FrameworkConfig } from "@lark.js/mvc";
+
+// Auto-generated by defineConfig()
+import {
+  routes,
+  docsConfig,
+  loadContent,
+  getSearchIndex,
+} from "@lark-docs/generated";
+
+// Theme views (layout, sidebar, toc, search) -- registered in one call
+import { registerThemeViews } from "@lark.js/docs/theme";
+
+import "./main.css";
+
+// Register all theme views at once
+registerThemeViews(View);
+
+// Inject site data + content loader into State
+State.set({ docsConfig, loadContent, getSearchIndex });
+
+// Boot the framework
+const config: FrameworkConfig = {
+  rootId: "app",
+  routeMode: "history",
+  defaultPath: "/docs/",
+  defaultView: "theme/docs-layout",
+  routes,
+  unmatchedView: "theme/docs-layout",
+};
+
+Framework.boot(config);
+```
+
+Key differences from older patterns:
+
+- `registerThemeViews(View)` replaces manual `registerViewClass` calls and `.html` template imports. The framework compiles and registers all four theme views internally.
+- `loadContent` and `getSearchIndex` are imported from the generated module and injected into State. The layout view uses these at runtime to load page content and build the search index lazily.
+- All routes map to `theme/docs-layout`. The layout stays mounted across navigation and swaps content via `loadContent()`.
+
+## TypeScript Setup
+
+Create `shims.d.ts` in your project root:
+
+```ts
+/// <reference types="@lark.js/docs/client" />
+/// <reference types="vite/client" />
+```
+
+The `/// <reference types="@lark.js/docs/client" />` directive loads ambient module declarations for `@lark-docs/generated` (routes, docsConfig, loadContent, getSearchIndex, SearchEntry) and `*.html` template imports.
+
+Add a `paths` mapping in `tsconfig.json`:
+
+```json
+{
+  "compilerOptions": {
+    "paths": {
+      "@lark-docs/generated/*": ["./.lark-docs/generated/*"]
+    }
+  }
+}
+```
+
+::: danger
+Always use `/// <reference types="..." />` (not `/// <reference path="..." />`) for referencing type declarations inside `node_modules`. The `types` directive uses TypeScript's full module resolution algorithm, which correctly resolves pnpm workspace symlinks and package `exports` fields. The `path` directive performs raw filesystem path lookup and does not understand package structure or symlink resolution.
+:::
 
 ## Your First Page
 
@@ -162,6 +242,9 @@ Always include YAML frontmatter with at least a `title` field. Without it, the t
 
 ## Next Steps
 
-- [Configuration](/docs/get-started/configuration/) — Full config reference
-- [Markdown](/docs/markdown/) — Frontmatter, containers, code highlighting
-- [Router](/docs/router/) — history/hash modes, baseUrl, route rules
+- [Configuration](/docs/get-started/configuration/) -- full config reference and generated output details
+- [Markdown](/docs/markdown/) -- frontmatter, containers, code highlighting, anchors
+- [Router](/docs/router/) -- history/hash modes, baseUrl, route rules
+- [Search](/docs/search/) -- provider comparison and scoring algorithms
+- [Theme Architecture](/docs/theme/) -- view hierarchy and customization
+- [API Reference](/docs/api/) -- complete public API documentation

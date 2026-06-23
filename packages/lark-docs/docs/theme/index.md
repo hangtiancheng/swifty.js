@@ -1,28 +1,85 @@
 ---
 title: "Theme Architecture"
-description: "View hierarchy, layout structure, and theme customization"
+description: "View hierarchy, layout structure, content loading, and theme customization"
 sidebar_position: 1
 ---
 
 # Theme Architecture
 
-`@lark.js/docs` ships a fixed theme composed of five lark-mvc Views arranged in a parent-child hierarchy. The theme is styled entirely with Tailwind CSS and DaisyUI -- no custom CSS classes are used or needed.
+`@lark.js/docs` ships a fixed theme composed of four lark-mvc Views arranged in a parent-child hierarchy. The theme is styled entirely with Tailwind CSS and DaisyUI -- no custom CSS classes are used or needed.
 
 ## View Hierarchy
 
 ```
 theme/docs-layout (root)
   +-- theme/sidebar     (left navigation tree)
-  +-- theme/content     (compiled markdown body)
   +-- theme/toc         (right heading outline)
   +-- theme/search      (search modal, local provider only)
 ```
 
-Each view is a factory function that takes the lark-mvc `View` class and a compiled HTML template, returning a View subclass ready for `registerViewClass()`.
+The DocLayout renders the compiled markdown HTML (`contentHtml`) inline within the content area -- there is no separate content view. This simplifies the architecture and keeps content loading within the layout's async render cycle.
+
+## registerThemeViews
+
+The recommended way to set up the theme is a single function call:
+
+```ts
+import { View } from "@lark.js/mvc";
+import { registerThemeViews } from "@lark.js/docs/theme";
+
+registerThemeViews(View);
+```
+
+This function imports all `.html` templates internally (compiled by `larkMvcPlugin` at build time), creates the four view classes, and calls `registerViewClass()` for each. Consumers never import `.html` files or call `registerViewClass` manually.
+
+For advanced customization, individual view factories are also available:
+
+```ts
+import {
+  createDocsLayoutView,
+  createSidebarView,
+  createTocView,
+  createSearchView,
+} from "@lark.js/docs/theme";
+```
 
 ## DocLayout
 
-The root layout view manages the entire page structure. It is the only view that renders the navbar and the three-column responsive grid.
+The root layout view manages the entire page structure. It is the only view that renders the navbar, the three-column responsive grid, and the compiled markdown content.
+
+### How content rendering works
+
+The layout view stays mounted across all `/docs/*` routes. It does NOT unmount and remount on navigation. Instead:
+
+1. `init()` calls `this.observeLocation([], true)` to subscribe to route changes.
+2. On navigation, `render()` fires asynchronously.
+3. `render()` calls `loadContent(path)` from State to dynamically import the compiled `.md` module.
+4. The result contains `{ pageData, contentHtml }`.
+5. `contentHtml` is set on the updater and rendered inline via `{{!contentHtml}}`.
+6. `pageData.headings` are published to State for the TOC sub-view.
+7. A signature guard short-circuits stale loads if the user navigates again before the previous import resolves.
+
+```ts
+async render() {
+  const loadContent = State.get("loadContent");
+  const path = Router.parse().path || docsConfig.baseUrl || "/docs/";
+
+  const sig = this.signature;
+  const content = await loadContent(path);
+  if (this.signature !== sig) return; // superseded by a newer render
+
+  State.set({
+    currentPageHeadings: content.pageData.headings || [],
+    currentPageTitle: content.pageData.title || "",
+  }).digest();
+
+  this.updater.set({
+    siteTitle: docsConfig.title,
+    contentHtml: content.contentHtml,
+  });
+  this.updater.digest();
+}
+```
 
 ### Template structure
 
@@ -37,7 +94,7 @@ bg-base-100 min-h-screen
       v-lark="theme/sidebar"
     main (flex-1)
       article.prose.prose-lg
-        v-lark="theme/content"
+        {{!contentHtml}}
       prev/next navigation
     aside (right TOC, w-56, hidden below xl)
       v-lark="theme/toc"
@@ -46,24 +103,28 @@ bg-base-100 min-h-screen
 
 ### State dependencies
 
-DocLayout reads from `State.get("docsConfig")` on every render:
+DocLayout reads from State on every render:
 
-| Data key         | Source                        | Purpose                         |
-| ---------------- | ----------------------------- | ------------------------------- |
-| `siteTitle`      | `docsConfig.title`            | Navbar title text               |
-| `navItems`       | `docsConfig.nav`              | Top navigation links            |
-| `searchProvider` | `docsConfig.search?.provider` | Conditional search UI rendering |
-| `prevPage`       | Set by route handler          | Previous page navigation link   |
-| `nextPage`       | Set by route handler          | Next page navigation link       |
+| Data key         | Source                        | Purpose                        |
+| ---------------- | ----------------------------- | ------------------------------ |
+| `docsConfig`     | `State.get("docsConfig")`     | Site title, nav, search config |
+| `loadContent`    | `State.get("loadContent")`    | Async content loader function  |
+| `getSearchIndex` | `State.get("getSearchIndex")` | Lazy search index builder      |
 
-DocLayout also calls `this.observeLocation([], true)` so it re-renders on every navigation, updating the prev/next links.
+DocLayout also publishes to State for child views:
+
+| Data key              | Published to State | Purpose                 |
+| --------------------- | ------------------ | ----------------------- |
+| `currentPageHeadings` | After content load | TOC heading data        |
+| `currentPageTitle`    | After content load | Current page title      |
+| `searchOpen`          | On search toggle   | Search modal visibility |
 
 ### Event handlers
 
 | Handler          | Event | Action                                        |
 | ---------------- | ----- | --------------------------------------------- |
 | `navigateTo`     | click | Reads `data-href`, calls `Router.to(href)`    |
-| `navigateHome`   | click | Calls `Router.to("/")`                        |
+| `navigateHome`   | click | Calls `Router.to(baseUrl)`                    |
 | `openSearch`     | click | Sets `searchOpen: true` in State (local only) |
 | `_initDocSearch` | init  | Dynamically loads DocSearch widget            |
 
@@ -110,29 +171,13 @@ URL prefixes are converted to human-readable labels:
 
 The algorithm strips leading/trailing slashes, replaces dashes with spaces, and capitalizes each word.
 
-## Content
-
-The content view renders compiled markdown as raw HTML.
-
-### Template
-
-```html
-<div class="prose max-w-none">{{!contentHtml}}</div>
-```
-
-The `prose` class from `@tailwindcss/typography` applies typographic styles to the rendered markdown. `max-w-none` removes the default max-width constraint.
-
-### Data source
-
-`contentHtml` is passed through the View's `_initParams`, set by the route handler when a `.md` file is matched. The compiled markdown module exports a `template` function that returns the pre-rendered HTML string.
-
 ## TOC (Table of Contents)
 
 The TOC view renders h2/h3 headings extracted from the current page, with scroll-spy to highlight the visible section.
 
 ### Heading data
 
-Headings are extracted during the build pipeline by `extractHeadings()`:
+Headings are read from `State.get("currentPageHeadings")`, which the DocLayout publishes after each content load:
 
 ```ts
 interface HeadingInfo {
@@ -158,7 +203,7 @@ The search view renders a modal dialog for full-text search. Only active when `s
 
 ### Lazy loading
 
-The search index is not loaded until the user first types in the search input. This avoids paying the cost of parsing the JSON index on every page load.
+The search index is not loaded until the user first types in the search input. On first query, `getSearchIndex()` from State is called, which lazily loads all `.md` modules and extracts page data. The index is cached for subsequent searches.
 
 ### State machine
 
@@ -206,18 +251,40 @@ registerViewClass(
 
 ### Overriding view behavior
 
-Extend the factory output and add custom methods:
+Call `registerViewClass` with the same view ID after `registerThemeViews` to replace it:
 
 ```ts
-const baseLayout = createDocsLayoutView(View, layoutTemplate);
-const customLayout = baseLayout.extend({
-  assign() {
-    const result = baseLayout.prototype.assign.call(this);
-    this.updater.set({ customData: "value" });
-    return result;
-  },
-});
-registerViewClass("theme/docs-layout", customLayout);
+registerThemeViews(View);
+
+// Override the layout with a custom version
+registerViewClass(
+  "theme/docs-layout",
+  createDocsLayoutView(View, myCustomTemplate),
+);
+```
+
+### Adding custom theme views
+
+Register additional views alongside the built-in four:
+
+```ts
+import { registerThemeViews } from "@lark.js/docs/theme";
+import { View } from "@lark.js/mvc";
+
+registerThemeViews(View);
+
+registerViewClass(
+  "theme/footer",
+  View.extend({
+    template: footerTemplate,
+    init() {
+      this.assign();
+    },
+    render() {
+      this.updater.digest();
+    },
+  }),
+);
 ```
 
 ### Adding theme CSS
@@ -231,3 +298,9 @@ import "./custom.css"; // your overrides
 ```
 
 All Tailwind utility classes and DaisyUI component classes are available for use in custom templates.
+
+## Next Steps
+
+- [Styling](/docs/style/) -- Tailwind CSS v4, DaisyUI, typography plugin
+- [Search](/docs/search/) -- DocSearch widget integration and scoring
+- [API Reference](/docs/api/) -- view factories, types, and configuration

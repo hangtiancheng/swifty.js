@@ -21,11 +21,6 @@ Create a CSS entry file:
 ```css
 /* main.css */
 @import "tailwindcss";
-
-/* Scan theme templates for Tailwind class names */
-@source "../../src/theme/*.html";
-@source "../../src/theme/*.ts";
-
 @plugin "daisyui";
 @plugin "@tailwindcss/typography";
 ```
@@ -37,36 +32,22 @@ Import it in your boot file:
 import "./main.css";
 ```
 
-::: tip
-The `@source` directives tell Tailwind CSS where to scan for class names. Without them, classes used in the theme templates will be purged from the production build. Adjust the paths to match your project structure.
-:::
-
 ::: warning
 `@tailwindcss/typography` is required for the `prose` class that styles rendered markdown content. Without it, headings, paragraphs, lists, tables, and code blocks inside the content area will have no typographic styling.
 :::
 
-## Why `@source` is needed
-
-Tailwind CSS v4 scans project files to detect which utility classes are actually used. When `@lark.js/docs` is consumed as a library, the theme templates live inside `node_modules/` which Tailwind does not scan by default. The `@source` directives ensure Tailwind finds and preserves every class used in the templates.
-
-When developing within the `@lark.js/docs` package itself (e.g., `docs/app/main.css`), the paths point to the local `src/theme/` directory:
-
-```css
-@source "../../src/theme/*.html";
-@source "../../src/theme/*.ts";
-```
-
 ## Theme Structure
 
-The documentation site is composed of five theme views:
+The documentation site is composed of four theme views:
 
 | View          | Role                                          | Key DaisyUI Components                        |
 | ------------- | --------------------------------------------- | --------------------------------------------- |
 | **DocLayout** | Root layout: navbar + sidebar + content + TOC | `navbar`, `btn-ghost`, `menu menu-horizontal` |
 | **Sidebar**   | Navigation tree                               | `menu menu-sm`, `menu-active`                 |
-| **Content**   | Rendered markdown body                        | `prose prose-lg` (typography plugin)          |
 | **TOC**       | Right-side heading outline                    | `menu menu-xs`, `menu-active`                 |
 | **Search**    | Full-text search dialog (local provider)      | `modal`, `input input-lg`, `kbd`              |
+
+The compiled markdown HTML is rendered inline by the DocLayout view (not a separate content view), inside a `prose` container styled by the Typography plugin.
 
 ## Layout
 
@@ -82,7 +63,7 @@ mx-auto flex max-w-7xl
     sidebar view
   main (flex-1, px-8 py-10)
     article.prose.prose-lg
-      content view
+      contentHtml (rendered inline)
     prev/next navigation
   aside (right, w-56, hidden below xl)
     TOC view
@@ -151,12 +132,10 @@ The `@tailwindcss/typography` plugin provides the `prose` class that styles rend
 - Images with max-width constraints
 - Horizontal rules
 
-The content view wraps markdown output in `prose prose-lg max-w-none` for large, unconstrained content:
+The DocLayout view renders the compiled markdown HTML inside a `prose` container:
 
 ```html
-<article class="prose prose-lg max-w-none">
-  <div v-lark="theme/content"></div>
-</article>
+<article class="prose prose-lg max-w-none">{{!contentHtml}}</article>
 ```
 
 ## Code Block Styling

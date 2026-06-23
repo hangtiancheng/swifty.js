@@ -6,7 +6,7 @@ sidebar_position: 1
 
 # Markdown
 
-`@lark.js/docs` uses [markdown-it](https://github.com/markdown-it/markdown-it) as its markdown parser, enhanced with custom plugins for documentation-specific features.
+`@lark.js/docs` uses [markdown-it](https://github.com/markdown-it/markdown-it) as its markdown parser, enhanced with four custom plugins for documentation-specific features: anchors, TOC, containers, and code blocks.
 
 ## Standard Features
 

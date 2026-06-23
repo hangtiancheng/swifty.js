@@ -6,7 +6,7 @@ sidebar_position: 1
 
 # Search
 
-`@lark.js/docs` provides two search providers out of the box, plus an option to disable search entirely. Both active providers use a build-time search index generated from your documentation content -- no external search service required.
+`@lark.js/docs` provides two search providers out of the box, plus an option to disable search entirely. Both active providers use a lazily-built local search index generated from your documentation content -- no external search service required.
 
 ## Configuration
 
@@ -19,19 +19,33 @@ export default defineConfig({
 });
 ```
 
-| Provider      | UI                       | Backend          | Dependencies                      |
-| ------------- | ------------------------ | ---------------- | --------------------------------- |
-| `"local"`     | Built-in modal dialog    | Local JSON index | None (included)                   |
-| `"docsearch"` | Algolia DocSearch widget | Local JSON index | `@docsearch/js`, `@docsearch/css` |
-| `"none"`      | No search UI             | N/A              | N/A                               |
+| Provider      | UI                       | Backend                | Dependencies                      |
+| ------------- | ------------------------ | ---------------------- | --------------------------------- |
+| `"local"`     | Built-in modal dialog    | MiniSearch local index | None (included)                   |
+| `"docsearch"` | Algolia DocSearch widget | MiniSearch local index | `@docsearch/js`, `@docsearch/css` |
+| `"none"`      | No search UI             | N/A                    | N/A                               |
 
 ## Search Index
 
-Regardless of which provider you choose, the search index is built at the same time as your routes. The build pipeline:
+The search index is built lazily at runtime, not at build time. The generated module exports a `getSearchIndex()` function that loads all `.md` modules on first call and extracts page data:
 
-1. `scanDocsDir()` discovers all `.md` files and extracts `PageData`
-2. `buildSearchIndex(routes)` converts each non-draft route into a `SearchEntry`
-3. The index is serialized into the generated config module and loaded at runtime
+```js
+// In .lark-docs/generated/index.js
+let _searchIndex = null;
+export async function getSearchIndex() {
+  if (_searchIndex) return _searchIndex;
+  const mods = await Promise.all(entries.map(([, loader]) => loader()));
+  _searchIndex = mods.map((mod, i) => ({
+    title: mod.pageData?.title || "",
+    link: entries[i][0],
+    headings: (mod.pageData?.headings || []).map((h) => h.text || ""),
+    excerpt: mod.pageData?.description || "",
+  }));
+  return _searchIndex;
+}
+```
+
+This keeps the generated file small. The cost is one batch of dynamic imports on first search query.
 
 ### SearchEntry shape
 
@@ -46,34 +60,29 @@ interface SearchEntry {
 
 ### Draft exclusion
 
-Pages with `draft: true` in their frontmatter are always excluded from the search index, regardless of whether drafts are visible during development.
+Pages with `draft: true` in their frontmatter are excluded from the search index.
 
 ## Provider: `"local"`
 
-The local provider renders a DaisyUI-styled modal dialog with a text input and result list.
+The local provider renders a DaisyUI-styled modal dialog powered by [MiniSearch](https://github.com/lucaong/minisearch) -- the same full-text search engine used by VitePress.
 
 ### How it works
 
-1. User clicks the search icon in the navbar (or a search button)
+1. User clicks the search icon in the navbar
 2. The SearchView opens a modal and focuses the input field
-3. On first keystroke, the search index is loaded lazily from `State.get("searchIndex")`
-4. Each keystroke triggers `simpleSearch()` which filters the index
-5. Results display page title and excerpt (description)
+3. On first keystroke, `getSearchIndex()` is called to lazily build the index
+4. A MiniSearch instance is created from the entries (cached for subsequent searches)
+5. Results display page title, heading matches, and excerpt with highlighted terms
 
-### Search algorithm
+### Search features
 
-The local provider uses AND-logic substring matching:
+MiniSearch provides:
 
-```
-query: "router config"
-terms: ["router", "config"]
-
-For each entry:
-  haystack = title + " " + headings.join(" ") + " " + excerpt
-  match = every term is found somewhere in haystack
-```
-
-Up to 20 results are returned. Results are displayed in match order (no relevance scoring in the local modal).
+- Prefix matching: typing "conf" matches "configuration"
+- Fuzzy matching: tolerates typos (fuzzy factor 0.2)
+- Field-weighted scoring: title matches boosted 2x, headings 1.5x, excerpt 1x
+- Highlighted results: matched terms wrapped in `<mark>` in both title and excerpt
+- Lazy index construction: the MiniSearch instance is built on first query, then reused
 
 ### Template structure
 
@@ -116,8 +125,10 @@ export default defineConfig({
 1. On page load, the DocsLayout view detects `search.provider === "docsearch"`
 2. `@docsearch/css` and `@docsearch/js` are loaded via dynamic `import()`
 3. The widget mounts into `#docsearch-container` in the navbar
-4. A local search client is created via `createLocalSearchClient(index)`
+4. A local search client is created via `createLocalSearchClient(searchIndex)`
 5. DocSearch's Algolia search client is replaced with the local client via `transformSearchClient`
+
+The search index is loaded by calling `getSearchIndex()` from State, which lazily builds it on first search.
 
 ### Local search client
 
@@ -138,7 +149,7 @@ function createLocalSearchClient(index: SearchEntry[]) {
 
 ### Scoring algorithm
 
-The DocSearch provider uses a more sophisticated scoring system than the local provider:
+The DocSearch provider uses per-field scoring:
 
 | Match location | Points per term |
 | -------------- | --------------- |
@@ -146,7 +157,7 @@ The DocSearch provider uses a more sophisticated scoring system than the local p
 | Each heading   | 5               |
 | Excerpt        | 1               |
 
-All query terms must match at least one field (AND logic). Results are sorted by total score descending, with alphabetical title as a tiebreaker.
+All query terms must match at least one field (AND logic). Per-field boundary checking ensures each term is matched against individual fields independently to avoid false matches spanning field boundaries. Results are sorted by total score descending, with alphabetical title as a tiebreaker.
 
 ### Hit format
 
@@ -184,15 +195,15 @@ The search index is not built, the search modal is not rendered, and the search 
 
 ## Scoring comparison
 
-| Feature             | `"local"`            | `"docsearch"`                       |
-| ------------------- | -------------------- | ----------------------------------- |
-| Match logic         | AND                  | AND                                 |
-| Field isolation     | No (single haystack) | Yes (per-field check)               |
-| Relevance scoring   | No                   | Yes (title/heading/excerpt weights) |
-| Result limit        | 20                   | Configurable (default 20)           |
-| Keyboard shortcuts  | No                   | Yes (Ctrl+K, arrows)                |
-| Recent searches     | No                   | Yes (built-in)                      |
-| Result highlighting | No                   | Yes (built-in)                      |
+| Feature             | `"local"`             | `"docsearch"`                       |
+| ------------------- | --------------------- | ----------------------------------- |
+| Engine              | MiniSearch            | Custom AND-logic scorer             |
+| Match logic         | Prefix + fuzzy        | AND substring                       |
+| Field isolation     | Yes (per-field boost) | Yes (per-field check)               |
+| Relevance scoring   | Yes (field-weighted)  | Yes (title/heading/excerpt weights) |
+| Result highlighting | Yes                   | Yes (built-in)                      |
+| Keyboard shortcuts  | No                    | Yes (Ctrl+K, arrows)                |
+| Recent searches     | No                    | Yes (built-in)                      |
 
 ## Runtime exports
 
@@ -215,3 +226,9 @@ const { results } = await client.search([
   { indexName: "local", params: { query: "router", hitsPerPage: 10 } },
 ]);
 ```
+
+## Next Steps
+
+- [Theme Architecture](/docs/theme/) -- how search integrates with the layout view
+- [API Reference](/docs/api/) -- `searchDocs`, `createLocalSearchClient`, `SearchEntry`
+- [Configuration](/docs/get-started/configuration/) -- search provider setup
