@@ -22,15 +22,15 @@ const peerDeps = Object.keys(
 // plugin entries (vite/webpack/rspack) depend on Node.js built-ins and must
 // not be wrapped in a browser-targeted UMD/AMD format.
 const /** @type{({ name: string, external: boolean, umd: boolean }[])} */ entries =
-  [
-    { name: "index", external: true, umd: true },
-    { name: "compiler", external: false, umd: false },
-    { name: "webpack", external: false, umd: false },
-    { name: "rspack", external: false, umd: false },
-    { name: "vite", external: false, umd: false },
-    { name: "runtime", external: true, umd: true },
-    { name: "devtool", external: true, umd: false },
-  ];
+    [
+      { name: "index", external: true, umd: true },
+      { name: "compiler", external: false, umd: false },
+      { name: "webpack", external: false, umd: false },
+      { name: "rspack", external: false, umd: false },
+      { name: "vite", external: false, umd: false },
+      { name: "runtime", external: true, umd: true },
+      { name: "devtool", external: true, umd: false },
+    ];
 
 /** Externalize deps/peerDeps except @babel packages when the entry bundles them. */
 
@@ -146,49 +146,49 @@ const cjsShimsEntries = new Set(["vite", "webpack", "rspack"]);
 
 // --- JS bundles (ESM + CJS + optional UMD/AMD) ---
 const /** @type {import("rollup").OutputOptions[]} */ jsConfigs = entries.map(
-  ({ name, external, umd }) => {
-    const outputs = umd
-      ? [...baseOutputConfigs, ...umdOutputConfigs(name)]
-      : baseOutputConfigs;
-    return {
-      input: `src/${name}.ts`,
-      output: outputs.map((o) => ({
-        ...o,
-        file: o.file.replace("[name]", name),
-      })),
-      external: makeExternal(external),
-      plugins: [
-        prebuildPlugin(),
-        resolve(),
-        commonjs(),
-        typescript({ tsconfig: "./tsconfig.build.json" }),
-        ...(cjsShimsEntries.has(name) ? [cjsShims()] : []),
-      ],
-    };
-  },
-);
+    ({ name, external, umd }) => {
+      const outputs = umd
+        ? [...baseOutputConfigs, ...umdOutputConfigs(name)]
+        : baseOutputConfigs;
+      return {
+        input: `src/${name}.ts`,
+        output: outputs.map((o) => ({
+          ...o,
+          file: o.file.replace("[name]", name),
+        })),
+        external: makeExternal(external),
+        plugins: [
+          prebuildPlugin(),
+          resolve(),
+          commonjs(),
+          typescript({ tsconfig: "./tsconfig.build.json" }),
+          ...(cjsShimsEntries.has(name) ? [cjsShims()] : []),
+        ],
+      };
+    },
+  );
 
 // --- Type declarations (.d.ts for ESM consumers) ---
 const /** @type {import("rollup").RollupOptions[]} */ dtsConfigs = entries.map(
-  ({ name }) => ({
-    input: `src/${name}.ts`,
-    output: {
-      file: `dist/${name}.d.ts`,
-      format: "es",
-    },
-    plugins: [dts({ tsconfig: "./tsconfig.build.json" })],
-  }),
-);
+    ({ name }) => ({
+      input: `src/${name}.ts`,
+      output: {
+        file: `dist/${name}.d.ts`,
+        format: "es",
+      },
+      plugins: [dts({ tsconfig: "./tsconfig.build.json" })],
+    }),
+  );
 
 // --- Type declarations (.d.cts for CJS consumers) ---
 const /** @type {import("rollup").RollupOptions[]} */ dtsCjsConfigs =
-  entries.map(({ name }) => ({
-    input: `src/${name}.ts`,
-    output: {
-      file: `dist/${name}.d.cts`,
-      format: "es",
-    },
-    plugins: [dts({ tsconfig: "./tsconfig.build.json" })],
-  }));
+    entries.map(({ name }) => ({
+      input: `src/${name}.ts`,
+      output: {
+        file: `dist/${name}.d.cts`,
+        format: "es",
+      },
+      plugins: [dts({ tsconfig: "./tsconfig.build.json" })],
+    }));
 
 export default defineConfig([...jsConfigs, ...dtsConfigs, ...dtsCjsConfigs]);

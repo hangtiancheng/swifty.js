@@ -28,7 +28,7 @@ import {
   encodeQuote,
 } from "./common";
 import { config } from "./module-loader";
-import { Frame } from "./frame";
+import { getFrame } from "./frame-registry";
 import {
   domGetNode,
   domSetChildNodes,
@@ -169,7 +169,7 @@ export class Updater implements UpdaterInterface {
     this.hasChangedFlag = 0;
     this.changedKeys = new Set();
 
-    const frame = Frame.get(this.viewId);
+    const frame = getFrame(this.viewId);
     const view = frame?.view;
     const node = getById(this.viewId);
 

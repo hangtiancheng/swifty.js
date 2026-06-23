@@ -26,9 +26,14 @@
  * automatically via the prototype chain.
  */
 import { parseUri } from "./utils";
-import { invalidateViewClass, registerViewClass } from "./view-registry";
-import { Frame } from "./frame";
+import {
+  invalidateViewClass,
+  registerViewClass,
+  getViewClass,
+} from "./view-registry";
+import { getAllFrames } from "./frame-registry";
 import type { View } from "./view";
+import type { FrameInterface } from "./types";
 
 // ============================================================
 // HotContext — minimal interface compatible with Vite and webpack
@@ -64,8 +69,8 @@ export interface HotContext {
  * @param viewPath - The view path to match (e.g. 'home', 'components/list')
  */
 export function reloadViews(viewPath: string): void {
-  const allFrames = Frame.getAll();
-  const toReload: Array<{ frame: Frame; fullPath: string }> = [];
+  const allFrames = getAllFrames();
+  const toReload: Array<{ frame: FrameInterface; fullPath: string }> = [];
 
   for (const [, frame] of allFrames) {
     if (frame.viewPath) {
@@ -101,17 +106,31 @@ export function reloadViews(viewPath: string): void {
  */
 export function acceptView(hot: HotContext, viewPath: string): void {
   hot.accept((newModule) => {
-    // Extract View class: prefer default export, fall back to module itself
+    // Extract View class: prefer default export, fall back to module itself.
+    // Vite passes the new module namespace to the accept callback, so
+    // `newModule.default` is the freshly-evaluated View class.
     const candidate = newModule?.default ?? newModule;
 
     if (typeof candidate === "function") {
       const NewViewClass = candidate as typeof View;
       registerViewClass(viewPath, NewViewClass);
       reloadViews(viewPath);
-    } else {
-      // New module didn't export a View class — cannot handle this update
-      hot.invalidate();
+      return;
     }
+
+    // webpack / rspack / rsbuild: the accept callback does NOT receive the
+    // new module namespace (their `module.hot.accept(cb)` / `import.meta.
+    // webpackHot.accept(cb)` semantics differ from Vite). By the time this
+    // callback runs the updated module has already re-executed, so if its
+    // top-level code called `registerViewClass()` the registry already holds
+    // the new class — just reload the mounted frames with it.
+    if (getViewClass(viewPath)) {
+      reloadViews(viewPath);
+      return;
+    }
+
+    // No new class could be located — cannot handle this update safely.
+    hot.invalidate();
   });
 }
 
