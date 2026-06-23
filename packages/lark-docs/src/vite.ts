@@ -1,9 +1,11 @@
 /**
  * Vite plugin for @lark.js/docs.
  *
- * Transforms `.md` file imports into JS modules that export lark-mvc Views.
- * Any `import ... from "./foo.md"` is intercepted and compiled through
- * the full markdown pipeline (frontmatter, markdown-it, Shiki).
+ * A single plugin that handles BOTH:
+ * 1. .md file compilation (frontmatter, markdown-it, Shiki)
+ * 2. .html template compilation (lark-mvc template engine)
+ *
+ * Consumers only need this one plugin — no separate larkMvcPlugin7() required.
  *
  * Usage:
  * ```ts
@@ -18,6 +20,7 @@ import fs from "node:fs";
 import type { DocsConfig } from "./types";
 import { compileMarkdown } from "./compile-markdown";
 import type { Plugin } from "vite";
+import { larkMvcPlugin7 } from "@lark.js/mvc/vite";
 
 // Re-export build-time utilities for use in vite.config
 // (avoids importing from main entry which pulls in lucide-static SVG ?raw imports)
@@ -31,17 +34,28 @@ export type { DocsConfig, SidebarConfig } from "./types";
 export interface LarkDocsVitePluginOptions {
   /** Full docs config. */
   config: DocsConfig;
-  /** Enable debug mode. */
+  /** Enable debug mode for template compilation. */
   debug?: boolean;
+  /** Use SWC for template variable extraction (faster). Default: true */
+  useSwc?: boolean;
 }
 
 // Suffix used to mark compiled .md files in the module graph
 const MD_SUFFIX = "?lark-docs";
 
-export function larkDocsPlugin(options: LarkDocsVitePluginOptions): Plugin {
-  const { config, debug } = options;
+/**
+ * Create a Vite plugin array that handles both .md and .html compilation.
+ *
+ * Returns an array of two plugins:
+ * 1. lark-docs: compiles .md files to JS modules
+ * 2. lark-template (from @lark.js/mvc): compiles .html templates
+ *
+ * The virtualDom option is read from `config.virtualDom` automatically.
+ */
+export function larkDocsPlugin(options: LarkDocsVitePluginOptions): Plugin[] {
+  const { config, debug = false, useSwc = true } = options;
 
-  return {
+  const docsPlugin: Plugin = {
     name: "lark-docs",
     enforce: "pre",
 
@@ -78,4 +92,10 @@ export function larkDocsPlugin(options: LarkDocsVitePluginOptions): Plugin {
       });
     },
   };
+
+  // The lark-mvc template plugin handles .html template compilation.
+  // We integrate it internally so consumers don't need to configure it separately.
+  const mvcPlugin = larkMvcPlugin7({ debug, useSwc });
+
+  return [docsPlugin, mvcPlugin];
 }

@@ -190,11 +190,7 @@ function docsUserConfig(): UserConfig {
   return {
     root: resolve(PKG_DIR, "docs/app"),
     plugins: [
-      larkDocsPlugin({ config: docsConfig }),
-      larkMvcPlugin7({
-        debug: true,
-        useSwc: true,
-      }),
+      ...larkDocsPlugin({ config: docsConfig }),
       tailwindcss() as PluginOption,
     ],
     resolve: {

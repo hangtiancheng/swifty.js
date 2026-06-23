@@ -27,7 +27,7 @@ function createTestFrame(id: string): Frame {
 function cleanupFrame(frame: Frame): void {
   const el = document.getElementById(frame.id);
   if (el) el.remove();
-  (Frame as unknown as { getAll(): Map<string, Frame> })
+  (Frame as { getAll(): Map<string, Frame> })
     .getAll()
     .delete(frame.id);
 }
@@ -295,7 +295,7 @@ describe("View", () => {
         $title: "Hello",
         greet() {
           // `this.$title` is typed via ThisType — accessing it should compile.
-          return (this as unknown as { $title: string }).$title;
+          return (this as { $title: string }).$title;
         },
       });
       expect(typeof TypedView).toBe("function");
@@ -308,10 +308,10 @@ describe("View", () => {
       const Typed = defineView({
         $count: 5,
         getCount() {
-          return (this as unknown as { $count: number }).$count;
+          return (this as { $count: number }).$count;
         },
       });
-      const Ctor = Typed as unknown as ViewConstructor;
+      const Ctor = Typed as ViewConstructor;
       const inst = new Ctor("define-view-1", frame);
       expect(
         typeof (inst as unknown as { getCount: () => number }).getCount,

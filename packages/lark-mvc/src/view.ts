@@ -776,7 +776,7 @@ export class View implements ViewInterface {
         // CRITICAL: Skip "render" — it is wrapped on the prototype by View.wrapMethod.
         // Setting render on the instance would shadow the wrapped version, bypassing
         // signature checking, resource cleanup, and the "render" event.
-        const instanceProps = this as unknown as Record<string, unknown>;
+        const instanceProps = this as Record<string, unknown>;
         for (const key in definedProps) {
           if (
             hasOwnProperty(definedProps, key) &&
@@ -807,7 +807,7 @@ export class View implements ViewInterface {
           funcWithTry(concatCtors, params, this, noop);
         }
       }
-    } as unknown as typeof View;
+    } as typeof View;
 
     // Methods on prototype (for proper method lookup via prototype chain)
     for (const key in definedProps) {

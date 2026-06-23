@@ -7,7 +7,6 @@
 import { defineConfig, type PluginOption, type UserConfigFn } from "vite";
 import { resolve } from "node:path";
 import { larkDocsPlugin } from "@lark.js/docs/vite";
-import { larkMvcPlugin7 } from "@lark.js/mvc/vite";
 import tailwindcss from "@tailwindcss/vite";
 import docsConfig from "./lark-docs.config";
 import { VitePWA } from "vite-plugin-pwa";
@@ -27,10 +26,6 @@ export default defineConfig((({ mode, command }) => {
     root: resolve(PKG_DIR, "app"),
     plugins: [
       larkDocsPlugin({ config: docsConfig }) as PluginOption,
-      larkMvcPlugin7({
-        debug: true,
-        useSwc: true,
-      }) as PluginOption,
       tailwindcss() as PluginOption,
       VitePWA({
         registerType: "autoUpdate",

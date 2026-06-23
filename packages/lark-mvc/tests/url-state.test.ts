@@ -44,7 +44,7 @@ function createMockView(): ViewInterface {
     on: vi.fn().mockReturnThis(),
     off: vi.fn().mockReturnThis(),
     fire: vi.fn().mockReturnThis(),
-  } as unknown as ViewInterface;
+  } as ViewInterface;
 }
 
 describe("useUrlState", () => {

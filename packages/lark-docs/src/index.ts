@@ -1,10 +1,41 @@
 /**
  * @lark.js/docs barrel exports.
  *
- * Main entry point re-exporting all public APIs.
+ * Main entry point — browser-safe exports only.
+ * Includes re-exports from @lark.js/mvc so consumers only need
+ * to install @lark.js/docs — no separate @lark.js/mvc dependency required.
+ *
+ * Build-time utilities (defineConfig, scanDocsDir, generateSidebar, etc.)
+ * are available from sub-path exports:
+ *   - "@lark.js/docs/vite"     (Vite plugin + build-time helpers)
+ *   - "@lark.js/docs/webpack"  (Webpack loader + build-time helpers)
+ *   - "@lark.js/docs/rspack"   (Rspack loader + build-time helpers)
+ *   - "@lark.js/docs/compiler" (compileMarkdown)
  */
 
-// Types
+// ============================================================
+// Re-exports from @lark.js/mvc (so consumers don't need it directly)
+// ============================================================
+
+export {
+  Framework,
+  View,
+  State,
+  Router,
+  registerViewClass,
+  create,
+  computed,
+  bindStore,
+  Service,
+  useUrlState,
+} from "@lark.js/mvc";
+
+export type { FrameworkConfig, ViewInterface } from "@lark.js/mvc";
+
+// ============================================================
+// @lark.js/docs types (browser-safe)
+// ============================================================
+
 export type {
   DocsConfig,
   NavItem,
@@ -23,29 +54,9 @@ export type {
   CompileMarkdownOptions,
 } from "./types";
 
-// Configuration helper (scans docs, generates routes, returns typed config)
-export { defineConfig } from "./define-config";
-
-// Scanner
-export { scanDocsDir } from "./scanner";
-
-// Route map generation
-export { generateRouteMap, generateBootModule } from "./route-map";
-
-// Sidebar auto-generation
-export { generateSidebar } from "./sidebar-generator";
-
-// Search index
-export { buildSearchIndex, emitSearchIndexModule } from "./search-index";
-
-// Markdown processing (for advanced users)
-export { createParser } from "./markdown/parser";
-export { extractFrontmatter } from "./markdown/frontmatter";
-export { renderToLarkTemplate } from "./markdown/renderer";
-export { getHighlighter, highlightCode } from "./markdown/highlighter";
-
-// Compiler (for advanced users; also available at @lark.js/docs/compiler)
-export { compileMarkdown } from "./compile-markdown";
+// ============================================================
+// Runtime utilities (browser-safe)
+// ============================================================
 
 // Runtime search (also available at @lark.js/docs/runtime)
 export { searchDocs, slugify } from "./runtime";
@@ -57,7 +68,8 @@ export {
   createTocView,
   createSearchView,
   createLocalSearchClient,
-} from "./theme/index";
+  registerThemeViews,
+} from "./theme";
 
 // Theme icons (lucide-static raw SVG strings)
 export { icons } from "./theme/icons";

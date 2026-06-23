@@ -114,6 +114,7 @@
   "dependencies": {
     "@docsearch/css": "^4.6.3",
     "@docsearch/js": "^4.6.3",
+    "@lark.js/mvc": "workspace:^",
     "ejs": "^3.1.10",
     "js-yaml": "^5.0.0",
     "lucide-static": "^1.21.0",
@@ -123,7 +124,6 @@
     "shiki": "^4.2.0"
   },
   "devDependencies": {
-    "@lark.js/mvc": "workspace:^",
     "@tailwindcss/vite": "^4.3.1",
     "@types/ejs": "^3.1.5",
     "@types/js-yaml": "^4.0.9",
@@ -140,7 +140,6 @@
     "vitest": "^4.1.9"
   },
   "peerDependencies": {
-    "@lark.js/mvc": ">=0.0.12",
     "@tailwindcss/typography": "^0.5.0",
     "daisyui": "^5.0.0",
     "tailwindcss": "^4.0.0"

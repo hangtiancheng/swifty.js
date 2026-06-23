@@ -129,7 +129,7 @@ describe("HMR", () => {
 
       const NewView = View.extend({});
       // Simulate a module that exports the View class directly (not as default)
-      hot.acceptCb!(NewView as unknown as { default?: unknown });
+      hot.acceptCb!(NewView as { default?: unknown });
 
       const reg = getViewClassRegistry();
       // When newModule has no .default, it falls through to newModule itself
