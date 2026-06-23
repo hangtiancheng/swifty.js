@@ -1,6 +1,6 @@
 /**
  * Post-build script: copies .d.ts → .d.cts for CJS consumers,
- * and copies static assets (file-content.ejs, shims.d.ts, main.css)
+ * and copies static assets (file-content.ejs, shims.d.ts)
  * into dist/ so they are available to consumers at runtime.
  *
  * Vite 7's build.lib does not natively emit .d.cts files,
@@ -42,7 +42,7 @@ console.log(`\nCopied ${count} .d.ts → .d.cts`);
 
 // --- Step 2: copy static assets from src/ to dist/ ---
 
-const STATIC_ASSETS = ["file-content.ejs", "shims.d.ts", "main.css"];
+const STATIC_ASSETS = ["file-content.ejs", "client.d.ts", "client.css"];
 
 for (const file of STATIC_ASSETS) {
   const src = resolve(srcDir, file);

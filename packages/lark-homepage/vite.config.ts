@@ -105,7 +105,6 @@ export default defineConfig((({ mode, command }) => {
     ],
     resolve: {
       alias: {
-        "@lark.js/docs": resolve(PKG_DIR, "../lark-docs/src"),
         "@lark-docs/generated": resolve(PKG_DIR, ".lark-docs/generated"),
       },
     },

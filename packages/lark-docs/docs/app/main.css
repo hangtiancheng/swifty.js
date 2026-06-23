@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "../../src/client.css";
 
 /* Scan theme templates for Tailwind class names */
 @source "../../src/theme/*.html";
