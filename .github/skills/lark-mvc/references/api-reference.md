@@ -1266,7 +1266,6 @@ function compileTemplate(
     globalVars?: string[]; // pre-declared global variable names (destructured from $data)
     file?: string; // file path used in error messages
     virtualDom?: boolean; // generate VDOM output instead of HTML string (default: false)
-    useSwc?: boolean; // use @swc/core instead of @babel/parser for global var extraction (default: false)
   },
 ): string;
 ```
@@ -1289,16 +1288,6 @@ function extractGlobalVars(source: string): string[];
 ```
 
 If parsing fails (malformed template), falls back to a regex-based extractor.
-
-### extractGlobalVarsSwc(source)
-
-Same algorithm as `extractGlobalVars` but uses `@swc/core` `parseSync` instead of `@babel/parser`. Lazy-loads the SWC native binding. Falls back to regex on failure.
-
-```ts
-function extractGlobalVarsSwc(source: string): string[];
-```
-
----
 
 ## Utilities & Constants
 
@@ -1346,7 +1335,6 @@ Vite plugin. `enforce: "pre"`. Tags `.html` imports with `?lark-template`, then 
 larkMvcPlugin(options?: {
   debug?: boolean;       // enable debug line markers
   virtualDom?: boolean;  // generate VDOM template output
-  useSwc?: boolean;      // use @swc/core instead of @babel/parser
 }): Plugin
 ```
 

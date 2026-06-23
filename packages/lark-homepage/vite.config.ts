@@ -27,8 +27,7 @@ export default defineConfig((({ mode, command }) => {
     plugins: [
       larkDocsPlugin({
         config: docsConfig,
-        useSwc: false,
-        virtualDom: true,
+        virtualDom: false,
         debug: true,
       }) as PluginOption,
       tailwindcss() as PluginOption,

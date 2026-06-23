@@ -108,7 +108,6 @@
     "@babel/parser": "^7.29.7",
     "@babel/types": "^7.29.7",
     "@rspack/core": "^2.0.8",
-    "@swc/core": "^1.15.41",
     "htmlparser2": "^12.0.0"
   },
   "devDependencies": {
@@ -121,7 +120,7 @@
     "rollup-plugin-dts": "^6.4.1",
     "tsup": "^8.5.1",
     "typescript": "^5.9.3",
-    "vite": "^8.0.16",
+    "vite": "^8.1.0",
     "vite7": "npm:vite@7.3.5",
     "vitest": "^4.1.9"
   },

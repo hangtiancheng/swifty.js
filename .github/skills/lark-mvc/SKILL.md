@@ -146,9 +146,9 @@ export default defineConfig({
 });
 ```
 
-The plugin runs in the `pre` phase. Its `resolveId` hook tags `.html` imports with a `?lark-template` suffix so Vite does not treat them as static assets. Its `load` hook reads the raw HTML, runs `extractGlobalVars()` (AST-based via `@babel/parser`, or `@swc/core` when `useSwc: true`) to discover template data variables, and feeds them along with the source to `compileTemplate()`, producing an ES module exporting `(data, viewId, refData) => string` (or `=> VDomNode` when `virtualDom: true`).
+The plugin runs in the `pre` phase. Its `resolveId` hook tags `.html` imports with a `?lark-template` suffix so Vite does not treat them as static assets. Its `load` hook reads the raw HTML, runs `extractGlobalVars()` (AST-based via `@babel/parser`) to discover template data variables, and feeds them along with the source to `compileTemplate()`, producing an ES module exporting `(data, viewId, refData) => string` (or `=> VDomNode` when `virtualDom: true`).
 
-Options: `{ debug?: boolean, virtualDom?: boolean, useSwc?: boolean }`.
+Options: `{ debug?: boolean, virtualDom?: boolean }`.
 
 **Webpack:**
 
@@ -826,7 +826,7 @@ The compiler (`compiler.ts`) processes templates in four phases:
 
 In VDOM mode, step 4 produces a VDomNode tree instead of an HTML string, using `htmlparser2` to parse the intermediate HTML and emit `vdomCreate()` calls. The VDOM function signature: `($data,$viewId,$refAlt,$n,$refFn,$encUri,$encQuote) => VDomNode` (7 params -- no `$encHtml` because VDOM text nodes use `createTextNode` directly).
 
-Global variables are extracted via AST analysis using `@babel/parser` (`extractGlobalVars`) or `@swc/core` (`extractGlobalVarsSwc` when `useSwc: true`). The walker collects all `Identifier` nodes, excludes declared variables, function parameters, and built-in globals (approximately 100 entries). The remaining identifiers are the template data variables that need destructuring from `$data`.
+Global variables are extracted via AST analysis using `@babel/parser` (`extractGlobalVars`). The walker collects all `Identifier` nodes, excludes declared variables, function parameters, and built-in globals (approximately 100 entries). The remaining identifiers are the template data variables that need destructuring from `$data`.
 
 If AST parsing fails (malformed template), a regex-based fallback extracts variables from `{{=variable}}`, `{{forOf list as ...}}`, and `{{if variable}}` patterns.
 
@@ -1263,7 +1263,6 @@ Exported: `installFrameDevtoolBridge()`, `serializeFrameTree()`, `FrameDevtoolBr
 | Configuration       | `plugins: [larkMvcPlugin()]`                             | `module.rules` with the loader rule                          | `module.rules` or `LarkMvcPlugin`                           |
 | Debug mode          | `larkMvcPlugin({ debug: true })`                         | `use: [{ loader: larkMvcLoader, options: { debug: true } }]` | Same as Webpack                                             |
 | VDOM mode           | `larkMvcPlugin({ virtualDom: true })`                    | Not directly (set in FrameworkConfig)                        | Not directly (set in FrameworkConfig)                       |
-| SWC parser          | `larkMvcPlugin({ useSwc: true })`                        | Not directly                                                 | Not directly                                                |
 | HTML entry handling | Vite handles `index.html` natively                       | MUST `exclude: /index\.html$/` so HtmlWebpackPlugin owns it  | MUST `exclude: /index\.html$/` so HtmlRspackPlugin owns it  |
 | Dev server          | Vite dev server (fast HMR)                               | webpack-dev-server                                           | rspack dev server                                           |
 | Template pipeline   | Same: `extractGlobalVars` then `compileTemplate`         | Same: `extractGlobalVars` then `compileTemplate`             | Same: `extractGlobalVars` then `compileTemplate`            |

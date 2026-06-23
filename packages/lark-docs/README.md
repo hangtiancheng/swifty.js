@@ -110,7 +110,7 @@ export default defineConfig({
   root: resolve(PKG_DIR, "app"),
   plugins: [
     larkDocsPlugin({ config: docsConfig }),
-    larkMvcPlugin7({ debug: true, useSwc: true }),
+    larkMvcPlugin7({ debug: true, virtualDom: true }),
     tailwindcss(),
   ],
   resolve: {

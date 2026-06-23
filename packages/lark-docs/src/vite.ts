@@ -52,7 +52,7 @@ const MD_SUFFIX = "?lark-docs";
  * The virtualDom option is read from `config.virtualDom` automatically.
  */
 export function larkDocsPlugin(options: LarkDocsVitePluginOptions): Plugin[] {
-  const { config, debug = false, useSwc = true, virtualDom = false } = options;
+  const { config, debug = false, virtualDom = false } = options;
 
   const docsPlugin: Plugin = {
     name: "lark-docs",
@@ -94,7 +94,7 @@ export function larkDocsPlugin(options: LarkDocsVitePluginOptions): Plugin[] {
 
   // The lark-mvc template plugin handles .html template compilation.
   // We integrate it internally so consumers don't need to configure it separately.
-  const mvcPlugin = larkMvcPlugin7({ debug, useSwc, virtualDom });
+  const mvcPlugin = larkMvcPlugin7({ debug, virtualDom });
 
   return [docsPlugin, mvcPlugin];
 }

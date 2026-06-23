@@ -752,7 +752,3 @@ Do not deploy lark-devtool to a public network: the iframe sandbox configuration
 ## License
 
 See `LICENSE` in the repository root.
-
-## Bug Fix
-
-- `pnpm dev` crashes with `TypeError: The 'compilation' argument must be an instance of Compilation` from `ModuleFederationPlugin.getCompilationHooks`. Root cause: pnpm resolved two separate webpack instances in the monorepo (different peer dep hashes: one with `@swc/core`, one with `esbuild@0.28.1`). `webpack.config.mjs` imported `ModuleFederationPlugin` from the local `node_modules/webpack`, while `Compiler`/`Compilation` came from webpack-cli's webpack — two distinct classes, `instanceof` always false. Fix: resolve webpack via `createRequire(import.meta.resolve("webpack-cli/package.json"))` so the config and CLI share a single webpack instance.

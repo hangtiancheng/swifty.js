@@ -18,7 +18,7 @@
  * - $encUri (URI encoding), $encQuote (quote encoding), $refFn (reference lookup)
  * - Debug mode with line tracking
  * - View ID injection
- * - Auto variable extraction via AST analysis (Babel or SWC)
+ * - Auto variable extraction via AST analysis (Babel)
  * - Virtual DOM support (optional)
  *
  * Usage with Plugin (recommended):
@@ -30,7 +30,6 @@
  *     new LarkMvcPlugin({
  *       debug: process.env.NODE_ENV !== 'production',
  *       virtualDom: false,
- *       useSwc: false,
  *     }),
  *   ],
  * };
@@ -43,7 +42,7 @@
  *     rules: [{
  *       test: /\.html$/,
  *       loader: '@lark.js/mvc/webpack',
- *       options: { debug: false, virtualDom: false, useSwc: false },
+ *       options: { debug: false, virtualDom: false },
  *     }],
  *   },
  * };
@@ -85,14 +84,13 @@ async function larkMvcLoader(
 ): Promise<string> {
   try {
     const options = this.getOptions() || {};
-    const { debug = false, virtualDom = false, useSwc = false } = options;
+    const { debug = false, virtualDom = false } = options;
 
     const globalVars = await extractGlobalVars(source);
     return compileTemplate(source, {
       debug,
       globalVars,
       virtualDom,
-      useSwc,
     });
   } catch (err) {
     console.error(err);
@@ -117,7 +115,6 @@ async function larkMvcLoader(
  *     new LarkMvcPlugin({
  *       debug: true,
  *       virtualDom: false,
- *       useSwc: false,
  *     }),
  *   ],
  * };
@@ -130,7 +127,6 @@ class LarkMvcPlugin {
     this.options = {
       debug: false,
       virtualDom: false,
-      useSwc: false,
       test: /\.html$/,
       exclude: /node_modules/,
       ...options,
@@ -148,7 +144,7 @@ class LarkMvcPlugin {
       };
     };
   }): void {
-    const { debug, virtualDom, useSwc, test, exclude } = this.options;
+    const { debug, virtualDom, test, exclude } = this.options;
 
     // Push the loader rule into webpack's module.rules
     compiler.options.module = compiler.options.module || {};
@@ -167,7 +163,7 @@ class LarkMvcPlugin {
           // __filename is provided by tsup's ESM shim (shims: true) in ESM output,
           // and is a native CJS global in CJS output.
           loader: __filename,
-          options: { debug, virtualDom, useSwc },
+          options: { debug, virtualDom },
         },
       ],
     });

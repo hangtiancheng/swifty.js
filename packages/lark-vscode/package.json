@@ -20,7 +20,7 @@
     "code": "code --install-extension ./lark-vscode-0.0.1.vsix",
     "code:force": "code --install-extension ./lark-vscode-0.0.1.vsix --force",
     "lint": "tsc --noEmit",
-    "package": "pnpm build && node scripts/copy-swc.js && vsce package --no-dependencies",
+    "package": "pnpm build && vsce package --no-dependencies",
     "watch": "tsup --watch",
     "format": "oxfmt --write ./"
   },
@@ -30,7 +30,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@swc/core": "^1.15.41",
+    "@swc/core": "^1.15.43",
     "@types/node": "^24.13.2",
     "@types/vscode": "^1.125.0",
     "@vscode/vsce": "^3.9.2",

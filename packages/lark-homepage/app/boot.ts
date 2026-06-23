@@ -23,7 +23,7 @@ const config: FrameworkConfig = {
   rootId: "app",
   routeMode: "hash",
   routes,
-  virtualDom: true,
+  virtualDom: false,
   defaultPath: "/lark/",
   // All /docs/* routes map to "theme/docs-layout" (see generated routes).
   // The layout stays mounted across navigation; observeLocation triggers

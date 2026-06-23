@@ -18,7 +18,7 @@
     "@lark.js/mvc": "workspace:^"
   },
   "devDependencies": {
-    "@module-federation/runtime-tools": "^2.5.1",
+    "@module-federation/runtime-tools": "^2.6.0",
     "@rsbuild/core": "^2.0.15",
     "@rspack/cli": "^2.0.8",
     "@rspack/core": "^2.0.8",
@@ -36,7 +36,7 @@
     "tailwindcss": "^4.3.1",
     "ts-loader": "^9.6.2",
     "typescript": "^5.9.3",
-    "vite": "^8.0.16",
+    "vite": "^8.1.0",
     "webpack": "^5.107.2",
     "webpack-cli": "^7.0.3",
     "webpack-dev-server": "^5.2.5"

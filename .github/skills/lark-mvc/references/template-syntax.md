@@ -496,7 +496,7 @@ The analysis:
 
 1. Converts `{{ }}` template expressions to `<% %>` internal format.
 2. Replaces HTML text between template expressions with unique placeholders.
-3. Parses the resulting code using `@babel/parser` (or `@swc/core` when `useSwc: true`).
+3. Parses the resulting code using `@babel/parser`.
 4. Walks the AST to find all `Identifier` nodes.
 5. Tracks local variable declarations (`VariableDeclarator`) and function parameters as non-global.
 6. Skips `MemberExpression` properties (e.g., `obj.prop` -- `prop` is not a standalone variable).

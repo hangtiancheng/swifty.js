@@ -6,7 +6,6 @@ import {
 } from "./template-syntax";
 import type { CompileOptions } from "@/types";
 import { compileToVDomFunction } from "./compile-to-vdom-function";
-import { extractGlobalVars as extractGlobalVarsSwc } from "./swc/extract-global-vars";
 import { extractGlobalVars } from "./extract-global-vars";
 
 // ─── Phase 3: Compile to template function ───────────────────────────────
@@ -178,11 +177,11 @@ export async function compileTemplate(
   source: string,
   options: CompileOptions = {},
 ): Promise<string> {
-  const { debug = false, file, virtualDom = false, useSwc = false } = options;
+  const { debug = false, file, virtualDom = false } = options;
 
   const globalVars =
     options.globalVars ??
-    (await (useSwc ? extractGlobalVarsSwc(source) : extractGlobalVars(source)));
+    (await  extractGlobalVars(source));
 
   // Phase 1: Protect comments
   const { protectedSource, comments } = protectComments(source);

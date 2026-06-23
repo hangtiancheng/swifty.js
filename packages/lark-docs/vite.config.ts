@@ -16,11 +16,20 @@ import {
 } from "vite";
 import dts from "vite-plugin-dts";
 import { resolve } from "node:path";
-import { compileTemplate, extractGlobalVarsSwc } from "@lark.js/mvc/compiler";
+import {
+  compileTemplate,
+  extractGlobalVars,
+} from "@lark.js/mvc/compiler";
 import tailwindcss from "@tailwindcss/vite";
 import { larkDocsPlugin } from "./src/vite";
 import { defineConfig as defineDocsConfig } from "./src/define-config";
-import { existsSync, copyFileSync } from "node:fs";
+import {
+  existsSync,
+  copyFileSync,
+  mkdirSync,
+  writeFileSync,
+  appendFileSync,
+} from "node:fs";
 
 // === Shared constants ===
 
@@ -232,15 +241,31 @@ function mergeImports(allImports: string[]): string[] {
 function themeDualMode(options?: { debug?: boolean }): PluginOption {
   const { debug = false } = options ?? {};
   const THEME_DIR = resolve(PKG_DIR, "src", "theme");
+  const DEBUG_DIR = resolve(PKG_DIR, ".lark-docs", "tmp");
+  const DEBUG_FILE = resolve(DEBUG_DIR, "theme-dual-mode.jsonl");
   const VIRTUAL_PREFIX = "virtual:lark-docs/";
   // \0 prefix is the Rollup convention for marking resolved IDs as
   // "owned by this plugin" — prevents other plugins from loading them.
   const RESOLVED_PREFIX = "\0virtual:lark-docs/";
   const TEMPLATE_NAMES = ["docs-layout", "sidebar", "toc", "search"];
 
+  /** Append one JSONL entry (gated on debug flag). */
+  function debugLog(entry: Record<string, unknown>): void {
+    if (!debug) return;
+    mkdirSync(DEBUG_DIR, { recursive: true });
+    appendFileSync(DEBUG_FILE, JSON.stringify(entry) + "\n");
+  }
+
   return {
     name: "theme-dual-mode",
     enforce: "pre",
+
+    buildStart() {
+      // Clear previous debug output at the start of each build.
+      if (!debug) return;
+      mkdirSync(DEBUG_DIR, { recursive: true });
+      writeFileSync(DEBUG_FILE, "");
+    },
 
     resolveId(source: string) {
       if (source.startsWith(VIRTUAL_PREFIX)) {
@@ -258,23 +283,19 @@ function themeDualMode(options?: { debug?: boolean }): PluginOption {
       const filePath = resolve(THEME_DIR, name + ".html");
       const { readFile } = await import("node:fs/promises");
       const raw = await readFile(filePath, "utf-8");
-      const globalVars = await extractGlobalVarsSwc(raw);
+      const globalVars = await extractGlobalVars(raw);
 
       const [strResult, vdomResult] = await Promise.all([
-        compileTemplate(raw, { globalVars, useSwc: true, virtualDom: false }),
-        compileTemplate(raw, { globalVars, useSwc: true, virtualDom: true }),
+        compileTemplate(raw, { globalVars, virtualDom: false }),
+        compileTemplate(raw, { globalVars, virtualDom: true }),
       ]);
 
-      // DEBUG: Write strResult, vdomResult to tmp file
-      // e.g. Write to .lark-docs/tmp/theme-dual-mode.jsonl
-      // [{ strResult }, { vdomResult }]
+      debugLog({ step: "compile", name, strResult, vdomResult });
 
       const strMod = splitModule(strResult);
       const vdomMod = splitModule(vdomResult);
 
-      // DEBUG: Update strMod, vdomMod to tmp file
-      // e.g. Write to .lark-docs/tmp/theme-dual-mode.jsonl
-      // [{ strMod: { imports, body } }, { vdomMod: { imports, body } }]
+      debugLog({ step: "split", name, strMod, vdomMod });
 
       // Merge and deduplicate import lines across both modes.
       const uniqueImports = mergeImports([
@@ -292,11 +313,9 @@ function themeDualMode(options?: { debug?: boolean }): PluginOption {
         "export { __str, __vdom };",
       ].join("\n");
 
-      // DEBUG: Update content to tmp file
-      // e.g. Write to .lark-docs/tmp/theme-dual-mode.jsonl
-      // { content }
+      debugLog({ step: "output", name, content });
 
-      return content
+      return content;
     },
   };
 }
@@ -365,7 +384,6 @@ function docsUserConfig(): UserConfig {
       ...larkDocsPlugin({
         config: docsConfig,
         virtualDom: false,
-        useSwc: true,
         debug: true,
       }),
       tailwindcss() as PluginOption,
