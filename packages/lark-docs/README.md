@@ -18,29 +18,31 @@ If `@lark.js/mvc` is to React or Vue, then `@lark.js/docs` is to Docusaurus or V
 - Three-column responsive layout: Tailwind CSS v4 + DaisyUI v5 with sticky navbar, frosted glass effect, and mobile-responsive sidebars
 - Three bundler integrations: Vite, Webpack, and Rspack / Rsbuild
 - Zero-config boot: `defineConfig()` auto-generates routes, sidebars, and search index into `.lark-docs/generated/`
+- Single-call theme registration: `registerThemeViews(View)` registers all theme components at once
 - Dual-format library build: ships ESM + CJS with full TypeScript declarations
 
 ## Architecture
 
 `@lark.js/docs` operates in three phases:
 
-**Phase 1 -- Configuration (build startup).** `defineConfig()` scans the docs directory, extracts frontmatter and headings from every `.md` file, auto-generates sidebar trees per path prefix, builds a search index, and writes a generated module to `.lark-docs/generated/index.ts`. This module imports all `.md` files, calls `registerViewClass()` for each, and exports the route map plus runtime site configuration.
+**Phase 1 -- Configuration (build startup).** `defineConfig()` scans the docs directory, extracts frontmatter and headings from every `.md` file, auto-generates sidebar trees per path prefix, and writes a generated module to `.lark-docs/generated/index.js`. This module provides dynamic content loaders, a route map, runtime site configuration, and a lazy search index builder.
 
-**Phase 2 -- Compilation (bundler plugin).** Each `.md` import is intercepted by the bundler plugin (`larkDocsPlugin` for Vite, `LarkDocsPlugin` for Webpack/Rspack) and compiled through `compileMarkdown()`. The pipeline extracts YAML frontmatter, initializes the Shiki highlighter on first call (async singleton), parses the markdown body with `markdown-it` plus four custom plugins, renders to HTML, builds page metadata, and emits a JS module that exports a `View.extend({ pageData, template })` class.
+**Phase 2 -- Compilation (bundler plugin).** Each `.md` import is intercepted by the bundler plugin (`larkDocsPlugin` for Vite, `LarkDocsPlugin` for Webpack/Rspack) and compiled through `compileMarkdown()`. The pipeline extracts YAML frontmatter, initializes the Shiki highlighter on first call (async singleton), parses the markdown body with `markdown-it` plus four custom plugins, renders to HTML, builds page metadata, and emits a JS module that exports `pageData` and `contentHtml`.
 
-**Phase 3 -- Runtime (browser).** The `@lark.js/mvc` Framework boots with the generated routes. Five theme Views (layout, sidebar, content, TOC, search) render the documentation UI. Navigation is SPA-based via the lark-mvc Router. The pre-built search index is loaded from State and queried client-side.
+**Phase 3 -- Runtime (browser).** The `@lark.js/mvc` Framework boots with the generated routes. The layout view stays mounted across navigation and asynchronously loads page content via `loadContent()`. Four theme Views (layout, sidebar, TOC, search) render the documentation UI. Search is lazily initialized on first query.
 
 ```
 lark-docs.config.ts          Bundler Plugin              Browser Runtime
        |                            |                          |
   defineConfig()              compileMarkdown()          Framework.boot()
        |                            |                          |
-  scanDocsDir()               extractFrontmatter         routes + views
-  generateSidebar()           createParser()             registered via
-  buildSearchIndex()          getHighlighter()           generated module
+  scanDocsDir()               extractFrontmatter         registerThemeViews(View)
+  generateSidebar()           createParser()             routes + loadContent
+       |                      getHighlighter()           from generated module
        |                            |                          |
-  .lark-docs/generated/        JS module string          5 theme Views
-  (routes + config)            (View.extend)             render the docs UI
+  .lark-docs/generated/        JS module string          4 theme Views
+  index.js                   ({pageData,                 render the docs UI
+                               contentHtml})
 ```
 
 ## Quick Start
@@ -88,7 +90,7 @@ export default defineConfig({
 });
 ```
 
-`defineConfig()` is an identity function that also triggers route generation. It scans the docs directory, generates sidebar trees, builds the search index, and writes the generated module -- all at configuration load time.
+`defineConfig()` is an identity function that also triggers route generation. It scans the docs directory, generates sidebar trees, and writes the generated module -- all at configuration load time.
 
 ### 3. Configure Your Bundler
 
@@ -113,7 +115,6 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "@lark.js/docs": resolve(PKG_DIR, "../lark-docs/src"),
       "@lark-docs/generated": resolve(PKG_DIR, ".lark-docs/generated"),
     },
   },
@@ -147,56 +148,76 @@ export default {
 Create `app/boot.ts`:
 
 ```ts
-import { Framework, View, State, registerViewClass } from "@lark.js/mvc";
+import { Framework, View, State } from "@lark.js/mvc";
 import type { FrameworkConfig } from "@lark.js/mvc";
 
 // Auto-generated by defineConfig()
-import { routes, docsConfig } from "@lark-docs/generated";
-
-// Theme view factories + templates
 import {
-  createDocsLayoutView,
-  createSidebarView,
-  createContentView,
-  createTocView,
-  createSearchView,
-} from "@lark.js/docs/theme";
+  routes,
+  docsConfig,
+  loadContent,
+  getSearchIndex,
+} from "@lark-docs/generated";
 
-import docLayoutTemplate from "@lark.js/docs/theme/docs-layout.html";
-import sidebarTemplate from "@lark.js/docs/theme/sidebar.html";
-import contentTemplate from "@lark.js/docs/theme/content.html";
-import tocTemplate from "@lark.js/docs/theme/toc.html";
-import searchTemplate from "@lark.js/docs/theme/search.html";
+// Theme views (layout, sidebar, toc, search) -- registered in one call.
+// The framework imports and compiles the .html templates internally,
+// so consumers don't need to import .html files or call registerViewClass
+// for each theme component.
+import { registerThemeViews } from "@lark.js/docs/theme";
 
 import "./main.css";
 
-// Register theme views
-registerViewClass(
-  "theme/docs-layout",
-  createDocsLayoutView(View, docLayoutTemplate),
-);
-registerViewClass("theme/sidebar", createSidebarView(View, sidebarTemplate));
-registerViewClass("theme/content", createContentView(View, contentTemplate));
-registerViewClass("theme/toc", createTocView(View, tocTemplate));
-registerViewClass("theme/search", createSearchView(View, searchTemplate));
+// === Register theme views ===
 
-// Inject site data into State
-State.set({ docsConfig });
+registerThemeViews(View);
 
-// Boot the framework
+// === Inject site data + content loader into State ===
+
+State.set({ docsConfig, loadContent, getSearchIndex });
+
+// === Boot ===
+
 const config: FrameworkConfig = {
   rootId: "app",
   routeMode: "history",
   defaultPath: "/docs/",
-  defaultView: "index",
+  // All /docs/* routes map to "theme/docs-layout" (see generated routes).
+  // The layout stays mounted across navigation; observeLocation triggers
+  // an async render that loads the matching .md content via loadContent.
+  defaultView: "theme/docs-layout",
   routes,
-  unmatchedView: "index",
+  unmatchedView: "theme/docs-layout",
 };
 
 Framework.boot(config);
 ```
 
-### 5. Write Markdown
+### 5. TypeScript Setup
+
+Create `shims.d.ts` in your project root:
+
+```ts
+/// <reference types="@lark.js/docs/client" />
+/// <reference types="vite/client" />
+```
+
+The `/// <reference types="@lark.js/docs/client" />` directive loads ambient module declarations for `@lark-docs/generated` (routes, docsConfig, loadContent, getSearchIndex, SearchEntry) and `*.html` template imports.
+
+Add a `paths` mapping in `tsconfig.json` to help the IDE resolve the generated module:
+
+```json
+{
+  "compilerOptions": {
+    "paths": {
+      "@lark-docs/generated/*": ["./.lark-docs/generated/*"]
+    }
+  }
+}
+```
+
+> **Important:** Use `/// <reference types="..." />` (not `/// <reference path="..." />`) for referencing type declarations inside `node_modules`. The `types` directive uses TypeScript's full module resolution algorithm, which correctly resolves pnpm workspace symlinks and package `exports` fields. The `path` directive performs raw filesystem path lookup and does not understand package structure or symlink resolution.
+
+### 6. Write Markdown
 
 ````markdown
 ---
@@ -218,7 +239,7 @@ pnpm add @lark.js/mvc
 ```
 
 ::: tip
-Always call `registerViewClass` before `Framework.boot()`.
+Always call `registerThemeViews` before `Framework.boot()`.
 :::
 ````
 
@@ -390,7 +411,7 @@ Without Shiki, code blocks fall back to a styled `<pre>` with `bg-neutral text-n
 
 ## Theme System
 
-The theme consists of five View factories, each paired with an HTML template. Users register them in their `boot.ts` via `registerViewClass()`.
+The theme consists of four View factories, each paired with an HTML template. The `registerThemeViews()` convenience function registers all of them in a single call.
 
 ### View Factories
 
@@ -398,9 +419,21 @@ The theme consists of five View factories, each paired with an HTML template. Us
 | -------------------------------------- | ------------------- | ----------------------------------------------------- |
 | `createDocsLayoutView(View, template)` | `theme/docs-layout` | Root layout: navbar, three-column body, prev/next nav |
 | `createSidebarView(View, template)`    | `theme/sidebar`     | Left sidebar navigation tree                          |
-| `createContentView(View, template)`    | `theme/content`     | Main content area (compiled markdown HTML)            |
 | `createTocView(View, template)`        | `theme/toc`         | Right-side heading outline with smooth scroll         |
 | `createSearchView(View, template)`     | `theme/search`      | Search modal (local provider only)                    |
+
+### registerThemeViews
+
+The recommended way to set up the theme:
+
+```ts
+import { View } from "@lark.js/mvc";
+import { registerThemeViews } from "@lark.js/docs/theme";
+
+registerThemeViews(View);
+```
+
+This function imports all `.html` templates internally (compiled by `larkMvcPlugin` at build time), creates the view classes, and calls `registerViewClass()` for each. Consumers never need to import `.html` files or call `registerViewClass` manually.
 
 ### Layout Structure
 
@@ -417,6 +450,8 @@ docs-layout (root)
 +-- Prev/Next navigation (bottom of content)
 +-- Search modal (conditional, local provider only)
 ```
+
+The layout view stays mounted across all `/docs/*` routes. When the user navigates, `observeLocation` triggers an async `render()` that calls `loadContent(path)` to fetch the new page's compiled markdown, then updates the view data. The compiled markdown HTML is rendered inline via `contentHtml`.
 
 ### Responsive Behavior
 
@@ -445,7 +480,7 @@ The built-in search is powered by [MiniSearch](https://github.com/lucaong/minise
 - Fuzzy matching: tolerates typos (fuzzy factor 0.2)
 - Field-weighted scoring: title matches boosted 2x, headings 1.5x, excerpt 1x
 - Highlighted results: matched terms wrapped in `<mark>` in both title and excerpt
-- Lazy index construction: the MiniSearch instance is built on first query from the build-time `searchIndex`, then reused for subsequent searches
+- Lazy index construction: the MiniSearch instance is built on first query from the build-time `searchIndex`, then reused to subsequent searches
 - Open/close state driven by `State.searchOpen` so the navbar button can toggle the modal without a direct view reference
 
 ### DocSearch Integration (provider: "docsearch")
@@ -505,24 +540,30 @@ Same API as Webpack, but the loader returns `Promise<string>` directly (Rspack a
 
 ## Package Exports
 
-| Sub-path                     | Description                                                                                                      |
-| ---------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `@lark.js/docs`              | Main barrel: all types, scanner, route-map, sidebar, search, markdown, compiler, runtime, theme factories, icons |
-| `@lark.js/docs/compiler`     | `compileMarkdown()` + `CompileMarkdownOptions` type                                                              |
-| `@lark.js/docs/vite`         | `larkDocsPlugin()` Vite plugin + build-time utility re-exports                                                   |
-| `@lark.js/docs/webpack`      | `LarkDocsPlugin` class + `larkDocsLoader()` function                                                             |
-| `@lark.js/docs/rspack`       | `LarkDocsPlugin` class + `larkDocsLoader()` async function                                                       |
-| `@lark.js/docs/runtime`      | `searchDocs()` + `slugify()` (browser-safe, no build deps)                                                       |
-| `@lark.js/docs/theme`        | Five view factories + `createLocalSearchClient` + `icons`                                                        |
-| `@lark.js/docs/theme/*.html` | Raw HTML template strings (5 templates)                                                                          |
+| Sub-path                 | Description                                                                                                   |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| `@lark.js/docs`          | Main barrel: all types, scanner, route-map, sidebar, search, markdown, compiler, runtime, theme factories     |
+| `@lark.js/docs/compiler` | `compileMarkdown()` + `CompileMarkdownOptions` type                                                           |
+| `@lark.js/docs/vite`     | `larkDocsPlugin()` Vite plugin + build-time utility re-exports                                                |
+| `@lark.js/docs/webpack`  | `LarkDocsPlugin` class + `larkDocsLoader()` function                                                          |
+| `@lark.js/docs/rspack`   | `LarkDocsPlugin` class + `larkDocsLoader()` async function                                                    |
+| `@lark.js/docs/runtime`  | `searchDocs()` + `slugify()` (browser-safe, no build deps)                                                    |
+| `@lark.js/docs/theme`    | `registerThemeViews()` + 4 view factories + `createLocalSearchClient` + `icons`                               |
+| `@lark.js/docs/client`   | Types-only: ambient module declarations for `@lark-docs/generated` and `*.html` (for `/// <reference types>`) |
 
 The `/vite`, `/webpack`, and `/rspack` sub-paths re-export build-time utilities (`scanDocsDir`, `generateRouteMap`, `generateSidebar`, `buildSearchIndex`, `defineConfig`) to avoid pulling in the main entry's `lucide-static` SVG `?raw` imports, which are not valid in Node.js contexts.
+
+The `/client` sub-path is types-only (no runtime code). It ships `client.d.ts` which provides `declare module "@lark-docs/generated"` and `declare module "*.html"` ambient declarations. Consumer projects reference it via `/// <reference types="@lark.js/docs/client" />` in their `shims.d.ts`.
 
 ## API Reference
 
 ### `defineConfig(config: DocsConfig, projectRoot?: string): DocsConfig`
 
 Type-safe configuration helper. Returns the config unchanged while triggering route generation. The optional `projectRoot` parameter controls path resolution for the `docs` directory and the generated output. Defaults to `process.cwd()`.
+
+### `registerThemeViews(ViewClass: typeof View): void`
+
+Registers all four theme views (layout, sidebar, TOC, search) with the lark-mvc view registry. Imports the `.html` templates internally so consumers don't need to handle them.
 
 ### `scanDocsDir(docsDir: string, baseUrl: string, options?: { excludeDrafts?: boolean }): DocsRoute[]`
 
@@ -546,7 +587,7 @@ Maps non-draft routes to `{ title, link, headings[], excerpt }` entries for clie
 
 ### `compileMarkdown(source: string, options: CompileMarkdownOptions): Promise<string>`
 
-Compiles a `.md` source string into a JS module string that exports a lark-mvc View class. The pipeline: extract frontmatter, create parser, optionally initialize Shiki, parse and render to HTML, build page metadata, emit JS module.
+Compiles a `.md` source string into a JS module string that exports `pageData` and `contentHtml`. The pipeline: extract frontmatter, create parser, optionally initialize Shiki, parse and render to HTML, build page metadata, emit JS module.
 
 ### `searchDocs(index: SearchEntry[], query: string, limit?: number): SearchEntry[]`
 
@@ -561,7 +602,6 @@ Converts text to a URL-safe slug: lowercase, strip non-word chars (except spaces
 ```ts
 createDocsLayoutView(View, template); // root layout
 createSidebarView(View, template); // sidebar navigation
-createContentView(View, template); // content area
 createTocView(View, template); // heading outline
 createSearchView(View, template); // search modal
 createLocalSearchClient(index); // Algolia-compatible search client
@@ -591,18 +631,18 @@ import type {
 } from "@lark.js/docs";
 ```
 
+Types can also be imported from the dedicated `@lark.js/docs/types` sub-path.
+
 ## Generated Output
 
-`defineConfig()` writes a generated module to `.lark-docs/generated/index.ts` (a dot directory at project root, similar to VitePress's `.vitepress/` and Docusaurus's `.docusaurus/`). This directory should be added to `.gitignore`.
+`defineConfig()` writes a generated module to `.lark-docs/generated/index.js` (a dot directory at project root, similar to VitePress's `.vitepress/` and Docusaurus's `.docusaurus/`). This directory should be added to `.gitignore`.
 
-The generated module:
+The generated module exports:
 
-- Imports all discovered `.md` files (compiled by the bundler plugin at build time)
-- Calls `registerViewClass()` for each file
-- Exports `routes: Record<string, string>` (path-to-viewId map)
-- Exports `docsConfig` (runtime site configuration with sidebar and search index)
-
-Consumers import it via a Vite resolve alias:
+- `loadContent(path)` -- dynamically imports the compiled `.md` module for a given route path, returns `{ pageData, contentHtml }` or `null`
+- `routes: Record<string, string>` -- maps every docs path to the layout view `"theme/docs-layout"`
+- `docsConfig` -- the runtime site configuration (title, description, lang, nav, sidebar)
+- `getSearchIndex()` -- lazily builds the search index by loading all `.md` modules on first call, returns `SearchEntry[]`
 
 ```ts
 // vite.config.ts
@@ -613,8 +653,10 @@ resolve: {
 }
 
 // boot.ts
-import { routes, docsConfig } from "@lark-docs/generated";
+import { routes, docsConfig, loadContent, getSearchIndex } from "@lark-docs/generated";
 ```
+
+Type declarations for `@lark-docs/generated` are provided by the `@lark.js/docs/client` package export via `/// <reference types>` directive -- no generated `.d.ts` file is needed.
 
 ## Dependencies
 
@@ -622,10 +664,12 @@ import { routes, docsConfig } from "@lark-docs/generated";
 
 - `@docsearch/css` ^4.6.3 -- DocSearch widget styles (dynamic import, only for `"docsearch"` provider)
 - `@docsearch/js` ^4.6.3 -- DocSearch widget (dynamic import, only for `"docsearch"` provider)
+- `ejs` ^3.1.10 -- Template engine for generated module output
 - `js-yaml` ^5.0.0 -- YAML frontmatter parsing
 - `lucide-static` ^1.21.0 -- SVG icons via `?raw` import
 - `markdown-it` ^14.2.0 -- Markdown parser
 - `markdown-it-container` ^4.0.0 -- Admonition container syntax
+- `minisearch` ^7.2.0 -- Full-text search engine (same as VitePress)
 - `shiki` ^4.2.0 -- Code syntax highlighting (dynamic import, lazy singleton)
 
 **Peer:**

@@ -1,6 +1,6 @@
 {
   "name": "@lark.js/docs",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Documentation site generator for @lark.js/mvc",
   "keywords": [
     "@lark.js",
@@ -12,7 +12,6 @@
   "author": "https://github.com/hangtiancheng",
   "files": [
     "dist",
-    "src/shims.d.ts",
     "README.md"
   ],
   "type": "module",
