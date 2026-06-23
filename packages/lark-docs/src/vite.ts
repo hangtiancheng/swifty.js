@@ -46,16 +46,29 @@ export function larkDocsPlugin(options: LarkDocsVitePluginOptions): Plugin {
     enforce: "pre",
 
     resolveId(source: string) {
-      if (source.endsWith(".md") && !source.includes("?")) {
-        return source + MD_SUFFIX;
+      // Strip query params (Vite 8 may add ?import, ?url, etc.)
+      const cleanSource = source.split("?")[0];
+      if (cleanSource.endsWith(".md")) {
+        return cleanSource + MD_SUFFIX;
       }
       return null;
     },
 
     async load(id: string) {
-      if (!id.endsWith(MD_SUFFIX)) return null;
+      // Vite may add extra query params (e.g. ?import&lark-docs),
+      // so check if lark-docs is in the query, not just endsWith.
+      const qIdx = id.indexOf("?");
+      const query = qIdx >= 0 ? id.slice(qIdx + 1) : "";
+      if (!query.split("&").includes("lark-docs")) return null;
 
-      const filePath = id.slice(0, -MD_SUFFIX.length);
+      // Extract file path: strip query params
+      let filePath = qIdx >= 0 ? id.slice(0, qIdx) : id;
+
+      // Strip Vite's @fs prefix (used for files outside the root)
+      if (filePath.startsWith("/@fs")) {
+        filePath = filePath.slice("/@fs".length); // "/@fs/path" → "/path"
+      }
+
       const source = fs.readFileSync(filePath, "utf-8");
 
       return await compileMarkdown(source, {

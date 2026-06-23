@@ -23,8 +23,8 @@
  */
 import type { Plugin } from "vite";
 import type { Plugin as Plugin7 } from "vite7";
-import path from "path";
-import fs from "fs";
+import { dirname, isAbsolute, join, resolve } from "path";
+import { existsSync, readFileSync } from "fs";
 import { compileTemplate, extractGlobalVars } from "./compiler";
 
 /** Suffix appended to resolved IDs to mark them as lark template modules */
@@ -60,13 +60,19 @@ export function larkMvcPlugin(
       const sourcePath = source.split("?")[0];
       if (sourcePath.endsWith(".html") && importer) {
         const importerPath = importer.split("?")[0];
-        let resolved = path.resolve(path.dirname(importerPath), sourcePath);
+        let resolved = resolve(dirname(importerPath), sourcePath);
+
+        // Strip Vite's @fs prefix (used for files outside the root)
+        if (resolved.startsWith("/@fs")) {
+          resolved = resolved.slice("/@fs".length); // "/@fs/path" → "/path"
+        }
+
         // Handle URL-style paths from Rolldown scanner (e.g. /src/main.ts):
         // path.isAbsolute returns true for /src on Unix, but it's not a
         // real filesystem path — fall back to joining with project root.
-        if (!fs.existsSync(resolved)) {
-          const rootResolved = path.join(root, resolved);
-          if (fs.existsSync(rootResolved)) {
+        if (!isAbsolute(resolved) || !existsSync(resolved)) {
+          const rootResolved = join(root, resolved);
+          if (existsSync(rootResolved)) {
             resolved = rootResolved;
           }
         }
@@ -82,15 +88,21 @@ export function larkMvcPlugin(
       const query = qIdx >= 0 ? id.slice(qIdx + 1) : "";
       if (query.split("&").includes("lark-template")) {
         let filePath = qIdx >= 0 ? id.slice(0, qIdx) : id;
-        // Handle URL-style paths from Rolldown dependency scanner
-        if (!fs.existsSync(filePath)) {
-          const rootResolved = path.join(root, filePath);
-          if (fs.existsSync(rootResolved)) {
+
+        // Strip Vite's @fs prefix (used for files outside the root)
+        if (filePath.startsWith("/@fs")) {
+          filePath = filePath.slice(4); // "/@fs/path" → "/path"
+        }
+
+        // Handle URL-style paths from Rolldown dependency scanner (Vite 8)
+        if (!isAbsolute(filePath) || !existsSync(filePath)) {
+          const rootResolved = join(root, filePath);
+          if (existsSync(rootResolved)) {
             filePath = rootResolved;
           }
         }
-        if (!fs.existsSync(filePath)) return undefined;
-        const raw = fs.readFileSync(filePath, "utf-8");
+        if (!existsSync(filePath)) return undefined;
+        const raw = readFileSync(filePath, "utf-8");
         // Auto-extract variables from template for 0-config experience
         const globalVars = await extractGlobalVars(raw);
         return compileTemplate(raw, { debug, globalVars, virtualDom, useSwc });
@@ -116,9 +128,7 @@ export function larkMvcPluginLegacy(
 
     resolveId(source, importer) {
       if (source.endsWith(".html") && importer) {
-        return (
-          path.resolve(path.dirname(importer), source) + LARK_TEMPLATE_SUFFIX
-        );
+        return resolve(dirname(importer), source) + LARK_TEMPLATE_SUFFIX;
       }
       return undefined;
     },
@@ -126,7 +136,7 @@ export function larkMvcPluginLegacy(
     async load(id) {
       if (id.endsWith(LARK_TEMPLATE_SUFFIX)) {
         const filePath = id.slice(0, -LARK_TEMPLATE_SUFFIX.length);
-        const raw = fs.readFileSync(filePath, "utf-8");
+        const raw = readFileSync(filePath, "utf-8");
         // Auto-extract variables from template for 0-config experience
         const globalVars = await extractGlobalVars(raw);
         return compileTemplate(raw, { globalVars, virtualDom, useSwc });

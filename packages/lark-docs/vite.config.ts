@@ -12,6 +12,7 @@ import {
   type LibraryFormats,
   type PluginOption,
   type UserConfig,
+  type Rollup
 } from "vite";
 import dts from "vite-plugin-dts";
 import { resolve } from "node:path";
@@ -19,6 +20,7 @@ import { larkMvcPlugin7 } from "@lark.js/mvc/vite";
 import tailwindcss from "@tailwindcss/vite";
 import { larkDocsPlugin } from "./src/vite";
 import { defineConfig as defineDocsConfig } from "./src/define-config";
+import { existsSync, copyFileSync } from "node:fs";
 
 // === Shared constants ===
 
@@ -102,6 +104,35 @@ export default defineConfig(({ mode }) => {
 
 // === Library build ===
 
+/**
+ * Rollup plugin: copies static assets (ejs, client.d.ts, client.css)
+ * from src/ to dist/ after each build, and registers them as watch
+ * dependencies so changes trigger a rebuild in --watch mode.
+ */
+function copyAssetsPlugin(): Rollup.Plugin {
+  const ASSETS = ["file-content.ejs", "client.d.ts", "client.css"];
+
+  return {
+    name: "copy-static-assets",
+    buildStart() {
+      for (const file of ASSETS) {
+        this.addWatchFile(resolve(PKG_DIR, "src", file));
+      }
+    },
+    writeBundle() {
+      const srcDir = resolve(PKG_DIR, "src");
+      const distDir = resolve(PKG_DIR, "dist");
+      for (const file of ASSETS) {
+        const src = resolve(srcDir, file);
+        const dest = resolve(distDir, file);
+        if (existsSync(src)) {
+          copyFileSync(src, dest);
+        }
+      }
+    },
+  };
+}
+
 function libConfig(): UserConfig {
   return {
     build: {
@@ -148,6 +179,7 @@ function libConfig(): UserConfig {
         tsconfigPath: "./tsconfig.build.json",
         outDirs: "dist",
       }),
+      copyAssetsPlugin() as PluginOption,
     ],
   };
 }
