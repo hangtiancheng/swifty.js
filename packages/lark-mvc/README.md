@@ -735,7 +735,6 @@ Marking large static subtrees with `ldk` can completely skip rendering work. Thi
 | `Frame.getAll()`                                  | All Frames as `Map<string, Frame>`                                                                                             |
 | `Frame.getRoot()`                                 | Current root Frame; returns `undefined` if not created                                                                         |
 | `Frame.createRoot(id)`                            | Idempotent root creation (`Framework.boot` calls this)                                                                         |
-| `Frame.root(id)`                                  | `@deprecated` alias, forwards to `createRoot`                                                                                  |
 | `new Frame(containerId)`                          | Independent Frame instance for micro-frontend / embedded widget scenarios                                                      |
 | `frame.invoke(name, args?)`                       | Call the owning view's method; if view not mounted, pushes to `invokeList`, flushed by `View.runInvokes(frame)` after mounting |
 | `frame.children()`                                | Child Frame id array (order not guaranteed)                                                                                    |
