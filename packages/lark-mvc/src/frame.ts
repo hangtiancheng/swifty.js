@@ -21,12 +21,6 @@ import { View } from "./view";
 import { EventDelegator } from "./event-delegator";
 import { use, config as frameworkConfig } from "./module-loader";
 import { getViewClass, registerViewClass } from "./view-registry";
-import {
-  getFrame,
-  getAllFrames,
-  registerFrame,
-  removeFrame as unregisterFrame,
-} from "./frame-registry";
 import type {
   AnyFunc,
   FrameInterface,
@@ -37,6 +31,9 @@ import type {
 // ============================================================
 // Internal state
 // ============================================================
+
+/** All frames registry */
+const frameRegistry = new Map<string, Frame>();
 
 /** Root frame instance */
 let rootFrame: Frame | undefined;
@@ -128,7 +125,7 @@ export class Frame extends EventEmitter implements FrameInterface {
     }
 
     // Register frame
-    registerFrame(id, this);
+    frameRegistry.set(id, this);
 
     // Attach frame to DOM element
     const element = document.getElementById(id);
@@ -350,7 +347,7 @@ export class Frame extends EventEmitter implements FrameInterface {
     // Notify alter
     notifyAlter(this, { id: frameId });
 
-    let childFrame = getFrame(frameId) as Frame | undefined;
+    let childFrame = frameRegistry.get(frameId);
 
     if (!childFrame) {
       // Add to children map
@@ -379,7 +376,7 @@ export class Frame extends EventEmitter implements FrameInterface {
    */
   unmountFrame(id?: string): void {
     const targetId = id ? this.childrenMap[id] : this.id;
-    const frame = getFrame(targetId) as Frame | undefined;
+    const frame = frameRegistry.get(targetId);
     if (!frame) return;
 
     const wasCreated = frame.readyCount > 0;
@@ -401,7 +398,7 @@ export class Frame extends EventEmitter implements FrameInterface {
     }
 
     // Remove from parent's children
-    const parent = getFrame(pId || "") as Frame | undefined;
+    const parent = frameRegistry.get(pId || "");
     if (parent && parent.childrenMap[targetId]) {
       Reflect.deleteProperty(parent.childrenMap, targetId);
       parent.childrenCount--;
@@ -482,7 +479,7 @@ export class Frame extends EventEmitter implements FrameInterface {
     let currentPid: string | undefined = this.parentId;
     let n = level >>> 0 || 1;
     while (currentPid && n--) {
-      frame = getFrame(currentPid) as Frame | undefined;
+      frame = frameRegistry.get(currentPid);
       currentPid = frame?.parentId;
     }
     return frame;
@@ -561,12 +558,12 @@ export class Frame extends EventEmitter implements FrameInterface {
 
   /** Get frame by ID */
   static get(id: string): Frame | undefined {
-    return getFrame(id) as Frame | undefined;
+    return frameRegistry.get(id);
   }
 
   /** Get all frames */
   static getAll(): Map<string, Frame> {
-    return getAllFrames() as Map<string, Frame>;
+    return frameRegistry;
   }
 
   /**
@@ -632,10 +629,10 @@ function htmlElIsBound(element: HTMLElement): boolean {
 
 /** Remove frame from registry */
 function removeFrame(id: string, wasCreated: boolean): void {
-  const frameInstance = getFrame(id);
+  const frameInstance = frameRegistry.get(id);
   if (!frameInstance) return;
 
-  unregisterFrame(id);
+  frameRegistry.delete(id);
 
   // Fire remove event
   Frame.fire("remove", { frame: frameInstance, fcc: wasCreated });
@@ -663,7 +660,7 @@ function notifyCreated(frameInstance: Frame): void {
 
     const pId = frameInstance.parentId;
     if (pId) {
-      const parent = getFrame(pId) as Frame | undefined;
+      const parent = frameRegistry.get(pId);
       if (parent && !parent.readyMap.has(frameInstance.id)) {
         parent.readyMap.add(frameInstance.id);
         parent.readyCount++;
@@ -682,7 +679,7 @@ function notifyAlter(frameInstance: Frame, data: { id: string }): void {
 
     const pId = frameInstance.parentId;
     if (pId) {
-      const parent = getFrame(pId) as Frame | undefined;
+      const parent = frameRegistry.get(pId);
       if (parent && parent.readyMap.has(frameInstance.id)) {
         parent.readyCount--;
         parent.readyMap.delete(frameInstance.id);
@@ -703,7 +700,7 @@ function reInitFrame(frame: Frame, id: string, parentId: string): void {
   frame["readyMap"] = new Set();
   frame["invokeList"] = [];
 
-  registerFrame(id, frame);
+  frameRegistry.set(id, frame);
 }
 
 /** Reset frame for cache reuse */
@@ -727,7 +724,7 @@ function translateQuery(
   src: string,
   params: Record<string, string>,
 ): void {
-  const parentFrame = getFrame(pId);
+  const parentFrame = frameRegistry.get(pId);
   const parentView = parentFrame?.view;
   if (!parentView) return;
 

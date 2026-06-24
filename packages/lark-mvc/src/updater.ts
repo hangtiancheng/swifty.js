@@ -28,7 +28,6 @@ import {
   encodeQuote,
 } from "./common";
 import { config } from "./module-loader";
-import { getFrame } from "./frame-registry";
 import {
   domGetNode,
   domSetChildNodes,
@@ -38,6 +37,7 @@ import {
 } from "./dom";
 import { vdomSetChildNodes, createVDomRef } from "./vdom";
 import type { UpdaterInterface, VDomNode, VDomTemplate } from "./types";
+import { Frame } from "./frame";
 
 // ============================================================
 // Updater class
@@ -169,7 +169,7 @@ export class Updater implements UpdaterInterface {
     this.hasChangedFlag = 0;
     this.changedKeys = new Set();
 
-    const frame = getFrame(this.viewId);
+    const frame = Frame.get(this.viewId);
     const view = frame?.view;
     const node = getById(this.viewId);
 

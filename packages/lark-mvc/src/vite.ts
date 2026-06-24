@@ -117,7 +117,7 @@ export default larkMvcPlugin;
 
 export function larkMvcPluginLegacy(
   options: {
-    debug?: boolean
+    debug?: boolean;
     virtualDom?: boolean;
   } = {},
 ): Plugin {
@@ -158,7 +158,7 @@ export function larkMvcPlugin7(
 
 export function larkMvcPluginLegacy7(
   options: {
-    debug?: boolean,
+    debug?: boolean;
     virtualDom?: boolean;
   } = {},
 ): Plugin7 {

@@ -31,9 +31,9 @@ import {
   registerViewClass,
   getViewClass,
 } from "./view-registry";
-import { getAllFrames } from "./frame-registry";
 import type { View } from "./view";
 import type { FrameInterface } from "./types";
+import { Frame } from "./frame";
 
 // ============================================================
 // HotContext — minimal interface compatible with Vite and webpack
@@ -69,7 +69,7 @@ export interface HotContext {
  * @param viewPath - The view path to match (e.g. 'home', 'components/list')
  */
 export function reloadViews(viewPath: string): void {
-  const allFrames = getAllFrames();
+  const allFrames = Frame.getAll();
   const toReload: Array<{ frame: FrameInterface; fullPath: string }> = [];
 
   for (const [, frame] of allFrames) {

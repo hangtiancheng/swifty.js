@@ -179,9 +179,7 @@ export async function compileTemplate(
 ): Promise<string> {
   const { debug = false, file, virtualDom = false } = options;
 
-  const globalVars =
-    options.globalVars ??
-    (await  extractGlobalVars(source));
+  const globalVars = options.globalVars ?? (await extractGlobalVars(source));
 
   // Phase 1: Protect comments
   const { protectedSource, comments } = protectComments(source);
