@@ -24,18 +24,6 @@ export default View.extend({
     this.updater.set({
       title: "Welcome to Lark Framework",
       description: "This is a minimal @lark.js/mvc example",
-      features: [
-        {
-          name: "MVC Architecture",
-          desc: "Clear separation of View / Updater / Frame",
-        },
-        { name: "Routing System", desc: "Hash-based frontend routing" },
-        { name: "Componentization", desc: "Reusable View components" },
-        {
-          name: "Template Engine",
-          desc: "Supports conditionals, loops, and more",
-        },
-      ],
       appName: "Lark MVC Demo",
       currentTime: new Date().toLocaleString(),
       count,

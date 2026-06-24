@@ -1,66 +1,101 @@
 <!-- Home View Template -->
-<div class="min-h-screen bg-emerald-50/30 p-6">
-  <div class="mx-auto max-w-3xl">
-    <h1 class="mb-2 text-2xl font-normal tracking-tight text-emerald-800">
-      {{=title}}
-    </h1>
-    <p class="mb-6 text-xs text-emerald-500">{{=description}}</p>
-
-    <div class="mb-6 rounded-lg border border-emerald-100 bg-white p-5">
-      <h2 class="mb-3 text-base font-normal text-emerald-700">Navigation</h2>
-      <div class="flex gap-3">
+<div class="min-h-screen bg-white">
+  <!-- Hero -->
+  <div class="px-6 pt-20 pb-14">
+    <div class="mx-auto max-w-2xl text-center">
+      <div
+        class="mb-6 inline-flex items-center rounded-full border border-neutral-200 bg-neutral-50 px-4 py-1.5 text-xs text-neutral-500"
+      >
+        {{=description}}
+      </div>
+      <h1
+        class="mb-6 text-5xl leading-tight font-semibold tracking-tight text-neutral-900"
+      >
+        {{=title}}
+      </h1>
+      <div class="flex items-center justify-center gap-3">
         <button
           @click="navigateTo({path: '/about'})"
-          class="rounded-md bg-emerald-500 px-5 py-2 text-xs font-normal text-white transition-colors hover:bg-emerald-600"
+          class="inline-flex h-9 cursor-pointer items-center justify-center rounded-full bg-neutral-900 px-6 text-xs font-medium text-white transition-colors duration-150 hover:bg-neutral-700 active:bg-neutral-800"
         >
-          About
+          Learn More
         </button>
         <button
           @click="navigateTo({path: '/counter'})"
-          class="rounded-md bg-sky-500 px-5 py-2 text-xs font-normal text-white transition-colors hover:bg-sky-600"
+          class="inline-flex h-9 cursor-pointer items-center justify-center rounded-full border border-neutral-300 bg-white px-6 text-xs font-medium text-neutral-700 transition-colors duration-150 hover:border-neutral-400 hover:bg-neutral-50 active:bg-neutral-100"
         >
-          Counter
+          Live Demo
         </button>
       </div>
     </div>
+  </div>
 
-    <div class="mb-6 rounded-lg border border-emerald-100 bg-white p-5">
-      <div class="mb-3 flex items-center justify-between">
-        <h2 class="text-base font-normal text-emerald-700">Store State</h2>
-        <a
-          @click="navigateTo({path: '/counter'})"
-          class="cursor-pointer text-xs text-emerald-400 underline decoration-emerald-200 underline-offset-2 transition-colors hover:text-emerald-600"
-        >
-          modify
-        </a>
+  <!-- Live State -->
+  <div class="px-6 pb-14">
+    <div class="mx-auto max-w-3xl">
+      <div class="rounded-xl border border-neutral-200 bg-white p-6">
+        <div class="mb-5 flex items-center justify-between">
+          <h2 class="text-sm font-medium text-neutral-900">Live State</h2>
+          <button
+            @click="navigateTo({path: '/counter'})"
+            class="inline-flex cursor-pointer items-center justify-center rounded-full px-3 py-1 text-xs text-neutral-400 transition-colors hover:text-neutral-900"
+          >
+            Open Counter
+          </button>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="rounded-lg bg-neutral-950 py-6 text-center text-white">
+            <div class="text-3xl font-semibold tabular-nums">{{=count}}</div>
+            <div
+              class="mt-1 text-[10px] tracking-widest text-neutral-500 uppercase"
+            >
+              count
+            </div>
+          </div>
+          <div
+            class="rounded-lg bg-neutral-100 py-6 text-center text-neutral-900"
+          >
+            <div class="text-3xl font-semibold tabular-nums">{{=step}}</div>
+            <div
+              class="mt-1 text-[10px] tracking-widest text-neutral-400 uppercase"
+            >
+              step
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="flex items-center gap-4">
+    </div>
+  </div>
+
+  <!-- Interaction -->
+  <div class="px-6 pb-14">
+    <div class="mx-auto max-w-3xl">
+      <div class="rounded-xl border border-neutral-200 bg-white p-6">
+        <h2 class="mb-4 text-sm font-medium text-neutral-900">Interaction</h2>
+        <button
+          @click="showInfo({title: 'Notice', message: 'You clicked the button!'})"
+          class="inline-flex h-9 cursor-pointer items-center justify-center rounded-full bg-neutral-900 px-5 text-xs font-medium text-white transition-colors duration-150 hover:bg-neutral-700 active:bg-neutral-800"
+        >
+          Show Alert
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="px-6 pb-8">
+    <div class="mx-auto max-w-3xl">
+      <div class="border-t border-neutral-100 pt-6">
         <div
-          class="flex-1 rounded-md bg-emerald-500 py-6 text-center text-white"
+          class="flex flex-wrap items-center justify-center gap-x-6 gap-y-1 text-[11px] text-neutral-400"
         >
-          <div class="text-3xl font-normal tracking-tight">{{=count}}</div>
-          <div class="text-[10px] opacity-60">count</div>
-        </div>
-        <div class="flex-1 rounded-md bg-sky-500 py-6 text-center text-white">
-          <div class="text-3xl font-normal tracking-tight">{{=step}}</div>
-          <div class="text-[10px] opacity-60">step</div>
+          <span>{{=appName}}</span>
+          <span class="h-3 w-px bg-neutral-200"></span>
+          <span>{{=currentTime}}</span>
+          <span class="h-3 w-px bg-neutral-200"></span>
+          <span>Built with @lark.js/mvc</span>
         </div>
       </div>
-    </div>
-
-    <div class="mb-6 rounded-lg border border-emerald-100 bg-white p-5">
-      <h2 class="mb-3 text-base font-normal text-emerald-700">Interaction</h2>
-      <button
-        @click="showInfo({title: 'Notice', message: 'You clicked the button!'})"
-        class="rounded-md bg-emerald-500 px-5 py-2 text-xs font-normal text-white transition-colors hover:bg-emerald-600"
-      >
-        Show Alert
-      </button>
-    </div>
-
-    <div class="rounded-lg border border-emerald-100 bg-emerald-50/50 p-4">
-      <p class="mb-1 text-xs font-normal text-emerald-700">App: {{=appName}}</p>
-      <p class="text-xs text-emerald-500">Time: {{=currentTime}}</p>
     </div>
   </div>
 </div>
