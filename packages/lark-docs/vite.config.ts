@@ -321,6 +321,7 @@ function libConfig(): UserConfig {
   return {
     build: {
       lib: {
+        cssFileName: "lark-docs",
         entry: {
           index: resolve(PKG_DIR, "src/index.ts"),
           compiler: resolve(PKG_DIR, "src/compiler.ts"),

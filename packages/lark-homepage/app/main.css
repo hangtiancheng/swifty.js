@@ -1,6 +1,6 @@
 @import "tailwindcss";
 @import "../node_modules/@lark.js/docs/dist/client.css";
-@import "../node_modules/@lark.js/docs/dist/docs.css";
+@import "../node_modules/@lark.js/docs/dist/lark-docs.css";
 
 /* Scan lark-docs theme templates for Tailwind class names */
 @source "../node_modules/@lark.js/docs/dist/theme.js";
@@ -12,15 +12,31 @@
     dark --prefersdark;
 }
 
+/* @font-face {
+  font-family: "Geist Mono";
+  src: url("../assets/GeistMono-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Geist Mono";
+  src: url("../assets/GeistMono-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+} */
+
 @plugin "@tailwindcss/typography";
 
 @theme {
   --font-sans:
-    Iosevka, Maple Mono, Menlo, Cascadia Code, Sarasa Gothic SC, PingFang SC,
-    Microsoft YaHei;
+    Geist Mono, Iosevka, Maple Mono, Menlo, Cascadia Code, Sarasa Gothic SC,
+    PingFang SC, Microsoft YaHei;
   --font-mono:
-    Iosevka, Maple Mono, Menlo, Cascadia Code, Sarasa Gothic SC, PingFang SC,
-    Microsoft YaHei;
+    Geist Mono, Iosevka, Maple Mono, Menlo, Cascadia Code, Sarasa Gothic SC,
+    PingFang SC, Microsoft YaHei;
 }
 
 /* daisyUI v5: override CSS custom properties for a very light green palette */
