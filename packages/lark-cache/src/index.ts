@@ -17,11 +17,20 @@ export {
 } from "./group.js";
 export { SingleFlightGroup } from "./single-flight.js";
 export { ConHashConfig, defaultConHashConfig } from "./config.js";
-export { ConHashMap, ConHashOption, withConHashConfig } from "./consistent-hash.js";
+export {
+  ConHashMap,
+  ConHashOption,
+  withConHashConfig,
+} from "./consistent-hash.js";
 export { crc32, HashFunc } from "./crc32.js";
 export { Peer, PeerPicker } from "./peers.js";
 export { Client } from "./client.js";
 export { ClientPicker, PickerOption } from "./client-picker.js";
 export { Server, ServerOptions } from "./server.js";
-export { register, RegisterConfig, defaultRegisterConfig, ServiceDiscovery } from "./register.js";
+export {
+  register,
+  RegisterConfig,
+  defaultRegisterConfig,
+  ServiceDiscovery,
+} from "./register.js";
 export { validPeerAddr, getLocalIP } from "./utils.js";

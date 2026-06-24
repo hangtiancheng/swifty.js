@@ -46,7 +46,9 @@ export class Cache {
     };
     this.store = new LruStore(storeOpts);
     this.initialized = true;
-    console.log(`[LarkCache] Cache initialized, max bytes: ${this.opts.maxBytes}`);
+    console.log(
+      `[LarkCache] Cache initialized, max bytes: ${this.opts.maxBytes}`,
+    );
   }
 
   add(key: string, value: ByteView): void {
@@ -75,7 +77,11 @@ export class Cache {
     return [val as ByteView, true];
   }
 
-  addWithExpiration(key: string, value: ByteView, expirationTime: number): void {
+  addWithExpiration(
+    key: string,
+    value: ByteView,
+    expirationTime: number,
+  ): void {
     if (this.closed) {
       console.log(`[LarkCache] Attempted to add to a closed cache: ${key}`);
       return;
@@ -83,7 +89,9 @@ export class Cache {
 
     const expirationMs = expirationTime - Date.now();
     if (expirationMs <= 0) {
-      console.log(`[LarkCache] Key ${key} already expired, not adding to cache`);
+      console.log(
+        `[LarkCache] Key ${key} already expired, not adding to cache`,
+      );
       return;
     }
 
@@ -116,7 +124,9 @@ export class Cache {
       this.store = null;
     }
     this.initialized = false;
-    console.log(`[LarkCache] Cache closed, hits: ${this.hits}, misses: ${this.misses}`);
+    console.log(
+      `[LarkCache] Cache closed, hits: ${this.hits}, misses: ${this.misses}`,
+    );
   }
 
   stats(): Record<string, unknown> {

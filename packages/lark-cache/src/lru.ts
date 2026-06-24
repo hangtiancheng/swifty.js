@@ -102,7 +102,13 @@ class InternalCache {
     let idx = this.doubleLink[0][N];
     while (idx !== 0) {
       if (this.m[idx - 1].expireAt > 0) {
-        if (!walker(this.m[idx - 1].k, this.m[idx - 1].v, this.m[idx - 1].expireAt)) {
+        if (
+          !walker(
+            this.m[idx - 1].k,
+            this.m[idx - 1].v,
+            this.m[idx - 1].expireAt,
+          )
+        ) {
           return;
         }
       }
@@ -159,11 +165,17 @@ export class LruStore implements Store {
     this.caches = new Array(this.mask + 1);
 
     for (let i = 0; i <= this.mask; i++) {
-      this.caches[i] = [new InternalCache(capPerBucket), new InternalCache(level2Cap)];
+      this.caches[i] = [
+        new InternalCache(capPerBucket),
+        new InternalCache(level2Cap),
+      ];
     }
 
     if (cleanupInterval > 0) {
-      this.cleanupTimer = setInterval(() => this.cleanupLoop(), cleanupInterval);
+      this.cleanupTimer = setInterval(
+        () => this.cleanupLoop(),
+        cleanupInterval,
+      );
     }
   }
 
@@ -259,7 +271,11 @@ export class LruStore implements Store {
     }
   }
 
-  private getFromLevel(key: string, idx: number, level: number): [Node | null, number] {
+  private getFromLevel(
+    key: string,
+    idx: number,
+    level: number,
+  ): [Node | null, number] {
     const [n, st] = this.caches[idx][level].get(key);
     if (st > 0 && n) {
       const currentTime = Date.now();

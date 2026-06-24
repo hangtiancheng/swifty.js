@@ -3,19 +3,22 @@
     "*.page-template": "vue",
     "*.layout-template": "vue",
     "*.vue": "vue",
-    "*.gyp": "json",
+    "*.gyp": "json"
     // "*.ejs": "javascript"
   },
   "cmake.ignoreCMakeListsMissing": true,
   "cSpell.words": [
+    "amap",
     "apos",
     "beforeunload",
     "blockquotes",
+    "bodyparser",
     "ctxt",
     "daisyui",
     "dblclick",
     "dcts",
     "frontmatter",
+    "grayscale",
     "gstatic",
     "gypfile",
     "hangtiancheng",
@@ -23,6 +26,7 @@
     "heapify",
     "heappop",
     "heappush",
+    "jsapi",
     "keyup",
     "libheap",
     "libpool",
@@ -52,7 +56,8 @@
     "vdom",
     "vite",
     "vitesse",
-    "vnode"
+    "vnode",
+    "xxhash"
   ],
   "css.validate": false
 }

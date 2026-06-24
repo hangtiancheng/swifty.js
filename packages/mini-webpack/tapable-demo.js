@@ -49,29 +49,18 @@ tapableDemo.hooks.asyncHook.tapPromise("eventName2", (arg1, arg2, arg3) => {
   });
 });
 
-tapableDemo.publishAsyncHookUsePromise(
-  3 /** arg1 */,
-  4 /** arg2 */,
-  [] /** arg3 */,
-);
+tapableDemo.publishAsyncHookUsePromise(3 /** arg1 */, 4 /** arg2 */, [] /** arg3 */);
 
 // subscribe
-tapableDemo.hooks.asyncHook2.tapAsync(
-  "eventName3",
-  async (arg1, arg2, arg3, callback) => {
-    console.log("tapAsync", arg1, arg2, arg3); // tapAsync 5 6 []
-    await new Promise((resolve) => {
-      setTimeout(() => {
-        arg3.push(arg1, arg2);
-        callback(arg3);
-        resolve(arg3);
-      }, 5000);
-    });
-  },
-);
+tapableDemo.hooks.asyncHook2.tapAsync("eventName3", async (arg1, arg2, arg3, callback) => {
+  console.log("tapAsync", arg1, arg2, arg3); // tapAsync 5 6 []
+  await new Promise((resolve) => {
+    setTimeout(() => {
+      arg3.push(arg1, arg2);
+      callback(arg3);
+      resolve(arg3);
+    }, 5000);
+  });
+});
 
-tapableDemo.publishAsyncHookUseAsync(
-  5 /** arg1 */,
-  6 /** arg2 */,
-  [] /** arg3 */,
-);
+tapableDemo.publishAsyncHookUseAsync(5 /** arg1 */, 6 /** arg2 */, [] /** arg3 */);

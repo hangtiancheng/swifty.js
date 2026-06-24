@@ -147,7 +147,8 @@ export class ConHashMap {
     const updates: Map<string, number> = new Map();
 
     for (const [node, count] of this.nodeCounts) {
-      const currentReplicas = this.nodeReplicas.get(node) || this.config.defaultReplicas;
+      const currentReplicas =
+        this.nodeReplicas.get(node) || this.config.defaultReplicas;
       const loadRatio = count / avgLoad;
 
       let newReplicas: number;

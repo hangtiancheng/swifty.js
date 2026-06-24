@@ -53,7 +53,11 @@ export class ServiceDiscovery {
   private onPut: (addr: string) => void;
   private onDelete: (addr: string) => void;
 
-  constructor(svcName: string, onPut: (addr: string) => void, onDelete: (addr: string) => void) {
+  constructor(
+    svcName: string,
+    onPut: (addr: string) => void,
+    onDelete: (addr: string) => void,
+  ) {
     this.client = new Etcd3({ hosts: defaultRegisterConfig.endpoints });
     this.svcName = svcName;
     this.onPut = onPut;
@@ -61,7 +65,9 @@ export class ServiceDiscovery {
   }
 
   async fetchAll(): Promise<string[]> {
-    const result = await this.client.getAll().prefix(`/services/${this.svcName}`);
+    const result = await this.client
+      .getAll()
+      .prefix(`/services/${this.svcName}`);
     const addrs: string[] = [];
     for (const [, value] of Object.entries(result)) {
       const addr = value.toString();
@@ -71,7 +77,10 @@ export class ServiceDiscovery {
   }
 
   async watch(): Promise<void> {
-    this.watcher = await this.client.watch().prefix(`/services/${this.svcName}`).create();
+    this.watcher = await this.client
+      .watch()
+      .prefix(`/services/${this.svcName}`)
+      .create();
 
     this.watcher.on("put", (kv) => {
       const addr = kv.value.toString();

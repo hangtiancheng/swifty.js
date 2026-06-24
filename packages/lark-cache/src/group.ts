@@ -63,7 +63,12 @@ export class Group {
     loadDuration: 0,
   };
 
-  constructor(name: string, cacheBytes: number, getter: Getter, ...opts: GroupOption[]) {
+  constructor(
+    name: string,
+    cacheBytes: number,
+    getter: Getter,
+    ...opts: GroupOption[]
+  ) {
     if (!getter) throw new Error("nil Getter");
 
     this.name = name;
@@ -93,7 +98,12 @@ export class Group {
     return this.load(ctx, key);
   }
 
-  async set(ctx: AbortSignal, key: string, value: Buffer, isPeerRequest = false): Promise<void> {
+  async set(
+    ctx: AbortSignal,
+    key: string,
+    value: Buffer,
+    isPeerRequest = false,
+  ): Promise<void> {
     if (this.closed) throw ErrGroupClosed;
     if (!key) throw ErrKeyRequired;
     if (!value || value.length === 0) throw ErrValueRequired;
@@ -110,7 +120,11 @@ export class Group {
     }
   }
 
-  async delete(ctx: AbortSignal, key: string, isPeerRequest = false): Promise<void> {
+  async delete(
+    ctx: AbortSignal,
+    key: string,
+    isPeerRequest = false,
+  ): Promise<void> {
     if (this.closed) throw ErrGroupClosed;
     if (!key) throw ErrKeyRequired;
 
@@ -272,11 +286,15 @@ export function newGroup(
   const g = new Group(name, cacheBytes, getter, ...opts);
 
   if (groups.has(name)) {
-    console.log(`[LarkCache] Group with name ${name} already exists; replacing it`);
+    console.log(
+      `[LarkCache] Group with name ${name} already exists; replacing it`,
+    );
   }
 
   groups.set(name, g);
-  console.log(`[LarkCache] Created cache group [${name}] with cacheBytes=${cacheBytes}`);
+  console.log(
+    `[LarkCache] Created cache group [${name}] with cacheBytes=${cacheBytes}`,
+  );
   return g;
 }
 

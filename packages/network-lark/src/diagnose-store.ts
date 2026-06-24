@@ -32,99 +32,103 @@ const diagnosticConfig: Omit<SDKOptions, "onResultsUpdate" | "lang" | "t"> = {
     "https://react.dev/favicon.ico",
     "https://www.google.com/favicon.ico",
   ],
-  speedTestFileUrl: "https://upload.wikimedia.org/wikipedia/commons/3/3d/LARGE_elevation.jpg",
+  speedTestFileUrl:
+    "https://upload.wikimedia.org/wikipedia/commons/3/3d/LARGE_elevation.jpg",
 };
 
-export const useDiagnoseStore = create<DiagnoseStoreAPI>("diagnose", (set, get) => {
-  let sdk: NetworkDiagnoseSDK | null = null;
+export const useDiagnoseStore = create<DiagnoseStoreAPI>(
+  "diagnose",
+  (set, get) => {
+    let sdk: NetworkDiagnoseSDK | null = null;
 
-  function getSDK(): NetworkDiagnoseSDK {
-    if (!sdk) {
-      sdk = new NetworkDiagnoseSDK({
-        ...diagnosticConfig,
-        lang: get().lang,
-        t,
-        onResultsUpdate: (newResults) => {
-          set({ results: newResults });
-        },
+    function getSDK(): NetworkDiagnoseSDK {
+      if (!sdk) {
+        sdk = new NetworkDiagnoseSDK({
+          ...diagnosticConfig,
+          lang: get().lang,
+          t,
+          onResultsUpdate: (newResults) => {
+            set({ results: newResults });
+          },
+        });
+      }
+      return sdk;
+    }
+
+    function openPanel() {
+      set({ isOpen: true });
+    }
+
+    function closePanel() {
+      set({ isOpen: false });
+    }
+
+    async function startDiagnosis() {
+      set({ isRunning: true });
+      await getSDK().runFullDiagnosis();
+      set({
+        isRunning: false,
+        hasFailures: get().results.some((r) => r.status === "failure"),
       });
     }
-    return sdk;
-  }
 
-  function openPanel() {
-    set({ isOpen: true });
-  }
-
-  function closePanel() {
-    set({ isOpen: false });
-  }
-
-  async function startDiagnosis() {
-    set({ isRunning: true });
-    await getSDK().runFullDiagnosis();
-    set({
-      isRunning: false,
-      hasFailures: get().results.some((r) => r.status === "failure"),
-    });
-  }
-
-  function repairItem(id: string) {
-    const item = get().results.find((r) => r.id === id);
-    if (item?.repair) {
-      void item.repair();
-    }
-  }
-
-  function changeLang(lang: Lang) {
-    set({ lang });
-    setLang(lang);
-    getSDK().setLang(lang);
-  }
-
-  function triggerOnCall() {
-    const { lang, results } = get();
-    const payload = JSON.stringify({
-      timestamp: new Date().toISOString(),
-      userAgent: navigator.userAgent,
-      language: lang,
-      results,
-    });
-
-    if (navigator.sendBeacon) {
-      navigator.sendBeacon("/on/call", payload);
-    } else {
-      fetch("/on/call", {
-        method: "POST",
-        body: payload,
-        keepalive: true,
-      }).catch(console.error);
+    function repairItem(id: string) {
+      const item = get().results.find((r) => r.id === id);
+      if (item?.repair) {
+        void item.repair();
+      }
     }
 
-    set({ showToast: true });
-    setTimeout(() => {
+    function changeLang(lang: Lang) {
+      set({ lang });
+      setLang(lang);
+      getSDK().setLang(lang);
+    }
+
+    function triggerOnCall() {
+      const { lang, results } = get();
+      const payload = JSON.stringify({
+        timestamp: new Date().toISOString(),
+        userAgent: navigator.userAgent,
+        language: lang,
+        results,
+      });
+
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon("/on/call", payload);
+      } else {
+        fetch("/on/call", {
+          method: "POST",
+          body: payload,
+          keepalive: true,
+        }).catch(console.error);
+      }
+
+      set({ showToast: true });
+      setTimeout(() => {
+        set({ showToast: false });
+      }, 3000);
+    }
+
+    function dismissToast() {
       set({ showToast: false });
-    }, 3000);
-  }
+    }
 
-  function dismissToast() {
-    set({ showToast: false });
-  }
-
-  return {
-    isOpen: false,
-    results: [] as DiagnosticResult[],
-    isRunning: false,
-    hasFailures: false,
-    sessionId: Date.now().toString().slice(-6),
-    lang: getLang(),
-    showToast: false,
-    openPanel,
-    closePanel,
-    startDiagnosis,
-    repairItem,
-    changeLang,
-    triggerOnCall,
-    dismissToast,
-  };
-});
+    return {
+      isOpen: false,
+      results: [] as DiagnosticResult[],
+      isRunning: false,
+      hasFailures: false,
+      sessionId: Date.now().toString().slice(-6),
+      lang: getLang(),
+      showToast: false,
+      openPanel,
+      closePanel,
+      startDiagnosis,
+      repairItem,
+      changeLang,
+      triggerOnCall,
+      dismissToast,
+    };
+  },
+);

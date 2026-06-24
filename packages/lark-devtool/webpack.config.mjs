@@ -120,17 +120,17 @@ export default (env, argv) => {
 
     optimization: isProd
       ? {
-        splitChunks: {
-          chunks: "all",
-          cacheGroups: {
-            vendor: {
-              test: /[\\/]node_modules[\\/]/,
-              name: "vendor",
-              chunks: "all",
+          splitChunks: {
+            chunks: "all",
+            cacheGroups: {
+              vendor: {
+                test: /[\\/]node_modules[\\/]/,
+                name: "vendor",
+                chunks: "all",
+              },
             },
           },
-        },
-      }
+        }
       : undefined,
 
     devtool: isProd ? "hidden-source-map" : "source-map",

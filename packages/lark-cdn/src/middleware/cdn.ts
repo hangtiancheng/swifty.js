@@ -8,11 +8,7 @@ import type { CacheKey, ServerConfig } from "../types/index.js";
 import { getProjectConfig } from "../services/config-store.js";
 import { parseRoute } from "../utils/route-parser.js";
 import { resolveVersion } from "../utils/grayscale.js";
-import {
-  resolveSafePath,
-  hasFileExtension,
-  buildCacheKey,
-} from "../utils/path-security.js";
+import { resolveSafePath, hasFileExtension, buildCacheKey } from "../utils/path-security.js";
 import type { LruCache } from "../services/memory-cache.js";
 import type { CacheEntry } from "../types/index.js";
 
@@ -80,11 +76,7 @@ export function createCdnMiddleware(
     }
 
     // L1 cache lookup
-    const cacheKey: CacheKey = buildCacheKey(
-      projectName,
-      versionConfig.version,
-      filePath,
-    );
+    const cacheKey: CacheKey = buildCacheKey(projectName, versionConfig.version, filePath);
     const cached = cache.get(cacheKey);
     if (cached !== undefined) {
       const ifNoneMatch = ctx.get("If-None-Match");

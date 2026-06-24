@@ -8,7 +8,10 @@ export class Client implements Peer {
 
   constructor(addr: string) {
     this.addr = addr;
-    this.grpcClient = new proto.pb.LarkCache(addr, grpc.credentials.createInsecure());
+    this.grpcClient = new proto.pb.LarkCache(
+      addr,
+      grpc.credentials.createInsecure(),
+    );
   }
 
   get(group: string, key: string): Promise<Buffer> {
@@ -19,7 +22,9 @@ export class Client implements Peer {
         { deadline, waitForReady: true },
         (err: grpc.ServiceError | null, response: any) => {
           if (err) {
-            reject(new Error(`failed to get value from lark_cache: ${err.message}`));
+            reject(
+              new Error(`failed to get value from lark_cache: ${err.message}`),
+            );
             return;
           }
           resolve(Buffer.from(response.value));
@@ -36,7 +41,9 @@ export class Client implements Peer {
         { deadline, waitForReady: true },
         (err: grpc.ServiceError | null) => {
           if (err) {
-            reject(new Error(`failed to set value to lark_cache: ${err.message}`));
+            reject(
+              new Error(`failed to set value to lark_cache: ${err.message}`),
+            );
             return;
           }
           resolve();
@@ -53,7 +60,11 @@ export class Client implements Peer {
         { deadline, waitForReady: true },
         (err: grpc.ServiceError | null, response: any) => {
           if (err) {
-            reject(new Error(`failed to delete value from lark_cache: ${err.message}`));
+            reject(
+              new Error(
+                `failed to delete value from lark_cache: ${err.message}`,
+              ),
+            );
             return;
           }
           resolve(response.value);

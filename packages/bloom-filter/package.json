@@ -2,21 +2,21 @@
   "name": "@lark.js/bloom-filter",
   "version": "1.0.0",
   "description": "A standard Bloom Filter implementation in TypeScript",
-  "main": "dist/index.js",
+  "keywords": [],
+  "license": "ISC",
+  "author": "",
   "type": "module",
+  "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
     "test": "vitest run"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "packageManager": "pnpm@10.30.3",
+  "dependencies": {
+    "@node-rs/xxhash": "^1.7.6"
+  },
   "devDependencies": {
     "@types/node": "catalog:",
     "typescript": "^6.0.3"
   },
-  "dependencies": {
-    "@node-rs/xxhash": "^1.7.6"
-  }
+  "packageManager": "pnpm@10.30.3"
 }

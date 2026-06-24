@@ -3,13 +3,13 @@
   "version": "1.0.0",
   "private": true,
   "license": "ISC",
-  "packageManager": "pnpm@10.10.0",
+  "type": "module",
   "scripts": {
     "test": "vitest run"
   },
   "devDependencies": {
-    "@vitest/coverage-v8": "4.0.16",
-    "@lark.js/vue-shared": "workspace:*"
+    "@lark.js/vue-shared": "workspace:*",
+    "@vitest/coverage-v8": "4.0.16"
   },
-  "type": "module"
+  "packageManager": "pnpm@10.10.0"
 }

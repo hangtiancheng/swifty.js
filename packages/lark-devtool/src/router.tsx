@@ -181,12 +181,7 @@ const sfCdnRoute = createRoute({
   component: SfCdnWrapper,
 });
 
-const routeTree = rootRoute.addChildren([
-  indexRoute,
-  mfDemoRoute,
-  cdnRoute,
-  sfCdnRoute,
-]);
+const routeTree = rootRoute.addChildren([indexRoute, mfDemoRoute, cdnRoute, sfCdnRoute]);
 
 export const router = createRouter({
   routeTree,

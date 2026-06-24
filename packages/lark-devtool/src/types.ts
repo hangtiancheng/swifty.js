@@ -10,11 +10,7 @@ export type {
 } from "@lark.js/mvc/devtool";
 
 /** Connection status to the target Lark application */
-export type ConnectionStatus =
-  | "disconnected"
-  | "connecting"
-  | "connected"
-  | "error";
+export type ConnectionStatus = "disconnected" | "connecting" | "connected" | "error";
 
 /** Message types for the postMessage protocol */
 export const MSG_PING = "LARK_DEVTOOL_PING" as const;

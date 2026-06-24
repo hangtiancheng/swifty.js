@@ -1,9 +1,9 @@
-import path from 'node:path'
-import tailwindcss from '@tailwindcss/postcss'
-import { build, PluginBuild, BuildOptions } from 'esbuild'
-import { sassPlugin } from 'esbuild-sass-plugin'
-import postcssPlugin from 'esbuild-postcss-plugin'
-import EsbuildConditionalBundlePlugin from '@lark.js/conditional-bundle-plugin/esbuild'
+import path from "node:path";
+import tailwindcss from "@tailwindcss/postcss";
+import { build, PluginBuild, BuildOptions } from "esbuild";
+import { sassPlugin } from "esbuild-sass-plugin";
+import postcssPlugin from "esbuild-postcss-plugin";
+import EsbuildConditionalBundlePlugin from "@lark.js/conditional-bundle-plugin/esbuild";
 import {
   copyPublicAssets,
   createClientEnv,
@@ -12,95 +12,95 @@ import {
   resolveSelectedRoutes,
   toProcessEnvDefineMap,
   writeHtmlFile,
-} from './common.js'
+} from "./common.js";
 
-const mode = process.env.NODE_ENV === 'development' ? 'development' : 'production'
-const outDir = path.resolve(packageRoot, 'dist-esbuild')
+const mode = process.env.NODE_ENV === "development" ? "development" : "production";
+const outDir = path.resolve(packageRoot, "dist-esbuild");
 const { routeFlags } = await resolveSelectedRoutes({
   mode,
   interactive: false,
-})
+});
 
 const stylePluginOptions = {
   plugins: [tailwindcss()],
   disableCache: true as const,
-}
+};
 
 const buildOptions: BuildOptions = {
   absWorkingDir: packageRoot,
-  entryPoints: [path.resolve(packageRoot, 'src/main.tsx')],
+  entryPoints: [path.resolve(packageRoot, "src/main.tsx")],
   outdir: outDir,
   bundle: true,
-  format: 'esm',
+  format: "esm",
   splitting: true,
   sourcemap: true,
-  minify: mode === 'production',
+  minify: mode === "production",
   metafile: true,
-  jsx: 'automatic',
+  jsx: "automatic",
   alias: {
-    '@': path.resolve(packageRoot, 'src'),
+    "@": path.resolve(packageRoot, "src"),
   },
-  entryNames: 'assets/[name]-[hash]',
-  chunkNames: 'assets/[name]-[hash]',
-  assetNames: 'assets/[name]-[hash]',
-  conditions: ['style'],
+  entryNames: "assets/[name]-[hash]",
+  chunkNames: "assets/[name]-[hash]",
+  assetNames: "assets/[name]-[hash]",
+  conditions: ["style"],
   loader: {
-    '.gif': 'file',
-    '.jpeg': 'file',
-    '.jpg': 'file',
-    '.png': 'file',
-    '.svg': 'file',
+    ".gif": "file",
+    ".jpeg": "file",
+    ".jpg": "file",
+    ".png": "file",
+    ".svg": "file",
   },
   define: toProcessEnvDefineMap(createClientEnv(mode, routeFlags)),
   plugins: [
     EsbuildConditionalBundlePlugin({
-      includes: ['**/*.ts', '**/*.tsx'],
+      includes: ["**/*.ts", "**/*.tsx"],
       vars: createConditionalVars(routeFlags),
     }),
     sassPlugin({
       filter: /\.module\.scss$/,
-      type: 'local-css',
+      type: "local-css",
     }),
     sassPlugin({
       filter: /\.scss$/,
-      type: 'css',
+      type: "css",
     }),
 
     // createEsbuildPlugin
     (() => {
-      const plugin = postcssPlugin(stylePluginOptions)
+      const plugin = postcssPlugin(stylePluginOptions);
       return {
         name: plugin.name,
         setup(build: PluginBuild) {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
-          plugin.setup(build)
+          plugin.setup(build);
         },
-      }
+      };
     })(),
   ],
-}
+};
 
-const result = await build(buildOptions)
+const result = await build(buildOptions);
 
-const metafile = result.metafile
-const outputs = Object.keys(metafile?.outputs ?? {})
+const metafile = result.metafile;
+const outputs = Object.keys(metafile?.outputs ?? {});
 
 const scripts = outputs
-  .filter((file) => file.endsWith('.js') && metafile?.outputs[file]?.entryPoint)
+  .filter((file) => file.endsWith(".js") && metafile?.outputs[file]?.entryPoint)
   .map(
-    (file) => `./${path.relative(outDir, path.resolve(packageRoot, file)).replaceAll('\\', '/')}`,
-  )
+    (file) => `./${path.relative(outDir, path.resolve(packageRoot, file)).replaceAll("\\", "/")}`,
+  );
 
 const styles = outputs
-  .filter((file) => file.endsWith('.css'))
+  .filter((file) => file.endsWith(".css"))
   .map(
-    (file) => `./${path.relative(outDir, path.resolve(packageRoot, file)).replaceAll('\\', '/')}`,
-  )
+    (file) => `./${path.relative(outDir, path.resolve(packageRoot, file)).replaceAll("\\", "/")}`,
+  );
 
-await copyPublicAssets(outDir)
+await copyPublicAssets(outDir);
 await writeHtmlFile({
   outDir,
   scripts,
   styles,
-})
+});

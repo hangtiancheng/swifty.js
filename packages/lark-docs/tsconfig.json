@@ -6,11 +6,7 @@
     "exactOptionalPropertyTypes": false,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
-    "lib": [
-      "esnext",
-      "DOM",
-      "DOM.Iterable"
-    ],
+    "lib": ["esnext", "DOM", "DOM.Iterable"],
     "module": "esnext",
     "moduleDetection": "force",
     "moduleResolution": "bundler",
@@ -22,9 +18,7 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "paths": {
-      "@lark-docs/generated/*": [
-        "./.lark-docs/generated/*"
-      ]
+      "@lark-docs/generated/*": ["./.lark-docs/generated/*"]
     },
     "resolveJsonModule": true,
     "rootDir": "./",
@@ -32,14 +26,8 @@
     "sourceMap": true,
     "strict": true,
     "target": "esnext",
-    "types": [
-      "node",
-      "vitest/globals"
-    ],
+    "types": ["node", "vitest/globals"],
     "verbatimModuleSyntax": true
   },
-  "include": [
-    "./**/*.ts",
-    "./**/*.d.ts"
-  ]
+  "include": ["./**/*.ts", "./**/*.d.ts"]
 }

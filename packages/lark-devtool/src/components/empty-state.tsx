@@ -17,12 +17,9 @@ export function EmptyState({ status, targetUrl }: EmptyStateProps) {
           <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-sky-100">
             <LayoutGrid className="h-8 w-8 text-sky-500" strokeWidth={1.5} />
           </div>
-          <h2 className="mb-2 text-lg font-semibold text-slate-800">
-            No target configured
-          </h2>
+          <h2 className="mb-2 text-lg font-semibold text-slate-800">No target configured</h2>
           <p className="mb-6 text-sm leading-relaxed text-slate-500">
-            Enter a URL in the search bar above to connect to a Lark
-            application, or navigate to{" "}
+            Enter a URL in the search bar above to connect to a Lark application, or navigate to{" "}
             <code className="rounded bg-sky-100 px-1.5 py-0.5 text-xs text-sky-600">
               http://localhost:5173/?url=http://localhost:3000
             </code>
@@ -66,12 +63,8 @@ export function EmptyState({ status, targetUrl }: EmptyStateProps) {
       <div className="flex flex-1 items-center justify-center">
         <div className="text-center">
           <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-xl border-2 border-sky-200 border-t-sky-500" />
-          <h2 className="mb-1 text-sm font-medium text-slate-700">
-            Connecting to {targetUrl}
-          </h2>
-          <p className="text-xs text-slate-400">
-            Waiting for Lark bridge to respond...
-          </p>
+          <h2 className="mb-1 text-sm font-medium text-slate-700">Connecting to {targetUrl}</h2>
+          <p className="text-xs text-slate-400">Waiting for Lark bridge to respond...</p>
         </div>
       </div>
     );
@@ -84,9 +77,7 @@ export function EmptyState({ status, targetUrl }: EmptyStateProps) {
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-red-50">
             <CircleAlert className="h-6 w-6 text-red-500" />
           </div>
-          <h2 className="mb-1 text-sm font-medium text-slate-700">
-            Connection failed
-          </h2>
+          <h2 className="mb-1 text-sm font-medium text-slate-700">Connection failed</h2>
           <p className="text-xs text-slate-400">
             Could not connect to the Lark application at {targetUrl}
           </p>

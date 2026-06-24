@@ -30,10 +30,7 @@ export class LruCache {
       this.store.delete(key);
     }
 
-    while (
-      this.currentSize + entry.size > this.maxSize &&
-      this.store.size > 0
-    ) {
+    while (this.currentSize + entry.size > this.maxSize && this.store.size > 0) {
       const oldestKey = this.store.keys().next().value;
       if (oldestKey !== undefined) {
         this.evictKey(oldestKey);

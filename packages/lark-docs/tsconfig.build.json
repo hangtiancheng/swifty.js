@@ -7,11 +7,7 @@
     "esModuleInterop": true,
     "exactOptionalPropertyTypes": false,
     "isolatedModules": true,
-    "lib": [
-      "esnext",
-      "DOM",
-      "DOM.Iterable"
-    ],
+    "lib": ["esnext", "DOM", "DOM.Iterable"],
     "module": "esnext",
     "moduleDetection": "force",
     "moduleResolution": "bundler",
@@ -28,13 +24,8 @@
     "sourceMap": false,
     "strict": true,
     "target": "esnext",
-    "types": [
-      "node"
-    ],
+    "types": ["node"],
     "verbatimModuleSyntax": false
   },
-  "include": [
-    "./src/**/*.ts",
-    "./src/**/*.d.ts"
-  ]
+  "include": ["./src/**/*.ts", "./src/**/*.d.ts"]
 }

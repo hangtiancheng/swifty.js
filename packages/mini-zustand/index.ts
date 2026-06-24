@@ -11,10 +11,7 @@ type StateCreator<TState> = (
 
 type Selector<TState> = (state: TState) => TState[keyof TState];
 
-type Listener<TState> = (
-  newState: TState | Partial<TState>,
-  oldState: TState,
-) => void;
+type Listener<TState> = (newState: TState | Partial<TState>, oldState: TState) => void;
 
 type Off = () => void;
 

@@ -3,18 +3,8 @@
  * loaded in an iframe via postMessage protocol.
  */
 import { useState, useEffect, useCallback, useRef } from "react";
-import type {
-  SerializedFrameTree,
-  ConnectionStatus,
-  VisMessage,
-} from "../types";
-import {
-  MSG_PING,
-  MSG_PONG,
-  MSG_REQUEST_TREE,
-  MSG_TREE,
-  MSG_TREE_DELTA,
-} from "../types";
+import type { SerializedFrameTree, ConnectionStatus, VisMessage } from "../types";
+import { MSG_PING, MSG_PONG, MSG_REQUEST_TREE, MSG_TREE, MSG_TREE_DELTA } from "../types";
 
 /** Hook configuration */
 interface UseFrameTreeConfig {

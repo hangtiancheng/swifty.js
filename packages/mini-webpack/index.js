@@ -65,15 +65,14 @@ function createAsset(absoluteFilePath) {
   });
 
   const /** @type {string[]} */ absoluteDepPathArr = [];
-  const /** @type {Record<string, string>} */ relativeDepPath2absoluteDepPath =
-      {};
+  const /** @type {Record<string, string>} */ relativeDepPath2absoluteDepPath = {};
   traverser(babelAst, {
     ImportDeclaration({ node: { source } }) {
       const /** @type {string} */ relativeDepPath = source.value;
-      const absoluteDepPath = join(
-        dirname(absoluteFilePath),
-        relativeDepPath,
-      ).replaceAll("\\", "/");
+      const absoluteDepPath = join(dirname(absoluteFilePath), relativeDepPath).replaceAll(
+        "\\",
+        "/",
+      );
       relativeDepPath2absoluteDepPath[relativeDepPath] = absoluteDepPath;
       absoluteDepPathArr.push(absoluteDepPath);
     },
@@ -85,10 +84,7 @@ function createAsset(absoluteFilePath) {
   });
 
   if (babelFileResult && babelFileResult.code) {
-    sourceCode = babelFileResult.code.replaceAll(
-      "require",
-      "__webpack_require",
-    );
+    sourceCode = babelFileResult.code.replaceAll("require", "__webpack_require");
   }
 
   return {

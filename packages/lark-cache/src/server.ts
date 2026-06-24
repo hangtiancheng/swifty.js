@@ -65,7 +65,10 @@ export class Server {
     const servingStatuses = new Map<string, number>();
     servingStatuses.set(svcName, 1); // SERVING
     this.grpcServer.addService(healthProto.grpc.health.v1.Health.service, {
-      Check: (call: grpc.ServerUnaryCall<any, any>, callback: grpc.sendUnaryData<any>) => {
+      Check: (
+        call: grpc.ServerUnaryCall<any, any>,
+        callback: grpc.sendUnaryData<any>,
+      ) => {
         const service = call.request.service || "";
         const status = servingStatuses.get(service) ?? 0; // UNKNOWN
         callback(null, { status });
@@ -84,9 +87,11 @@ export class Server {
       });
     });
 
-    register(this.svcName, this.addr, this.abortController.signal).catch((err) => {
-      console.log(`[LarkCache] failed to register service: ${err}`);
-    });
+    register(this.svcName, this.addr, this.abortController.signal).catch(
+      (err) => {
+        console.log(`[LarkCache] failed to register service: ${err}`);
+      },
+    );
 
     console.log(`[LarkCache] Server starting at ${this.addr}`);
   }
@@ -98,11 +103,17 @@ export class Server {
     });
   }
 
-  private handleGet(call: grpc.ServerUnaryCall<any, any>, callback: grpc.sendUnaryData<any>): void {
+  private handleGet(
+    call: grpc.ServerUnaryCall<any, any>,
+    callback: grpc.sendUnaryData<any>,
+  ): void {
     const { group: groupName, key } = call.request;
     const group = getGroup(groupName);
     if (!group) {
-      callback({ code: grpc.status.NOT_FOUND, message: `group ${groupName} not found` });
+      callback({
+        code: grpc.status.NOT_FOUND,
+        message: `group ${groupName} not found`,
+      });
       return;
     }
 
@@ -116,11 +127,17 @@ export class Server {
       });
   }
 
-  private handleSet(call: grpc.ServerUnaryCall<any, any>, callback: grpc.sendUnaryData<any>): void {
+  private handleSet(
+    call: grpc.ServerUnaryCall<any, any>,
+    callback: grpc.sendUnaryData<any>,
+  ): void {
     const { group: groupName, key, value } = call.request;
     const group = getGroup(groupName);
     if (!group) {
-      callback({ code: grpc.status.NOT_FOUND, message: `group ${groupName} not found` });
+      callback({
+        code: grpc.status.NOT_FOUND,
+        message: `group ${groupName} not found`,
+      });
       return;
     }
 
@@ -142,7 +159,10 @@ export class Server {
     const { group: groupName, key } = call.request;
     const group = getGroup(groupName);
     if (!group) {
-      callback({ code: grpc.status.NOT_FOUND, message: `group ${groupName} not found` });
+      callback({
+        code: grpc.status.NOT_FOUND,
+        message: `group ${groupName} not found`,
+      });
       return;
     }
 

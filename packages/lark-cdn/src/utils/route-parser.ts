@@ -7,8 +7,7 @@
 import type { ParsedRoute } from "../types/index.js";
 
 // Pattern: /projectName[@version]/filePath
-const ROUTE_PATTERN =
-  /^\/([a-zA-Z0-9][a-zA-Z0-9_-]*)(?:@([a-zA-Z0-9._-]+))?\/(.*)$/;
+const ROUTE_PATTERN = /^\/([a-zA-Z0-9][a-zA-Z0-9_-]*)(?:@([a-zA-Z0-9._-]+))?\/(.*)$/;
 
 /**
  * Parse a CDN request URL path.
@@ -16,10 +15,7 @@ const ROUTE_PATTERN =
  * @param cdnPrefix - The CDN route prefix (e.g., "/cdn")
  * @returns ParsedRoute or undefined if the path doesn't match
  */
-export function parseRoute(
-  urlPath: string,
-  cdnPrefix: string,
-): ParsedRoute | undefined {
+export function parseRoute(urlPath: string, cdnPrefix: string): ParsedRoute | undefined {
   const prefix = cdnPrefix.startsWith("/") ? cdnPrefix : `/${cdnPrefix}`;
   if (!urlPath.startsWith(prefix)) return undefined;
   const pathWithoutPrefix = urlPath.slice(prefix.length);

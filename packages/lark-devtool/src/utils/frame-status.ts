@@ -41,8 +41,7 @@ export function getFrameStatus(node: SerializedFrameNode): FrameStatus {
   if (node.destroyed) return DESTROYED;
   if (!node.view) return EMPTY;
   if (!node.view.rendered) return PENDING;
-  if (node.childrenCount > 0 && node.childrenCount !== node.readyCount)
-    return LOADING;
+  if (node.childrenCount > 0 && node.childrenCount !== node.readyCount) return LOADING;
   if (node.childrenAlter) return ALTERED;
   return READY;
 }

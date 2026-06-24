@@ -10,10 +10,7 @@ import path from "node:path";
  * @param filePath - The relative file path from the request
  * @returns The safe absolute path, or undefined if traversal detected
  */
-export function resolveSafePath(
-  baseDir: string,
-  filePath: string,
-): string | undefined {
+export function resolveSafePath(baseDir: string, filePath: string): string | undefined {
   // Normalize the base directory
   const normalizedBase = path.resolve(baseDir);
 
@@ -21,10 +18,7 @@ export function resolveSafePath(
   const resolved = path.resolve(normalizedBase, filePath);
 
   // Verify the resolved path is still under the base directory
-  if (
-    !resolved.startsWith(normalizedBase + path.sep) &&
-    resolved !== normalizedBase
-  ) {
+  if (!resolved.startsWith(normalizedBase + path.sep) && resolved !== normalizedBase) {
     return undefined;
   }
 

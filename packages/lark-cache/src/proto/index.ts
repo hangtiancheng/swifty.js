@@ -14,8 +14,14 @@ const LOADER_OPTIONS: protoLoader.Options = {
   oneofs: true,
 };
 
-const larkDef = protoLoader.loadSync(join(__dirname, "lark.proto"), LOADER_OPTIONS);
+const larkDef = protoLoader.loadSync(
+  join(__dirname, "lark.proto"),
+  LOADER_OPTIONS,
+);
 export const proto = grpc.loadPackageDefinition(larkDef) as any;
 
-const healthDef = protoLoader.loadSync(join(__dirname, "health.proto"), LOADER_OPTIONS);
+const healthDef = protoLoader.loadSync(
+  join(__dirname, "health.proto"),
+  LOADER_OPTIONS,
+);
 export const healthProto = grpc.loadPackageDefinition(healthDef) as any;

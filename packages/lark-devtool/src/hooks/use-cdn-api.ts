@@ -85,39 +85,31 @@ export function useCdnApi(baseUrl = DEFAULT_BASE) {
   const [error, setError] = useState<string | null>(null);
   const loading = loadingCount > 0;
 
-  const withLoading = useCallback(
-    async <T>(fn: () => Promise<T>): Promise<T> => {
-      setLoadingCount((c) => c + 1);
-      setError(null);
-      try {
-        const result = await fn();
-        return result;
-      } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : String(err);
-        setError(message);
-        throw err;
-      } finally {
-        setLoadingCount((c) => c - 1);
-      }
-    },
-    [],
-  );
+  const withLoading = useCallback(async <T>(fn: () => Promise<T>): Promise<T> => {
+    setLoadingCount((c) => c + 1);
+    setError(null);
+    try {
+      const result = await fn();
+      return result;
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message);
+      throw err;
+    } finally {
+      setLoadingCount((c) => c - 1);
+    }
+  }, []);
 
   // ── Project CRUD ──
 
   const fetchProjects = useCallback(
-    () =>
-      withLoading(() =>
-        apiRequest<CdnProject[]>("/api/projects", undefined, baseUrl),
-      ),
+    () => withLoading(() => apiRequest<CdnProject[]>("/api/projects", undefined, baseUrl)),
     [withLoading, baseUrl],
   );
 
   const fetchProject = useCallback(
     (name: string) =>
-      withLoading(() =>
-        apiRequest<CdnProject>(`/api/projects/${name}`, undefined, baseUrl),
-      ),
+      withLoading(() => apiRequest<CdnProject>(`/api/projects/${name}`, undefined, baseUrl)),
     [withLoading, baseUrl],
   );
 
@@ -224,10 +216,7 @@ export function useCdnApi(baseUrl = DEFAULT_BASE) {
   // ── Discover & Publish ──
 
   const discoverDists = useCallback(
-    () =>
-      withLoading(() =>
-        apiRequest<DiscoveredDist[]>("/api/discover", undefined, baseUrl),
-      ),
+    () => withLoading(() => apiRequest<DiscoveredDist[]>("/api/discover", undefined, baseUrl)),
     [withLoading, baseUrl],
   );
 

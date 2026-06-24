@@ -31,16 +31,9 @@ export function DetailPanel({ node, onSelect }: DetailPanelProps) {
         </h3>
         <div className="space-y-1.5">
           <DetailRow label="ID" value={node.id} mono />
-          {node.parentId && (
-            <DetailRow label="Parent" value={node.parentId} mono />
-          )}
-          {node.viewPath && (
-            <DetailRow label="View Path" value={node.viewPath} mono highlight />
-          )}
-          <DetailRow
-            label="Children"
-            value={`${node.childrenCount} (${node.readyCount} ready)`}
-          />
+          {node.parentId && <DetailRow label="Parent" value={node.parentId} mono />}
+          {node.viewPath && <DetailRow label="View Path" value={node.viewPath} mono highlight />}
+          <DetailRow label="Children" value={`${node.childrenCount} (${node.readyCount} ready)`} />
           <DetailRow label="Status" value={getFrameStatus(node).label} />
         </div>
       </section>
@@ -54,16 +47,9 @@ export function DetailPanel({ node, onSelect }: DetailPanelProps) {
           <div className="space-y-1.5">
             <DetailRow label="Rendered" value={view.rendered ? "Yes" : "No"} />
             <DetailRow label="Signature" value={String(view.signature)} mono />
-            <DetailRow
-              label="Template"
-              value={view.hasTemplate ? "Yes" : "No"}
-            />
+            <DetailRow label="Template" value={view.hasTemplate ? "Yes" : "No"} />
             {view.observedStateKeys && view.observedStateKeys.length > 0 && (
-              <DetailRow
-                label="State Keys"
-                value={view.observedStateKeys.join(", ")}
-                mono
-              />
+              <DetailRow label="State Keys" value={view.observedStateKeys.join(", ")} mono />
             )}
             {view.locationObserved.flag > 0 && (
               <>
@@ -81,18 +67,10 @@ export function DetailPanel({ node, onSelect }: DetailPanelProps) {
             )}
             <DetailRow label="Assign" value={view.hasAssign ? "Yes" : "No"} />
             {view.eventMethodKeys && view.eventMethodKeys.length > 0 && (
-              <DetailRow
-                label="Events"
-                value={view.eventMethodKeys.join(", ")}
-                mono
-              />
+              <DetailRow label="Events" value={view.eventMethodKeys.join(", ")} mono />
             )}
             {view.resourceKeys && view.resourceKeys.length > 0 && (
-              <DetailRow
-                label="Resources"
-                value={view.resourceKeys.join(", ")}
-                mono
-              />
+              <DetailRow label="Resources" value={view.resourceKeys.join(", ")} mono />
             )}
           </div>
         </section>
@@ -106,12 +84,7 @@ export function DetailPanel({ node, onSelect }: DetailPanelProps) {
           </h3>
           <div className="space-y-1.5">
             {Object.entries(view.updaterData).map(([key, val]) => (
-              <DetailRow
-                key={key}
-                label={key}
-                value={val === null ? "null" : String(val)}
-                mono
-              />
+              <DetailRow key={key} label={key} value={val === null ? "null" : String(val)} mono />
             ))}
           </div>
         </section>
@@ -160,11 +133,7 @@ function DetailRow({
       <span className="w-24 shrink-0 text-[11px] text-slate-400">{label}</span>
       <span
         className={`text-xs break-all ${
-          highlight
-            ? "text-sky-600"
-            : mono
-              ? "font-mono text-slate-700"
-              : "text-slate-500"
+          highlight ? "text-sky-600" : mono ? "font-mono text-slate-700" : "text-slate-500"
         }`}
       >
         {value}

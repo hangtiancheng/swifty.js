@@ -93,9 +93,7 @@ export function Header({
             <Cat className="h-5 w-5 text-white" strokeWidth={2} />
           </div>
           <div>
-            <h1 className="text-base font-semibold tracking-tight text-slate-800">
-              Lark Devtool
-            </h1>
+            <h1 className="text-base font-semibold tracking-tight text-slate-800">Lark Devtool</h1>
             <p className="-mt-0.5 text-[11px] text-slate-400">
               Frame Tree & Module Federation Inspector
             </p>
@@ -103,10 +101,7 @@ export function Header({
         </div>
 
         {/* URL input */}
-        <form
-          onSubmit={handleSubmit}
-          className="flex flex-1 items-center gap-2"
-        >
+        <form onSubmit={handleSubmit} className="flex flex-1 items-center gap-2">
           <div className="relative flex-1">
             <div className="absolute top-1/2 left-3 -translate-y-1/2 text-slate-400">
               <Search className="h-4 w-4" />
@@ -137,13 +132,9 @@ export function Header({
                   className={`absolute inline-flex h-full w-full animate-ping rounded-full ${cfg.dot} opacity-75`}
                 />
               )}
-              <span
-                className={`relative inline-flex h-2.5 w-2.5 rounded-full ${cfg.dot}`}
-              />
+              <span className={`relative inline-flex h-2.5 w-2.5 rounded-full ${cfg.dot}`} />
             </span>
-            <span className={`text-xs font-medium ${cfg.color}`}>
-              {cfg.label}
-            </span>
+            <span className={`text-xs font-medium ${cfg.color}`}>{cfg.label}</span>
           </div>
 
           {/* Stats */}
@@ -151,14 +142,9 @@ export function Header({
             <>
               <div className="h-4 w-px bg-sky-200" />
               <div className="text-xs text-slate-500">
-                <span className="font-semibold text-slate-700">
-                  {totalFrames}
-                </span>{" "}
-                frames
+                <span className="font-semibold text-slate-700">{totalFrames}</span> frames
               </div>
-              <div className="text-xs text-slate-400">
-                Updated {formatTime(lastUpdate)}
-              </div>
+              <div className="text-xs text-slate-400">Updated {formatTime(lastUpdate)}</div>
             </>
           )}
 

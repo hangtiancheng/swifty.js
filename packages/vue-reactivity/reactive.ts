@@ -10,11 +10,7 @@
  * 3. 可以监听新增属性操作、删除属性操作
  */
 
-import {
-  mutableHandler,
-  readonlyHandler,
-  shallowReadonlyHandler,
-} from "./base-handlers";
+import { mutableHandler, readonlyHandler, shallowReadonlyHandler } from "./base-handlers";
 
 export const enum ReactiveFlags {
   IS_REACTIVE = "__v_isReactive",

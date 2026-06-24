@@ -90,24 +90,12 @@ export class BloomFilter {
    * @param falsePositiveRate  Desired false-positive probability (`p`), in (0, 1).
    * @param seed               Optional hash seed (default `0`).
    */
-  constructor(
-    expectedItems: number,
-    falsePositiveRate: number,
-    seed: number = 0,
-  ) {
+  constructor(expectedItems: number, falsePositiveRate: number, seed: number = 0) {
     if (!Number.isFinite(expectedItems) || expectedItems <= 0) {
-      throw new RangeError(
-        `expectedItems must be a positive number, got ${expectedItems}`,
-      );
+      throw new RangeError(`expectedItems must be a positive number, got ${expectedItems}`);
     }
-    if (
-      !Number.isFinite(falsePositiveRate) ||
-      falsePositiveRate <= 0 ||
-      falsePositiveRate >= 1
-    ) {
-      throw new RangeError(
-        `falsePositiveRate must be in (0, 1), got ${falsePositiveRate}`,
-      );
+    if (!Number.isFinite(falsePositiveRate) || falsePositiveRate <= 0 || falsePositiveRate >= 1) {
+      throw new RangeError(`falsePositiveRate must be in (0, 1), got ${falsePositiveRate}`);
     }
 
     this.expectedItems = expectedItems;
@@ -223,11 +211,7 @@ export class BloomFilter {
    */
   public static deserialize(snapshot: BloomFilterSnapshot): BloomFilter {
     const { config, data } = snapshot;
-    const filter = new BloomFilter(
-      config.expectedItems,
-      config.falsePositiveRate,
-      config.seed,
-    );
+    const filter = new BloomFilter(config.expectedItems, config.falsePositiveRate, config.seed);
 
     if (filter.m !== config.m || filter.k !== config.k) {
       throw new Error(

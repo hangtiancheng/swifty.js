@@ -2,6 +2,12 @@
   "name": "@lark.js/cdn",
   "version": "0.0.1",
   "description": "Local CDN with grayscale routing, MongoDB config, and SPA fallback",
+  "keywords": [
+    "cdn",
+    "grayscale"
+  ],
+  "license": "ISC",
+  "author": "",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
@@ -9,13 +15,6 @@
     "build": "tsc",
     "start": "node ./dist/index.js"
   },
-  "keywords": [
-    "cdn",
-    "grayscale"
-  ],
-  "author": "",
-  "license": "ISC",
-  "packageManager": "pnpm@10.33.0",
   "dependencies": {
     "@koa/bodyparser": "^6.1.0",
     "@koa/cors": "^5.0.0",
@@ -36,5 +35,6 @@
     "@types/node": "catalog:",
     "tsx": "^4.22.4",
     "typescript": "^5.9.3"
-  }
+  },
+  "packageManager": "pnpm@10.33.0"
 }

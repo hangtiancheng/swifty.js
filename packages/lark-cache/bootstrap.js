@@ -14,12 +14,7 @@
  *   node bootstrap.js
  */
 import { spawn } from "node:child_process";
-import {
-  copyFileSync,
-  createWriteStream,
-  mkdirSync,
-  rmSync,
-} from "node:fs";
+import { copyFileSync, createWriteStream, mkdirSync, rmSync } from "node:fs";
 import { createConnection } from "node:net";
 import { dirname, join, resolve } from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";

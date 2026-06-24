@@ -31,15 +31,9 @@ const shallowReadonlyGet = createGetter(true, true);
 
 function createSetter(isReadonly = false) {
   // 拦截 set 操作
-  return function set<T extends object>(
-    target: T,
-    key: string,
-    value: unknown,
-  ): boolean {
+  return function set<T extends object>(target: T, key: string, value: unknown): boolean {
     if (isReadonly) {
-      console.warn(
-        `readonly key=${key.toString()}, value=${JSON.stringify(value)}`,
-      );
+      console.warn(`readonly key=${key.toString()}, value=${JSON.stringify(value)}`);
       return true;
     }
     const ok = Reflect.set(target, key, value);

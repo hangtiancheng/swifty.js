@@ -107,9 +107,7 @@ export function MfDemo() {
                 Unmount
               </button>
             )}
-            <span
-              className={`inline-block h-2 w-2 rounded-full ${STATUS_DOT[status]}`}
-            />
+            <span className={`inline-block h-2 w-2 rounded-full ${STATUS_DOT[status]}`} />
           </div>
         </div>
       </div>
@@ -128,9 +126,7 @@ export function MfDemo() {
             <br />
             <span className="text-sky-400">(Host)</span>
           </div>
-          <div className="ml-2 text-slate-400">
-            Shared: @lark.js/mvc (singleton)
-          </div>
+          <div className="ml-2 text-slate-400">Shared: @lark.js/mvc (singleton)</div>
         </div>
       </div>
 
@@ -138,12 +134,8 @@ export function MfDemo() {
       <div className="flex-1 overflow-auto">
         {status === "error" && (
           <div className="m-4 rounded-lg border border-red-200 bg-red-50 p-3">
-            <p className="text-xs font-medium text-red-700">
-              Failed to load remote module
-            </p>
-            <p className="mt-1 font-mono text-[10px] text-red-500">
-              {errorMsg}
-            </p>
+            <p className="text-xs font-medium text-red-700">Failed to load remote module</p>
+            <p className="mt-1 font-mono text-[10px] text-red-500">{errorMsg}</p>
             <p className="mt-2 text-[10px] text-red-400">
               Make sure lark-demo is running on port 3000:
               <code className="ml-1 rounded bg-red-100 px-1">

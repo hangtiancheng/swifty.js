@@ -1,7 +1,7 @@
 {
   "name": "@lark.js/fe24-client",
-  "private": true,
   "version": "0.0.0",
+  "private": true,
   "type": "module",
   "scripts": {
     "dev": "pnpm dev:webpack",

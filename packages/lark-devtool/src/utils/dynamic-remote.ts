@@ -44,8 +44,7 @@ const loadedContainers = new Map<string, RemoteContainer>();
  * - Promise<Module>        — already-resolved module (some configs)
  * - Module                 — directly cached module
  */
-const isObject = (val: unknown): val is object =>
-  typeof val === "object" && val !== null;
+const isObject = (val: unknown): val is object => typeof val === "object" && val !== null;
 
 const isPromise = (val: unknown): val is Promise<unknown> =>
   isObject(val) && "then" in val && typeof val.then === "function";
@@ -76,9 +75,7 @@ function unwrapDefault(mod: unknown): unknown {
   if (!isObject(mod)) return mod;
   const rec = mod as Record<string, unknown>;
   if (!("default" in rec)) return mod;
-  const nonDefault = Object.keys(rec).filter(
-    (k) => k !== "default" && k !== "__esModule",
-  );
+  const nonDefault = Object.keys(rec).filter((k) => k !== "default" && k !== "__esModule");
   if (nonDefault.length === 0 && rec["default"] != null) {
     return unwrapDefault(rec["default"]);
   }
@@ -124,11 +121,7 @@ export async function loadRemoteFromCdn<T = unknown>(
   // Check cache first
   const cached = loadedContainers.get(containerUrl);
   if (cached !== undefined) {
-    return resolveModule<T>(
-      cached,
-      moduleName,
-      extractContainerName(containerUrl),
-    );
+    return resolveModule<T>(cached, moduleName, extractContainerName(containerUrl));
   }
 
   // 1. Inject <script> to load remoteEntry.js
@@ -136,9 +129,7 @@ export async function loadRemoteFromCdn<T = unknown>(
 
   await new Promise<void>((resolve, reject) => {
     // Check if already loaded via script tag (valid MF container with get method)
-    const existing = (window as unknown as Record<string, unknown>)[
-      containerName
-    ];
+    const existing = (window as unknown as Record<string, unknown>)[containerName];
     if (
       existing !== undefined &&
       typeof (existing as Record<string, unknown>)["get"] === "function"
@@ -153,16 +144,13 @@ export async function loadRemoteFromCdn<T = unknown>(
     script.async = true;
 
     script.onload = () => resolve();
-    script.onerror = () =>
-      reject(new Error(`Failed to load remote entry: ${containerUrl}`));
+    script.onerror = () => reject(new Error(`Failed to load remote entry: ${containerUrl}`));
 
     document.head.appendChild(script);
   });
 
   // 2. Get the container from window
-  const container = (window as unknown as Record<string, RemoteContainer>)[
-    containerName
-  ];
+  const container = (window as unknown as Record<string, RemoteContainer>)[containerName];
   if (container === undefined) {
     throw new Error(
       `Container "${containerName}" not found on window after loading ${containerUrl}`,
@@ -170,10 +158,7 @@ export async function loadRemoteFromCdn<T = unknown>(
   }
 
   // Validate it's a proper MF container
-  if (
-    typeof container["init"] !== "function" ||
-    typeof container["get"] !== "function"
-  ) {
+  if (typeof container["init"] !== "function" || typeof container["get"] !== "function") {
     throw new Error(
       `"${containerName}" on window is not a valid MF container. ` +
         `Expected { init, get } but found: ${Object.keys(container).join(", ")}`,

@@ -33,9 +33,7 @@ function ErrorFallback({
         <h2 className="mb-1 text-sm font-medium text-slate-700">
           {fallbackTitle ?? "Component crashed"}
         </h2>
-        <p className="mb-4 font-mono text-[10px] break-all text-red-500">
-          {message}
-        </p>
+        <p className="mb-4 font-mono text-[10px] break-all text-red-500">{message}</p>
         <button
           onClick={resetError}
           className="inline-flex items-center gap-1.5 rounded-md bg-sky-600 px-3 py-1.5 text-[11px] font-medium text-white transition-colors hover:bg-sky-700"
@@ -60,11 +58,7 @@ export function ErrorBoundary({ children, fallbackTitle }: ErrorBoundaryProps) {
   return (
     <Sentry.ErrorBoundary
       fallback={({ error, resetError }) => (
-        <ErrorFallback
-          error={error}
-          fallbackTitle={fallbackTitle}
-          resetError={resetError}
-        />
+        <ErrorFallback error={error} fallbackTitle={fallbackTitle} resetError={resetError} />
       )}
     >
       <>{children}</>

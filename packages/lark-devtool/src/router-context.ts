@@ -15,16 +15,12 @@ export interface FrameTreeContextValue {
   status: ConnectionStatus;
 }
 
-export const FrameTreeContext = createContext<FrameTreeContextValue | null>(
-  null,
-);
+export const FrameTreeContext = createContext<FrameTreeContextValue | null>(null);
 
 export function useFrameTreeContext(): FrameTreeContextValue {
   const ctx = useContext(FrameTreeContext);
   if (!ctx) {
-    throw new Error(
-      "useFrameTreeContext must be used within a FrameTreeContext.Provider",
-    );
+    throw new Error("useFrameTreeContext must be used within a FrameTreeContext.Provider");
   }
   return ctx;
 }

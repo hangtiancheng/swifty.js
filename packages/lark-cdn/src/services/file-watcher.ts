@@ -1,9 +1,5 @@
 import { watch, type FSWatcher } from "chokidar";
-import {
-  getProjectConfig,
-  getConfigMap,
-  invalidateVersionCache,
-} from "./config-store.js";
+import { getProjectConfig, getConfigMap, invalidateVersionCache } from "./config-store.js";
 import type { LruCache } from "./memory-cache.js";
 import { logger } from "../utils/logger.js";
 
@@ -61,11 +57,7 @@ export async function stopFileWatcher(): Promise<void> {
   watchers.clear();
 }
 
-export function addWatch(
-  cache: LruCache,
-  projectName: string,
-  version: string,
-): void {
+export function addWatch(cache: LruCache, projectName: string, version: string): void {
   const project = getProjectConfig(projectName);
   if (project === undefined) return;
 
@@ -75,10 +67,7 @@ export function addWatch(
   watchDistPath(cache, projectName, version, versionConfig.distPath);
 }
 
-export async function removeWatch(
-  projectName: string,
-  version: string,
-): Promise<void> {
+export async function removeWatch(projectName: string, version: string): Promise<void> {
   const key = `${projectName}@${version}`;
   const watcher = watchers.get(key);
   if (watcher !== undefined) {

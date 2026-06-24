@@ -41,9 +41,7 @@ describe("mini-zustand", () => {
       resetCnt: () => set({ cnt: 0 }),
     }));
 
-    const { result: cnt } = renderHook(() =>
-      useCntStore2((state) => state.cnt),
-    );
+    const { result: cnt } = renderHook(() => useCntStore2((state) => state.cnt));
     const { result } = renderHook(() => useCntStore2() as ICntStore);
     expect(cnt.current).toBe(0);
 

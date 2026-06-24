@@ -25,10 +25,7 @@ export function loadConfig(): ServerConfig {
   const env = process.env;
 
   return {
-    port:
-      env["CDN_PORT"] !== undefined
-        ? parseInt(env["CDN_PORT"], 10)
-        : defaultConfig.port,
+    port: env["CDN_PORT"] !== undefined ? parseInt(env["CDN_PORT"], 10) : defaultConfig.port,
 
     mongoUri: env["CDN_MONGO_URI"] ?? defaultConfig.mongoUri,
 
@@ -46,8 +43,7 @@ export function loadConfig(): ServerConfig {
 
     apiPrefix: env["CDN_API_PREFIX"] ?? defaultConfig.apiPrefix,
 
-    grayscaleHeader:
-      env["CDN_GRAYSCALE_HEADER"] ?? defaultConfig.grayscaleHeader,
+    grayscaleHeader: env["CDN_GRAYSCALE_HEADER"] ?? defaultConfig.grayscaleHeader,
 
     grayscaleCookiePrefix:
       env["CDN_GRAYSCALE_COOKIE_PREFIX"] ?? defaultConfig.grayscaleCookiePrefix,

@@ -95,7 +95,9 @@ const OrderMain: React.FC = () => {
       okText: '确定',
       cancelText: '取消',
       onOk: async () => {
-        const { code, message: msg } = await orderDeleteApi({ idList: selectedRowKeys as string[] })
+        const { code, message: msg } = await orderDeleteApi({
+          idList: selectedRowKeys as string[],
+        })
         if (code === 200) {
           message.success(msg)
           setSelectedRowKeys([])

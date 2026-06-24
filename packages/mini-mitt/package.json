@@ -2,19 +2,19 @@
   "name": "@lark.js/mini-mitt",
   "version": "1.0.0",
   "description": "mini-mitt",
-  "main": "src/index.ts",
-  "publishConfig": {
-    "main": "dist/index.js"
-  },
-  "files": [
-    "dist"
-  ],
-  "author": "hangtiancheng.github.io",
   "license": "ISC",
-  "packageManager": "pnpm@10.10.0",
+  "author": "hangtiancheng.github.io",
   "repository": {
     "type": "git",
     "url": "git@github.com:hangtiancheng/wheel.git"
   },
-  "type": "module"
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "main": "src/index.ts",
+  "publishConfig": {
+    "main": "dist/index.js"
+  },
+  "packageManager": "pnpm@10.10.0"
 }

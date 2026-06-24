@@ -210,9 +210,7 @@ export function CdnManager() {
                         default: {project.defaultVersion}
                       </div>
                       {project.versions.length === 0 ? (
-                        <div className="text-[10px] text-slate-300">
-                          No versions
-                        </div>
+                        <div className="text-[10px] text-slate-300">No versions</div>
                       ) : (
                         project.versions.map((v) => (
                           <div
@@ -233,9 +231,7 @@ export function CdnManager() {
 
                             {/* Active toggle */}
                             <button
-                              onClick={() =>
-                                void handleToggleActive(project.name, v)
-                              }
+                              onClick={() => void handleToggleActive(project.name, v)}
                               className="text-slate-400 hover:text-sky-600"
                               title={v.isActive ? "Deactivate" : "Activate"}
                             >
@@ -247,12 +243,7 @@ export function CdnManager() {
                             </button>
 
                             <button
-                              onClick={() =>
-                                void handleDeleteVersion(
-                                  project.name,
-                                  v.version,
-                                )
-                              }
+                              onClick={() => void handleDeleteVersion(project.name, v.version)}
                               className="rounded p-0.5 text-slate-300 hover:bg-red-50 hover:text-red-500"
                               title="Delete version"
                             >
@@ -292,9 +283,7 @@ export function CdnManager() {
           {/* Error display */}
           {(actionError || api.error) && (
             <div className="mb-3 rounded-lg border border-red-200 bg-red-50 p-3">
-              <p className="font-mono text-[10px] text-red-500">
-                {actionError ?? api.error}
-              </p>
+              <p className="font-mono text-[10px] text-red-500">{actionError ?? api.error}</p>
             </div>
           )}
 
@@ -314,14 +303,11 @@ export function CdnManager() {
             <div className="space-y-2">
               <p className="text-[11px] text-slate-500">
                 Found {dists.length} dist director
-                {dists.length === 1 ? "y" : "ies"}. Click publish to register
-                with CDN.
+                {dists.length === 1 ? "y" : "ies"}. Click publish to register with CDN.
               </p>
               {dists.map((dist) => {
                 const alreadyRegistered = projects.some(
-                  (p) =>
-                    p.name === dist.name &&
-                    p.versions.some((v) => v.version === dist.version),
+                  (p) => p.name === dist.name && p.versions.some((v) => v.version === dist.version),
                 );
                 return (
                   <div

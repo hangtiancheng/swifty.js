@@ -20,7 +20,8 @@ function prepareDetailData(item: DiagnosticResult): Record<string, unknown> {
     return {
       detailOnline: info.online,
       detailEffectiveType: info.effectiveType || "",
-      detailDownlink: info.downlink !== undefined ? `${info.downlink} Mbps` : t("ui.unknown"),
+      detailDownlink:
+        info.downlink !== undefined ? `${info.downlink} Mbps` : t("ui.unknown"),
       detailRtt: info.rtt !== undefined ? `${info.rtt} ms` : t("ui.unknown"),
       detailHasSaveData: info.saveData !== undefined,
       detailSaveData: !!info.saveData,
@@ -78,12 +79,14 @@ export default View.extend({
   init() {
     const syncToView = () => {
       const s = useDiagnoseStore.getState();
-      const displayResults = (s.results || []).map((item: DiagnosticResult) => ({
-        ...item,
-        hasRepair: !!item.repair && item.status === "failure",
-        hasDetails: !!item.details,
-        ...prepareDetailData(item),
-      }));
+      const displayResults = (s.results || []).map(
+        (item: DiagnosticResult) => ({
+          ...item,
+          hasRepair: !!item.repair && item.status === "failure",
+          hasDetails: !!item.details,
+          ...prepareDetailData(item),
+        }),
+      );
 
       this.updater.digest({
         isOpen: s.isOpen || false,

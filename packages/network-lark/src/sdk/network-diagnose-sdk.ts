@@ -9,7 +9,10 @@ import {
   DiagnosticTaskId,
 } from "./types";
 
-class Bus<TResult extends { id: string }, TCallback extends (results: TResult[]) => void> {
+class Bus<
+  TResult extends { id: string },
+  TCallback extends (results: TResult[]) => void,
+> {
   protected listeners = new Set<TCallback>();
   protected results: TResult[] = [];
 
@@ -74,7 +77,9 @@ class NetworkDiagnoseSDK extends Bus<DiagnosticResult, DiagnosticCallback> {
 
   private setupNetworkListeners() {
     const handleChange = () => {
-      const hasResult = this.results.some((r) => r.id === DiagnosticTaskId.NetworkStatus);
+      const hasResult = this.results.some(
+        (r) => r.id === DiagnosticTaskId.NetworkStatus,
+      );
       if (hasResult) this.checkNetworkStatus();
     };
     window.addEventListener("online", handleChange);
@@ -126,7 +131,9 @@ class NetworkDiagnoseSDK extends Bus<DiagnosticResult, DiagnosticCallback> {
               const success = (await task.repair?.(this.context)) ?? false;
               this.updateResult(task.id, {
                 repairStatus: success ? "success" : "failure",
-                message: success ? this.t("repair.success") : this.t("repair.failure"),
+                message: success
+                  ? this.t("repair.success")
+                  : this.t("repair.failure"),
               });
               if (success) {
                 this.updateResult(task.id, { status: "running" });
@@ -198,7 +205,10 @@ class NetworkDiagnoseSDK extends Bus<DiagnosticResult, DiagnosticCallback> {
         duration: 0,
       });
     } catch (e) {
-      const message = e instanceof Error ? e.message : this.t("task.network_status.unknown_error");
+      const message =
+        e instanceof Error
+          ? e.message
+          : this.t("task.network_status.unknown_error");
       this.updateResult(id, {
         status: "failure",
         error: message,
@@ -223,7 +233,9 @@ class NetworkDiagnoseSDK extends Bus<DiagnosticResult, DiagnosticCallback> {
       });
       clearTimeout(timeoutId);
       if (!response.ok)
-        throw new Error(this.t("task.location.http_error", { status: response.status }));
+        throw new Error(
+          this.t("task.location.http_error", { status: response.status }),
+        );
       const data = await response.json();
       const location: LocationInfo = {
         ip: data.ip,
@@ -262,7 +274,10 @@ class NetworkDiagnoseSDK extends Bus<DiagnosticResult, DiagnosticCallback> {
     this.addResult({ id, name: this.t("task.speed.name"), status: "running" });
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(new Error("Timeout")), 10_000);
+      const timeoutId = setTimeout(
+        () => controller.abort(new Error("Timeout")),
+        10_000,
+      );
       const startTime = performance.now();
       const response = await fetch(`${testUrl}?t=${startTime}`, {
         cache: "no-store",
@@ -275,7 +290,11 @@ class NetworkDiagnoseSDK extends Bus<DiagnosticResult, DiagnosticCallback> {
       const blob = await response.blob();
       clearTimeout(timeoutId);
       const endTime = performance.now();
-      const mbps = ((blob.size * 8) / ((endTime - startTime) / 1000) / (1024 * 1024)).toFixed(2);
+      const mbps = (
+        (blob.size * 8) /
+        ((endTime - startTime) / 1000) /
+        (1024 * 1024)
+      ).toFixed(2);
       this.updateResult(id, {
         status: "success",
         details: {
@@ -345,7 +364,9 @@ class NetworkDiagnoseSDK extends Bus<DiagnosticResult, DiagnosticCallback> {
       }),
       recommendation: !allOk ? this.t("task.api.recommendation") : undefined,
       duration: Math.max(...results.map((r) => r.timeMs)),
-      repair: !allOk ? this.createRepairFn(id, this.checkApiConnectivity.bind(this)) : undefined,
+      repair: !allOk
+        ? this.createRepairFn(id, this.checkApiConnectivity.bind(this))
+        : undefined,
     });
   }
 
@@ -399,9 +420,13 @@ class NetworkDiagnoseSDK extends Bus<DiagnosticResult, DiagnosticCallback> {
         loaded: results.length - failures,
         total: results.length,
       }),
-      recommendation: !allOk ? this.t("task.resource.recommendation") : undefined,
+      recommendation: !allOk
+        ? this.t("task.resource.recommendation")
+        : undefined,
       duration: Math.max(...results.map((r) => r.timeMs)),
-      repair: !allOk ? this.createRepairFn(id, this.checkResources.bind(this)) : undefined,
+      repair: !allOk
+        ? this.createRepairFn(id, this.checkResources.bind(this))
+        : undefined,
     });
   }
 }

@@ -29,9 +29,7 @@ class MiniMitt {
       return;
     }
 
-    this.eventName2callbacks
-      .get(eventName)
-      ?.forEach((callback) => callback(...args));
+    this.eventName2callbacks.get(eventName)?.forEach((callback) => callback(...args));
   }
 
   off(eventName: string, callback: TCallback) {

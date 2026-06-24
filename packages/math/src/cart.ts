@@ -121,10 +121,7 @@ export class CartCalculator {
         throw new Error("Invalid discount");
       }
 
-      const finalPrice = roundHalfUp(
-        originalTotalCents * discountRate,
-        RATE_BASE,
-      );
+      const finalPrice = roundHalfUp(originalTotalCents * discountRate, RATE_BASE);
       return originalTotalCents - finalPrice;
     }
 
@@ -136,9 +133,7 @@ export class CartCalculator {
     }
 
     if (originalTotalCents >= thresholdCents) {
-      return reduceCents > originalTotalCents
-        ? originalTotalCents
-        : reduceCents;
+      return reduceCents > originalTotalCents ? originalTotalCents : reduceCents;
     }
 
     return 0n;

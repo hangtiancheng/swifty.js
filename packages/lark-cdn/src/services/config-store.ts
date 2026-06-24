@@ -33,10 +33,7 @@ export async function refreshProjectConfig(name: string): Promise<void> {
   configMap = mutable;
 }
 
-export function invalidateProjectCache(
-  cache: LruCache,
-  projectName: string,
-): void {
+export function invalidateProjectCache(cache: LruCache, projectName: string): void {
   cache.deleteByPrefix(`${projectName}@`);
 }
 
@@ -48,14 +45,8 @@ export function invalidateVersionCache(
   cache.deleteByPrefix(`${projectName}@${version}:`);
 }
 
-export function validateDistPath(
-  distPath: string,
-  workspaceRoot: string,
-): boolean {
+export function validateDistPath(distPath: string, workspaceRoot: string): boolean {
   const resolved = path.resolve(distPath);
   const normalizedRoot = path.resolve(workspaceRoot);
-  return (
-    resolved.startsWith(normalizedRoot + path.sep) ||
-    resolved === normalizedRoot
-  );
+  return resolved.startsWith(normalizedRoot + path.sep) || resolved === normalizedRoot;
 }

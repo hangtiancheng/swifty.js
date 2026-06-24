@@ -73,23 +73,15 @@ export function FrameTreeNode({
         <div
           className={`flex h-5 w-5 shrink-0 items-center justify-center rounded ${isRoot ? "bg-sky-100 text-sky-600" : "bg-slate-100 text-slate-400"} `}
         >
-          {isRoot ? (
-            <Square className="h-3 w-3" />
-          ) : (
-            <AppWindow className="h-3 w-3" />
-          )}
+          {isRoot ? <Square className="h-3 w-3" /> : <AppWindow className="h-3 w-3" />}
         </div>
 
         {/* Frame ID / viewPath */}
         <div className="flex min-w-0 flex-1 items-center gap-2">
           {node.viewPath ? (
             <>
-              <span className="truncate font-mono text-sm text-slate-700">
-                {node.viewPath}
-              </span>
-              <span className="font-mono text-[10px] text-slate-400">
-                #{node.id}
-              </span>
+              <span className="truncate font-mono text-sm text-slate-700">{node.viewPath}</span>
+              <span className="font-mono text-[10px] text-slate-400">#{node.id}</span>
             </>
           ) : (
             <span className="truncate font-mono text-sm text-slate-500">
@@ -107,9 +99,7 @@ export function FrameTreeNode({
 
         {/* Children count */}
         {hasChildren && (
-          <span className="shrink-0 text-[10px] text-slate-400">
-            {node.children.length}
-          </span>
+          <span className="shrink-0 text-[10px] text-slate-400">{node.children.length}</span>
         )}
       </div>
 

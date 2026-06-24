@@ -41,19 +41,13 @@ async function readDistVersion(distPath: string): Promise<string> {
   return DEFAULT_VERSION;
 }
 
-export async function discoverDists(
-  workspaceRoot: string,
-): Promise<DiscoveredDist[]> {
+export async function discoverDists(workspaceRoot: string): Promise<DiscoveredDist[]> {
   const results: DiscoveredDist[] = [];
   await scanDir(workspaceRoot, 0, results);
   return results;
 }
 
-async function scanDir(
-  dir: string,
-  depth: number,
-  results: DiscoveredDist[],
-): Promise<void> {
+async function scanDir(dir: string, depth: number, results: DiscoveredDist[]): Promise<void> {
   if (depth > MAX_SCAN_DEPTH) return;
 
   let entries: string[];

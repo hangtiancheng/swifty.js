@@ -10,7 +10,7 @@
     "dev": "vite",
     "build": "vite build",
     "serve": "vite preview",
-    "format": "prettier -w ./src",
+    "format": "prettier -w ./",
     "lint": "eslint ./src --fix"
   },
   "type": "module",

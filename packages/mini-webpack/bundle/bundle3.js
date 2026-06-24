@@ -7,8 +7,7 @@
    * @returns {any}
    */
   function __webpack_require(absoluteFilePath) {
-    const [moduleFn, relativeDepPath2absoluteDepPath] =
-      absoluteFilePath2moduleFn[absoluteFilePath];
+    const [moduleFn, relativeDepPath2absoluteDepPath] = absoluteFilePath2moduleFn[absoluteFilePath];
     if (!moduleFn) {
       return;
     }
@@ -18,8 +17,7 @@
      * @returns {any}
      */
     const __decorated_require = (relativeFilePath) => {
-      const absoluteFilePath =
-        relativeDepPath2absoluteDepPath[relativeFilePath];
+      const absoluteFilePath = relativeDepPath2absoluteDepPath[relativeFilePath];
       return __webpack_require(absoluteFilePath);
     };
     const __webpack_module = { exports: {} };
@@ -27,9 +25,7 @@
     return __webpack_module.exports;
   }
 
-  __webpack_require(
-    "/Users/usr1/github/wheel/packages/mini-webpack/src/main.js",
-  );
+  __webpack_require("/Users/usr1/github/wheel/packages/mini-webpack/src/main.js");
 })({
   "/Users/usr1/github/wheel/packages/mini-webpack/src/main.js": [
     /**

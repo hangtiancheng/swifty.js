@@ -166,9 +166,7 @@ describe("CartCalculator Precision & Features", () => {
   describe("Tests", () => {
     it("should reject", () => {
       const cart: CartData = {
-        goodsList: [
-          { id: 8, price: 10, quantity: Number.MAX_SAFE_INTEGER + 1 },
-        ],
+        goodsList: [{ id: 8, price: 10, quantity: Number.MAX_SAFE_INTEGER + 1 }],
       };
 
       expect(() => calculateCart(cart)).toThrow("Invalid quantity");

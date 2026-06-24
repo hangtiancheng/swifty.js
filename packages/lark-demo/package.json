@@ -2,6 +2,7 @@
   "name": "lark-demo",
   "version": "0.0.1",
   "description": "@lark.js/mvc framework demo",
+  "type": "module",
   "scripts": {
     "dev": "vite",
     "dev:webpack": "webpack serve --mode development",
@@ -40,6 +41,5 @@
     "webpack": "^5.107.2",
     "webpack-cli": "^7.0.3",
     "webpack-dev-server": "^5.2.5"
-  },
-  "type": "module"
+  }
 }

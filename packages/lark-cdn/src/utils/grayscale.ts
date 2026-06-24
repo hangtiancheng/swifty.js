@@ -20,9 +20,7 @@ import type {
  * Select a version by weighted random from active versions.
  * @returns The selected version, or the first active version as fallback
  */
-export function getVersionByWeight(
-  versions: readonly VersionConfig[],
-): VersionConfig | undefined {
+export function getVersionByWeight(versions: readonly VersionConfig[]): VersionConfig | undefined {
   const activeVersions = versions.filter((v) => v.isActive);
   if (activeVersions.length === 0) return undefined;
   if (activeVersions.length === 1) return activeVersions[0];
@@ -45,10 +43,7 @@ export function getVersionByWeight(
 /**
  * Find a version config by its version string within a project.
  */
-function findVersion(
-  project: ProjectConfig,
-  versionId: string,
-): VersionConfig | undefined {
+function findVersion(project: ProjectConfig, versionId: string): VersionConfig | undefined {
   return project.versions.find((v) => v.version === versionId);
 }
 
@@ -133,12 +128,7 @@ export function resolveVersion(
   }
 
   // Level 2: Header/Cookie override
-  const headerVersion = getVersionFromHeaders(
-    headers,
-    project.name,
-    headerName,
-    cookiePrefix,
-  );
+  const headerVersion = getVersionFromHeaders(headers, project.name, headerName, cookiePrefix);
   if (headerVersion !== undefined) {
     const version = findVersion(project, headerVersion);
     if (version !== undefined) {

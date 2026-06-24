@@ -111,13 +111,13 @@ Note: Numeric fields (PORT / CACHE_MAX_SIZE etc.) currently lack invalid-value v
 
 Default `cdnPrefix=/cdn`.
 
-| Example                             | Resolution                                                             |
-| ----------------------------------- | ---------------------------------------------------------------------- |
-| `/cdn/admin/app.js`                 | project=admin, version=(grayscale decision), filePath=app.js           |
+| Example                             | Resolution                                                            |
+| ----------------------------------- | --------------------------------------------------------------------- |
+| `/cdn/admin/app.js`                 | project=admin, version=(grayscale decision), filePath=app.js          |
 | `/cdn/admin@1.0.0/app.js`           | project=admin, version=1.0.0 (URL explicit), filePath=app.js          |
-| `/cdn/admin@canary/assets/main.css` | project=admin, version=canary, filePath=assets/main.css                |
-| `/cdn/admin/`                       | project=admin, filePath="" (triggers SPA fallback to index.html)       |
-| `/cdn/admin/route/page`             | filePath=route/page; SPA fallback if that file does not exist on disk  |
+| `/cdn/admin@canary/assets/main.css` | project=admin, version=canary, filePath=assets/main.css               |
+| `/cdn/admin/`                       | project=admin, filePath="" (triggers SPA fallback to index.html)      |
+| `/cdn/admin/route/page`             | filePath=route/page; SPA fallback if that file does not exist on disk |
 
 ### 3.2 Naming Constraints
 
@@ -188,11 +188,11 @@ When creating a version via `POST /api/projects/:name/versions`, you can specify
 
 Edge cases:
 
-| Scenario                   | Behavior                                   |
-| -------------------------- | ------------------------------------------ |
-| No active versions         | Level 3 skipped, falls to Level 4 fallback |
-| 1 active version           | Returns directly, no randomization         |
-| All active versions w=0    | Returns the first active version           |
+| Scenario                | Behavior                                   |
+| ----------------------- | ------------------------------------------ |
+| No active versions      | Level 3 skipped, falls to Level 4 fallback |
+| 1 active version        | Returns directly, no randomization         |
+| All active versions w=0 | Returns the first active version           |
 
 ### 4.5 Actual Role of defaultVersion
 
@@ -216,11 +216,11 @@ Invalidation cost:   single version O(k), single project O(B*k), full clear O(n)
 
 The server determines `Cache-Control` based on the filename:
 
-| Filename Pattern                                                          | Cache-Control                         |
-| ------------------------------------------------------------------------- | ------------------------------------- |
-| `index.html` / `index.htm`                                               | `no-cache`                            |
-| Contains hash (regex `[.-][a-f0-9]{8,}\.\w+$`, e.g. `app.abc12345.js`)   | `public, max-age=31536000, immutable` |
-| All others                                                                | `public, max-age=3600`                |
+| Filename Pattern                                                       | Cache-Control                         |
+| ---------------------------------------------------------------------- | ------------------------------------- |
+| `index.html` / `index.htm`                                             | `no-cache`                            |
+| Contains hash (regex `[.-][a-f0-9]{8,}\.\w+$`, e.g. `app.abc12345.js`) | `public, max-age=31536000, immutable` |
+| All others                                                             | `public, max-age=3600`                |
 
 SPA entry points must use no-cache to enable immediate grayscale switching; hashed files are cached permanently; everything else gets a conservative 1-hour TTL.
 
@@ -240,13 +240,13 @@ Streamed large files (>= 2 MB) currently do not emit ETags and do not support 30
 
 ### 5.4 Cache Invalidation Triggers
 
-| Event                                 | Scope                       |
-| ------------------------------------- | --------------------------- |
+| Event                                | Scope                          |
+| ------------------------------------ | ------------------------------ |
 | chokidar `add` / `change` / `unlink` | Single `${project}@${version}` |
-| Version CRUD (POST/PUT/DELETE)        | All versions under project  |
-| Project PUT/DELETE                    | All versions under project  |
-| POST /api/publish                    | All versions under project  |
-| LRU capacity eviction                | Oldest entry individually   |
+| Version CRUD (POST/PUT/DELETE)       | All versions under project     |
+| Project PUT/DELETE                   | All versions under project     |
+| POST /api/publish                    | All versions under project     |
+| LRU capacity eviction                | Oldest entry individually      |
 
 ### 5.5 Cache Statistics
 
@@ -286,11 +286,11 @@ File extension detection uses `path.basename(filePath).includes(".")`, which cor
 
 Every CDN response (200 / 304) includes three custom headers for diagnostics:
 
-| Header                | Values                                                                      | Meaning                                                             |
-| --------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| `X-Cache`             | `HIT-MEMORY` / `MISS` / `MISS-STREAM`                                      | Cache hit / miss (cached) / miss (streamed)                         |
-| `X-CDN-Version`       | version string                                                              | Actual version served (may differ from the URL-requested version)   |
-| `X-Resolution-Source` | `url-explicit` / `header-override` / `weighted-random` / `default-fallback` | Which resolution level produced the decision                        |
+| Header                | Values                                                                      | Meaning                                                           |
+| --------------------- | --------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| `X-Cache`             | `HIT-MEMORY` / `MISS` / `MISS-STREAM`                                       | Cache hit / miss (cached) / miss (streamed)                       |
+| `X-CDN-Version`       | version string                                                              | Actual version served (may differ from the URL-requested version) |
+| `X-Resolution-Source` | `url-explicit` / `header-override` / `weighted-random` / `default-fallback` | Which resolution level produced the decision                      |
 
 To debug grayscale behavior, simply run `curl -i` and inspect these three headers.
 
@@ -521,9 +521,7 @@ All entry points that write a distPath (POST /projects, POST /versions, PUT /ver
 ```ts
 const resolved = path.resolve(distPath);
 const normalizedRoot = path.resolve(workspaceRoot);
-return (
-  resolved.startsWith(normalizedRoot + path.sep) || resolved === normalizedRoot
-);
+return resolved.startsWith(normalizedRoot + path.sep) || resolved === normalizedRoot;
 ```
 
 A distPath outside the workspace is immediately rejected with 400, preventing directories like `/etc` from being registered.
@@ -555,26 +553,26 @@ Therefore, lark-cdn should not be exposed to the public internet or untrusted ne
 
 ### 14.1 vs Nginx Static Serving
 
-| Dimension        | Nginx               | @lark.js/cdn                              |
-| ---------------- | ------------------- | ----------------------------------------- |
-| Configuration    | nginx.conf          | MongoDB + REST API                        |
-| Multi-version    | rewrite + map       | URL `@version` + header + cookie + weight |
-| Grayscale        | split_clients       | Weighted random + per-project header      |
-| Caching          | proxy_cache (disk)  | L1 memory (128 MB)                        |
-| API management   | Restart / reload    | CRUD takes effect immediately             |
-| Range requests   | Full support        | Not supported                             |
-| SPA fallback     | try_files           | Built-in                                  |
+| Dimension      | Nginx              | @lark.js/cdn                              |
+| -------------- | ------------------ | ----------------------------------------- |
+| Configuration  | nginx.conf         | MongoDB + REST API                        |
+| Multi-version  | rewrite + map      | URL `@version` + header + cookie + weight |
+| Grayscale      | split_clients      | Weighted random + per-project header      |
+| Caching        | proxy_cache (disk) | L1 memory (128 MB)                        |
+| API management | Restart / reload   | CRUD takes effect immediately             |
+| Range requests | Full support       | Not supported                             |
+| SPA fallback   | try_files          | Built-in                                  |
 
 ### 14.2 vs Cloud CDN (Cloudflare / Alibaba Cloud)
 
-| Dimension    | Cloud CDN                 | @lark.js/cdn                |
-| ------------ | ------------------------- | --------------------------- |
-| Edge nodes   | Globally distributed      | Single machine              |
-| TLS          | Termination + cert mgmt   | Not handled                 |
-| DDoS         | Built-in                  | None                        |
-| Cost         | Pay per traffic           | Free                        |
-| Granularity  | By geo / user ID          | By weight / header / cookie |
-| Publish      | Via OSS / S3 upload       | Points to local dist        |
+| Dimension   | Cloud CDN               | @lark.js/cdn                |
+| ----------- | ----------------------- | --------------------------- |
+| Edge nodes  | Globally distributed    | Single machine              |
+| TLS         | Termination + cert mgmt | Not handled                 |
+| DDoS        | Built-in                | None                        |
+| Cost        | Pay per traffic         | Free                        |
+| Granularity | By geo / user ID        | By weight / header / cookie |
+| Publish     | Via OSS / S3 upload     | Points to local dist        |
 
 ### 14.3 When to Use vs When Not to Use
 
@@ -586,20 +584,20 @@ Not suitable for: public-facing production traffic, high-availability requiremen
 
 Listed by priority (see `code-review.md` sections 8/9 for details):
 
-| ID   | Limitation                                                        | Impact                                                            |
-| ---- | ----------------------------------------------------------------- | ----------------------------------------------------------------- |
-| K11  | Binds all interfaces by default + no authentication               | Any machine on the LAN can access the service                     |
-| K6   | Invalid numeric env vars (`CDN_PORT=abc`) produce NaN crash       | Poor startup experience                                           |
-| K2   | `cookie-override` source type reserved but never emitted          | Cookie matches are labeled `header-override`                      |
-| K3   | weighted-random always precedes default-fallback                  | `defaultVersion` only effective when all versions are inactive    |
-| K5   | `cors({ origin: "*" })` fully open                                | Must be tightened for production deployment                       |
-| K7   | Large files (>= 2 MB) streamed without ETag or Range              | Repeated large file requests re-read every time; no 206 support   |
-| K8   | No L2 disk cache                                                  | L1 is fully cold after process restart                            |
-| K10  | discover scans subdirectories serially                            | Slow on large workspaces                                          |
-| K12  | No Prometheus / metrics endpoint                                  | Difficult to integrate with monitoring systems                    |
-| K14  | discover assumes `<dist>/../package.json`                         | Fails to find version for deeply nested dist structures           |
-| K15  | `findOneAndUpdate` does not run schema validator by default       | Update path bypasses Mongoose validation                          |
-| Other| K1 K4 K9 K13 documented in code-review.md                         | Lower impact                                                      |
+| ID    | Limitation                                                  | Impact                                                          |
+| ----- | ----------------------------------------------------------- | --------------------------------------------------------------- |
+| K11   | Binds all interfaces by default + no authentication         | Any machine on the LAN can access the service                   |
+| K6    | Invalid numeric env vars (`CDN_PORT=abc`) produce NaN crash | Poor startup experience                                         |
+| K2    | `cookie-override` source type reserved but never emitted    | Cookie matches are labeled `header-override`                    |
+| K3    | weighted-random always precedes default-fallback            | `defaultVersion` only effective when all versions are inactive  |
+| K5    | `cors({ origin: "*" })` fully open                          | Must be tightened for production deployment                     |
+| K7    | Large files (>= 2 MB) streamed without ETag or Range        | Repeated large file requests re-read every time; no 206 support |
+| K8    | No L2 disk cache                                            | L1 is fully cold after process restart                          |
+| K10   | discover scans subdirectories serially                      | Slow on large workspaces                                        |
+| K12   | No Prometheus / metrics endpoint                            | Difficult to integrate with monitoring systems                  |
+| K14   | discover assumes `<dist>/../package.json`                   | Fails to find version for deeply nested dist structures         |
+| K15   | `findOneAndUpdate` does not run schema validator by default | Update path bypasses Mongoose validation                        |
+| Other | K1 K4 K9 K13 documented in code-review.md                   | Lower impact                                                    |
 
 ## 16 Troubleshooting
 
@@ -745,10 +743,7 @@ Each core module is a side-effect-free pure function / class that can be used in
 import { parseRoute } from "@lark.js/cdn/dist/utils/route-parser.js";
 import { resolveVersion } from "@lark.js/cdn/dist/utils/grayscale.js";
 import { LruCache } from "@lark.js/cdn/dist/services/memory-cache.js";
-import {
-  resolveSafePath,
-  buildCacheKey,
-} from "@lark.js/cdn/dist/utils/path-security.js";
+import { resolveSafePath, buildCacheKey } from "@lark.js/cdn/dist/utils/path-security.js";
 
 const parsed = parseRoute("/cdn/admin@1.0.0/app.js", "/cdn");
 // { projectName: "admin", explicitVersion: "1.0.0", filePath: "app.js" }

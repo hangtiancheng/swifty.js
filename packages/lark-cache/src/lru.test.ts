@@ -42,14 +42,24 @@ describe("LruStore basic operations", () => {
   });
 
   it("returns miss for unknown key", () => {
-    store = new LruStore({ bucketCount: 1, capPerBucket: 2, level2Cap: 2, cleanupInterval: 0 });
+    store = new LruStore({
+      bucketCount: 1,
+      capPerBucket: 2,
+      level2Cap: 2,
+      cleanupInterval: 0,
+    });
     const [val, ok] = store.get("missing");
     expect(ok).toBe(false);
     expect(val).toBeNull();
   });
 
   it("set and get values", () => {
-    store = new LruStore({ bucketCount: 1, capPerBucket: 2, level2Cap: 2, cleanupInterval: 0 });
+    store = new LruStore({
+      bucketCount: 1,
+      capPerBucket: 2,
+      level2Cap: 2,
+      cleanupInterval: 0,
+    });
     store.set("a", tv("alpha"));
     store.set("b", tv("beta"));
 
@@ -63,14 +73,24 @@ describe("LruStore basic operations", () => {
   });
 
   it("delete existing key returns true", () => {
-    store = new LruStore({ bucketCount: 1, capPerBucket: 2, level2Cap: 2, cleanupInterval: 0 });
+    store = new LruStore({
+      bucketCount: 1,
+      capPerBucket: 2,
+      level2Cap: 2,
+      cleanupInterval: 0,
+    });
     store.set("a", tv("alpha"));
     expect(store.delete("a")).toBe(true);
     expect(store.delete("missing")).toBe(false);
   });
 
   it("clear empties the store", () => {
-    store = new LruStore({ bucketCount: 1, capPerBucket: 4, level2Cap: 4, cleanupInterval: 0 });
+    store = new LruStore({
+      bucketCount: 1,
+      capPerBucket: 4,
+      level2Cap: 4,
+      cleanupInterval: 0,
+    });
     store.set("a", tv("alpha"));
     store.set("b", tv("beta"));
     store.clear();
@@ -78,7 +98,12 @@ describe("LruStore basic operations", () => {
   });
 
   it("update existing key", () => {
-    store = new LruStore({ bucketCount: 1, capPerBucket: 2, level2Cap: 2, cleanupInterval: 0 });
+    store = new LruStore({
+      bucketCount: 1,
+      capPerBucket: 2,
+      level2Cap: 2,
+      cleanupInterval: 0,
+    });
     store.set("a", tv("alpha"));
     store.set("a", tv("updated"));
     const [va, ok] = store.get("a");
