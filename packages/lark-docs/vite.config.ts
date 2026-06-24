@@ -19,7 +19,6 @@ import { resolve } from "node:path";
 import { compileTemplate, extractGlobalVars } from "@lark.js/mvc/compiler";
 import tailwindcss from "@tailwindcss/vite";
 import { larkDocsPlugin } from "./src/vite";
-import { defineConfig as defineDocsConfig } from "./src/define-config";
 import {
   existsSync,
   copyFileSync,
@@ -27,6 +26,9 @@ import {
   writeFileSync,
   appendFileSync,
 } from "node:fs";
+import { VitePWA } from "vite-plugin-pwa";
+/** Documentation site configuration used in docs mode. */
+import docsConfig from "./lark-docs.config";
 
 // === Shared constants ===
 
@@ -61,49 +63,16 @@ const CJS_SHIMS = [
   "const __dirname = __cjs_dirname(__filename);",
 ].join("\n");
 
-/** Documentation site configuration used in docs mode. */
-const docsConfig = defineDocsConfig({
-  docs: "docs",
-  baseUrl: "/docs/",
-  title: "@lark.js/docs",
-  description: "Documentation site generator for @lark.js/mvc",
-  nav: [
-    { text: "Get Started", link: "/docs/get-started/" },
-    { text: "Markdown", link: "/docs/markdown/" },
-    { text: "Search", link: "/docs/search/" },
-  ],
-  sidebar: {
-    "/docs/get-started/": "auto",
-    "/docs/markdown/": "auto",
-    "/docs/theme/": "auto",
-    "/docs/style/": "auto",
-    "/docs/router/": "auto",
-    "/docs/search/": "auto",
-    "/docs/api/": "auto",
-  },
-  highlight: {
-    theme: "github-light",
-    languages: [
-      "javascript",
-      "typescript",
-      "html",
-      "css",
-      "bash",
-      "json",
-      "yaml",
-      "markdown",
-    ],
-  },
-  search: { provider: "docsearch" },
-});
-
 // === Mode router ===
 
 export default defineConfig(({ mode }) => {
   if (mode === "lib") {
     return libConfig();
   }
-  return docsUserConfig();
+  if (mode === "docs") {
+    return docsDemoConfig();
+  }
+  throw new Error(`Error: mode ${mode}`);
 });
 
 // === Library build ===
@@ -299,14 +268,11 @@ function themeDualMode(options?: { debug?: boolean }): PluginOption {
         ...strMod.imports,
         ...vdomMod.imports,
       ]);
-
       const content = [
         ...uniqueImports,
         "",
-        "const __str = " + strMod.body,
-        "",
-        "const __vdom = " + vdomMod.body,
-        "",
+        `const __str = ${strMod.body}\n`,
+        `const __vdom = ${vdomMod.body}\n`,
         "export { __str, __vdom };",
       ].join("\n");
 
@@ -371,9 +337,9 @@ function libConfig(): UserConfig {
 
 // === Documentation site build ===
 
-function docsUserConfig(): UserConfig {
+function docsDemoConfig(isDev = true): UserConfig {
   return {
-    root: resolve(PKG_DIR, "docs/app"),
+    root: resolve(PKG_DIR, "app"),
     plugins: [
       // Virtual module plugin — no ordering constraint needed since virtual
       // module IDs (virtual:lark-docs/*) are never intercepted by
@@ -385,6 +351,76 @@ function docsUserConfig(): UserConfig {
         debug: true,
       }),
       tailwindcss() as PluginOption,
+      VitePWA({
+        registerType: "autoUpdate",
+        includeAssets: [
+          "favicon.svg",
+          "favicon.ico",
+          "apple-touch-icon-180x180.png",
+        ],
+        manifest: {
+          name: "Lark Docs",
+          short_name: "@lark.js/docs",
+          description: "Lark Docs",
+          theme_color: "#ecfdf5",
+          background_color: "#ecfdf5",
+          display: "standalone",
+          scope: isDev ? "/" : "/lark/",
+          start_url: isDev ? "/" : "/lark/",
+          icons: [
+            {
+              src: "pwa-64x64.png",
+              sizes: "64x64",
+              type: "image/png",
+            },
+            {
+              src: "pwa-192x192.png",
+              sizes: "192x192",
+              type: "image/png",
+            },
+            {
+              src: "pwa-512x512.png",
+              sizes: "512x512",
+              type: "image/png",
+            },
+            {
+              src: "maskable-icon-512x512.png",
+              sizes: "512x512",
+              type: "image/png",
+              purpose: "maskable",
+            },
+          ],
+        },
+        workbox: {
+          globPatterns: ["**/*.{js,css,html,svg,png,woff2}"],
+          runtimeCaching: [
+            {
+              urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+              handler: "CacheFirst",
+              options: {
+                cacheName: "google-fonts-cache",
+                expiration: {
+                  maxEntries: 10,
+                  maxAgeSeconds: 60 * 60 * 24 * 365,
+                },
+                cacheableResponse: { statuses: [0, 200] },
+              },
+            },
+            {
+              urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+              handler: "CacheFirst",
+              options: {
+                cacheName: "gstatic-fonts-cache",
+                expiration: {
+                  maxEntries: 10,
+                  maxAgeSeconds: 60 * 60 * 24 * 365,
+                },
+                cacheableResponse: { statuses: [0, 200] },
+              },
+            },
+          ],
+        },
+      }) as PluginOption,
     ],
     resolve: {
       alias: {

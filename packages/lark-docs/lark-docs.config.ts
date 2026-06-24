@@ -1,10 +1,10 @@
-import { defineConfig } from "@lark.js/docs/vite";
+import { defineConfig } from "./src/vite";
 
 export default defineConfig({
   docs: "docs",
   baseUrl: "/lark/",
-  title: "Lark Homepage",
-  description: "@lark.js/homepage -- Documentation site generator",
+  title: "Lark Docs",
+  description: "@lark.js/docs -- Documentation site generator",
   nav: [
     { text: "Base", link: "/lark/base/" },
     { text: "Frontend", link: "/lark/frontend/" },

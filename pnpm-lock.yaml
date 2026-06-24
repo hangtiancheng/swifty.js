@@ -4,6 +4,15 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+catalogs:
+  default:
+    '@lark.js/sentry':
+      specifier: 0.0.6
+      version: 0.0.6
+    '@types/node':
+      specifier: 24.13.1
+      version: 24.13.1
+
 importers:
 
   .:
@@ -932,6 +941,9 @@ importers:
       shiki:
         specifier: ^4.2.0
         version: 4.2.0
+      vite-plugin-pwa:
+        specifier: ^1.3.0
+        version: 1.3.0(vite@7.3.5(@types/node@24.13.2)(jiti@2.7.0)(lightningcss@1.32.0)(sass-embedded@1.100.0)(sass@1.101.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0))(workbox-build@7.4.1(@types/babel__core@7.20.5))(workbox-window@7.4.1)
     devDependencies:
       '@tailwindcss/vite':
         specifier: ^4.3.1
@@ -16264,13 +16276,13 @@ snapshots:
 
   '@types/accepts@1.3.7':
     dependencies:
-      '@types/node': 24.13.1
+      '@types/node': 24.13.2
 
   '@types/aria-query@5.0.4': {}
 
   '@types/autocannon@7.12.7':
     dependencies:
-      '@types/node': 24.13.1
+      '@types/node': 24.13.2
 
   '@types/babel__core@7.20.5':
     dependencies:
@@ -16296,11 +16308,11 @@ snapshots:
   '@types/body-parser@1.19.6':
     dependencies:
       '@types/connect': 3.4.38
-      '@types/node': 24.13.1
+      '@types/node': 24.13.2
 
   '@types/bonjour@3.5.13':
     dependencies:
-      '@types/node': 24.13.1
+      '@types/node': 24.13.2
 
   '@types/chai@5.2.3':
     dependencies:
@@ -16309,17 +16321,17 @@ snapshots:
 
   '@types/co-body@6.1.3':
     dependencies:
-      '@types/node': 24.13.1
+      '@types/node': 24.13.2
       '@types/qs': 6.15.1
 
   '@types/connect-history-api-fallback@1.5.4':
     dependencies:
       '@types/express-serve-static-core': 4.19.8
-      '@types/node': 24.13.1
+      '@types/node': 24.13.2
 
   '@types/connect@3.4.38':
     dependencies:
-      '@types/node': 24.13.1
+      '@types/node': 24.13.2
 
   '@types/content-disposition@0.5.9': {}
 
@@ -16328,7 +16340,7 @@ snapshots:
       '@types/connect': 3.4.38
       '@types/express': 5.0.6
       '@types/keygrip': 1.0.6
-      '@types/node': 24.13.1
+      '@types/node': 24.13.2
 
   '@types/css-font-loading-module@0.0.7': {}
 
@@ -16344,14 +16356,14 @@ snapshots:
 
   '@types/express-serve-static-core@4.19.8':
     dependencies:
-      '@types/node': 24.13.1
+      '@types/node': 24.13.2
       '@types/qs': 6.15.1
       '@types/range-parser': 1.2.7
       '@types/send': 1.2.1
 
   '@types/express-serve-static-core@5.1.1':
     dependencies:
-      '@types/node': 24.13.1
+      '@types/node': 24.13.2
       '@types/qs': 6.15.1
       '@types/range-parser': 1.2.7
       '@types/send': 1.2.1
@@ -16392,13 +16404,13 @@ snapshots:
 
   '@types/http-proxy@1.17.17':
     dependencies:
-      '@types/node': 24.13.1
+      '@types/node': 24.13.2
 
   '@types/js-yaml@4.0.9': {}
 
   '@types/jsdom@28.0.3':
     dependencies:
-      '@types/node': 26.0.0
+      '@types/node': 24.13.2
       '@types/tough-cookie': 4.0.5
       parse5: 8.0.1
       undici-types: 7.28.0
@@ -16429,7 +16441,7 @@ snapshots:
       '@types/http-errors': 2.0.5
       '@types/keygrip': 1.0.6
       '@types/koa-compose': 3.2.9
-      '@types/node': 24.13.1
+      '@types/node': 24.13.2
 
   '@types/koa__cors@5.0.1':
     dependencies:
@@ -16483,6 +16495,7 @@ snapshots:
   '@types/node@26.0.0':
     dependencies:
       undici-types: 8.3.0
+    optional: true
 
   '@types/normalize-package-data@2.4.4': {}
 
@@ -16533,11 +16546,11 @@ snapshots:
   '@types/send@0.17.6':
     dependencies:
       '@types/mime': 1.3.5
-      '@types/node': 24.13.1
+      '@types/node': 24.13.2
 
   '@types/send@1.2.1':
     dependencies:
-      '@types/node': 24.13.1
+      '@types/node': 24.13.2
 
   '@types/serve-index@1.9.4':
     dependencies:
@@ -16546,13 +16559,13 @@ snapshots:
   '@types/serve-static@1.15.10':
     dependencies:
       '@types/http-errors': 2.0.5
-      '@types/node': 24.13.1
+      '@types/node': 24.13.2
       '@types/send': 0.17.6
 
   '@types/serve-static@2.2.0':
     dependencies:
       '@types/http-errors': 2.0.5
-      '@types/node': 24.13.1
+      '@types/node': 24.13.2
 
   '@types/set-cookie-parser@2.4.10':
     dependencies:
@@ -16560,7 +16573,7 @@ snapshots:
 
   '@types/sockjs@0.3.36':
     dependencies:
-      '@types/node': 24.13.1
+      '@types/node': 24.13.2
 
   '@types/statuses@2.0.6': {}
 
@@ -16578,7 +16591,7 @@ snapshots:
 
   '@types/webpack-bundle-analyzer@4.7.0(@swc/core@1.15.43(@swc/helpers@0.5.23))(esbuild@0.27.7)(postcss@8.5.15)(webpack-cli@7.0.3)':
     dependencies:
-      '@types/node': 24.13.1
+      '@types/node': 24.13.2
       tapable: 2.3.3
       webpack: 5.107.2(@swc/core@1.15.43(@swc/helpers@0.5.23))(esbuild@0.27.7)(postcss@8.5.15)(webpack-cli@7.0.3)
     transitivePeerDependencies:
@@ -16600,7 +16613,7 @@ snapshots:
 
   '@types/webpack@5.28.5(@swc/core@1.15.43(@swc/helpers@0.5.23))(esbuild@0.27.7)(postcss@8.5.15)':
     dependencies:
-      '@types/node': 24.13.1
+      '@types/node': 24.13.2
       tapable: 2.3.3
       webpack: 5.107.2(@swc/core@1.15.43(@swc/helpers@0.5.23))(esbuild@0.27.7)(postcss@8.5.15)
     transitivePeerDependencies:
@@ -16624,7 +16637,7 @@ snapshots:
 
   '@types/ws@8.18.1':
     dependencies:
-      '@types/node': 24.13.1
+      '@types/node': 24.13.2
 
   '@typescript-eslint/eslint-plugin@8.62.0(@typescript-eslint/parser@8.62.0(eslint@10.5.0(jiti@2.7.0))(typescript@5.9.3))(eslint@10.5.0(jiti@2.7.0))(typescript@5.9.3)':
     dependencies:
@@ -23681,7 +23694,8 @@ snapshots:
 
   undici-types@7.28.0: {}
 
-  undici-types@8.3.0: {}
+  undici-types@8.3.0:
+    optional: true
 
   undici@7.28.0: {}
 
@@ -23862,6 +23876,17 @@ snapshots:
       vite: 6.4.3(@types/node@24.13.1)(jiti@2.7.0)(lightningcss@1.32.0)(sass-embedded@1.100.0)(sass@1.101.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0)
     transitivePeerDependencies:
       - rollup
+      - supports-color
+
+  vite-plugin-pwa@1.3.0(vite@7.3.5(@types/node@24.13.2)(jiti@2.7.0)(lightningcss@1.32.0)(sass-embedded@1.100.0)(sass@1.101.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0))(workbox-build@7.4.1(@types/babel__core@7.20.5))(workbox-window@7.4.1):
+    dependencies:
+      debug: 4.4.3
+      pretty-bytes: 6.1.1
+      tinyglobby: 0.2.17
+      vite: 7.3.5(@types/node@24.13.2)(jiti@2.7.0)(lightningcss@1.32.0)(sass-embedded@1.100.0)(sass@1.101.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0)
+      workbox-build: 7.4.1(@types/babel__core@7.20.5)
+      workbox-window: 7.4.1
+    transitivePeerDependencies:
       - supports-color
 
   vite-plugin-pwa@1.3.0(vite@7.3.5(@types/node@26.0.0)(jiti@2.7.0)(lightningcss@1.32.0)(sass-embedded@1.100.0)(sass@1.101.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0))(workbox-build@7.4.1(@types/babel__core@7.20.5))(workbox-window@7.4.1):

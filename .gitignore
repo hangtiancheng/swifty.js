@@ -207,5 +207,7 @@ packages/lark-vscode/lark-vscode-*.vsix
 dist-*
 **/dist-*
 
+packages/lark-docs/docs
 packages/lark-homepage/docs
+
 **/.lark-docs/generated

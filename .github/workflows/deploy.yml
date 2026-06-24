@@ -44,14 +44,14 @@ jobs:
         run: pnpm --filter @lark.js/mvc build
       - name: Build lark-docs
         run: pnpm --filter @lark.js/docs build
-      - name: Sync Docs
-        run: pnpm --filter lark-homepage sync
-      - name: Build lark-homepage
-        run: pnpm --filter lark-homepage build
+      - name: Pull docs
+        run: pnpm --filter @lark.js/docs git:pull
+      - name: Build docs
+        run: pnpm --filter @lark.js/docs build:docs
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./packages/lark-homepage/dist
+          path: ./packages/lark-docs/dist-docs
 
   deploy:
     if: "${{ github.event_name == 'workflow_dispatch' || github.event.head_commit.message == 'ci: Deploy homepage' }}"

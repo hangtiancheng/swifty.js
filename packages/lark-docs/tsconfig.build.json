@@ -7,7 +7,11 @@
     "esModuleInterop": true,
     "exactOptionalPropertyTypes": false,
     "isolatedModules": true,
-    "lib": ["esnext", "DOM", "DOM.Iterable"],
+    "lib": [
+      "esnext",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "module": "esnext",
     "moduleDetection": "force",
     "moduleResolution": "bundler",
@@ -19,17 +23,18 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "outDir": "./dist",
-    "paths": {
-      "@lark-docs/generated/*": ["./.lark-docs/generated/*"],
-      "@lark.js/docs/*": ["./src/*"]
-    },
     "rootDir": "./src",
     "skipLibCheck": true,
     "sourceMap": false,
     "strict": true,
     "target": "esnext",
-    "types": ["node"],
+    "types": [
+      "node"
+    ],
     "verbatimModuleSyntax": false
   },
-  "include": ["./src/**/*.ts", "./src/**/*.d.ts"]
+  "include": [
+    "./src/**/*.ts",
+    "./src/**/*.d.ts"
+  ]
 }
