@@ -118,6 +118,11 @@ export function acceptView(hot: HotContext, viewPath: string): void {
       return;
     }
 
+    // else {
+    //   // New module didn't export a View class — cannot handle this update
+    //   hot.invalidate();
+    // }
+
     // webpack / rspack / rsbuild: the accept callback does NOT receive the
     // new module namespace (their `module.hot.accept(cb)` / `import.meta.
     // webpackHot.accept(cb)` semantics differ from Vite). By the time this
