@@ -1,3 +1,4 @@
+// !!! For your project, it should be: import { defineConfig } from "@lark.js/docs/vite";
 import { defineConfig } from "./src/vite";
 
 export default defineConfig({

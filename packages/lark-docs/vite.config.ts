@@ -345,6 +345,7 @@ function libConfig(options?: { isDev?: boolean }): UserConfig {
 function docsConfig(options?: { isDev?: boolean }): UserConfig {
   const { isDev = true } = options ?? {};
   return {
+    base: isDev ? "/" : "/lark/",
     root: resolve(PKG_DIR, "app"),
     plugins: [
       // Virtual module plugin — no ordering constraint needed since virtual
@@ -431,6 +432,7 @@ function docsConfig(options?: { isDev?: boolean }): UserConfig {
     resolve: {
       alias: {
         "@lark-docs/generated": resolve(PKG_DIR, ".lark-docs/generated"),
+        "@lark.js/docs": resolve(PKG_DIR, "src"),
       },
     },
     build: {
