@@ -208,6 +208,5 @@ dist-*
 **/dist-*
 
 packages/lark-docs/docs
-packages/lark-homepage/docs
 
 **/.lark-docs/generated
