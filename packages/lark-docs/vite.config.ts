@@ -72,7 +72,7 @@ export default defineConfig(({ mode, command }) => {
     return libConfig();
   }
   if (mode === "docs") {
-    return docsDemoConfig(command === "build");
+    return docsDemoConfig(command === "serve");
   }
   throw new Error(`Error: mode ${mode}`);
 });
