@@ -1,4 +1,3 @@
-import { copyFileSync } from "node:fs";
 import { defineConfig } from "tsup";
 
 export default defineConfig([
@@ -13,12 +12,6 @@ export default defineConfig([
     noExternal: [],
     sourcemap: false,
     tsconfig: "./tsconfig.build.json",
-    // Copy client.d.ts after build — replaces the npm `prebuild` script.
-    // `clean: true` above handles `rm -rf dist && mkdir dist`.
-    async onSuccess() {
-      copyFileSync("src/client.d.ts", "dist/client.d.ts");
-      copyFileSync("src/client.d.ts", "dist/client.d.cts");
-    },
   },
   {
     entry: ["src/compiler.ts"],

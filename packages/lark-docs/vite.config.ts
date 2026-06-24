@@ -18,6 +18,8 @@ import dts from "vite-plugin-dts";
 import { resolve } from "node:path";
 import { compileTemplate, extractGlobalVars } from "@lark.js/mvc/compiler";
 import tailwindcss from "@tailwindcss/vite";
+// !!! For your project, it should be:
+// import { larkDocsPlugin } from "@lark.js/docs/vite";
 import { larkDocsPlugin } from "./src/vite";
 import {
   existsSync,
@@ -360,7 +362,7 @@ function docsDemoConfig(isDev = true): UserConfig {
         ],
         manifest: {
           name: "Lark Docs",
-          short_name: "@lark.js/docs",
+          short_name: "lark-docs",
           description: "Lark Docs",
           theme_color: "#ecfdf5",
           background_color: "#ecfdf5",
@@ -424,7 +426,6 @@ function docsDemoConfig(isDev = true): UserConfig {
     ],
     resolve: {
       alias: {
-        "@lark.js/docs": resolve(PKG_DIR, "src"),
         "@lark-docs/generated": resolve(PKG_DIR, ".lark-docs/generated"),
       },
     },
