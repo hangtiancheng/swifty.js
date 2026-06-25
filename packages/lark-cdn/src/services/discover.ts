@@ -2,9 +2,19 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import type { DiscoveredDist } from "../types/index.js";
 
-const DIST_DIR_NAMES = ["dist-webpack", "dist-vite", "dist"] as const;
+const DIST_DIR_NAMES = [
+  "dist",
+  "dist-ssr",
+  "dist-rsbuild",
+  "dist-rollup",
+  "dist-rspack",
+  "dist-tsup",
+  "dist-webpack",
+  "dist-vite",
+] as const;
 
 const SKIP_DIRS = new Set([
+  ...DIST_DIR_NAMES,
   ".cache",
   ".git",
   ".pnpm-store",
@@ -13,10 +23,6 @@ const SKIP_DIRS = new Set([
   "bin",
   "build",
   "coverage",
-  "dist",
-  "dist-ssr",
-  "dist-vite",
-  "dist-webpack",
   "node_modules",
   "out",
   "output",

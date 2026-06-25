@@ -4,12 +4,17 @@ import crypto from "node:crypto";
 import { createReadStream } from "node:fs";
 import type { Context, Next } from "koa";
 import mime from "mime-types";
+import { Cache, ByteView } from "@lark.js/cache";
 import type { CacheKey, ServerConfig } from "../types/index.js";
 import { getProjectConfig } from "../services/config-store.js";
 import { parseRoute } from "../utils/route-parser.js";
 import { resolveVersion } from "../utils/grayscale.js";
 import { resolveSafePath, hasFileExtension, buildCacheKey } from "../utils/path-security.js";
-import type { LruCache } from "../services/memory-cache.js";
+import {
+  PrefixIndex,
+  serializeCacheEntry,
+  deserializeCacheEntry,
+} from "../services/cache-utils.js";
 import type { CacheEntry } from "../types/index.js";
 
 const HASHED_FILE_RE = /[.-][a-f0-9]{8,}\.\w+$/;
@@ -30,7 +35,8 @@ function getCacheControl(filePath: string): string {
 }
 
 export function createCdnMiddleware(
-  cache: LruCache,
+  cache: Cache,
+  prefixIndex: PrefixIndex,
   config: ServerConfig,
 ): (ctx: Context, next: Next) => Promise<void> {
   return async (ctx: Context, next: Next): Promise<void> => {
@@ -77,8 +83,9 @@ export function createCdnMiddleware(
 
     // L1 cache lookup
     const cacheKey: CacheKey = buildCacheKey(projectName, versionConfig.version, filePath);
-    const cached = cache.get(cacheKey);
-    if (cached !== undefined) {
+    const [cachedView, found] = cache.get(cacheKey);
+    if (found && cachedView !== null) {
+      const cached = deserializeCacheEntry(cachedView);
       const ifNoneMatch = ctx.get("If-None-Match");
       if (ifNoneMatch === cached.etag) {
         ctx.status = 304;
@@ -168,7 +175,9 @@ export function createCdnMiddleware(
         cachedAt: Date.now(),
         size: statResult.size,
       };
-      cache.set(cacheKey, entry);
+      const serialized = serializeCacheEntry(entry);
+      cache.add(cacheKey, new ByteView(serialized));
+      prefixIndex.add(cacheKey);
       ctx.body = content;
     } else {
       ctx.set("X-Cache", "MISS-STREAM");

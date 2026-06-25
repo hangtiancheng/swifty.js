@@ -1,5 +1,6 @@
 import Router from "@koa/router";
 import type { Context } from "koa";
+import { Cache } from "@lark.js/cache";
 import { Project, toProjectConfig } from "../models/project.js";
 import {
   ProjectCreateSchema,
@@ -15,7 +16,7 @@ import {
 } from "../services/config-store.js";
 import { discoverDists } from "../services/discover.js";
 import { addWatch, removeWatch } from "../services/file-watcher.js";
-import type { LruCache } from "../services/memory-cache.js";
+import type { PrefixIndex } from "../services/cache-utils.js";
 import type { ServerConfig } from "../types/index.js";
 
 function success(ctx: Context, data: unknown, status = 200): void {
@@ -33,7 +34,11 @@ function notFound(ctx: Context, message: string): void {
   ctx.body = { success: false, error: "NotFound", message };
 }
 
-export function createApiRouter(cache: LruCache, config: ServerConfig): Router {
+export function createApiRouter(
+  cache: Cache,
+  prefixIndex: PrefixIndex,
+  config: ServerConfig,
+): Router {
   const router = new Router({ prefix: config.apiPrefix });
 
   // ==========================================================
@@ -45,10 +50,13 @@ export function createApiRouter(cache: LruCache, config: ServerConfig): Router {
   });
 
   router.get("/cache/stats", (ctx: Context): void => {
+    const stats = cache.stats();
     success(ctx, {
-      entries: cache.count,
-      sizeBytes: cache.size,
+      entries: cache.len(),
       maxSizeBytes: config.cacheMaxSize,
+      hits: stats.hits,
+      misses: stats.misses,
+      hitRate: stats.hit_rate,
     });
   });
 
@@ -95,7 +103,7 @@ export function createApiRouter(cache: LruCache, config: ServerConfig): Router {
     await refreshProjectConfig(parsed.data.name);
 
     for (const v of parsed.data.versions) {
-      addWatch(cache, parsed.data.name, v.version);
+      addWatch(cache, prefixIndex, parsed.data.name, v.version);
     }
 
     success(ctx, toProjectConfig(project.toObject()), 201);
@@ -117,7 +125,7 @@ export function createApiRouter(cache: LruCache, config: ServerConfig): Router {
       return;
     }
 
-    invalidateProjectCache(cache, name);
+    invalidateProjectCache(cache, prefixIndex, name);
     await refreshProjectConfig(name);
     success(ctx, toProjectConfig(project));
   });
@@ -136,7 +144,7 @@ export function createApiRouter(cache: LruCache, config: ServerConfig): Router {
     }
 
     await Project.deleteOne({ name });
-    invalidateProjectCache(cache, name);
+    invalidateProjectCache(cache, prefixIndex, name);
     await refreshProjectConfig(name);
     success(ctx, { deleted: true });
   });
@@ -177,9 +185,9 @@ export function createApiRouter(cache: LruCache, config: ServerConfig): Router {
     project.versions.push(parsed.data);
     await project.save();
 
-    invalidateProjectCache(cache, name);
+    invalidateProjectCache(cache, prefixIndex, name);
     await refreshProjectConfig(name);
-    addWatch(cache, name, parsed.data.version);
+    addWatch(cache, prefixIndex, name, parsed.data.version);
     success(ctx, toProjectConfig(project.toObject()), 201);
   });
 
@@ -220,9 +228,9 @@ export function createApiRouter(cache: LruCache, config: ServerConfig): Router {
     await project.save();
 
     await removeWatch(name, version);
-    invalidateProjectCache(cache, name);
+    invalidateProjectCache(cache, prefixIndex, name);
     await refreshProjectConfig(name);
-    addWatch(cache, name, update.version ?? version);
+    addWatch(cache, prefixIndex, name, update.version ?? version);
     success(ctx, toProjectConfig(project.toObject()));
   });
 
@@ -245,7 +253,7 @@ export function createApiRouter(cache: LruCache, config: ServerConfig): Router {
     await project.save();
 
     await removeWatch(name, version);
-    invalidateProjectCache(cache, name);
+    invalidateProjectCache(cache, prefixIndex, name);
     await refreshProjectConfig(name);
     success(ctx, toProjectConfig(project.toObject()));
   });
@@ -297,9 +305,9 @@ export function createApiRouter(cache: LruCache, config: ServerConfig): Router {
       await project.save();
     }
 
-    invalidateProjectCache(cache, name);
+    invalidateProjectCache(cache, prefixIndex, name);
     await refreshProjectConfig(name);
-    addWatch(cache, name, version);
+    addWatch(cache, prefixIndex, name, version);
     success(ctx, toProjectConfig(project.toObject()), 201);
   });
 

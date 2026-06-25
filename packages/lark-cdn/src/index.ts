@@ -16,9 +16,9 @@ async function main(): Promise<void> {
   await refreshConfig();
   logger.info("Config loaded into memory");
 
-  const { app, cache } = createApp(config);
+  const { app, cache, prefixIndex } = createApp(config);
 
-  startFileWatcher(cache);
+  startFileWatcher(cache, prefixIndex);
   logger.info("File watcher started");
 
   const server: Server = app.listen(config.port, () => {

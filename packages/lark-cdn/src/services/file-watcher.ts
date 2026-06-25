@@ -1,23 +1,25 @@
 import { watch, type FSWatcher } from "chokidar";
+import { Cache } from "@lark.js/cache";
 import { getProjectConfig, getConfigMap, invalidateVersionCache } from "./config-store.js";
-import type { LruCache } from "./memory-cache.js";
+import type { PrefixIndex } from "./cache-utils.js";
 import { logger } from "../utils/logger.js";
 
 const watchers = new Map<string, FSWatcher>();
 
-export function startFileWatcher(cache: LruCache): void {
+export function startFileWatcher(cache: Cache, prefixIndex: PrefixIndex): void {
   const configMap = getConfigMap();
 
   for (const [, project] of configMap) {
     for (const version of project.versions) {
       if (!version.isActive) continue;
-      watchDistPath(cache, project.name, version.version, version.distPath);
+      watchDistPath(cache, prefixIndex, project.name, version.version, version.distPath);
     }
   }
 }
 
 function watchDistPath(
-  cache: LruCache,
+  cache: Cache,
+  prefixIndex: PrefixIndex,
   projectName: string,
   version: string,
   distPath: string,
@@ -33,7 +35,7 @@ function watchDistPath(
 
   const onFileChange = (filePath: string): void => {
     const relativePath = filePath.slice(distPath.length).replace(/^\//, "");
-    invalidateVersionCache(cache, projectName, version);
+    invalidateVersionCache(cache, prefixIndex, projectName, version);
     logger.debug(
       { project: projectName, version, file: relativePath },
       "Cache invalidated on file change",
@@ -57,14 +59,19 @@ export async function stopFileWatcher(): Promise<void> {
   watchers.clear();
 }
 
-export function addWatch(cache: LruCache, projectName: string, version: string): void {
+export function addWatch(
+  cache: Cache,
+  prefixIndex: PrefixIndex,
+  projectName: string,
+  version: string,
+): void {
   const project = getProjectConfig(projectName);
   if (project === undefined) return;
 
   const versionConfig = project.versions.find((v) => v.version === version);
   if (versionConfig === undefined || !versionConfig.isActive) return;
 
-  watchDistPath(cache, projectName, version, versionConfig.distPath);
+  watchDistPath(cache, prefixIndex, projectName, version, versionConfig.distPath);
 }
 
 export async function removeWatch(projectName: string, version: string): Promise<void> {

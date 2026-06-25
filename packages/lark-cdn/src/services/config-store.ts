@@ -1,7 +1,8 @@
 import path from "node:path";
+import { Cache } from "@lark.js/cache";
 import { Project, toProjectConfig } from "../models/project.js";
 import type { ConfigMap, ProjectConfig } from "../types/index.js";
-import type { LruCache } from "./memory-cache.js";
+import type { PrefixIndex } from "./cache-utils.js";
 
 let configMap: ConfigMap = new Map();
 
@@ -33,16 +34,26 @@ export async function refreshProjectConfig(name: string): Promise<void> {
   configMap = mutable;
 }
 
-export function invalidateProjectCache(cache: LruCache, projectName: string): void {
-  cache.deleteByPrefix(`${projectName}@`);
+export function invalidateProjectCache(
+  cache: Cache,
+  index: PrefixIndex,
+  projectName: string,
+): void {
+  const keys = index.getKeysWithPrefix(`${projectName}@`);
+  for (const key of keys) cache.delete(key);
+  index.deletePrefix(`${projectName}@`);
 }
 
 export function invalidateVersionCache(
-  cache: LruCache,
+  cache: Cache,
+  index: PrefixIndex,
   projectName: string,
   version: string,
 ): void {
-  cache.deleteByPrefix(`${projectName}@${version}:`);
+  const prefix = `${projectName}@${version}:`;
+  const keys = index.getKeysWithPrefix(prefix);
+  for (const key of keys) cache.delete(key);
+  index.deletePrefix(prefix);
 }
 
 export function validateDistPath(distPath: string, workspaceRoot: string): boolean {
