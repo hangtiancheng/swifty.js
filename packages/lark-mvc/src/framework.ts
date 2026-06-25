@@ -466,13 +466,30 @@ export const Framework: FrameworkInterface = {
     // Bind hashchange event
     Router._bind();
 
-    // Mount root view: only if the router didn't already mount one
-    // (e.g., after a page reload with #!/counter, Router.diff() inside
-    // _bind() fires CHANGED → mountView("counter"). Without this guard,
-    // the default view would override the router-determined view, leaving
-    // the URL and displayed view out of sync.)
+    // Mount root view: only if the router didn't already initiate a mount.
+    //
+    // CRITICAL: check `viewPath` (set synchronously at the top of mountView)
+    // instead of `view` (the viewInstance, which is only assigned inside
+    // doMountView — AFTER the async view class load completes).
+    //
+    // When views are loaded asynchronously (via config.require / dynamic
+    // import), Router._bind() → diff() → CHANGED → mountView(routeView)
+    // starts an async load. At this point viewPath is already set to the
+    // route view, but viewInstance is still undefined. Checking viewInstance
+    // here would incorrectly fall back to defaultView, launching a SECOND
+    // async mountView(defaultView) in parallel. The signature guard in
+    // mountView then makes whichever import resolves first win — and since
+    // defaultView is usually a single module while the route view may pull
+    // in sub-components, defaultView tends to win, leaving the URL pointing
+    // at the route view while defaultView is actually rendered. Subsequent
+    // Router.to(routeView) is then a no-op because lastLocation.path already
+    // equals routeView, so the user is stuck on the wrong view.
+    //
+    // viewPath is set synchronously in mountView (before the sync/async
+    // branch), so it reliably indicates "a mount has been initiated for
+    // this frame" — which is exactly the condition we want to guard on.
     const defaultView = config.defaultView || "";
-    if (defaultView && !rootFrame.view) {
+    if (defaultView && !rootFrame.viewPath) {
       rootFrame.mountView(defaultView);
     }
   },

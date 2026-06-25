@@ -51,6 +51,7 @@ function extractDefault(mod: unknown): unknown {
 const config: FrameworkConfig = {
   defaultPath: "/home",
   defaultView: "home",
+  routeMode: "history",
   routes: {
     "/home": "home",
     "/about": "about",
