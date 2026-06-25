@@ -16,6 +16,7 @@ export default defineConfig({
   },
 
   output: {
+    sourceMap: true,
     distPath: {
       root: "./dist-rsbuild",
     },
