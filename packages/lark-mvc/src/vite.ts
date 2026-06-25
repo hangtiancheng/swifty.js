@@ -26,6 +26,7 @@ import type { Plugin as Plugin7 } from "vite7";
 import { dirname, isAbsolute, join, resolve } from "path";
 import { existsSync, readFileSync } from "fs";
 import { compileTemplate, extractGlobalVars } from "./compiler";
+import { injectTemplateHmr, injectViewClassHmr } from "./hmr-inject";
 
 export interface LarkMvcVitePluginOptions {
   /** Enable debug mode with line tracking (default: false) */
@@ -106,9 +107,37 @@ export function larkMvcPlugin(options: LarkMvcVitePluginOptions = {}): Plugin {
         const raw = readFileSync(filePath, "utf-8");
         // Auto-extract variables from template for 0-config experience
         const globalVars = await extractGlobalVars(raw);
-        return compileTemplate(raw, { debug, globalVars, virtualDom });
+        const compiled = await compileTemplate(raw, {
+          debug,
+          globalVars,
+          virtualDom,
+        });
+        // Auto-inject HMR: the compiled template module self-accepts, so
+        // .html changes hot-swap the template on all mounted views without
+        // a full page reload — no user-side code required (like React/Vue).
+        return injectTemplateHmr(compiled, "vite");
       }
       return undefined;
+    },
+
+    /**
+     * Transform hook: inject view-class HMR into .ts files that import .html.
+     *
+     * When a .ts view file changes, the auto-injected HMR snippet captures
+     * the old View class (via dispose) and the new one (via accept), then
+     * calls `hotSwapByClass(old, new)` to swap the prototype on all mounted
+     * instances — preserving state.
+     *
+     * This gives Lark the same zero-config HMR DX as React/Vue: users never
+     * write `import.meta.hot` themselves.
+     */
+    transform(code, id) {
+      // Only process .ts/.tsx files (skip .html, node_modules, etc.)
+      if (!/\.[tc]sx?$/.test(id)) return undefined;
+      if (id.includes("node_modules")) return undefined;
+      // injectViewClassHmr returns the original source unchanged if the file
+      // doesn't import .html, so it's safe to call on every .ts file.
+      return injectViewClassHmr(code, "vite");
     },
   };
 }

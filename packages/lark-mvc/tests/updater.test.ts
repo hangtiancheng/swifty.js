@@ -142,4 +142,22 @@ describe("Updater", () => {
     expect(keys).toBeInstanceOf(Set);
     expect(keys.size).toBe(0);
   });
+
+  it("forceDigest - marks all keys as changed and triggers digest", () => {
+    const updater = new Updater("force-test");
+    updater.set({ a: 1, b: 2, c: 3 });
+    // Run a normal digest first to clear the changed flags
+    updater.digest();
+
+    // After digest, changedKeys should be empty and no pending change
+    expect(updater.getChangedKeys().size).toBe(0);
+
+    // forceDigest should mark ALL keys as changed regardless of value equality
+    // (even primitive values that haven't changed), enabling a full re-render.
+    // It should not throw even without a mounted view/DOM.
+    expect(() => updater.forceDigest()).not.toThrow();
+
+    // After forceDigest runs, changedKeys are consumed (cleared by runDigest)
+    expect(updater.getChangedKeys().size).toBe(0);
+  });
 });

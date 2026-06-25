@@ -49,6 +49,7 @@
  * ```
  */
 import { compileTemplate, extractGlobalVars } from "./compiler";
+import { injectTemplateHmr } from "./hmr-inject";
 import type { LarkMvcVitePluginOptions } from "./vite";
 
 export type LarkMvcWebpackLoaderOptions = LarkMvcVitePluginOptions;
@@ -87,11 +88,15 @@ async function larkMvcLoader(
     const { debug = false, virtualDom = false } = options;
 
     const globalVars = await extractGlobalVars(source);
-    return compileTemplate(source, {
+    const compiled = await compileTemplate(source, {
       debug,
       globalVars,
       virtualDom,
     });
+    // Auto-inject HMR: the compiled template module self-accepts, so
+    // .html changes hot-swap the template on all mounted views without
+    // a full page reload — no user-side code required (like React/Vue).
+    return injectTemplateHmr(compiled, "webpack");
   } catch (err) {
     console.error(err);
     return "";

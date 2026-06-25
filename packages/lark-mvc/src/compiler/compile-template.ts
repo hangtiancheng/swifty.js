@@ -210,9 +210,12 @@ export async function compileTemplate(
     // - Does NOT import encHtml (not needed — VDOM text uses createTextNode)
     // - Inner function: 7 params ($data,$viewId,$refAlt,$strSafe,$refFn,$encUri,$encQuote)
     // - $strSafe (null-safe toString) for text content and attribute values
+    //
+    // The default export is a named function (__larkTemplate) so that the
+    // auto-injected HMR snippet (see hmr-inject.ts) can reference it by name.
     return `import { vdomCreate as __larkVdomCreate } from "@lark.js/mvc";
 import { strSafe as __larkStrSafe, encUri as __larkEncUri, encQuote as __larkEncQuote, refFn as __larkRefFn } from "@lark.js/mvc/runtime";
-export default function(data, viewId, refData) {
+function __larkTemplate(data, viewId, refData) {
   let $data = data || {},
       $viewId = viewId || '',
       $vdomCreate = __larkVdomCreate,
@@ -220,7 +223,8 @@ export default function(data, viewId, refData) {
   return (${funcWithVars})($data, $viewId, refData,
     $strSafe, __larkRefFn, __larkEncUri, __larkEncQuote
   );
-}`;
+}
+export default __larkTemplate;`;
   }
 
   // ── String mode (existing, unchanged) ──
@@ -232,12 +236,16 @@ export default function(data, viewId, refData) {
   // compiled template — saves ~400 bytes per `.html` module in the bundle.
   //
   // Internal function signature: ($data,$viewId,$refAlt,$encHtml,$strSafe,$encUri,$refFn,$encQuote)
+  //
+  // The default export is a named function (__larkTemplate) so that the
+  // auto-injected HMR snippet (see hmr-inject.ts) can reference it by name.
   return `import { encHtml as __larkEncHtml, strSafe as __larkStrSafe, encUri as __larkEncUri, encQuote as __larkEncQuote, refFn as __larkRefFn } from "@lark.js/mvc/runtime";
-export default function(data, viewId, refData) {
+function __larkTemplate(data, viewId, refData) {
   let $data = data || {},
       $viewId = viewId || '';
   return (${funcWithVars})($data, $viewId, refData,
     __larkEncHtml, __larkStrSafe, __larkEncUri, __larkRefFn, __larkEncQuote
   );
-}`;
+}
+export default __larkTemplate;`;
 }

@@ -236,7 +236,9 @@ export function compileToVDomFunction(
         // Regular text segment
         const trimmed = parts[i];
         if (trimmed.trim()) {
-          lines.push(`${parentVar}.push($vdomCreate(0,'${vdomEscapeStr(trimmed)}'))`);
+          lines.push(
+            `${parentVar}.push($vdomCreate(0,'${vdomEscapeStr(trimmed)}'))`,
+          );
         }
       } else {
         // Placeholder index
@@ -254,10 +256,14 @@ export function compileToVDomFunction(
       if (expr.content.startsWith("$encUri(") && expr.content.endsWith(")")) {
         lines.push(`${parentVar}.push($vdomCreate(0,${expr.content}))`);
       } else {
-        lines.push(`${parentVar}.push($vdomCreate(0,$strSafe(${expr.content})))`);
+        lines.push(
+          `${parentVar}.push($vdomCreate(0,$strSafe(${expr.content})))`,
+        );
       }
     } else if (expr.op === "@") {
-      lines.push(`${parentVar}.push($vdomCreate(0,$refFn($refAlt,${expr.content})))`);
+      lines.push(
+        `${parentVar}.push($vdomCreate(0,$refFn($refAlt,${expr.content})))`,
+      );
     } else if (expr.content) {
       // Code block — emit raw JS (if/for/else/etc.)
       lines.push(expr.content);

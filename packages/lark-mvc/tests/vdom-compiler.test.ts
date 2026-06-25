@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { compileTemplate } from "../src/compiler";
 import { vdomCreate } from "../src/vdom";
-import { V_TEXT_NODE, SPLITTER } from "../src/common";
+import { V_TEXT_NODE } from "../src/common";
 import * as runtime from "../src/runtime";
 import type { VDomNode } from "../src/types";
 
@@ -34,7 +34,8 @@ async function compileAndRun(
       /import\s*\{[^}]*\}\s*from\s*["']@lark\.js\/mvc\/runtime["'];?\n?/,
       "const { strSafe: __larkStrSafe, encUri: __larkEncUri, encQuote: __larkEncQuote, refFn: __larkRefFn } = __runtime;\n",
     )
-    .replace("export default function", "return function");
+    .replace("function __larkTemplate(", "return function(")
+    .replace("\nexport default __larkTemplate;", "");
 
   const factory = new Function("__mvc", "__runtime", transformed);
   const templateFn = factory({ vdomCreate }, runtime);
@@ -78,7 +79,8 @@ describe("VDOM Compiler", () => {
 
     it("exports default function with correct signature", async () => {
       const src = await compileSource("<div>hi</div>");
-      expect(src).toContain("export default function(data, viewId, refData)");
+      expect(src).toContain("function __larkTemplate(data, viewId, refData)");
+      expect(src).toContain("export default __larkTemplate");
     });
 
     it("inner function has 7 params (no $encHtml)", async () => {

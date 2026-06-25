@@ -342,4 +342,22 @@ export class Updater implements UpdaterInterface {
   getChangedKeys(): ReadonlySet<string> {
     return this.changedKeys;
   }
+
+  /**
+   * Force a full re-render, bypassing change detection.
+   *
+   * Marks every current data key as changed and triggers a digest cycle.
+   * Used by HMR (`hotSwapView`) to re-render a view after its template has
+   * been hot-swapped, ensuring the new template is fully applied even though
+   * the data itself hasn't changed.
+   *
+   * Unlike `digest(data)` which only marks keys whose values differ, this
+   * method marks ALL keys — so the DOM/VDom diff re-evaluates every
+   * template region rather than skipping ones whose data is unchanged.
+   */
+  forceDigest(): void {
+    this.hasChangedFlag = 1;
+    this.changedKeys = new Set(Object.keys(this.data));
+    this.digest();
+  }
 }

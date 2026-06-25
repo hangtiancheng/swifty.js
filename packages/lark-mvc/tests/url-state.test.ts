@@ -16,6 +16,7 @@ function createMockView(): ViewInterface {
       refData: {},
       translate: vi.fn(),
       parse: vi.fn(),
+      forceDigest: vi.fn(),
     },
     signature: 1,
     locationObserved: { flag: 0, keys: [], observePath: false },

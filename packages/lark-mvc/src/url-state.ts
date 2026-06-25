@@ -1,7 +1,7 @@
 /**
  * useUrlState — sync view state with URL query parameters.
  *
- * Similar to ahooks' useUrlState: reads initial state from URL params,
+ * Similar to useUrlState: reads initial state from URL params,
  * and writes state changes back to the URL via Router.to().
  * Automatically observes the specified param keys so the view
  * re-renders when the URL changes (via back/forward or Router.to).

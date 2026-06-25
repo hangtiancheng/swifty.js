@@ -26,9 +26,6 @@ let stashedChangedKeys: ReadonlySet<string> = EMPTY_STRING_SET;
 /** Whether data has changed since last digest */
 let dataIsChanged = false;
 
-/** Where each key was set (for debug) */
-const dataWhereSet: Record<string, string> = {};
-
 /** Event emitter for state events */
 const emitter = new EventEmitter();
 

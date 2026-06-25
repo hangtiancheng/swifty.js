@@ -866,6 +866,15 @@ export interface UpdaterInterface {
    * @param expr Expression string to parse
    */
   parse(expr: string): unknown;
+  /**
+   * Force a full re-render, bypassing change detection.
+   *
+   * Marks all current data keys as changed and triggers a digest cycle.
+   * Used by HMR to re-render a view after its template has been hot-swapped,
+   * ensuring the new template is fully applied even though the data hasn't
+   * changed.
+   */
+  forceDigest(): void;
 }
 
 // ============================================================

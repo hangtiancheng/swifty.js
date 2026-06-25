@@ -25,7 +25,8 @@ async function render(
       /import\s*\{[\s\S]*?\}\s*from\s*["']@lark\.js\/mvc\/runtime["'];?/,
       "const { encHtml: __larkEncHtml, strSafe: __larkStrSafe, encUri: __larkEncUri, encQuote: __larkEncQuote, refFn: __larkRefFn } = __runtime;",
     )
-    .replace("export default function", "return function");
+    .replace("function __larkTemplate(", "return function(")
+    .replace("\nexport default __larkTemplate;", "");
 
   const fn = new Function("__runtime", transformed)(runtime);
   return fn(data, "testViewId", null);
@@ -230,7 +231,8 @@ describe("compileTemplate", () => {
   describe("debug mode", () => {
     it("compiles successfully in debug mode", async () => {
       const moduleCode = await compileTemplate("{{=name}}", { debug: true });
-      expect(moduleCode).toContain("export default function");
+      expect(moduleCode).toContain("function __larkTemplate");
+      expect(moduleCode).toContain("export default __larkTemplate");
     });
   });
 
@@ -276,7 +278,8 @@ describe("compileTemplate", () => {
           /import\s*\{[\s\S]*?\}\s*from\s*["']@lark\.js\/mvc\/runtime["'];?/,
           "const { encHtml: __larkEncHtml, strSafe: __larkStrSafe, encUri: __larkEncUri, encQuote: __larkEncQuote, refFn: __larkRefFn } = __runtime;",
         )
-        .replace("export default function", "return function");
+        .replace("function __larkTemplate(", "return function(")
+        .replace("\nexport default __larkTemplate;", "");
       const fn = new Function("__runtime", transformed)(runtime);
       const result = fn(
         {
