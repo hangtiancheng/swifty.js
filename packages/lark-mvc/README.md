@@ -759,7 +759,7 @@ Via `FrameworkConfig.require`, resolve unregistered view paths to remote modules
 Framework.boot({
   rootId: "app",
   projectName: "host-app",
-  crossConfigs: [
+  crossSites: [
     {
       projectName: "remote-app",
       source: "remote_app@//cdn.example.com/remote-app/remoteEntry.js",

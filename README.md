@@ -89,7 +89,7 @@ export const config: FrameworkConfig = {
 
 Every framework subsystem mutates this exact object via
 `Framework.setConfig(patch)`. Because the import is a _binding_ and not a
-copy, hot updates of `config.require` or `config.crossConfigs` are observed by
+copy, hot updates of `config.require` or `config.crossSites` are observed by
 the loader on the next `use()` call without any explicit re-wiring.
 
 #### 1.2 `use(names, callback?)`
@@ -218,7 +218,7 @@ updateView()         → const sign = ++this.$sign
 
 ```ts
 function loadRemoteView(viewPath: string, bizCode?: string): Promise<void> {
-  const crossConfigs = config.crossConfigs || window.crossConfigs;
+  const crossSites = config.crossSites || window.crossSites;
   const slashIndex = viewPath.indexOf("/");
   const projectName =
     slashIndex > -1 ? viewPath.substring(0, slashIndex) : viewPath;
@@ -226,10 +226,10 @@ function loadRemoteView(viewPath: string, bizCode?: string): Promise<void> {
   if (projectName === (config.projectName || "")) return Promise.resolve();
 
   if (!preparePromises[projectName]) {
-    if (!projectsMap) projectsMap = toMap(crossConfigs || [], "projectName");
+    if (!projectsMap) projectsMap = toMap(crossSites || [], "projectName");
     if (!projectsMap[projectName]) {
       return Promise.reject(
-        new Error(`Cannot find ${projectName} from crossConfigs`),
+        new Error(`Cannot find ${projectName} from crossSites`),
       );
     }
 
@@ -263,7 +263,7 @@ Four design points:
 - Failure self-heals — a rejected prepare deletes its cache entry inside
   `catch` and re-throws, so a transient CDN error does not poison the project
   for the rest of the session.
-- `projectsMap` lazy build — built once from `crossConfigs` on first miss
+- `projectsMap` lazy build — built once from `crossSites` on first miss
   and reused. `resetProjectsMap()` is exported so an embedding host can
   rebuild it after a runtime config swap.
 
@@ -361,8 +361,8 @@ export interface FrameworkConfig {
   /** Project identifier of the *current* application. */
   projectName?: string;
 
-  /** Remote project descriptors. May also be supplied via window.crossConfigs. */
-  crossConfigs?: CrossSiteConfig[];
+  /** Remote project descriptors. May also be supplied via window.crossSites. */
+  crossSites?: CrossSiteConfig[];
 
   /**
    * Module loader hook. Called by `use()` whenever a view class is missing
@@ -589,23 +589,23 @@ project" contract.
 
 ---
 
-## `crossConfigs` Dual Channel
+## `crossSites` Dual Channel
 
 ```ts
-const crossConfigs = config.crossConfigs || window.crossConfigs;
+const crossSites = config.crossSites || window.crossSites;
 ```
 
 The framework deliberately accepts both injection styles because the typical
 deployment pipeline straddles two timeframes:
 
-- Build time — bundlers can stamp `window.crossConfigs = [...]` into a
-  generated `<script>` tag so `crossConfigs` is available before
-  `Framework.boot` runs (useful when `crossConfigs` itself depends on a
+- Build time — bundlers can stamp `window.crossSites = [...]` into a
+  generated `<script>` tag so `crossSites` is available before
+  `Framework.boot` runs (useful when `crossSites` itself depends on a
   CDN-resolved manifest).
-- Boot time — `Framework.boot({ crossConfigs })` is the canonical way for
+- Boot time — `Framework.boot({ crossSites })` is the canonical way for
   a host application to declare its remotes programmatically.
 
-`config.crossConfigs` always wins when both are set, so build-time defaults
+`config.crossSites` always wins when both are set, so build-time defaults
 can be overridden by runtime configuration without conditional plumbing.
 
 ---
@@ -640,7 +640,7 @@ async branch.
 | Remote modules must `import` their own CSS           | Webpack only bundles CSS reachable from the expose entry. |
 | Remote `prepare` exposed at `${projectName}/prepare` | Hard-coded in `loadRemoteView`.                           |
 | viewPath separator is `/`                            | First slash splits projectName from local module path.    |
-| `crossConfigs[i].projectName` ≡ MF container name    | Used as the cache key for the prepare Promise.            |
+| `crossSites[i].projectName` ≡ MF container name      | Used as the cache key for the prepare Promise.            |
 | Skeleton must keep `id="mf_${viewId}"`               | Anchor for `mountFrame` and `Frame.get(...)`.             |
 
 ---

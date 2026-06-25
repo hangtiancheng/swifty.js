@@ -973,7 +973,7 @@ CrossSite reads:
 
 It uses a `$sign` counter to abort stale loads: if the user navigates away during the async `prepare`, the in-flight mount is cancelled.
 
-`resetProjectsMap()` — clear the per-project map cache (use when `crossConfigs` change at runtime).
+`resetProjectsMap()` — clear the per-project map cache (use when `crossSites` change at runtime).
 
 `CrossSite.callView(name, ...args)` — invoke a method on the mounted remote view via `Frame.invoke`.
 

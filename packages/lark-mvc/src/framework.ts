@@ -30,12 +30,7 @@ import { Cache } from "./cache";
 import { EventEmitter } from "./event-emitter";
 import { Router, markRouterBooted } from "./router";
 import { State, markBooted as markStateBooted } from "./state";
-import {
-  Frame,
-  registerViewClass,
-  invalidateViewClass,
-  getViewClassRegistry,
-} from "./frame";
+import { Frame } from "./frame";
 import { EventDelegator } from "./event-delegator";
 import { View } from "./view";
 import { installFrameDevtoolBridge } from "./devtool";
@@ -609,14 +604,14 @@ export const Framework: FrameworkInterface = {
   Frame,
 };
 
-// Attach to window for global access
-if (typeof window !== "undefined") {
-  window.__lark_Framework = Framework;
-  window.__lark_State = State;
-  window.__lark_Router = Router;
-  window.__lark_Frame = Frame;
-  window.__lark_View = View;
-  window.__lark_invalidateViewClass = invalidateViewClass;
-  window.__lark_getViewClassRegistry = getViewClassRegistry;
-  window.__lark_registerViewClass = registerViewClass;
-}
+// // Attach to window for global access
+// if (typeof window !== "undefined") {
+//   window.__lark_Framework = Framework;
+//   window.__lark_State = State;
+//   window.__lark_Router = Router;
+//   window.__lark_Frame = Frame;
+//   window.__lark_View = View;
+//   window.__lark_invalidateViewClass = invalidateViewClass;
+//   window.__lark_getViewClassRegistry = getViewClassRegistry;
+//   window.__lark_registerViewClass = registerViewClass;
+// }

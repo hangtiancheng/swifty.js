@@ -37,7 +37,7 @@ interface CrossSiteState {
 /** Cached prepare promises per project name */
 const preparePromises: Record<string, Promise<void>> = {};
 
-/** Cached project map from crossConfigs */
+/** Cached project map from crossSites */
 let projectsMap: Record<string, CrossSiteConfig> | null = null;
 
 // ============================================================
@@ -55,7 +55,7 @@ type PrepareFn = (opts: { bizCode?: string | undefined }) => Promise<void>;
  * @param bizCode  - Optional business code for multi-tenant scenarios
  */
 function loadRemoteView(viewPath: string, bizCode?: string): Promise<void> {
-  const crossConfigs = config.crossConfigs || window.crossConfigs;
+  const crossSites = config.crossSites || window.crossSites;
   const currentName = config.projectName || "";
   const slashIndex = viewPath.indexOf("/");
   const projectName =
@@ -65,16 +65,16 @@ function loadRemoteView(viewPath: string, bizCode?: string): Promise<void> {
   if (projectName === currentName) return Promise.resolve();
 
   if (!preparePromises[projectName]) {
-    // Build project map from crossConfigs (cached)
+    // Build project map from crossSites (cached)
     if (!projectsMap) {
-      const map = toMap(crossConfigs || [], "projectName");
+      const map = toMap(crossSites || [], "projectName");
       projectsMap = map as Record<string, CrossSiteConfig>;
     }
 
     const info = projectsMap[projectName];
     if (!info) {
       return Promise.reject(
-        new Error(`Cannot find ${projectName} from crossConfigs`),
+        new Error(`Cannot find ${projectName} from crossSites`),
       );
     }
 
@@ -106,7 +106,7 @@ function loadRemoteView(viewPath: string, bizCode?: string): Promise<void> {
 }
 
 /**
- * Reset the projects map cache (useful when crossConfigs change at runtime).
+ * Reset the projects map cache (useful when crossSites change at runtime).
  */
 export function resetProjectsMap(): void {
   projectsMap = null;

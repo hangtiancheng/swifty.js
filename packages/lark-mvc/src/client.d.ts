@@ -9,27 +9,8 @@ import type { Frame } from "./frame";
 import type { View } from "./view";
 declare global {
   interface Window {
-    /** Lark Framework object */
-    __lark_Framework?: FrameworkInterface;
-    /** Lark State object */
-    __lark_State?: StateInterface;
-    /** Lark Router object */
-    __lark_Router?: RouterInterface;
-    /** Lark Frame class */
-    __lark_Frame?: typeof Frame;
-    /** Lark View class */
-    __lark_View?: typeof View;
-    /** Invalidate a view class from the registry (HMR support) */
-    __lark_invalidateViewClass?: (viewPath: string) => void;
-    /** Get the view class registry (HMR/debug support) */
-    __lark_getViewClassRegistry?: () => Record<string, typeof View>;
-    /** Register a view class (HMR support) */
-    __lark_registerViewClass?: (
-      viewPath: string,
-      ViewClass: typeof View,
-    ) => void;
     /** Cross-site configuration injected by build tools */
-    crossConfigs?: CrossSiteConfig[];
+    crossSites?: CrossSiteConfig[];
     scheduler?: Scheduler;
   }
   interface ImportMeta {

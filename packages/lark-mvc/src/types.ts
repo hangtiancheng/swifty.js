@@ -1376,9 +1376,9 @@ export interface FrameworkConfig {
   /**
    * Cross-site (micro-frontend) configuration list.
    * Defines remote projects that can be loaded via Module Federation.
-   * Also accessible via `window.crossConfigs` for build-time injection.
+   * Also accessible via `window.crossSites` for build-time injection.
    */
-  crossConfigs?: CrossSiteConfig[];
+  crossSites?: CrossSiteConfig[];
   /** Default false. */
   virtualDom?: boolean;
 }

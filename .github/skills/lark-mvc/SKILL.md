@@ -643,7 +643,7 @@ interface FrameworkConfig {
   initModule?: string; // init module path
   skipViewRendered?: boolean;
   projectName?: string; // for Module Federation discriminator
-  crossConfigs?: CrossSiteConfig[]; // MF remote configs
+  crossSites?: CrossSiteConfig[]; // MF remote configs
   require?: (names: string[], params?) => Promise<unknown[]>; // async View loader
   virtualDom?: boolean; // defaults to false (real-DOM diff mode)
 }
@@ -932,7 +932,7 @@ declare const __webpack_share_scopes__: Record<string, Record<string, unknown>>;
 Framework.boot({
   rootId: "app",
   projectName: "host-app",
-  crossConfigs: [
+  crossSites: [
     {
       projectName: "remote-app",
       source: "remote_app@//cdn.example.com/remote-app/remoteEntry.js",
