@@ -1277,7 +1277,7 @@ import { encHtml as __larkEncHtml, strSafe as __larkStrSafe, encUri as __larkEnc
 export default function(data, viewId, refData) { ... }
 ```
 
-When `virtualDom: true`, the output imports `vdomCreate` from `@lark.js/mvc` and produces a function returning `VDomNode` instead of a string. The VDOM function signature has 7 parameters (no `$encHtml`): `($data,$viewId,$refAlt,$n,$refFn,$encUri,$encQuote) => VDomNode`.
+When `virtualDom: true`, the output imports `vdomCreate` from `@lark.js/mvc` and produces a function returning `VDomNode` instead of a string. The VDOM function signature has 7 parameters (no `$encHtml`): `($data,$viewId,$refAlt,$strSafe,$refFn,$encUri,$encQuote) => VDomNode`.
 
 ### extractGlobalVars(source)
 

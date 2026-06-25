@@ -521,11 +521,11 @@ When `virtualDom: true` is passed to `compileTemplate` (or via the Vite plugin `
 
 1. Extracts `<% %>` blocks into an expression store, replaces with `\x00N\x00` placeholders.
 2. Parses the protected source with `parseDocument(protectedSource, {recognizeSelfClosing, lowerCaseTags: false})` from `htmlparser2`.
-3. Walks the DOM tree recursively, emitting `$c()` (vdomCreate) calls:
-   - Text nodes: `$c(0, 'text')` or expression via `emitExpr`.
-   - Elements: `$c('tag', props, children)` with allocated `$vN` variables.
+3. Walks the DOM tree recursively, emitting `$vdomCreate()` (vdomCreate) calls:
+   - Text nodes: `$vdomCreate(0, 'text')` or expression via `emitExpr`.
+   - Elements: `$vdomCreate('tag', props, children)` with allocated `$vN` variables.
    - Void elements: `children=1` (self-closing marker).
-4. Returns `$c($viewId, 0, $rootVar)` as root VDomNode.
+4. Returns `$vdomCreate($viewId, 0, $rootVar)` as root VDomNode.
 
 ### VDOM function signature
 
@@ -536,7 +536,7 @@ The compiled VDOM function has 7 parameters (no `$encHtml` -- VDOM text nodes us
   $data: unknown, // Template data (all variables destructured from this)
   $viewId: string, // View ID for event delegation
   $refAlt: unknown, // Reference data for $refFn lookup
-  $n: Function, // strSafe (null-safe toString)
+  $strSafe: Function, // strSafe (null-safe toString)
   $refFn: Function, // Reference lookup in refData
   $encUri: Function, // URI encoding with extra character handling
   $encQuote: Function, // Quote encoding for attribute embedding
@@ -547,4 +547,4 @@ The output module imports `vdomCreate` and `createVDomRef` from `@lark.js/mvc` i
 
 ### VDOM attribute resolution
 
-`vdomResolveAttrValue` resolves `\x00N\x00` placeholders and `\x1f` (viewId) in attribute values, producing JS expression strings with `$n()` (strSafe), `$refFn()`, `$encUri()` calls. Attributes with special DOM semantics (`value`, `checked`, `selected`) are routed through the `specials` parameter to `vdomCreate`, which defers them to `ref.nodeProps` for direct property assignment rather than attribute setting.
+`vdomResolveAttrValue` resolves `\x00N\x00` placeholders and `\x1f` (viewId) in attribute values, producing JS expression strings with `$strSafe()`, `$refFn()`, `$encUri()` calls. Attributes with special DOM semantics (`value`, `checked`, `selected`) are routed through the `specials` parameter to `vdomCreate`, which defers them to `ref.nodeProps` for direct property assignment rather than attribute setting.

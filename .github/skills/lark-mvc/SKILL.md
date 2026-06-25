@@ -823,7 +823,7 @@ The compiler (`compiler.ts`) processes templates in four phases:
 3. **Event processing**: `@event` attributes are prefixed with `VIEW_ID_PLACEHOLDER` (U+001F) + `SPLITTER` (U+001E) + handler name. JS object literal params (`{key: 'value'}`) are converted to URL query format (`key=value`).
 4. **Function compilation**: `<% %>` syntax is compiled to a JS arrow function string. The function signature: `($data,$viewId,$refAlt,$encHtml,$strSafe,$encUri,$refFn,$encQuote) => string`.
 
-In VDOM mode, step 4 produces a VDomNode tree instead of an HTML string, using `htmlparser2` to parse the intermediate HTML and emit `vdomCreate()` calls. The VDOM function signature: `($data,$viewId,$refAlt,$n,$refFn,$encUri,$encQuote) => VDomNode` (7 params -- no `$encHtml` because VDOM text nodes use `createTextNode` directly).
+In VDOM mode, step 4 produces a VDomNode tree instead of an HTML string, using `htmlparser2` to parse the intermediate HTML and emit `vdomCreate()` calls. The VDOM function signature: `($data,$viewId,$refAlt,$strSafe,$refFn,$encUri,$encQuote) => VDomNode` (7 params -- no `$encHtml` because VDOM text nodes use `createTextNode` directly).
 
 Global variables are extracted via AST analysis using `@babel/parser` (`extractGlobalVars`). The walker collects all `Identifier` nodes, excludes declared variables, function parameters, and built-in globals (approximately 100 entries). The remaining identifiers are the template data variables that need destructuring from `$data`.
 

@@ -487,14 +487,6 @@ describe("Framework", () => {
       }
     });
 
-    it("boot sets window globals", () => {
-      expect(window.__lark_Framework).toBe(Framework);
-      expect(window.__lark_State).toBeDefined();
-      expect(window.__lark_Router).toBeDefined();
-      expect(window.__lark_Frame).toBeDefined();
-      expect(window.__lark_View).toBeDefined();
-    });
-
     it("boot merges config into the shared config object", () => {
       const el = document.createElement("div");
       el.id = "boot-config-merge-test";

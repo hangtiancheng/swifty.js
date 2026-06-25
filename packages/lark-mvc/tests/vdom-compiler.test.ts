@@ -28,7 +28,7 @@ async function compileAndRun(
   const transformed = moduleSource
     .replace(
       /import\s*\{[^}]*\}\s*from\s*["']@lark\.js\/mvc["'];?\n?/,
-      "const __larkC = __mvc.vdomCreate;\n",
+      "const __larkVdomCreate = __mvc.vdomCreate;\n",
     )
     .replace(
       /import\s*\{[^}]*\}\s*from\s*["']@lark\.js\/mvc\/runtime["'];?\n?/,
@@ -59,7 +59,7 @@ describe("VDOM Compiler", () => {
     it("imports vdomCreate from @lark.js/mvc", async () => {
       const src = await compileSource("<div>hi</div>");
       expect(src).toContain(
-        'import { vdomCreate as __larkC } from "@lark.js/mvc"',
+        'import { vdomCreate as __larkVdomCreate } from "@lark.js/mvc"',
       );
     });
 
@@ -84,7 +84,7 @@ describe("VDOM Compiler", () => {
     it("inner function has 7 params (no $encHtml)", async () => {
       const src = await compileSource("<div>hi</div>");
       expect(src).toContain(
-        "$data,$viewId,$refAlt,$n,$refFn,$encUri,$encQuote",
+        "$data,$viewId,$refAlt,$strSafe,$refFn,$encUri,$encQuote",
       );
     });
 
@@ -117,8 +117,8 @@ describe("VDOM Compiler", () => {
 
     it("compiles self-closing elements", async () => {
       const src = await compileSource("<div><br/><hr/></div>");
-      expect(src).toMatch(/\$c\('br',\w+,1\)/);
-      expect(src).toMatch(/\$c\('hr',\w+,1\)/);
+      expect(src).toMatch(/\$vdomCreate\('br',\w+,1\)/);
+      expect(src).toMatch(/\$vdomCreate\('hr',\w+,1\)/);
     });
 
     it("compiles multiple sibling elements", async () => {
@@ -168,14 +168,14 @@ describe("VDOM Compiler", () => {
       const src = await compileSource("<div>{{=name}}</div>", {
         globalVars: ["name"],
       });
-      expect(src).toContain("$c(0,$n(name))");
+      expect(src).toContain("$vdomCreate(0,$strSafe(name))");
     });
 
     it("compiles {{!expr}} as raw text node", async () => {
       const src = await compileSource("<div>{{!rawContent}}</div>", {
         globalVars: ["rawContent"],
       });
-      expect(src).toContain("$n(rawContent)");
+      expect(src).toContain("$strSafe(rawContent)");
     });
 
     it("compiles {{@expr}} as ref lookup", async () => {
@@ -196,7 +196,7 @@ describe("VDOM Compiler", () => {
       const src = await compileSource('<span class="{{=cls}}"></span>', {
         globalVars: ["cls"],
       });
-      expect(src).toContain("$n(cls)");
+      expect(src).toContain("$strSafe(cls)");
     });
   });
 

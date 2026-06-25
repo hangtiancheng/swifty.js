@@ -208,17 +208,17 @@ export async function compileTemplate(
     // VDOM module wrapper:
     // - Imports vdomCreate from @lark.js/mvc (not just runtime helpers)
     // - Does NOT import encHtml (not needed — VDOM text uses createTextNode)
-    // - Inner function: 7 params ($data,$viewId,$refAlt,$n,$refFn,$encUri,$encQuote)
-    // - $n is $strSafe (null-safe toString) for text content and attribute values
-    return `import { vdomCreate as __larkC } from "@lark.js/mvc";
+    // - Inner function: 7 params ($data,$viewId,$refAlt,$strSafe,$refFn,$encUri,$encQuote)
+    // - $strSafe (null-safe toString) for text content and attribute values
+    return `import { vdomCreate as __larkVdomCreate } from "@lark.js/mvc";
 import { strSafe as __larkStrSafe, encUri as __larkEncUri, encQuote as __larkEncQuote, refFn as __larkRefFn } from "@lark.js/mvc/runtime";
 export default function(data, viewId, refData) {
   let $data = data || {},
       $viewId = viewId || '',
-      $c = __larkC,
-      $n = __larkStrSafe;
+      $vdomCreate = __larkVdomCreate,
+      $strSafe = __larkStrSafe;
   return (${funcWithVars})($data, $viewId, refData,
-    $n, __larkRefFn, __larkEncUri, __larkEncQuote
+    $strSafe, __larkRefFn, __larkEncUri, __larkEncQuote
   );
 }`;
   }

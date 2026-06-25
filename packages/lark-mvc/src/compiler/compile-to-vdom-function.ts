@@ -99,18 +99,18 @@ function vdomResolveAttrValue(
       const expr = exprStore[idx];
 
       if (expr.op === "=" || expr.op === ":") {
-        segments.push(`$n(${expr.content})`);
+        segments.push(`$strSafe(${expr.content})`);
       } else if (expr.op === "!") {
         if (expr.content.startsWith("$encUri(") && expr.content.endsWith(")")) {
           segments.push(expr.content);
         } else {
-          segments.push(`$n(${expr.content})`);
+          segments.push(`$strSafe(${expr.content})`);
         }
       } else if (expr.op === "@") {
         segments.push(`$refFn($refAlt,${expr.content})`);
       } else {
         // Code block in attribute — unusual, emit as expression
-        segments.push(`$n(${expr.content})`);
+        segments.push(`$strSafe(${expr.content})`);
       }
 
       remaining = remaining.substring(closeIdx + 1);
@@ -125,7 +125,7 @@ function vdomResolveAttrValue(
 /**
  * Build a JS props object literal from htmlparser2's parsed `attribs` map.
  *
- * Returns the JS source string (e.g. `{class:'foo',id:'x'+$n(expr)}`)
+ * Returns the JS source string (e.g. `{class:'foo',id:'x'+$strSafe(expr)}`)
  * or `"null"` if there are no attributes.
  */
 function vdomBuildPropsFromAttribs(
@@ -153,10 +153,10 @@ function vdomBuildPropsFromAttribs(
  * Uses htmlparser2 for robust HTML parsing:
  * 1. Extract `<% %>` blocks into a store, replace with `\x00N\x00` placeholders
  * 2. Parse the protected source with `parseDocument`
- * 3. Walk the DOM tree recursively, emitting `$c()` (vdomCreate) calls
+ * 3. Walk the DOM tree recursively, emitting `$vdomCreate()` calls
  *
  * Output is an arrow function:
- *   `($data,$viewId,$refAlt,$n,$refFn,$encUri,$encQuote)=>{...}`
+ *   `($data,$viewId,$refAlt,$strSafe,$refFn,$encUri,$encQuote)=>{...}`
  * that returns the root VDomNode.
  */
 export function compileToVDomFunction(
@@ -236,7 +236,7 @@ export function compileToVDomFunction(
         // Regular text segment
         const trimmed = parts[i];
         if (trimmed.trim()) {
-          lines.push(`${parentVar}.push($c(0,'${vdomEscapeStr(trimmed)}'))`);
+          lines.push(`${parentVar}.push($vdomCreate(0,'${vdomEscapeStr(trimmed)}'))`);
         }
       } else {
         // Placeholder index
@@ -249,15 +249,15 @@ export function compileToVDomFunction(
 
   function emitExpr(expr: VDomExprEntry, parentVar: string): void {
     if (expr.op === "=" || expr.op === ":") {
-      lines.push(`${parentVar}.push($c(0,$n(${expr.content})))`);
+      lines.push(`${parentVar}.push($vdomCreate(0,$strSafe(${expr.content})))`);
     } else if (expr.op === "!") {
       if (expr.content.startsWith("$encUri(") && expr.content.endsWith(")")) {
-        lines.push(`${parentVar}.push($c(0,${expr.content}))`);
+        lines.push(`${parentVar}.push($vdomCreate(0,${expr.content}))`);
       } else {
-        lines.push(`${parentVar}.push($c(0,$n(${expr.content})))`);
+        lines.push(`${parentVar}.push($vdomCreate(0,$strSafe(${expr.content})))`);
       }
     } else if (expr.op === "@") {
-      lines.push(`${parentVar}.push($c(0,$refFn($refAlt,${expr.content})))`);
+      lines.push(`${parentVar}.push($vdomCreate(0,$refFn($refAlt,${expr.content})))`);
     } else if (expr.content) {
       // Code block — emit raw JS (if/for/else/etc.)
       lines.push(expr.content);
@@ -284,7 +284,7 @@ export function compileToVDomFunction(
     const childrenArg = isVoid ? "1" : childVar;
 
     lines.push(
-      `${parentVar}.push($c('${tagName}',${propsKey},${childrenArg}))`,
+      `${parentVar}.push($vdomCreate('${tagName}',${propsKey},${childrenArg}))`,
     );
   }
 
@@ -295,7 +295,7 @@ export function compileToVDomFunction(
 
   // ── Step 5: Emit return ──
 
-  lines.push(`return $c($viewId,0,${rootVar})`);
+  lines.push(`return $vdomCreate($viewId,0,${rootVar})`);
 
   // ── Step 6: Build function body ──
 
@@ -323,5 +323,5 @@ export function compileToVDomFunction(
   const fullSource = `${refFallback}let $splitter='\\x1e'{{VARS}};${funcBody}`;
 
   // VDOM arrow function signature: 7 params (no $encHtml)
-  return `($data,$viewId,$refAlt,$n,$refFn,$encUri,$encQuote)=>{${fullSource}}`;
+  return `($data,$viewId,$refAlt,$strSafe,$refFn,$encUri,$encQuote)=>{${fullSource}}`;
 }
