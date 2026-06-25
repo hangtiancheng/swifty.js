@@ -45,15 +45,15 @@
     PingFang SC, Microsoft YaHei;
 }
 
-/* daisyUI v5: override CSS custom properties for a very light green palette */
+/* daisyUI v5: custom blue-indigo theme based on rgb(69, 84, 229) */
 :root {
-  --color-primary: #86b89a;
-  --color-primary-content: #1a2e22;
-  --color-secondary: #7ab3a0;
-  --color-accent: #a3d4b5;
-  --color-neutral: #3d4a42;
-  --color-base-100: #fafcfa;
-  --color-base-200: #edf3ee;
-  --color-base-300: #dce5dd;
-  --color-base-content: #2a332c;
+  --color-primary: #4554e5;
+  --color-primary-content: #ffffff;
+  --color-secondary: #6370ed;
+  --color-accent: #8691f2;
+  --color-neutral: #283078;
+  --color-base-100: #f8f9ff;
+  --color-base-200: #ecedf8;
+  --color-base-300: #dcdff0;
+  --color-base-content: #1e2248;
 }
