@@ -49,17 +49,23 @@ function RootLayout() {
   const targetUrl = url ?? null;
   const navigate = useNavigate();
 
-  const { tree, status, refresh, iframeRef } = useFrameTree({
+  const { tree, status, refresh, reconnect, iframeRef } = useFrameTree({
     targetUrl,
     pollInterval: 2000,
   });
 
-  /** Navigate to the inspector route with the new target URL */
+  /** Navigate to the inspector route with the new target URL.
+   * When the URL is unchanged (e.g. user clicks Connect again after a
+   * timeout), fall back to `reconnect()` so the connection effect re-runs. */
   const handleUrlChange = useCallback(
     (newUrl: string) => {
-      navigate({ to: "/", search: { url: newUrl } });
+      if (newUrl === targetUrl) {
+        reconnect();
+      } else {
+        navigate({ to: "/", search: { url: newUrl } });
+      }
     },
-    [navigate],
+    [navigate, targetUrl, reconnect],
   );
 
   const pathname = useRouterState({ select: (s) => s.location.pathname });

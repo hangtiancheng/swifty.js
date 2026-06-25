@@ -22,6 +22,8 @@ interface UseFrameTreeReturn {
   status: ConnectionStatus;
   /** Manually refresh the frame tree */
   refresh: () => void;
+  /** Force a reconnection even when the target URL is unchanged */
+  reconnect: () => void;
   /** Reference to the iframe element for attaching to DOM */
   iframeRef: React.RefObject<HTMLIFrameElement | null>;
 }
@@ -42,6 +44,12 @@ export function useFrameTree({
 }: UseFrameTreeConfig): UseFrameTreeReturn {
   const [tree, setTree] = useState<SerializedFrameTree | null>(null);
   const [status, setStatus] = useState<ConnectionStatus>("disconnected");
+  /**
+   * Bumped by `reconnect()` to force the connection effect to re-run even
+   * when `targetUrl` is unchanged — e.g. the user clicks "Connect" again
+   * after a timeout, with the same URL still in the input.
+   */
+  const [attempt, setAttempt] = useState(0);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -62,6 +70,12 @@ export function useFrameTree({
   const refresh = useCallback(() => {
     sendMessage({ type: MSG_REQUEST_TREE });
   }, [sendMessage]);
+
+  /** Force a reconnection. Bumps `attempt` so the connection effect re-runs
+   * (resetting status, restarting the ping interval and timeout). */
+  const reconnect = useCallback((): void => {
+    setAttempt((a) => a + 1);
+  }, []);
 
   /** Handle incoming postMessage events */
   useEffect(() => {
@@ -101,7 +115,7 @@ export function useFrameTree({
     return () => window.removeEventListener("message", handler);
   }, [sendMessage]);
 
-  /** When targetUrl changes, reset state and start connection */
+  /** When targetUrl changes (or reconnect is called), reset state and start connection */
   useEffect(() => {
     setTree(null);
 
@@ -133,7 +147,7 @@ export function useFrameTree({
         timeoutRef.current = null;
       }
     };
-  }, [targetUrl, sendMessage]);
+  }, [targetUrl, sendMessage, attempt]);
 
   /** When connected, start polling for tree updates */
   useEffect(() => {
@@ -171,5 +185,5 @@ export function useFrameTree({
     return () => iframe.removeEventListener("load", onLoad);
   }, [sendMessage, targetUrl]);
 
-  return { tree, status, refresh, iframeRef };
+  return { tree, status, refresh, reconnect, iframeRef };
 }
