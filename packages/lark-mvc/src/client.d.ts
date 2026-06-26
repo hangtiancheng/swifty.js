@@ -4,6 +4,8 @@ import type {
   StateInterface,
   RouterInterface,
   CrossSiteConfig,
+  ViewTemplate,
+  VDomTemplate,
 } from "./types";
 import type { Frame } from "./frame";
 import type { View } from "./view";
@@ -55,14 +57,7 @@ declare module "*.css" {
   export default content;
 }
 
-// HTML template module declarations (Lark templates - compiled to functions)
 declare module "*.html" {
-  // const template: (
-  //   data: unknown,
-  //   viewId: string,
-  //   refData: unknown,
-  // ) => string;
-  // export default template;
-  const content: string;
-  export default content;
+  const template: ViewTemplate | VDomTemplate;
+  export default template;
 }

@@ -581,7 +581,13 @@ export function vdomSetChildNodes(
   // Fast path: first render
   if (!lastVDom) {
     ref.changed = 1;
+    console.log(
+      `[vdomSetChildNodes] FIRST RENDER — setting innerHTML, html=${newVDom.html?.substring(0, 200)}`,
+    );
     realNode.innerHTML = newVDom.html;
+    console.log(
+      `[vdomSetChildNodes] innerHTML set, calling ready via callFunction`,
+    );
     callFunction(ready, []);
     return;
   }

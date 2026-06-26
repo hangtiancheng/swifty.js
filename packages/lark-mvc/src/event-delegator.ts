@@ -8,7 +8,7 @@
  * - Range events: stop propagation at view boundaries
  * - Event info caching for performance
  */
-import { SPLITTER, EVENT_METHOD_REGEXP } from "./common";
+import { EVENT_METHOD_REGEXP } from "./common";
 import { parseUri, funcWithTry, noop, assign } from "./utils";
 import { createCache } from "./cache";
 import type { FrameObj, AnyFunc } from "./types";

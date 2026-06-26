@@ -16,13 +16,9 @@ declare module "*.css" {
 // `template?: ViewTemplate | VDomTemplate` — the two function signatures
 // have incompatible return types (`string` vs `VDomNode`), so a union
 // return type would not be assignable to either.
+import type { VDomTemplate, ViewSetup, ViewTemplate } from "@lark.js/mvc";
+
 declare module "*.html" {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const template: (
-    data: unknown,
-    viewId: string,
-    refData: unknown,
-    ...encoders: unknown[]
-  ) => any;
+  const template: ViewTemplate | VDomTemplate;
   export default template;
 }

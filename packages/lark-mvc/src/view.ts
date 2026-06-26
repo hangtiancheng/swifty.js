@@ -157,6 +157,9 @@ export function createCtx(frame: FrameObj): ViewCtx {
   }
 
   function endUpdate(zoneId?: string, inner?: boolean): void {
+    console.log(
+      `[endUpdate] id=${id} zoneId=${zoneId} inner=${inner} sig=${signature.value}`,
+    );
     if (signature.value > 0) {
       const updateId = zoneId ?? id;
       let flag: number | boolean | undefined;
@@ -169,7 +172,9 @@ export function createCtx(frame: FrameObj): ViewCtx {
         rendered.value = true;
       }
 
+      console.log(`[endUpdate] id=${id} calling mountZone(${updateId})`);
       frame.mountZone(updateId);
+      console.log(`[endUpdate] id=${id} mountZone returned`);
 
       if (!flag) {
         setTimeout(
@@ -179,6 +184,8 @@ export function createCtx(frame: FrameObj): ViewCtx {
           0,
         );
       }
+    } else {
+      console.log(`[endUpdate] id=${id} SKIPPED — sig not > 0`);
     }
   }
 
@@ -563,6 +570,7 @@ export function mountCtx(
   params?: unknown,
 ): ViewCtx {
   const ctx = createCtx(frame);
+  console.log(`[mountCtx] frameId=${frame.id} start`);
 
   // Run setup — returns { template, events, assign? }
   const descriptor = setup(ctx, params);
@@ -571,6 +579,10 @@ export function mountCtx(
   if (descriptor.assign) {
     ctx.setAssign(descriptor.assign);
   }
+
+  console.log(
+    `[mountCtx] frameId=${frame.id} hasTemplate=${!!descriptor.template} hasEvents=${!!descriptor.events}`,
+  );
 
   // Activate
   ctx.signature.value = 1;
@@ -583,17 +595,23 @@ export function mountCtx(
 
   // Register events
   registerEvents(ctx);
+  console.log(`[mountCtx] frameId=${frame.id} events registered`);
 
   // Run cleanups for useEffect hooks (they registered during setup)
   // No-op here; cleanups are registered via the hooks system
 
   // Render
   if (ctx.getTemplate()) {
+    console.log(`[mountCtx] frameId=${frame.id} calling render()`);
     ctx.render();
   } else {
+    console.log(
+      `[mountCtx] frameId=${frame.id} no template, calling endUpdate()`,
+    );
     ctx.endUpdate();
   }
 
+  console.log(`[mountCtx] frameId=${frame.id} done`);
   return ctx;
 }
 

@@ -93,10 +93,12 @@ const schedulerYield: (() => Promise<void>) | undefined = (() => {
  */
 async function startCall(): Promise<void> {
   callScheduled = false;
+  console.log(`[startCall] starting, queueLen=${callQueue.length}`);
   const startTime = performance.now();
 
   while (callQueue.length > 0) {
     const task = callQueue.shift()!;
+    console.log(`[startCall] processing task, remaining=${callQueue.length}`);
     try {
       task();
     } catch (e) {
@@ -163,8 +165,13 @@ export function callFunction<T extends unknown[]>(
   fn: (...args: T) => void,
   args: T,
 ): void {
-  callQueue.push(() => fn(...args));
+  console.log(`[callFunction] queuing task, queueLen=${callQueue.length}`);
+  callQueue.push(() => {
+    console.log(`[callFunction] executing task`);
+    fn(...args);
+  });
   if (!callScheduled) {
+    console.log(`[callFunction] scheduling next chunk`);
     scheduleNextChunk();
   }
 }

@@ -247,14 +247,24 @@ export function createFrame(id: string, parentId?: string): FrameObj {
     mountZone(zoneId?: string): void {
       const targetZone = zoneId ?? frame.id;
 
+      console.log(`[mountZone] frameId=${frame.id} targetZone=${targetZone}`);
+
       // Hold fire created event
       frame.holdFireCreated = 1;
 
       // Find all v-lark elements in zone
       const rootEl = document.getElementById(targetZone);
-      if (!rootEl) return;
+      if (!rootEl) {
+        console.log(
+          `[mountZone] frameId=${frame.id} rootEl NOT FOUND for ${targetZone}`,
+        );
+        return;
+      }
 
       const viewElements = rootEl.querySelectorAll(`[${LARK_VIEW}]`);
+      console.log(
+        `[mountZone] frameId=${frame.id} found ${viewElements.length} v-lark elements`,
+      );
       const frames: [string, string][] = [];
 
       viewElements.forEach((el) => {
@@ -263,6 +273,9 @@ export function createFrame(id: string, parentId?: string): FrameObj {
         const elId = ensureElementId(el, "frame_");
         (el as unknown as Record<string, unknown>)["frameBound"] = 1;
         const viewPathArg = getAttribute(el, LARK_VIEW);
+        console.log(
+          `[mountZone] v-lark el: id=${elId} viewPath=${viewPathArg}`,
+        );
         if (viewPathArg) {
           frames.push([elId, viewPathArg]);
         }
@@ -270,6 +283,9 @@ export function createFrame(id: string, parentId?: string): FrameObj {
 
       // Mount each frame
       for (const [frameId, viewPathArg] of frames) {
+        console.log(
+          `[mountZone] mounting frameId=${frameId} viewPath=${viewPathArg}`,
+        );
         frame.mountFrame(frameId, viewPathArg);
       }
 
