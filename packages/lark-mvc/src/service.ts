@@ -21,21 +21,14 @@ import type { EmitterApi } from "./types";
 import type {
   AnyFunc,
   ServiceMetaEntry,
-  ServiceCacheInfo,
   PendingCacheEntry,
   PayloadApi,
 } from "./types";
 
+export type { PayloadApi } from "./types";
 // ============================================================
 // Payload: response wrapper (functional factory)
 // ============================================================
-
-export interface PayloadApi extends PayloadApi {
-  data: Record<string, unknown>;
-  cacheInfo?: ServiceCacheInfo;
-  get<T = unknown>(key: string): T;
-  set(keyOrData: string | Record<string, unknown>, value?: unknown): PayloadApi;
-}
 
 /** Type guard: check if a value is a PayloadApi */
 function isPayload(v: unknown): v is PayloadApi {

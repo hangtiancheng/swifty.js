@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { Framework } from "../src/framework";
+import type { ChangeEvent } from "../src/types";
 
 describe("Framework", () => {
   // ============================================================
@@ -208,14 +209,14 @@ describe("Framework", () => {
 
     it("Base instances can bind and fire events", () => {
       const emitter = Framework.createEmitter();
-      let received: unknown = null;
-      emitter.on("test", (e: any) => {
-        received = e;
+      let received: ChangeEvent | undefined;
+      emitter.on("test", (e?: ChangeEvent) => {
+        if (e) received = e;
       });
       emitter.fire("test", { value: 42 });
       expect(received).toBeDefined();
-      expect((received as any).value).toBe(42);
-      expect((received as any).type).toBe("test");
+      expect(received?.type).toBe("test");
+      expect(Reflect.get(received ?? {}, "value")).toBe(42);
     });
 
     it("Base instances support off to unbind", () => {
@@ -445,10 +446,12 @@ describe("Framework", () => {
 
       let eventFired = false;
       let eventDetail: unknown = null;
-      el.addEventListener("test-event", ((e: CustomEvent) => {
+      el.addEventListener("test-event", (e: Event) => {
         eventFired = true;
-        eventDetail = e.detail;
-      }) as EventListener);
+        if (e instanceof CustomEvent) {
+          eventDetail = e.detail;
+        }
+      });
 
       Framework.dispatchEvent(el, "test-event", { detail: { msg: "hello" } });
       expect(eventFired).toBe(true);

@@ -114,7 +114,7 @@ export function hotSwapByTemplate(
   }
 }
 
-export function hotSwapByClass(oldSetup: ViewSetup, newSetup: ViewSetup): void {
+export function hotSwapByView(oldSetup: ViewSetup, newSetup: ViewSetup): void {
   if (!oldSetup || !newSetup || oldSetup === newSetup) return;
   const reg = getViewClassRegistry();
   for (const path in reg) {

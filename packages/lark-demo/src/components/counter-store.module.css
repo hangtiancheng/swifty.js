@@ -1,0 +1,6 @@
+/** This is a example, Use @apply, do NOT use custom properties  */
+
+.example-selector {
+
+  @apply bg-red-500;
+}

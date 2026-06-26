@@ -1,6 +1,7 @@
 /**
  * Lark framework type definitions.
- * All shared types are defined here to eliminate type cheats across modules.
+ * All shared types are defined here to provide a single source of truth
+ * for module interfaces and to enforce type safety across the framework.
  *
  * Lark is a lightweight MVC frontend framework that provides:
  * - View: functional view system via defineView() + ViewCtx + Hooks
@@ -291,7 +292,7 @@ export type VDomTemplate = (
 // ============================== VDOM ==============================
 
 // ============================================================
-// Frame internal types (replaces as-unknown-as-Record cheats)
+// Frame internal types
 // ============================================================
 
 export interface FrameInvokeEntry {
@@ -305,7 +306,7 @@ export interface FrameInvokeEntry {
   removed?: boolean;
 }
 
-// MixinEventHandler, ViewEventSelectorEntry removed — functional API uses events map
+// Event handler types are inline in the events map returned by ViewSetup
 
 // ============================================================
 // View instance types
@@ -339,7 +340,7 @@ export interface ViewResourceEntry {
   destroyOnRender: boolean;
 }
 
-// ViewGlobalEventEntry removed — functional API uses registerGlobalEvent closures
+// Global event listeners are managed via closures in registerGlobalEvent
 /**
  * View configuration for listening to URL changes.
  * Used as object parameter for `observeLocation()` method.
@@ -477,7 +478,7 @@ export interface FrameStaticEvent extends ChangeEvent {
 // ============================================================
 
 /**
- * Functional emitter API
+ * Functional emitter API.
  *
  * Returned by `createEmitter()`. No `this` binding — handlers are called
  * with `null` context. Methods return the API object for chaining.
@@ -494,9 +495,9 @@ export interface EmitterApi<T = unknown> {
 }
 
 /**
- * Functional cache API
+ * Functional cache API.
  *
- * Returned by `createCache()`. `size` is a getter property.
+ * Returned by `createCache()`.
  */
 export interface CacheApi<T = unknown> {
   set(key: string, resource: T): void;
@@ -509,9 +510,9 @@ export interface CacheApi<T = unknown> {
 }
 
 /**
- * Functional updater API (replaces `UpdaterApi`).
+ * Functional updater API.
  *
- * Returned by `createUpdater()`. `refData` is a getter property.
+ * Returned by `createUpdater()`. `refData` is a property.
  * `set()` returns the API object for chaining.
  */
 export interface UpdaterApi {
@@ -535,15 +536,15 @@ export interface UpdaterApi {
 }
 
 /**
- * Mutable reference cell — replaces direct property mutation on class instances.
- * Used for `signature` and `rendered` on `ViewCtx`.
+ * Mutable reference cell — used for `signature` and `rendered` on `ViewCtx`.
+ * Wraps mutable state in a `Ref<T>` to avoid getter/setter syntax.
  */
 export interface Ref<T> {
   value: T;
 }
 
 /**
- * Functional view context (replaces `ViewApi` as the runtime view handle).
+ * Functional view context.
  *
  * Passed as the first argument to every view setup function. Provides
  * framework APIs without `this` binding.
@@ -615,9 +616,9 @@ export interface ViewCtx {
 }
 
 /**
- * Functional frame object (replaces `FrameApi` for runtime use).
+ * Functional frame object.
  *
- * Created by `createFrame()`. Uses `ViewCtx` instead of `ViewApi`.
+ * Created by `createFrame()`. Uses `ViewCtx` for its view reference.
  */
 export interface FrameObj {
   id: string;
@@ -674,7 +675,7 @@ export type ViewSetup = (
   assign?: (options?: unknown) => boolean | undefined;
 };
 
-// ViewInstance removed — defineView returns ViewSetup directly, no wrapper needed
+// defineView returns a ViewSetup function directly — no wrapper class needed
 
 // ============================================================
 // Service types
@@ -881,7 +882,7 @@ export interface FrameworkApi {
   boot(cfg: FrameworkConfig): void;
   /**
    * Convert path and params to URL string.
-   * Example: `Framework.toUrl('/xxx/', {a:'b',c:'d'})` => `/xxx/?a=b&c=d`
+   * Example: `Framework.toUri('/xxx/', {a:'b',c:'d'})` => `/xxx/?a=b&c=d`
    * @param path Path string
    * @param params Params object
    * @param keepEmpty Set of keys whose empty values should be preserved
@@ -893,7 +894,7 @@ export interface FrameworkApi {
   ): string;
   /**
    * Parse URL string to path and params object.
-   * Example: `Framework.parseUrl('/xxx/?a=b&c=d')` => `{path:'/xxx/', params:{a:'b',c:'d'}}`
+   * Example: `Framework.parseUri('/xxx/?a=b&c=d')` => `{path:'/xxx/', params:{a:'b',c:'d'}}`
    * @param url URL string
    */
   parseUri(url: string): ParsedUri;
@@ -935,14 +936,17 @@ export interface FrameworkApi {
     callback?: (...modules: unknown[]) => void,
   ): void;
   /**
-   * Dynamically inject CSS styles into page. Returns cleanup function to remove injected styles.
-   * Supports single and batch injection.
-   * - `Framework.applyStyle("my-style", "body { color: red; }")` single injection
-   * - `Framework.applyStyle(["style1", "css1", "style2", "css2"])` batch injection
-   * @param styleIdOrPairs Style unique key or [id1, css1, id2, css2, ...] batch array
-   * @param cssText CSS style string (only used when first param is string)
+   * Inject CSS styles or accept a CSS module object.
+   * - `Framework.applyStyle(styles)` — CSS module object (no-op, bundler handles injection)
+   * - `Framework.applyStyle("my-style", "body { color: red; }")` — single `<style>` injection
+   * - `Framework.applyStyle(["s1", "css1", "s2", "css2"])` — batch injection
+   * @param input CSS module object, style ID, or [id, css, ...] batch array
+   * @param cssText CSS content string (only used when `input` is a style ID string)
    */
-  applyStyle(styleIdOrPairs: string | string[], cssText?: string): () => void;
+  applyStyle(
+    input: string | string[] | Record<string, string>,
+    cssText?: string,
+  ): () => void;
   /**
    * Generate globally unique identifier (GUID).
    * @param prefix GUID prefix, defaults to "lark-"

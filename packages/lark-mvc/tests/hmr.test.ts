@@ -6,11 +6,11 @@ import {
   hotSwapView,
   hotSwapFrames,
   hotSwapByTemplate,
-  hotSwapByClass,
+  hotSwapByView,
 } from "../src/hmr";
 import {
-  injectTemplateHmr,
-  injectViewClassHmr,
+  injectTemplateHmrSnippet,
+  injectViewHmr,
   importsHtmlTemplate,
 } from "../src/hmr-inject";
 import type { HotContext } from "../src/hmr";
@@ -242,7 +242,7 @@ describe("HMR", () => {
   });
 
   // ============================================================
-  // View.accept / View.dispose — now module-level functions
+  // acceptView / disposeView — module-level HMR functions
   // ============================================================
   describe("acceptView / disposeView", () => {
     it("accept is no-op when hot is undefined", () => {
@@ -448,7 +448,7 @@ describe("HMR", () => {
       cleanupFrame(frame);
     });
 
-    it("does not call init or render of the new class", async () => {
+    it("preserves state and applies new template without calling init", async () => {
       const frame = createTestFrame("hot-swap-no-init");
 
       const OldView = defineView((ctx) => {
@@ -460,16 +460,27 @@ describe("HMR", () => {
       frame.mountView("test/hot-swap-no-init");
       await flushMicrotasks();
 
-      const initSpy = vi.fn();
-      const NewView = defineView(() => ({
-        template: makeTemplate("new-template"),
-      }));
+      // Track whether the new setup function is called during hot-swap.
+      // hotSwapView SHOULD call the new setup (to get new template/events),
+      // but should NOT reset state (init-like behavior).
+      let newSetupCalled = false;
+      const NewView = defineView(() => {
+        newSetupCalled = true;
+        return { template: makeTemplate("new-template") };
+      });
 
       hotSwapView(frame, NewView);
 
-      // init must NOT have been called — state would be reset otherwise
-      expect(initSpy).not.toHaveBeenCalled();
+      // The new setup WAS called (to apply the new template)
+      expect(newSetupCalled).toBe(true);
+      // State is preserved — init was NOT re-invoked with fresh params
       expect(frame.view!.updater.get<number>("count")).toBe(10);
+      // New template is applied to DOM
+      expect(
+        document
+          .getElementById("hot-swap-no-init")!
+          .querySelector(".new-template"),
+      ).not.toBeNull();
 
       cleanupFrame(frame);
     });
@@ -709,9 +720,9 @@ describe("HMR", () => {
   });
 
   // ============================================================
-  // hotSwapByClass — zero-config view class HMR (by reference)
+  // hotSwapByView — zero-config view class HMR (by reference)
   // ============================================================
-  describe("hotSwapByClass", () => {
+  describe("hotSwapByView", () => {
     it("swaps prototype and updates registry for matching class", async () => {
       const OldView = defineView(() => ({
         template: makeTemplate("old-template"),
@@ -727,7 +738,7 @@ describe("HMR", () => {
         template: makeTemplate("new-template"),
       }));
 
-      hotSwapByClass(OldView, NewView);
+      hotSwapByView(OldView, NewView);
 
       // State preserved
       expect(frame.view!.updater.get<number>("count")).toBe(33);
@@ -753,7 +764,7 @@ describe("HMR", () => {
       frame.mountView("test/hot-swap-same-class");
       await flushMicrotasks();
 
-      hotSwapByClass(V, V);
+      hotSwapByView(V, V);
 
       expect(frame.view!.updater.get<number>("count")).toBe(1);
       cleanupFrame(frame);
@@ -764,10 +775,10 @@ describe("HMR", () => {
   // hmr-inject — snippet generation
   // ============================================================
   describe("hmr-inject", () => {
-    describe("injectTemplateHmr", () => {
+    describe("injectTemplateHmrSnippet", () => {
       it("appends Vite HMR snippet using import.meta.hot", () => {
         const source = "export default function() {}";
-        const result = injectTemplateHmr(source, "vite");
+        const result = injectTemplateHmrSnippet(source, "vite");
         expect(result).toContain("import.meta.hot");
         expect(result).toContain("hotSwapByTemplate");
         expect(result).toContain("__larkTemplate");
@@ -776,7 +787,7 @@ describe("HMR", () => {
 
       it("appends webpack HMR snippet using module.hot", () => {
         const source = "export default function() {}";
-        const result = injectTemplateHmr(source, "webpack");
+        const result = injectTemplateHmrSnippet(source, "webpack");
         expect(result).toContain("typeof module");
         expect(result).toContain("module.hot");
         expect(result).toContain("hotSwapByTemplate");
@@ -785,7 +796,7 @@ describe("HMR", () => {
 
       it("appends rspack HMR snippet using module.hot", () => {
         const source = "export default function() {}";
-        const result = injectTemplateHmr(source, "rspack");
+        const result = injectTemplateHmrSnippet(source, "rspack");
         expect(result).toContain("module.hot");
         expect(result).not.toContain("import.meta.hot");
       });
@@ -807,7 +818,7 @@ describe("HMR", () => {
       });
     });
 
-    describe("injectViewClassHmr", () => {
+    describe("injectViewHmr", () => {
       it("wraps export default and appends HMR for .ts files importing .html", () => {
         const source = `import View from "../view";
 import template from "./home.html";
@@ -816,34 +827,34 @@ export default View.extend({
   template,
   init() { this.updater.set({ count: 0 }); }
 });`;
-        const result = injectViewClassHmr(source, "vite");
+        const result = injectViewHmr(source, "vite");
 
         // Should create a named const
         expect(result).toContain("const __larkViewDefault = View.extend");
         expect(result).toContain("export default __larkViewDefault");
         // Should append HMR
         expect(result).toContain("import.meta.hot");
-        expect(result).toContain("hotSwapByClass");
+        expect(result).toContain("hotSwapByView");
       });
 
       it("returns source unchanged when no .html import", () => {
         const source =
           'import View from "../view";\nexport default defineView(() => ({ template: () => "" }));';
-        const result = injectViewClassHmr(source, "vite");
+        const result = injectViewHmr(source, "vite");
         expect(result).toBe(source);
       });
 
       it("returns source unchanged when no export default", () => {
         const source =
           'import template from "./home.html";\nconst V = defineView(() => ({ template: () => "" }));';
-        const result = injectViewClassHmr(source, "vite");
+        const result = injectViewHmr(source, "vite");
         expect(result).toBe(source);
       });
 
       it("uses module.hot for webpack", () => {
         const source =
           'import template from "./home.html";\nexport default defineView(() => ({ template: () => "" }));';
-        const result = injectViewClassHmr(source, "webpack");
+        const result = injectViewHmr(source, "webpack");
         expect(result).toContain("module.hot");
         expect(result).not.toContain("import.meta.hot");
       });

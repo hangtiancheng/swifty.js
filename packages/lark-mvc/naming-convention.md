@@ -29,12 +29,12 @@ The compiler emits a named function declaration (not anonymous) so the HMR snipp
 
 ### `__larkViewDefault`
 
-| Field    | Value                                                                                                                           |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| Producer | `hmr-inject.ts` `injectViewClassHmr` rewrites `export default View.extend(...)` to `const __larkViewDefault = View.extend(...)` |
-| Consumer | `hmr-inject.ts` view class HMR snippet references it via `VIEW_VAR`                                                             |
-| Constant | `const VIEW_VAR = "__larkViewDefault"` in `hmr-inject.ts` (defined in both `getViewClassHmrSnippet` and `injectViewClassHmr`)   |
-| Purpose  | Lets the HMR dispose callback capture the old View class reference                                                              |
+| Field    | Value                                                                                                                                            |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Producer | `hmr-inject.ts` `injectViewHmr` rewrites `export default defineView(...)` (or `View.extend(...)`) to `const __larkViewDefault = defineView(...)` |
+| Consumer | `hmr-inject.ts` view class HMR snippet references it via `VIEW_VAR`                                                                              |
+| Constant | `const VIEW_VAR = "__larkViewDefault"` in `hmr-inject.ts` (defined in both `getViewHmrSnippet` and `injectViewHmr`)                              |
+| Purpose  | Lets the HMR dispose callback capture the old View class reference                                                                               |
 
 ### `__larkEncHtml`, `__larkStrSafe`, `__larkEncUri`, `__larkEncQuote`, `__larkRefFn`
 
@@ -76,10 +76,10 @@ Only VDOM mode emits this import. String mode does not need it.
 
 ### `__larkNew`, `__larkOld`
 
-| Field    | Value                                                                                                                |
-| -------- | -------------------------------------------------------------------------------------------------------------------- |
-| Producer | `hmr-inject.ts` snippet declares them as local `var`                                                                 |
-| Consumer | `hmr-inject.ts` snippet compares `__larkOld !== __larkNew` and passes them to `hotSwapByTemplate` / `hotSwapByClass` |
+| Field    | Value                                                                                                               |
+| -------- | ------------------------------------------------------------------------------------------------------------------- |
+| Producer | `hmr-inject.ts` snippet declares them as local `var`                                                                |
+| Consumer | `hmr-inject.ts` snippet compares `__larkOld !== __larkNew` and passes them to `hotSwapByTemplate` / `hotSwapByView` |
 
 ## `hot.data` keys
 
@@ -113,22 +113,22 @@ These functions are called via dynamic `import("@lark.js/mvc").then(m => m.fn(..
 | Consumer         | Template HMR snippet calls `m.hotSwapByTemplate(__larkOld, __larkNew)` |
 | Re-exported from | `index.ts`                                                             |
 
-### `hotSwapByClass`
+### `hotSwapByView`
 
-| Field            | Value                                                                 |
-| ---------------- | --------------------------------------------------------------------- |
-| Producer         | `hmr.ts` exports it                                                   |
-| Consumer         | View class HMR snippet calls `m.hotSwapByClass(__larkOld, __larkNew)` |
-| Re-exported from | `index.ts`                                                            |
+| Field            | Value                                                                |
+| ---------------- | -------------------------------------------------------------------- |
+| Producer         | `hmr.ts` exports it                                                  |
+| Consumer         | View class HMR snippet calls `m.hotSwapByView(__larkOld, __larkNew)` |
+| Re-exported from | `index.ts`                                                           |
 
 ## Module path contracts
 
 ### `@lark.js/mvc`
 
-| Field                              | Value                                                                                                                                         |
-| ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| Consumers                          | Compiled VDOM templates import `vdomCreate`. HMR snippets dynamically `import("@lark.js/mvc")` to call `hotSwapByTemplate` / `hotSwapByClass` |
-| Exports required by generated code | `vdomCreate`, `hotSwapByTemplate`, `hotSwapByClass`                                                                                           |
+| Field                              | Value                                                                                                                                        |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Consumers                          | Compiled VDOM templates import `vdomCreate`. HMR snippets dynamically `import("@lark.js/mvc")` to call `hotSwapByTemplate` / `hotSwapByView` |
+| Exports required by generated code | `vdomCreate`, `hotSwapByTemplate`, `hotSwapByView`                                                                                           |
 
 ### `@lark.js/mvc/runtime`
 

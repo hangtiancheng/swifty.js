@@ -212,7 +212,8 @@ export function useTimeout(fn: () => void, delay: number): void {
  * @param destroyOnRender - If true, destroyed on next render call
  *
  * @example
- * useResource('myService', new AppService(), true);
+ * const service = createService(syncFn);
+ * useResource('myService', service.instance(), true);
  */
 export function useResource(
   key: string,

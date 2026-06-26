@@ -319,23 +319,23 @@ At event dispatch time, `EventDelegator` looks up handlers via `view.getEvents()
 
 ### Runtime functions
 
-| Function                             | Description                                                 |
-| ------------------------------------ | ----------------------------------------------------------- |
-| `hotSwapByTemplate(old, new)`        | Swap template on all matching views                         |
-| `hotSwapByClass(oldSetup, newSetup)` | Swap setup on all matching views                            |
-| `hotSwapView(frame, newSetup)`       | Swap setup on a single frame (re-runs setup, preserves ctx) |
-| `hotSwapFrames(viewPath, newSetup)`  | Swap all frames matching viewPath                           |
-| `reloadViews(viewPath)`              | Legacy full-remount (loses state)                           |
-| `acceptView(hot, viewPath)`          | Set up HMR accept handler                                   |
-| `disposeView(hot, viewPath)`         | Set up HMR dispose handler                                  |
+| Function                            | Description                                                 |
+| ----------------------------------- | ----------------------------------------------------------- |
+| `hotSwapByTemplate(old, new)`       | Swap template on all matching views                         |
+| `hotSwapByView(oldSetup, newSetup)` | Swap setup on all matching views                            |
+| `hotSwapView(frame, newSetup)`      | Swap setup on a single frame (re-runs setup, preserves ctx) |
+| `hotSwapFrames(viewPath, newSetup)` | Swap all frames matching viewPath                           |
+| `reloadViews(viewPath)`             | Legacy full-remount (loses state)                           |
+| `acceptView(hot, viewPath)`         | Set up HMR accept handler                                   |
+| `disposeView(hot, viewPath)`        | Set up HMR dispose handler                                  |
 
 ### Injection functions
 
-| Function                              | Description                              |
-| ------------------------------------- | ---------------------------------------- |
-| `injectTemplateHmr(source, bundler)`  | Append template HMR snippet              |
-| `injectViewClassHmr(source, bundler)` | Rewrite export default + append view HMR |
-| `importsHtmlTemplate(source)`         | Check if source imports .html            |
+| Function                                    | Description                              |
+| ------------------------------------------- | ---------------------------------------- |
+| `injectTemplateHmrSnippet(source, bundler)` | Append template HMR snippet              |
+| `injectViewHmr(source, bundler)`            | Rewrite export default + append view HMR |
+| `importsHtmlTemplate(source)`               | Check if source imports .html            |
 
 ## Framework
 
@@ -1457,12 +1457,12 @@ function hotSwapByTemplate(
 ): void;
 ```
 
-### hotSwapByClass(oldClass, newClass)
+### hotSwapByView(oldClass, newClass)
 
 View class HMR. Updates the registry (replaces `oldClass` entries with `newClass`) and hot-swaps every mounted frame whose view is an `instanceof oldClass` via `hotSwapView`. Used by the auto-injected view class HMR snippet.
 
 ```ts
-function hotSwapByClass(oldClass: typeof View, newClass: typeof View): void;
+function hotSwapByView(oldClass: typeof View, newClass: typeof View): void;
 ```
 
 ### hotSwapView(frame, NewViewClass)
@@ -1498,13 +1498,13 @@ View.accept(hot: HotContext | undefined, viewPath: string): void
 View.dispose(hot: HotContext | undefined, viewPath: string): void
 ```
 
-### injectTemplateHmr(source, bundler) / injectViewClassHmr(source, bundler)
+### injectTemplateHmrSnippet(source, bundler) / injectViewHmr(source, bundler)
 
 Snippet generators from `hmr-inject.ts` (zero runtime imports, safe in Node.js). Used by the Vite/Webpack/Rspack plugins to append HMR code to compiled output.
 
 ```ts
-function injectTemplateHmr(source: string, bundler: Bundler): string;
-function injectViewClassHmr(source: string, bundler: Bundler): string;
+function injectTemplateHmrSnippet(source: string, bundler: Bundler): string;
+function injectViewHmr(source: string, bundler: Bundler): string;
 ```
 
 ### Cross-bundler HMR API differences

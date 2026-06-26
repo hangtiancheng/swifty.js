@@ -571,7 +571,7 @@ export default HomeView;
 ### Runtime HMR functions
 
 - `hotSwapByTemplate(oldTemplate, newTemplate)` — swap template on all matching views
-- `hotSwapByClass(oldSetup, newSetup)` — swap setup function on all matching views
+- `hotSwapByView(oldSetup, newSetup)` — swap setup function on all matching views
 - `hotSwapView(frame, newSetup)` — swap setup on a single frame (re-runs setup, preserves ctx)
 - `hotSwapFrames(viewPath, newSetup)` — swap all frames matching viewPath
 - `reloadViews(viewPath)` — legacy full-remount (loses state)

@@ -5,10 +5,11 @@
  * - boot() with config
  * - Router + State change notification to views
  * - Module loading (require/use)
- * - Global utility proxies: toMap, toTry, toUrl, parseUrl, mix, has, keys, inside, node, guid, guard
- * - dispatch, task, delay, Base
+ * - Utility methods: toUri, parseUri, assign, keys, nodeInside, ensureNodeId,
+ *   generateId, applyStyle, mark/unmark, dispatchEvent, task, delay
  * - waitZoneViewsRendered
- * - beforeunload support
+ * - Factory access: createEmitter, createCache, defineView
+ * - Module access: Router, State, Frame
  */
 import { CALL_BREAK_TIME, RouterEvents } from "./common";
 import {
@@ -172,7 +173,7 @@ function isThenable(value: unknown): value is PromiseLike<void> {
 }
 
 // ============================================================
-// View_IsObserveChanged / State_IsObserveChanged
+// Location / State observation change detection
 // ============================================================
 
 /**
@@ -216,15 +217,6 @@ function stateIsObserveChanged(
   return false;
 }
 
-/**
- * Notify a frame's view of location/state changes.
- *
- * Key features:
- * - $a tag
- * - View_IsObserveChanged for location changes
- * - State_IsObserveChanged for state changes
- * - Async render Promise support
- */
 /**
  * Walk the Frame tree iteratively, rendering any view whose observed keys
  * have changed. Uses an explicit LIFO stack so deeply nested Frame trees
@@ -343,7 +335,7 @@ function dispatchEvent(
   target.dispatchEvent(event);
 }
 
-// use is re-exported from module-loader.ts (see top of file)
+// use is imported from module-loader.ts (see top of file)
 
 // ============================================================
 // waitZoneViewsRendered

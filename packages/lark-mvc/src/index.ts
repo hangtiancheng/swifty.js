@@ -56,16 +56,11 @@ export type { UpdaterApi } from "./types";
 export { vdomCreate, createVDomRef } from "./vdom";
 
 // ============================== VDOM ==============================
-// View (functional — defineView factory + hooks)
-export {
-  defineView,
-  mountCtx,
-  unmountCtx,
-  registerEvents,
-  unregisterEvents,
-  destroyAllResources,
-  runInvokes,
-} from "./view";
+// View (functional — defineView factory)
+// Internal functions (mountCtx, unmountCtx, registerEvents, etc.) are NOT
+// re-exported here — they are called by the Frame system internally.
+// Tests import them directly from "./view".
+export { defineView } from "./view";
 export type { ViewCtx, ViewSetup } from "./types";
 
 // Hooks runtime
@@ -102,11 +97,11 @@ export {
   hotSwapView,
   hotSwapFrames,
   hotSwapByTemplate,
-  hotSwapByClass,
+  hotSwapByView,
 } from "./hmr";
 export {
-  injectTemplateHmr,
-  injectViewClassHmr,
+  injectTemplateHmrSnippet,
+  injectViewHmr,
   importsHtmlTemplate,
 } from "./hmr-inject";
 export type { HotContext } from "./hmr";

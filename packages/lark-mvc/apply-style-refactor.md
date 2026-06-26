@@ -8,7 +8,7 @@ Considering we have a 404.html, `404[.module].css`, and 404.ts under a directory
 <!-- 404 View Template -->
 <div class="container">
   <div class="wrapper">
-    <div class="title">404</div>
+    <h1 class="title">404</h1>
     <h1 class="title">Page Not Found</h1>
     <p class="typography">
       The path
@@ -30,11 +30,14 @@ Considering we have a 404.html, `404[.module].css`, and 404.ts under a directory
  */
 import { defineView, Router, applyStyle } from "@lark.js/mvc";
 import template from "./404.html";
-import styles from "./404.module.css"; // Or 404.css
+import styles from "./404.module.css";
+// import styles2 from "./xxx.module.css"
 
 export default defineView((ctx, params) => {
   // Apply styles here.
   applyStyle(styles);
+  // Also supports multiple CSS imports
+  // applyStyle(styles, styles2)
 
   // ── assign: incremental DOM update ──
   const assign = (_options?: unknown): boolean | undefined => {
@@ -81,6 +84,6 @@ export default defineView((ctx, params) => {
 }
 ```
 
-Either the user use `404.css` or `404.module.css`, the vite/webpack/rspack/rsbuild should use CSS modules as **default**
+When the user use the `.module.css`, enable vite/webpack/rspack/rsbuild CSS module support (PostCSS).
 
 Migrate please.

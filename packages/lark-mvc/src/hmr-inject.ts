@@ -6,8 +6,8 @@
  * React's `@vitejs/plugin-react` and Vue's `@vitejs/plugin-vue` auto-inject
  * HMR boilerplate at compile time so users never write `import.meta.hot`
  * themselves. Lark's `larkMvcPlugin` / `larkMvcLoader` previously did NOT
- * inject any HMR code, forcing users to manually call `View.accept()` /
- * `View.dispose()` in every view file — a poor DX.
+ * inject any HMR code, forcing users to manually call `acceptView()` /
+ * `disposeView()` in every view file — a poor DX.
  *
  * This module generates the HMR snippet strings that the three bundler
  * integrations (vite.ts, webpack.ts, rspack.ts) append to compiled output.
@@ -23,7 +23,7 @@
  *
  * 2. **View class module** (`.ts` file that imports `.html`): self-accepts.
  *    When the `.ts` changes, the accept callback calls
- *    `hotSwapByClass(old, new)` to swap the setup function on all mounted
+ *    `hotSwapByView(old, new)` to swap the setup function on all mounted
  *    instances — preserving state.
  *
  * ## Cross-bundler HMR API differences
@@ -126,7 +126,10 @@ if (typeof module !== "undefined" && module.hot) {
  * @param bundler - Which bundler's HMR API to use
  * @returns The source with HMR accept/dispose code appended
  */
-export function injectTemplateHmr(source: string, bundler: Bundler): string {
+export function injectTemplateHmrSnippet(
+  source: string,
+  bundler: Bundler,
+): string {
   return source + "\n" + getTemplateHmrSnippet(bundler);
 }
 
@@ -143,7 +146,7 @@ export function injectTemplateHmr(source: string, bundler: Bundler): string {
  * `const __larkViewDefault = defineView(...); export default __larkViewDefault;`
  * so that the HMR callback can capture the old class reference.
  */
-function getViewClassHmrSnippet(bundler: Bundler): string {
+function getViewHmrSnippet(bundler: Bundler): string {
   const VIEW_VAR = "__larkViewDefault";
 
   if (bundler === "vite") {
@@ -158,7 +161,7 @@ if (import.meta.hot) {
     var __larkOld = import.meta.hot.data && import.meta.hot.data.oldClass;
     if (__larkOld && __larkNew && __larkOld !== __larkNew) {
       import("@lark.js/mvc").then(function(m) {
-        if (m && m.hotSwapByClass) m.hotSwapByClass(__larkOld, __larkNew);
+        if (m && m.hotSwapByView) m.hotSwapByView(__larkOld, __larkNew);
       });
     }
   });
@@ -178,7 +181,7 @@ if (typeof module !== "undefined" && module.hot) {
     var __larkOld = module.hot && module.hot.data && module.hot.data.oldClass;
     if (__larkOld && __larkNew && __larkOld !== __larkNew) {
       import("@lark.js/mvc").then(function(m) {
-        if (m && m.hotSwapByClass) m.hotSwapByClass(__larkOld, __larkNew);
+        if (m && m.hotSwapByView) m.hotSwapByView(__larkOld, __larkNew);
       });
     }
   });
@@ -217,7 +220,7 @@ export function importsHtmlTemplate(source: string): boolean {
  * @param bundler - Which bundler's HMR API to use
  * @returns The transformed source with HMR code, or the original if ineligible
  */
-export function injectViewClassHmr(source: string, bundler: Bundler): string {
+export function injectViewHmr(source: string, bundler: Bundler): string {
   if (!importsHtmlTemplate(source)) return source;
 
   // Find `export default <expression>;` and rewrite to named const + export.
@@ -255,7 +258,7 @@ export function injectViewClassHmr(source: string, bundler: Bundler): string {
     `\nexport default ${VIEW_VAR};` +
     after +
     "\n" +
-    getViewClassHmrSnippet(bundler);
+    getViewHmrSnippet(bundler);
 
   return transformed;
 }
