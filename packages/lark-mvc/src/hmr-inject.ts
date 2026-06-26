@@ -23,7 +23,7 @@
  *
  * 2. **View class module** (`.ts` file that imports `.html`): self-accepts.
  *    When the `.ts` changes, the accept callback calls
- *    `hotSwapByClass(old, new)` to swap the prototype on all mounted
+ *    `hotSwapByClass(old, new)` to swap the setup function on all mounted
  *    instances — preserving state.
  *
  * ## Cross-bundler HMR API differences
@@ -139,8 +139,8 @@ export function injectTemplateHmr(source: string, bundler: Bundler): string {
  *
  * This snippet references `__larkViewDefault`, which must be a named const
  * holding the View class. The `transformViewClassSource` function (below)
- * rewrites `export default View.extend(...)` into
- * `const __larkViewDefault = View.extend(...); export default __larkViewDefault;`
+ * rewrites `export default defineView(...)` into
+ * `const __larkViewDefault = defineView(...); export default __larkViewDefault;`
  * so that the HMR callback can capture the old class reference.
  */
 function getViewClassHmrSnippet(bundler: Bundler): string {
@@ -225,14 +225,14 @@ export function injectViewClassHmr(source: string, bundler: Bundler): string {
   // (the file might use a non-standard export pattern).
   //
   // Supported patterns:
-  //   export default View.extend({...});
+  //   export default defineView(...);
   //   export default defineView({...});
   //   export default <anything>;
   //
   // We capture the expression after `export default` up to the line ending
   // with `);` or `};` or just `;`. This handles the vast majority of cases.
   // For multi-line expressions, we rely on the fact that `export default`
-  // is almost always a single statement ending with `);` (from .extend() or
+  // is almost always a single statement ending with `);` (from defineView() or
   // defineView()).
   const exportDefaultRe = /export\s+default\s+/;
   const match = exportDefaultRe.exec(source);

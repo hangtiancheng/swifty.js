@@ -237,36 +237,17 @@ Templates use `@click="handlerName()"` syntax. The compiler's `processViewEvents
 | `{{forOf list as item idx}}` |          | Loop over iterable                     |
 | `{{/forOf}}`                 |          | Close loop                             |
 
-## View prototype stored event maps
+## View context event storage
 
-These are set on the View prototype by `View.prepare` and read by `View.delegateEvents` via getters. They use `$` prefix to avoid collisions with user-defined methods.
+In the functional API, event handlers are stored in the `events` map returned by the setup function, not on a prototype. The map is accessed via `ctx.getEvents()` / `ctx.setEvents()`.
 
-| Name             | Type                                     | Set by            | Read by                                             |
-| ---------------- | ---------------------------------------- | ----------------- | --------------------------------------------------- |
-| `$evtObjMap`     | `Record<string, number>`                 | `View.prepare`    | `View.delegateEvents` via `eventObjectMap` getter   |
-| `$selectorMap`   | `Record<string, ViewEventSelectorEntry>` | `View.prepare`    | `View.delegateEvents` via `eventSelectorMap` getter |
-| `$globalEvtList` | `ViewGlobalEventEntry[]`                 | `View.prepare`    | `View.delegateEvents` via `globalEventList` getter  |
-| `$renderWrap`    | `AnyFunc`                                | `View.wrapMethod` | Render call dispatch                                |
+| Name       | Type                      | Set by           | Read by                            |
+| ---------- | ------------------------- | ---------------- | ---------------------------------- |
+| `events`   | `Record<string, AnyFunc>` | `mountCtx`       | `registerEvents`, `EventDelegator` |
+| `cleanups` | `Array<() => void>`       | `useEffect` hook | `unmountCtx`, `hotSwapView`        |
+| `assign`   | `(options?) => boolean`   | `mountCtx`       | Framework `endUpdate` cycle        |
 
-## View class static marker
-
-### `ctors`
-
-| Field   | Value                                                                                    |
-| ------- | ---------------------------------------------------------------------------------------- |
-| Type    | `AnyFunc[]`                                                                              |
-| Purpose | Guards `View.prepare` to run only once per class. Also holds mixin constructor functions |
-| Check   | `if (oView.ctors) return oView.ctors`                                                    |
-
-## Compiled template event handler key format
-
-Event handlers are stored on the View prototype under a combined key:
-
-```
-handlerName + SPLITTER + eventType
-```
-
-For example, `"navigateTo\x1eclick"`. `View.prepare` scans prototype methods matching `/^(\$?)([\w]*)<(.*?)>(?:<([\w ,]*)>)?$/` and stores them under this combined key. The `EventDelegator` looks up handlers by this key at event dispatch time.
+Event handler keys use the original `"name<eventType>"` format (e.g. `"navigateTo<click>"`). The `EventDelegator` looks up handlers by this key via `ctx.getEvents()[key]` at event dispatch time.
 
 ## Naming convention summary
 

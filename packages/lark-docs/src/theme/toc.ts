@@ -8,7 +8,9 @@ import type { VDomTemplate, ViewSetup, ViewTemplate } from "@lark.js/mvc";
  * Supports scroll-spy to highlight the currently visible heading.
  */
 
-export function createTocView(template: ViewTemplate | VDomTemplate): ViewSetup {
+export function createTocView(
+  template: ViewTemplate | VDomTemplate,
+): ViewSetup {
   return defineView((ctx) => {
     // Re-render when the layout publishes new headings for the current page.
     ctx.observeState("currentPageHeadings");

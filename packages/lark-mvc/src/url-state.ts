@@ -24,20 +24,17 @@ import type { ViewCtx } from "./types";
  *
  * @example
  * ```ts
- * export default View.extend({
- *   template,
- *   init() {
- *     const [state, setState] = useUrlState(this, { page: "1", size: "20" });
- *     this.updater.set({ page: state.page, size: state.size }).digest();
- *     this.setState = setState;
- *   },
- *   assign() {
- *     const [state] = useUrlState(this, { page: "1", size: "20" });
- *     this.updater.set({ page: state.page, size: state.size });
- *   },
- *   "nextPage<click>"() {
- *     this.setState((prev) => ({ page: String(Number(prev.page) + 1) }));
- *   },
+ * export default defineView((ctx) => {
+ *   const [state, setState] = useUrlState(ctx, { page: "1", size: "20" });
+ *   ctx.updater.set({ page: state.page, size: state.size }).digest();
+ *   return {
+ *     template,
+ *     events: {
+ *       "nextPage<click>"() {
+ *         setState((prev) => ({ page: String(Number(prev.page) + 1) }));
+ *       },
+ *     },
+ *   };
  * });
  * ```
  */

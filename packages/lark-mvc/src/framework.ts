@@ -582,7 +582,7 @@ export const Framework: FrameworkInterface = {
   /**
    * Cache factory (functional).
    */
-  Cache: createCache,
+  createCache: createCache,
 
   /**
    * Ensure element has an ID.
@@ -597,7 +597,7 @@ export const Framework: FrameworkInterface = {
   /**
    * Base class with EventEmitter.
    */
-  Base: createEmitter,
+  createEmitter: createEmitter,
 
   // ============================================================
   // Module access
@@ -610,7 +610,7 @@ export const Framework: FrameworkInterface = {
   State,
 
   /** View factory (functional) */
-  View: defineView,
+  defineView: defineView,
 
   /** Frame class */
   Frame,

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { create, bindStore } from "../src/store";
+import { createStore, bindStore } from "../src/store";
 import { createUpdater } from "../src/updater";
 
 function fakeView(id: string) {
@@ -28,7 +28,7 @@ function nextName(): string {
 }
 
 function makeStore(name: string) {
-  return create<CountState>(name, (set, get) => ({
+  return createStore<CountState>(name, (set, get) => ({
     count: 0,
     step: 1,
     increment() {
@@ -37,7 +37,7 @@ function makeStore(name: string) {
   }));
 }
 
-describe("create - subscribe", () => {
+describe("createStore - subscribe", () => {
   it("subscribe fires on setState", () => {
     const store = makeStore(nextName());
     const listener = vi.fn();

@@ -34,7 +34,7 @@ Any task that involves documentation site generation with Lark:
 - Configuring `defineConfig()` in `lark-docs.config.ts` with `DocsConfig` options.
 - Setting up bundler plugins: `larkDocsPlugin` (Vite), `LarkDocsPlugin` (Webpack/Rspack).
 - Writing Markdown with YAML frontmatter (`title`, `description`, `sidebar_position`, `sidebar_label`, `sidebar_group`, `draft`).
-- Using the theme: `registerThemeViews(View)` for one-call setup, or individual factories for custom registration.
+- Using the theme: `registerThemeViews()` for one-call setup, or individual factories for custom registration.
 - Configuring search: `"local"` (built-in modal), `"docsearch"` (Algolia UI + local index), `"none"`.
 - Setting up Shiki syntax highlighting (`highlight.theme`, `highlight.languages`).
 - Working with auto-generated sidebars (`sidebar: { "/prefix/": "auto" }`).
@@ -102,7 +102,7 @@ import {
 
 At boot time:
 
-1. `registerThemeViews(View)` registers all four theme views with their compiled templates.
+1. `registerThemeViews()` registers all four theme views with their compiled templates.
 2. `State.set({ docsConfig, loadContent, getSearchIndex })` injects site data and content loader.
 3. `Framework.boot(config)` starts the SPA with the generated routes.
 
@@ -156,7 +156,7 @@ my-docs-site/
 ### boot.ts
 
 ```ts
-import { Framework, View, State } from "@lark.js/mvc";
+import { Framework, State } from ".js/mvc";
 import {
   routes,
   docsConfig,
@@ -165,7 +165,7 @@ import {
 } from "@lark-docs/generated";
 import { registerThemeViews } from "@lark.js/docs/theme";
 
-registerThemeViews(View);
+registerThemeViews();
 State.set({ docsConfig, loadContent, getSearchIndex });
 
 Framework.boot({
@@ -334,10 +334,10 @@ Fenced code blocks with language identifier are syntax-highlighted when Shiki is
 ### registerThemeViews (recommended)
 
 ```ts
-import { View } from "@lark.js/mvc";
+// No need to import View — registerThemeViews uses defineView internally
 import { registerThemeViews } from "@lark.js/docs/theme";
 
-registerThemeViews(View);
+registerThemeViews();
 ```
 
 Registers all four theme views in one call. Internally imports `.html` templates (compiled by `larkMvcPlugin` at build time), creates view classes, and calls `registerViewClass()` for each. Consumers never import `.html` files directly.
@@ -345,10 +345,10 @@ Registers all four theme views in one call. Internally imports `.html` templates
 ### Four View factories (for advanced/custom use)
 
 ```ts
-createDocsLayoutView(View, template); // Root layout: navbar + 3-column body
-createSidebarView(View, template); // Left sidebar navigation
-createTocView(View, template); // Right-side heading outline
-createSearchView(View, template); // Search modal (local provider)
+createDocsLayoutView(template); // Root layout: navbar + 3-column body
+createSidebarView(template); // Left sidebar navigation
+createTocView(template); // Right-side heading outline
+createSearchView(template); // Search modal (local provider)
 ```
 
 Each factory takes the lark-mvc `View` class and a compiled template string, returns a View subclass ready for `registerViewClass()`.
@@ -634,17 +634,17 @@ This works alongside the `/// <reference types>` directive: the reference provid
 To add a custom theme view (e.g., a footer) alongside the built-in four:
 
 ```ts
-import { View } from "@lark.js/mvc";
+// No need to import View — registerThemeViews uses defineView internally
 import { registerThemeViews } from "@lark.js/docs/theme";
 import footerTemplate from "./footer.html";
 
 // Register built-in views first
-registerThemeViews(View);
+registerThemeViews();
 
 // Then register your custom view
 registerViewClass(
   "theme/footer",
-  View.extend({
+  defineView((ctx) => ({
     template: footerTemplate,
     init() {
       this.assign();
@@ -666,13 +666,10 @@ registerViewClass(
 Call `registerViewClass` with the same view ID after `registerThemeViews` to replace it:
 
 ```ts
-registerThemeViews(View);
+registerThemeViews();
 
 // Override the layout with a custom version
-registerViewClass(
-  "theme/docs-layout",
-  createDocsLayoutView(View, myCustomTemplate),
-);
+registerViewClass("theme/docs-layout", createDocsLayoutView(myCustomTemplate));
 ```
 
 ### Customizing the search algorithm

@@ -1,3 +1,350 @@
+# API Reference
+
+Complete type signatures for all public exports from `@lark.js/mvc`.
+
+## View System (Functional)
+
+### `defineView(setup)`
+
+Define a view via a setup function. Returns the setup function as-is.
+
+```ts
+function defineView(setup: ViewSetup): ViewSetup;
+
+type ViewSetup = (
+  ctx: ViewCtx,
+  params?: unknown,
+) => {
+  template?: ViewTemplate | VDomTemplate;
+  events?: Record<string, AnyFunc>;
+  assign?: (options?: unknown) => boolean | undefined;
+};
+```
+
+### `ViewCtx`
+
+The context object passed to every view setup function. No `this` binding — all methods are closures.
+
+| Property | Type | Description |
+|---|---|---|
+| `id` | `string` | View ID (same as owner frame ID) |
+| `owner` | `FrameObj` | Owner frame reference |
+| `updater` | `UpdaterApi` | Data binding and DOM diff |
+| `signature` | `Ref<number>` | >0 active, 0 = destroyed |
+| `rendered` | `Ref<boolean>` | Whether rendered at least once |
+| `resources` | `Record<string, ViewResourceEntry>` | Resource map |
+| `cleanups` | `Array<() => void>` | Cleanup functions (useEffect) |
+| `emitter` | `EmitterApi` | Internal emitter for lifecycle events |
+| `locationObserved` | `ViewLocationObserved` | Location observation config |
+| `renderMethod?` | `AnyFunc` | Custom render function (replaces default digest) |
+| `vdom?` | `VDomNode` | Last rendered VDOM tree |
+
+**Methods**: `getTemplate()`, `setTemplate(v)`, `getEvents()`, `setEvents(v)`, `getAssign()`, `setAssign(v)`, `getObservedStateKeys()`, `setObservedStateKeys(v)`, `getEndUpdatePending()`, `setEndUpdatePending(v)`, `render()`, `init(params?)`, `beginUpdate(id?)`, `endUpdate(id?, inner?)`, `wrapAsync(fn, context?)`, `observeLocation(params, path?)`, `observeState(keys)`, `capture(key, resource?, destroyOnRender?)`, `release(key, destroy?)`, `leaveTip(message, condition)`, `on(event, handler)`, `off(event, handler?)`, `fire(event, data?, remove?, lastToFirst?)`
+
+### `mountCtx(frame, setup, params?)`
+
+Mount a view: create ctx, run setup, register events, render. Called by `frame.mountView` after the setup function is loaded.
+
+### `unmountCtx(ctx)`
+
+Unmount a view: run cleanups, unregister events, destroy resources, fire "destroy" event.
+
+### `registerEvents(ctx)` / `unregisterEvents(ctx)`
+
+Register/unregister DOM event delegations based on `ctx.getEvents()` map.
+
+## Hooks
+
+All hooks must be called inside a setup function.
+
+### `useState<T>(key, initial)`
+
+```ts
+function useState<T>(key: string, initial: T): [() => T, (v: T) => void];
+```
+
+### `useEffect(fn, deps?)`
+
+```ts
+function useEffect(fn: () => (() => void) | void, deps?: unknown[]): void;
+```
+
+### `useStore(store, selector?)`
+
+```ts
+function useStore<T>(store: StoreApi<T>, selector?: (s: T) => Record<string, unknown>): void;
+```
+
+### `useInterval(callback, delay)` / `useTimeout(callback, delay)` / `useResource(key, factory)` / `useEvent(name, handler)`
+
+Lifecycle-managed wrappers for `setInterval`, `setTimeout`, resource capture, and event subscription.
+
+## Store (zustand-aligned)
+
+### `createStore<T>(name, creator)`
+
+```ts
+function createStore<T>(
+  name: string,
+  creator: (set: (partial: Partial<T>) => void, get: () => T) => T,
+): StoreApi<T>;
+
+interface StoreApi<T> {
+  getState(): T;
+  setState(partial: Partial<T> | ((prev: T) => Partial<T>)): void;
+  subscribe(listener: (state: T, prevState: T) => void): () => void;
+  destroy(): void;
+}
+```
+
+### `computed(deps, fn)`
+
+```ts
+function computed<T>(deps: readonly string[], fn: () => T): T;
+```
+
+### `bindStore(ctx, store, selector?)`
+
+```ts
+function bindStore<T>(
+  ctx: ViewCtx,
+  store: StoreApi<T>,
+  selector?: (state: T) => Record<string, unknown>,
+): () => void;
+```
+
+## State (cross-view singleton)
+
+### `State` singleton
+
+| Method | Signature |
+|---|---|
+| `get` | `<T>(key?: string) => T` |
+| `set` | `(data, excludes?) => this` |
+| `digest` | `(data?, excludes?) => void` |
+| `diff` | `() => ReadonlySet<string>` |
+| `clean` | `(keys: string) => (ctx: { on: ... }) => void` |
+| `on` | `(event, handler) => this` |
+| `off` | `(event, handler?) => this` |
+| `fire` | `(event, data?, remove?, lastToFirst?) => this` |
+
+## Router
+
+### `Router` singleton
+
+| Method | Signature |
+|---|---|
+| `parse` | `(href?) => Location` |
+| `diff` | `() => LocationDiff \| undefined` |
+| `to` | `(pathOrParams, params?, replace?, silent?) => void` |
+| `join` | `(...paths: string[]) => string` |
+| `beforeEach` | `(guard: (to, from) => boolean \| Promise<boolean>) => () => void` |
+| `on` | `(event, handler) => this` |
+| `off` | `(event, handler?) => this` |
+| `fire` | `(event, data?, remove?, lastToFirst?) => this` |
+
+### `useUrlState(ctx, initialState?)`
+
+```ts
+function useUrlState<S extends Record<string, string>>(
+  ctx: ViewCtx,
+  initialState?: S,
+): [Readonly<S>, (patch: Partial<S> | ((prev: S) => Partial<S>)) => void];
+```
+
+## Frame
+
+### `Frame` singleton (static API)
+
+| Method | Signature |
+|---|---|
+| `get` | `(id: string) => FrameObj \| undefined` |
+| `getAll` | `() => Map<string, FrameObj>` |
+| `getRoot` | `() => FrameObj \| undefined` |
+| `createRoot` | `(rootId?: string) => FrameObj` |
+| `on` | `(event, handler) => Frame` |
+| `off` | `(event, handler?) => Frame` |
+| `fire` | `(event, data?) => Frame` |
+
+### `createFrame(id, parentId?)`
+
+```ts
+function createFrame(id: string, parentId?: string): FrameObj;
+```
+
+### `FrameObj`
+
+| Property | Type |
+|---|---|
+| `id` | `string` |
+| `parentId` | `string \| undefined` |
+| `view` | `ViewCtx \| undefined` |
+| `signature` | `number` |
+| `destroyed` | `number` |
+| `childrenMap` | `Record<string, string>` |
+| `childrenCount` | `number` |
+| `invokeList` | `FrameInvokeEntry[]` |
+| `emitter` | `EmitterApi` |
+
+**Methods**: `getViewPath()`, `mountView(viewPath, params?)`, `unmountView()`, `mountFrame(frameId, viewPath, params?)`, `unmountFrame(id?)`, `mountZone(zoneId?)`, `unmountZone(zoneId?)`, `parent(level?)`, `invoke(name, args?)`, `children()`, `on/off/fire`
+
+## Service (API requests)
+
+### `createService(syncFn, cacheMax?, cacheBuffer?)`
+
+```ts
+function createService(
+  syncFn: (payload: PayloadApi, callback: () => void) => void,
+  cacheMax?: number,    // default 20
+  cacheBuffer?: number, // default 5
+): ServiceApi;
+```
+
+### `ServiceApi`
+
+| Method | Signature |
+|---|---|
+| `add` | `(attrs: ServiceMetaEntry \| ServiceMetaEntry[]) => void` |
+| `meta` | `(attrs: string \| Record<string, unknown>) => ServiceMetaEntry` |
+| `create` | `(attrs: Record<string, unknown>) => PayloadApi` |
+| `get` | `(attrs, createNew?) => { entity: PayloadApi; needsUpdate: boolean }` |
+| `cached` | `(attrs) => PayloadApi \| undefined` |
+| `clear` | `(names: string \| string[]) => void` |
+| `instance` | `() => ServiceInstance` |
+| `on` | `(event, handler) => void` |
+| `off` | `(event, handler?) => void` |
+| `fire` | `(event, data?) => void` |
+
+### `ServiceInstance`
+
+| Method | Signature |
+|---|---|
+| `all` | `(attrs, done) => ServiceInstance` |
+| `one` | `(attrs, done) => ServiceInstance` |
+| `save` | `(attrs, done) => ServiceInstance` |
+| `enqueue` | `(callback) => ServiceInstance` |
+| `dequeue` | `(...args) => void` |
+| `destroy` | `() => void` |
+| `on` | `(event, handler) => ServiceInstance` |
+| `off` | `(event, handler?) => ServiceInstance` |
+| `fire` | `(event, data?) => ServiceInstance` |
+
+### `createPayload(data?)`
+
+```ts
+function createPayload(data?: Record<string, unknown>): PayloadApi;
+```
+
+## EventEmitter
+
+### `createEmitter<T>()`
+
+```ts
+function createEmitter<T = unknown>(): EmitterApi<T>;
+
+interface EmitterApi<T = unknown> {
+  on(name: string, fn: (e?: ChangeEvent) => void): EmitterApi<T>;
+  off(name: string, fn?: AnyFunc): EmitterApi<T>;
+  fire(name: string, data?: Record<string, unknown>, remove?: boolean, lastToFirst?: boolean): EmitterApi<T>;
+}
+```
+
+Supports the `onEventName` convention: setting `emitter.onDestroy = fn` causes `fire("destroy")` to call `fn` automatically.
+
+## Cache
+
+### `createCache<T>(options?)`
+
+```ts
+function createCache<T = unknown>(options?: CacheOptions<T>): CacheApi<T>;
+
+interface CacheApi<T = unknown> {
+  set(key: string, resource: T): void;
+  get(key: string): T | undefined;
+  del(key: string): void;
+  has(key: string): boolean;
+  clear(): void;
+  forEach(callback: (value: T | undefined) => void): void;
+  getSize(): number;
+}
+```
+
+## Updater
+
+### `createUpdater(viewId)`
+
+```ts
+function createUpdater(viewId: string): UpdaterApi;
+
+interface UpdaterApi {
+  get<T>(key?: string): T;
+  set(data: Record<string, unknown>, excludes?: ReadonlySet<string>): UpdaterApi;
+  digest(data?, excludes?, callback?): void;
+  forceDigest(): void;
+  snapshot(): UpdaterApi;
+  altered(): boolean | undefined;
+  refData: Record<string, unknown>;
+  translate(data: unknown): unknown;
+  parse(expr: string): unknown;
+  getChangedKeys(): ReadonlySet<string>;
+}
+```
+
+## EventDelegator
+
+Module-level singleton. Delegates DOM events to `document.body`.
+
+| Method | Signature |
+|---|---|
+| `bind` | `(eventType: string, hasSelector?: boolean) => void` |
+| `unbind` | `(eventType: string, hasSelector?: boolean) => void` |
+| `clearRangeEvents` | `(viewId: string) => void` |
+| `setFrameGetter` | `(getter: (id: string) => FrameObj \| undefined) => void` |
+| `nextElementGuid` | `() => number` |
+
+At event dispatch time, `EventDelegator` looks up handlers via `view.getEvents()["handlerName<eventType>"]`.
+
+## HMR
+
+### Runtime functions
+
+| Function | Description |
+|---|---|
+| `hotSwapByTemplate(old, new)` | Swap template on all matching views |
+| `hotSwapByClass(oldSetup, newSetup)` | Swap setup on all matching views |
+| `hotSwapView(frame, newSetup)` | Swap setup on a single frame (re-runs setup, preserves ctx) |
+| `hotSwapFrames(viewPath, newSetup)` | Swap all frames matching viewPath |
+| `reloadViews(viewPath)` | Legacy full-remount (loses state) |
+| `acceptView(hot, viewPath)` | Set up HMR accept handler |
+| `disposeView(hot, viewPath)` | Set up HMR dispose handler |
+
+### Injection functions
+
+| Function | Description |
+|---|---|
+| `injectTemplateHmr(source, bundler)` | Append template HMR snippet |
+| `injectViewClassHmr(source, bundler)` | Rewrite export default + append view HMR |
+| `importsHtmlTemplate(source)` | Check if source imports .html |
+
+## Framework
+
+### `Framework` singleton
+
+Key methods: `boot(config)`, `getConfig(key?)`, `setConfig(patch)`, `isBooted()`, `toMap(list, key?)`, `toTry(fns, args?, context?, onError?)`, `toUrl(path, params?, keepEmpty?)`, `parseUrl(url)`, `mix(target, ...sources)`, `has(owner, prop)`, `keys(src)`, `inside(node, container)`, `node(id)`, `nodeId(element)`, `use(names, callback?)`, `applyStyle(idOrPairs, css?)`, `guid(prefix?)`, `mark(host, key)`, `unmark(host)`, `delay(time)`, `dispatch(target, type, init?)`, `task(fn, args?, context?)`, `waitZoneViewsRendered(viewId, timeout?)`
+
+Factory aliases: `createEmitter`, `defineView`, `createCache`
+
+## CrossSite
+
+Built-in view for micro-frontend via Module Federation. Default export from `@lark.js/mvc`.
+
+## Template types
+
+| Type | Signature |
+|---|---|
+| `ViewTemplate` | `(data, viewId, refData, ...encoders) => string` |
+| `VDomTemplate` | `(data, viewId, refData) => VDomNode` |
+| `ViewSetup` | `(ctx: ViewCtx, params?) => { template?, events?, assign? }` |
 # Lark API Reference
 
 This document is the complete API reference for every public module in `@lark.js/mvc`. The runtime helpers used by compiled templates live in the separate `@lark.js/mvc/runtime` entry; the Vite plugin and Webpack loader live in `@lark.js/mvc/vite` and `@lark.js/mvc/webpack` respectively.

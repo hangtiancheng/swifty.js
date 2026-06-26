@@ -56,11 +56,6 @@ export type { UpdaterApi } from "./types";
 export { vdomCreate, createVDomRef } from "./vdom";
 
 // ============================== VDOM ==============================
-
-// JSX Runtime (bridges JSX/TSX → vdomCreate)
-export { jsx, jsxs, jsxDEV, Fragment } from "./jsx-runtime";
-export type { JsxProps } from "./jsx-runtime";
-
 // View (functional — defineView factory + hooks)
 export {
   defineView,
@@ -71,7 +66,7 @@ export {
   destroyAllResources,
   runInvokes,
 } from "./view";
-export type { ViewCtx, ViewSetup, ViewInstance } from "./types";
+export type { ViewCtx, ViewSetup } from "./types";
 
 // Hooks runtime
 export {
@@ -98,7 +93,7 @@ export { Framework } from "./framework";
 export { useUrlState } from "./url-state";
 
 // Store (zustand-aligned state management)
-export { create, computed, bindStore } from "./store";
+export { createStore, computed, bindStore } from "./store";
 export type { StoreApi } from "./store";
 
 // HMR (import.meta.hot support)

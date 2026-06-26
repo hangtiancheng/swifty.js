@@ -15,7 +15,9 @@ import type { VDomTemplate, ViewSetup, ViewTemplate } from "@lark.js/mvc";
 import { icons as defaultIcons } from "./icons";
 import type { SearchEntry } from "../types";
 
-export function createSearchView(template: ViewTemplate | VDomTemplate,): ViewSetup {
+export function createSearchView(
+  template: ViewTemplate | VDomTemplate,
+): ViewSetup {
   return defineView((ctx) => {
     // Closure state (replaces former this._mini)
     let mini: MiniSearch | null = null;

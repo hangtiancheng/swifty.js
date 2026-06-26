@@ -25,7 +25,7 @@ export {
   State,
   Router,
   registerViewClass,
-  create,
+  createStore,
   computed,
   bindStore,
   createService,

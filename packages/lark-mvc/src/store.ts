@@ -74,7 +74,10 @@ const storeRegistry = new Map<string, StoreApi>();
 
 // ---- create ----------------------------------------------------------------
 
-export function create<T>(name: string, creator: StateCreator<T>): StoreApi<T> {
+export function createStore<T>(
+  name: string,
+  creator: StateCreator<T>,
+): StoreApi<T> {
   const listeners = new Set<Listener<T>>();
   const computedDefs = new Map<string, ComputedMarker>();
   const computedKeys = new Set<string>();

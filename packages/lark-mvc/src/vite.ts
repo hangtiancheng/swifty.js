@@ -33,24 +33,6 @@ export interface LarkMvcVitePluginOptions {
   debug?: boolean;
   /** Enable virtual DOM output (default: false) */
   virtualDom?: boolean;
-  /**
-   * Enable JSX/TSX compilation to vdomCreate calls (default: true).
-   *
-   * When enabled, `.tsx` and `.jsx` files are transformed by esbuild with
-   * `jsxImportSource: "@lark.js/mvc"`, so users can write TSX templates:
-   *
-   * ```tsx
-   * export default defineView((ctx) => ({
-   *   template(data) {
-   *     return <div class="app"><h1>{data.title}</h1></div>;
-   *   },
-   * }));
-   * ```
-   *
-   * The compiled output calls `jsx("div", { ... })` from
-   * `@lark.js/mvc/jsx-runtime`, which bridges to `vdomCreate`.
-   */
-  jsx?: boolean;
 }
 
 /** Suffix appended to resolved IDs to mark them as lark template modules */
@@ -64,7 +46,7 @@ const LARK_TEMPLATE_SUFFIX = "?lark-template";
  * @returns Vite plugin instance
  */
 export function larkMvcPlugin(options: LarkMvcVitePluginOptions = {}): Plugin {
-  const { debug = false, virtualDom = false, jsx = true } = options;
+  const { debug = false, virtualDom = false } = options;
   let root = __dirname;
 
   return {
@@ -139,50 +121,18 @@ export function larkMvcPlugin(options: LarkMvcVitePluginOptions = {}): Plugin {
     },
 
     /**
-     * Transform hook: inject view-class HMR into .ts files that import .html,
-     * and compile JSX/TSX to vdomCreate calls.
+     * Transform hook: inject view-class HMR into .ts files that import .html.
      *
-     * Two responsibilities:
-     * 1. **View-class HMR**: When a .ts view file changes, the auto-injected
-     *    HMR snippet captures the old View class (via dispose) and the new one
-     *    (via accept), then calls `hotSwapByClass(old, new)` to swap the
-     *    prototype on all mounted instances — preserving state.
-     * 2. **JSX compilation**: When `jsx: true` (default), .tsx/.jsx files are
-     *    compiled by Vite's built-in esbuild with `jsxImportSource` set to
-     *    `@lark.js/mvc`. This means users can write TSX templates that
-     *    compile to `jsx(...)` calls from `@lark.js/mvc/jsx-runtime`, which
-     *    bridges to `vdomCreate`.
-     *
-     * This gives Lark the same zero-config HMR + JSX DX as React/Vue.
+     * When a .ts view file changes, the auto-injected HMR snippet captures
+     * the old View setup function (via dispose) and the new one (via accept),
+     * then calls `hotSwapByClass(old, new)` to hot-swap all mounted views
+     * — preserving state.
      */
     transform(code, id) {
-      // Only process .ts/.tsx/.jsx files (skip .html, node_modules, etc.)
-      if (!/\.[tc]sx?$/.test(id)) return undefined;
+      // Only process .ts files (skip .html, node_modules, etc.)
+      if (!/\.[tj]s$/.test(id)) return undefined;
       if (id.includes("node_modules")) return undefined;
-
-      // For .tsx/.jsx files with JSX enabled, Vite's esbuild already handles
-      // the JSX → js calls transformation. We just need to ensure the
-      // jsxImportSource is set. This is done via the `esbuild` config option
-      // in `configResolved` below.
-      //
-      // For .ts files (no JSX), just inject view-class HMR.
       return injectViewClassHmr(code, "vite");
-    },
-
-    /**
-     * Configure esbuild to use Lark's JSX runtime for .tsx/.jsx files.
-     *
-     * This is the key to zero-config JSX: users don't need to set
-     * `jsxImportSource` in their tsconfig — the plugin does it for them.
-     */
-    config() {
-      if (!jsx) return undefined;
-      return {
-        esbuild: {
-          jsxImportSource: "@lark.js/mvc",
-          jsx: "automatic",
-        },
-      };
     },
   };
 }

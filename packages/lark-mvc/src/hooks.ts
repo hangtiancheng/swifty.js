@@ -157,10 +157,8 @@ export function useStore<T extends Record<string, unknown>>(
 }
 
 // ============================================================
-// useUrlState — will be added in Phase 4 (url-state.ts adaptation)
+// useUrlState — defined in url-state.ts (already accepts ViewCtx)
 // ============================================================
-// This hook depends on url-state.ts being updated to accept ViewCtx
-// instead of ViewInterface. See Phase 4 of the functional rewrite plan.
 
 // ============================================================
 // useInterval — setInterval with automatic cleanup

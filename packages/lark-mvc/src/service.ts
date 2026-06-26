@@ -45,7 +45,6 @@ function isPayload(v: unknown): v is PayloadApi {
 
 /**
  * Create a Payload wrapping API response data.
- * Replaces `new Payload(data)`.
  */
 export function createPayload(data: Record<string, unknown> = {}): PayloadApi {
   const payloadData = data;
@@ -148,12 +147,11 @@ export interface ServiceApi {
 }
 
 // ============================================================
-// createService — factory function (replaces Service.extend)
+// createService — factory function
 // ============================================================
 
 /**
  * Create a Service type with a custom sync function.
- * Replaces `Service.extend(syncFn, cacheMax, cacheBuffer)`.
  *
  * Each call creates independent closure state (metaList, payloadCache, etc.),
  * ensuring full isolation between different Service types.

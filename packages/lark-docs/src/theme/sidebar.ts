@@ -9,7 +9,9 @@ import { State, Router, defineView } from "@lark.js/mvc";
 import type { VDomTemplate, ViewSetup, ViewTemplate } from "@lark.js/mvc";
 import type { DocsConfig, SidebarItem } from "../types";
 
-export function createSidebarView(template: ViewTemplate | VDomTemplate,): ViewSetup {
+export function createSidebarView(
+  template: ViewTemplate | VDomTemplate,
+): ViewSetup {
   return defineView((ctx) => {
     ctx.observeLocation([], true);
 

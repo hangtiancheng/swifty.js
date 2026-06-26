@@ -59,16 +59,4 @@ export default defineConfig([
     sourcemap: false,
     tsconfig: "./tsconfig.build.json",
   },
-  {
-    // JSX Runtime — imported by compiled `.tsx`/`.jsx` modules.
-    // Kept as a separate entry so `@lark.js/mvc/jsx-runtime` stays tiny
-    // and doesn't pull in the full framework (only vdomCreate).
-    entry: ["src/jsx-runtime.ts"],
-    dts: true,
-    format: ["esm", "cjs"],
-    minify: false,
-    noExternal: [],
-    sourcemap: false,
-    tsconfig: "./tsconfig.build.json",
-  },
 ]);

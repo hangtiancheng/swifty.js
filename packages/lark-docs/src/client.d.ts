@@ -13,8 +13,17 @@
 // return type would not be assignable to either.
 
 // import type { VDomTemplate, ViewSetup, ViewTemplate } from "@lark.js/mvc";
-type ViewTemplate = (data: unknown, viewId: string, refData: unknown, ...encoders: unknown[]) => string
-type VDomTemplate = (data: unknown, viewId: string, refData: unknown) => VDomNode
+type ViewTemplate = (
+  data: unknown,
+  viewId: string,
+  refData: unknown,
+  ...encoders: unknown[]
+) => string;
+type VDomTemplate = (
+  data: unknown,
+  viewId: string,
+  refData: unknown,
+) => VDomNode;
 
 declare module "*.html" {
   const template: ViewTemplate | VDomTemplate;
