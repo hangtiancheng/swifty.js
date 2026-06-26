@@ -65,7 +65,9 @@ export function hotSwapView(frame: FrameObj, newSetup: ViewSetup): void {
   }
 }
 
-function findFramesByViewPath(viewPath: string): Array<{ frame: FrameObj; fullPath: string }> {
+function findFramesByViewPath(
+  viewPath: string,
+): Array<{ frame: FrameObj; fullPath: string }> {
   const result: Array<{ frame: FrameObj; fullPath: string }> = [];
   for (const [, frame] of Frame.getAll()) {
     const vp = frame.getViewPath();
@@ -86,7 +88,10 @@ export function hotSwapFrames(viewPath: string, newSetup: ViewSetup): void {
   }
 }
 
-export function hotSwapByTemplate(oldTemplate: ViewTemplate, newTemplate: ViewTemplate): void {
+export function hotSwapByTemplate(
+  oldTemplate: ViewTemplate,
+  newTemplate: ViewTemplate,
+): void {
   if (!oldTemplate || !newTemplate || oldTemplate === newTemplate) return;
   for (const [, frame] of Frame.getAll()) {
     const view = frame.view;
@@ -138,5 +143,7 @@ export function acceptView(hot: HotContext, viewPath: string): void {
 }
 
 export function disposeView(hot: HotContext, viewPath: string): void {
-  hot.dispose(() => { invalidateViewClass(viewPath); });
+  hot.dispose(() => {
+    invalidateViewClass(viewPath);
+  });
 }

@@ -6,6 +6,11 @@
  * once the outermost `fire()` completes — so handlers can detach themselves
  * (or each other) without skipping siblings or breaking iteration.
  *
+ * Also supports the `onEventName` convention: if the emitter object has a
+ * method named `on{EventName}` (e.g. `onDestroy`, `onCreated`), `fire()`
+ * will automatically call it after the registered listener list. This is
+ * how Lark View/Frame/Router/State lifecycle callbacks work.
+ *
  * Replaces the former `EventEmitter` class with a `createEmitter()` factory.
  * No `class`, no `this`, no `prototype`.
  */
@@ -19,9 +24,21 @@ import type {
 } from "./types";
 
 /**
+ * Internal emitter shape — the public `EmitterApi` plus the `listeners` Map
+ * exposed for white-box testing (the old class exposed `listeners` as a
+ * public instance field).
+ */
+interface EmitterInternal<T> extends EmitterApi<T> {
+  listeners: Map<string, EventListenerEntry[]>;
+  [key: string]: unknown;
+}
+
+/**
  * Create a multi-cast event emitter.
  *
  * @returns An emitter API object with `on`, `off`, `fire` methods.
+ *   The object also supports the `on{EventName}` convention: setting
+ *   `emitter.onDestroy = fn` causes `fire("destroy", ...)` to call `fn`.
  *
  * @example
  * const emitter = createEmitter();
@@ -75,6 +92,8 @@ export function createEmitter<T = unknown>(): EmitterApi<T> {
     } else {
       // Remove all handlers for this event.
       listeners.delete(key);
+      // Also delete the onEventName method if it exists (matches old class behavior).
+      Reflect.deleteProperty(internal, onMethodName(event));
     }
     return api;
   }
@@ -106,6 +125,14 @@ export function createEmitter<T = unknown>(): EmitterApi<T> {
         }
       }
 
+      // Call onEventName method if it exists on the emitter object.
+      // This is how View/Frame/Router/State lifecycle callbacks (onDestroy,
+      // onCreated, onChange, etc.) are invoked.
+      const onMethod = internal[onMethodName(event)] as unknown;
+      if (typeof onMethod === "function") {
+        funcWithTry([onMethod as AnyFunc], [eventData], null, noop);
+      }
+
       if (remove) {
         off(event);
       }
@@ -127,6 +154,21 @@ export function createEmitter<T = unknown>(): EmitterApi<T> {
     return api;
   }
 
-  const api: EmitterApi<T> = { on, off, fire };
+  /** Build the `onEventName` key from an event name (e.g. "destroy" -> "onDestroy"). */
+  function onMethodName(event: string): string {
+    return "on" + event[0].toUpperCase() + event.slice(1);
+  }
+
+  // The internal object carries `listeners` (for white-box testing) and
+  // supports arbitrary `onEventName` properties set by consumers.
+  const internal: EmitterInternal<T> = {
+    on,
+    off,
+    fire,
+    listeners,
+  };
+
+  // `api` is the same reference as `internal` — cast to the public type.
+  const api: EmitterApi<T> = internal;
   return api;
 }

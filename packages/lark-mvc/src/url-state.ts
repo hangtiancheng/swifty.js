@@ -9,7 +9,7 @@
  * Works with both history and hash routing modes.
  */
 import { Router } from "./router";
-import type { ViewInterface } from "./types";
+import type { ViewCtx } from "./types";
 
 /**
  * Sync view state with URL query parameters.
@@ -42,7 +42,7 @@ import type { ViewInterface } from "./types";
  * ```
  */
 export function useUrlState<S extends Record<string, string>>(
-  view: ViewInterface,
+  view: ViewCtx,
   initialState?: S,
 ): [Readonly<S>, (patch: Partial<S> | ((prev: S) => Partial<S>)) => void] {
   const keys = initialState ? Object.keys(initialState) : [];

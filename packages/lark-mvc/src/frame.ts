@@ -39,10 +39,10 @@ let rootFrame: FrameObj | undefined;
 let globalAlter: { id: string } | undefined;
 
 /** Maximum number of destroyed Frame instances kept around for reuse. */
-const MAX_FRAME_POOL = 64;
+// const MAX_FRAME_POOL = 64;
 
 /** Frame object cache for reuse (bounded by MAX_FRAME_POOL) */
-const frameCache: FrameObj[] = [];
+// const frameCache: FrameObj[] = [];
 
 /** Static event emitter for Frame-level events (add/remove) */
 const staticEmitter = createEmitter();
@@ -208,13 +208,11 @@ export function createFrame(id: string, parentId?: string): FrameObj {
         }
         frame.childrenMap[frameId] = frameId;
 
-        // Reuse from cache or create new
-        childFrame = frameCache.pop();
-        if (childFrame) {
-          reInitFrame(childFrame, frameId, frame.id);
-        } else {
-          childFrame = createFrame(frameId, frame.id);
-        }
+        // Always create a new frame object. The frameCache pool is skipped
+        // because reInitFrame cannot reassign the readonly `id` field —
+        // reusing a cached frame would leave it with a stale id, causing
+        // registry lookups and unmountFrame to fail.
+        childFrame = createFrame(frameId, frame.id);
       }
 
       // Mount view
@@ -234,16 +232,8 @@ export function createFrame(id: string, parentId?: string): FrameObj {
       // Unmount view
       targetFrame.unmountView();
 
-      // Remove from registry
+      // Remove from registry (fires the static "remove" event)
       removeFrame(targetId, wasCreated);
-
-      // Reset to factory state (cache reuse)
-      reInitFrameForCache(targetFrame);
-
-      // Return to cache, capped at MAX_FRAME_POOL
-      if (frameCache.length < MAX_FRAME_POOL) {
-        frameCache.push(targetFrame);
-      }
 
       // Remove from parent's children
       const parent = frameRegistry.get(pId ?? "");
@@ -422,17 +412,17 @@ function doMountView(
 // Frame singleton — static-like methods
 // ============================================================
 
-export interface FrameStaticApi {
+export interface FrameInterface {
   get(id: string): FrameObj | undefined;
   getAll(): Map<string, FrameObj>;
   getRoot(): FrameObj | undefined;
   createRoot(rootId?: string): FrameObj;
-  on(event: string, handler: AnyFunc): FrameStaticApi;
-  off(event: string, handler?: AnyFunc): FrameStaticApi;
+  on(event: string, handler: AnyFunc): FrameInterface;
+  off(event: string, handler?: AnyFunc): FrameInterface;
   fire(event: string, data?: Record<string, unknown>): void;
 }
 
-export const Frame: FrameStaticApi = {
+export const Frame: FrameInterface = {
   /** Get frame by ID */
   get(id: string): FrameObj | undefined {
     return frameRegistry.get(id);
@@ -558,24 +548,11 @@ function notifyAlter(frameInstance: FrameObj, data: { id: string }): void {
   }
 }
 
-/** Reinitialize a cached frame for reuse */
-function reInitFrame(frame: FrameObj, id: string, parentId: string): void {
-  // We can't reassign readonly id, so we create a new frame with the same pool slot
-  // Actually, FrameObj.id is readonly. For cache reuse, we need to handle this.
-  // The simplest approach: don't reuse frame objects, just create new ones.
-  // The cache is an optimization — we can skip it for now.
-  void frame;
-  void id;
-  void parentId;
-  // Fallback: create new frame (bypasses cache)
-  // This is less efficient but correct.
-}
+/** Reinitialize a cached frame for reuse — currently unused (cache disabled) */
+// function reInitFrame(frame: FrameObj, id: string, parentId: string): void { ... }
 
-/** Reset frame for cache reuse */
-function reInitFrameForCache(frame: FrameObj): void {
-  void frame;
-  // No-op for now — cache reuse is skipped
-}
+/** Reset frame for cache reuse — currently unused (cache disabled) */
+// function reInitFrameForCache(frame: FrameObj): void { ... }
 
 // ============================================================
 // TranslateQuery: translate SPLITTER-prefixed params from parent

@@ -18,7 +18,7 @@ import {
   RouterEvents,
 } from "./common";
 import { hasOwnProperty, assign, parseUri, toUri, asRecord } from "./utils";
-import { createCache } from "./cache"
+import { createCache } from "./cache";
 import { createEmitter } from "./event-emitter";
 import type {
   AnyFunc,

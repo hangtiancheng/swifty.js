@@ -37,7 +37,7 @@ export { Router, markRouterBooted, getRouteMode } from "./router";
 
 // Frame (view lifecycle management — functional factory + singleton)
 export { Frame, createFrame } from "./frame";
-export type { FrameStaticApi } from "./frame";
+export type { FrameInterface as FrameStaticApi } from "./frame";
 export { registerViewClass, invalidateViewClass } from "./frame";
 
 // Module loader (async view loading via FrameworkConfig.require)
@@ -56,6 +56,10 @@ export type { UpdaterApi } from "./types";
 export { vdomCreate, createVDomRef } from "./vdom";
 
 // ============================== VDOM ==============================
+
+// JSX Runtime (bridges JSX/TSX → vdomCreate)
+export { jsx, jsxs, jsxDEV, Fragment } from "./jsx-runtime";
+export type { JsxProps } from "./jsx-runtime";
 
 // View (functional — defineView factory + hooks)
 export {
@@ -81,7 +85,7 @@ export {
 } from "./hooks";
 
 // Service + Payload (API request management)
-export { createService, createPayload } from "./service"
+export { createService, createPayload } from "./service";
 export type { ServiceApi, ServiceInstance, PayloadApi } from "./service";
 
 // EventDelegator (DOM event delegation)

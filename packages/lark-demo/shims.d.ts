@@ -4,14 +4,25 @@ declare module "*.css" {
   export default content;
 }
 
-// HTML template module declarations (Lark templates - compiled to functions)
+// HTML template module declarations
+// Lark's Vite/Webpack/Rspack plugin compiles .html files into template
+// functions at build time. The default export is a function, not a string.
+//
+// The return type is `any` because the same template function returns:
+// - `string` when virtualDom is disabled (HTML string rendering path)
+// - `VDomNode` when virtualDom is enabled (VDOM rendering path)
+//
+// Using `any` here avoids the union-type incompatibility with ViewSetup's
+// `template?: ViewTemplate | VDomTemplate` — the two function signatures
+// have incompatible return types (`string` vs `VDomNode`), so a union
+// return type would not be assignable to either.
 declare module "*.html" {
-  // const template: (
-  //   data: unknown,
-  //   viewId: string,
-  //   refData: unknown,
-  // ) => string;
-  // export default template;
-  const content: string;
-  export default content;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const template: (
+    data: unknown,
+    viewId: string,
+    refData: unknown,
+    ...encoders: unknown[]
+  ) => any;
+  export default template;
 }

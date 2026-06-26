@@ -239,8 +239,22 @@ function domEventProcessor(domEvent: Event): void {
         const frame = frameId ? frameGetter?.(frameId) : undefined;
         const view = frame?.view;
         if (view) {
-          const eventName = handlerName + SPLITTER + eventType;
-          const fn = Reflect.get(view, eventName) as AnyFunc | undefined;
+          // Functional API: events are stored in ctx.getEvents() map,
+          // keyed by the original "name<eventType>" format (e.g. "navigateTo<click>").
+          // Old class API used Reflect.get(view, name + SPLITTER + type) which
+          // looked up $evtObjMap on the prototype — that no longer exists.
+          const eventKey = handlerName + "<" + eventType + ">";
+          const events =
+            typeof (
+              view as { getEvents?: () => Record<string, AnyFunc> | undefined }
+            ).getEvents === "function"
+              ? (
+                  view as {
+                    getEvents: () => Record<string, AnyFunc> | undefined;
+                  }
+                ).getEvents()
+              : undefined;
+          const fn = events?.[eventKey];
           if (fn) {
             // Attach event metadata
             const extendedEvent = domEvent as Event & {

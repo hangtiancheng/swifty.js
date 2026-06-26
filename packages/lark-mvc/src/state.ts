@@ -34,7 +34,8 @@ let booted = false;
 
 /** Mark framework as booted (called from Framework.boot) */
 export function markBooted(): void {
-  booted = true; void booted;
+  booted = true;
+  void booted;
 }
 
 /** Increment reference count for keys */
@@ -73,8 +74,6 @@ function teardownKeysRef(keyList: string[]): void {
  * `clearNotify(key)` resets the dedup flag once the legitimate
  * `State.set` + `State.digest` actually runs.
  */
-
-
 
 /**
  * Observable in-memory data object.
@@ -127,17 +126,17 @@ export const State: StateInterface = {
   },
 
   /**
-   * Create mixin to clean up state keys on view destroy.
-   * Must be used in view.mixins array.
+   * Create a cleanup function for state keys on view destroy.
+   * Call inside setup: `State.clean("keys")(ctx)` or `useEvent("destroy", State.clean("keys"))`
    */
-  clean(keys: string): { ctor: AnyFunc } {
-    return {
-      ctor: function (this: { on: (event: string, handler: AnyFunc) => void }) {
-        const keyList = setupKeysRef(keys);
-        this.on("destroy", () => {
-          teardownKeysRef(keyList);
-        });
-      },
+  clean(
+    keys: string,
+  ): (ctx: { on: (event: string, handler: () => void) => void }) => void {
+    return (ctx) => {
+      const keyList = setupKeysRef(keys);
+      ctx.on("destroy", () => {
+        teardownKeysRef(keyList);
+      });
     };
   },
 

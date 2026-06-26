@@ -90,6 +90,16 @@
     },
     "./client": {
       "types": "./dist/client.d.ts"
+    },
+    "./jsx-runtime": {
+      "import": {
+        "types": "./dist/jsx-runtime.d.ts",
+        "default": "./dist/jsx-runtime.js"
+      },
+      "require": {
+        "types": "./dist/jsx-runtime.d.cts",
+        "default": "./dist/jsx-runtime.cjs"
+      }
     }
   },
   "scripts": {

@@ -34,10 +34,7 @@ export interface PayloadApi extends PayloadInterface {
   data: Record<string, unknown>;
   cacheInfo?: ServiceCacheInfo;
   get<T = unknown>(key: string): T;
-  set(
-    keyOrData: string | Record<string, unknown>,
-    value?: unknown,
-  ): PayloadApi;
+  set(keyOrData: string | Record<string, unknown>, value?: unknown): PayloadApi;
 }
 
 /** Type guard: check if a value is a PayloadApi */
@@ -102,15 +99,24 @@ export interface ServiceInstance {
   destroyed: number;
   emitter: EmitterApi;
   all(
-    attrs: string | Record<string, unknown> | (string | Record<string, unknown>)[],
+    attrs:
+      | string
+      | Record<string, unknown>
+      | (string | Record<string, unknown>)[],
     done: AnyFunc,
   ): ServiceInstance;
   one(
-    attrs: string | Record<string, unknown> | (string | Record<string, unknown>)[],
+    attrs:
+      | string
+      | Record<string, unknown>
+      | (string | Record<string, unknown>)[],
     done: AnyFunc,
   ): ServiceInstance;
   save(
-    attrs: string | Record<string, unknown> | (string | Record<string, unknown>)[],
+    attrs:
+      | string
+      | Record<string, unknown>
+      | (string | Record<string, unknown>)[],
     done: AnyFunc,
   ): ServiceInstance;
   enqueue(callback: AnyFunc): ServiceInstance;
@@ -290,13 +296,19 @@ export function createService(
   function instance(): ServiceInstance {
     const id = generateId("service");
     const instEmitter = createEmitter();
-    let busy = 0;
-    let destroyed = 0;
     const taskQueue: AnyFunc[] = [];
     let prevArgs: unknown[] = [];
 
+    // `busy` and `destroyed` live on the inst object itself (not as closure
+    // variables) so that consumers can read `service.destroyed` / `service.busy`
+    // and get the live value. The closure methods below mutate `inst.busy` /
+    // `inst.destroyed` directly.
+
     function all(
-      attrs: string | Record<string, unknown> | (string | Record<string, unknown>)[],
+      attrs:
+        | string
+        | Record<string, unknown>
+        | (string | Record<string, unknown>)[],
       done: AnyFunc,
     ): ServiceInstance {
       serviceSend(inst, attrs, done, FETCH_FLAGS_ALL, false, internals);
@@ -304,7 +316,10 @@ export function createService(
     }
 
     function one(
-      attrs: string | Record<string, unknown> | (string | Record<string, unknown>)[],
+      attrs:
+        | string
+        | Record<string, unknown>
+        | (string | Record<string, unknown>)[],
       done: AnyFunc,
     ): ServiceInstance {
       serviceSend(inst, attrs, done, FETCH_FLAGS_ONE, false, internals);
@@ -312,7 +327,10 @@ export function createService(
     }
 
     function save(
-      attrs: string | Record<string, unknown> | (string | Record<string, unknown>)[],
+      attrs:
+        | string
+        | Record<string, unknown>
+        | (string | Record<string, unknown>)[],
       done: AnyFunc,
     ): ServiceInstance {
       serviceSend(inst, attrs, done, FETCH_FLAGS_ALL, true, internals);
@@ -320,7 +338,7 @@ export function createService(
     }
 
     function enqueue(callback: AnyFunc): ServiceInstance {
-      if (!destroyed) {
+      if (!inst.destroyed) {
         taskQueue.push(callback);
         dequeue(...prevArgs);
       }
@@ -328,11 +346,11 @@ export function createService(
     }
 
     function dequeue(...args: unknown[]): void {
-      if (!busy && !destroyed) {
-        busy = 1;
+      if (!inst.busy && !inst.destroyed) {
+        inst.busy = 1;
         setTimeout(() => {
-          busy = 0;
-          if (!destroyed) {
+          inst.busy = 0;
+          if (!inst.destroyed) {
             const task = taskQueue.shift();
             if (task) {
               prevArgs = args;
@@ -344,7 +362,7 @@ export function createService(
     }
 
     function destroy(): void {
-      destroyed = 1;
+      inst.destroyed = 1;
       taskQueue.length = 0;
     }
 
@@ -358,15 +376,18 @@ export function createService(
       return inst;
     }
 
-    function fireInst(event: string, data?: Record<string, unknown>): ServiceInstance {
+    function fireInst(
+      event: string,
+      data?: Record<string, unknown>,
+    ): ServiceInstance {
       instEmitter.fire(event, data);
       return inst;
     }
 
     const inst: ServiceInstance = {
       id,
-      busy,
-      destroyed,
+      busy: 0,
+      destroyed: 0,
       emitter: instEmitter,
       all,
       one,
@@ -421,7 +442,10 @@ function toCacheValue(v: unknown): number {
  */
 function serviceSend(
   service: ServiceInstance,
-  attrs: string | Record<string, unknown> | (string | Record<string, unknown>)[],
+  attrs:
+    | string
+    | Record<string, unknown>
+    | (string | Record<string, unknown>)[],
   done: AnyFunc,
   flag: number,
   save: boolean,
@@ -429,7 +453,8 @@ function serviceSend(
 ): void {
   if (service.destroyed) return;
   if (service.busy) {
-    const queued: AnyFunc = () => serviceSend(service, attrs, done, flag, save, internals);
+    const queued: AnyFunc = () =>
+      serviceSend(service, attrs, done, flag, save, internals);
     service.enqueue(queued);
     return;
   }
@@ -487,7 +512,9 @@ function serviceSend(
 
     const attrObj: Record<string, unknown> =
       typeof attr === "string" ? { name: attr } : attr;
-    const payloadInfo = internals ? getPayload(internals, attrObj, save) : { entity: createPayload(), needsUpdate: true };
+    const payloadInfo = internals
+      ? getPayload(internals, attrObj, save)
+      : { entity: createPayload(), needsUpdate: true };
     const payloadEntity = payloadInfo.entity;
     const cacheKey = payloadEntity.cacheInfo?.key ?? "";
     doneArr[requestCount + 1] = payloadEntity;

@@ -89,12 +89,10 @@ export function createCtx(frame: FrameObj): ViewCtx {
     endUpdatePending: undefined as number | undefined,
     template: undefined as ViewTemplate | VDomTemplate | undefined,
     events: undefined as Record<string, AnyFunc> | undefined,
-    assignFn: undefined as ((options?: unknown) => boolean | undefined) | undefined,
+    assignFn: undefined as
+      | ((options?: unknown) => boolean | undefined)
+      | undefined,
   };
-
-
-
-
 
   const cleanups: Array<() => void> = [];
 
@@ -576,6 +574,12 @@ export function mountCtx(
 
   // Activate
   ctx.signature.value = 1;
+
+  // Wire ctx to frame BEFORE render so that updater.digest() → runDigest()
+  // can find `frame.view` and read the template. Without this, runDigest's
+  // `const view = frame?.view` is undefined and the render is a no-op —
+  // the root cause of the blank-page bug in lark-demo.
+  frame.view = ctx;
 
   // Register events
   registerEvents(ctx);

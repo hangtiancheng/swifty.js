@@ -293,14 +293,14 @@ describe("Framework", () => {
 
   describe("Base (EventEmitter)", () => {
     it("Base is an EventEmitter constructor", () => {
-      const emitter = new Framework.Base();
+      const emitter = Framework.Base();
       expect(typeof emitter.on).toBe("function");
       expect(typeof emitter.off).toBe("function");
       expect(typeof emitter.fire).toBe("function");
     });
 
     it("Base instances can bind and fire events", () => {
-      const emitter = new Framework.Base();
+      const emitter = Framework.Base();
       let received: unknown = null;
       emitter.on("test", (e: any) => {
         received = e;
@@ -312,7 +312,7 @@ describe("Framework", () => {
     });
 
     it("Base instances support off to unbind", () => {
-      const emitter = new Framework.Base();
+      const emitter = Framework.Base();
       let callCount = 0;
       const handler = () => {
         callCount++;
@@ -351,7 +351,7 @@ describe("Framework", () => {
 
     it("exposes View", () => {
       expect(Framework.View).toBeDefined();
-      expect(typeof Framework.View.extend).toBe("function");
+      expect(typeof Framework.View).toBe("function");
     });
 
     it("exposes Frame", () => {
@@ -376,32 +376,32 @@ describe("Framework", () => {
 
   describe("Cache class", () => {
     it("Cache is a constructable class", () => {
-      const cache = new Framework.Cache({ maxSize: 10 });
+      const cache = Framework.Cache({ maxSize: 10 });
       expect(cache).toBeDefined();
       expect(typeof cache.set).toBe("function");
       expect(typeof cache.get).toBe("function");
     });
 
     it("Cache set and get work correctly", () => {
-      const cache = new Framework.Cache<string>({ maxSize: 10 });
+      const cache = Framework.Cache<string>({ maxSize: 10 });
       cache.set("key1", "value1");
       expect(cache.get("key1")).toBe("value1");
     });
 
     it("Cache get returns undefined for missing keys", () => {
-      const cache = new Framework.Cache({ maxSize: 10 });
+      const cache = Framework.Cache({ maxSize: 10 });
       expect(cache.get("no-such-key")).toBeUndefined();
     });
 
     it("Cache has checks existence", () => {
-      const cache = new Framework.Cache({ maxSize: 10 });
+      const cache = Framework.Cache({ maxSize: 10 });
       cache.set("exists", true);
       expect(cache.has("exists")).toBe(true);
       expect(cache.has("missing")).toBe(false);
     });
 
     it("Cache del removes entries", () => {
-      const cache = new Framework.Cache({ maxSize: 10 });
+      const cache = Framework.Cache({ maxSize: 10 });
       cache.set("toDelete", "val");
       expect(cache.has("toDelete")).toBe(true);
       cache.del("toDelete");
@@ -409,25 +409,25 @@ describe("Framework", () => {
     });
 
     it("Cache clear removes all entries", () => {
-      const cache = new Framework.Cache({ maxSize: 10 });
+      const cache = Framework.Cache({ maxSize: 10 });
       cache.set("a", 1);
       cache.set("b", 2);
       cache.clear();
-      expect(cache.size).toBe(0);
+      expect(cache.getSize()).toBe(0);
       expect(cache.get("a")).toBeUndefined();
     });
 
     it("Cache reports size correctly", () => {
-      const cache = new Framework.Cache({ maxSize: 10 });
-      expect(cache.size).toBe(0);
+      const cache = Framework.Cache({ maxSize: 10 });
+      expect(cache.getSize()).toBe(0);
       cache.set("x", 1);
       cache.set("y", 2);
-      expect(cache.size).toBe(2);
+      expect(cache.getSize()).toBe(2);
     });
 
     it("Cache calls onRemove callback on deletion", () => {
       const removed: string[] = [];
-      const cache = new Framework.Cache({
+      const cache = Framework.Cache({
         maxSize: 10,
         onRemove: (key: string) => removed.push(key),
       });

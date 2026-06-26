@@ -1194,14 +1194,14 @@ export interface StateInterface extends EventEmitterInterface<StateInterface> {
    */
   set(data: Record<string, unknown>, excludes?: ReadonlySet<string>): this;
   /**
-   * Clean data for specified keys in State, can only be used in view's mixins.
-   * For example `mixins: [State.clean("a,b")]`.
-   * Keys registered via this method are automatically cleaned when view is destroyed,
-   * and corresponding key reference counts are decremented; data is auto-deleted when count reaches zero.
+   * Create a cleanup function for state keys on view destroy.
+   * Call inside setup: `State.clean("keys")(ctx)`
    * @param keys Comma-separated key string
-   * @returns Object with ctor method, called by mixins mechanism
+   * @returns Function that registers destroy cleanup on a ctx
    */
-  clean(keys: string): { ctor: AnyFunc };
+  clean(
+    keys: string,
+  ): (ctx: { on: (event: string, handler: () => void) => void }) => void;
   /**
    * Detect data changes and dispatch changed event.
    * After set, must explicitly call `digest()` to dispatch changed event and notify views to update.

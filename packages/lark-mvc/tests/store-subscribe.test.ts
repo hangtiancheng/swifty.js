@@ -1,11 +1,11 @@
 import { describe, it, expect, vi } from "vitest";
 import { create, bindStore } from "../src/store";
-import { Updater } from "../src/updater";
+import { createUpdater } from "../src/updater";
 
 function fakeView(id: string) {
   const destroyListeners: Array<() => void> = [];
   return {
-    updater: new Updater(id),
+    updater: createUpdater(id),
     destroyListeners,
     on(event: string, cb: () => void) {
       if (event === "destroy") destroyListeners.push(cb);

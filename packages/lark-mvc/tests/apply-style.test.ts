@@ -42,7 +42,7 @@ describe("applyStyle", () => {
 
     it("is idempotent -- same ID does not inject twice", () => {
       const cleanup1 = applyStyle("test-style-dup", ".first{}");
-      const cleanup2 = applyStyle("test-style-dup", ".second{}");
+      applyStyle("test-style-dup", ".second{}");
       cleanups.push(cleanup1);
       const elements = document.querySelectorAll("#test-style-dup");
       expect(elements.length).toBe(1);
@@ -51,13 +51,13 @@ describe("applyStyle", () => {
     });
 
     it("returns noop when CSS is empty", () => {
-      const cleanup = applyStyle("test-style-empty", "");
+      applyStyle("test-style-empty", "");
       // Empty CSS should not inject anything
       expect(document.getElementById("test-style-empty")).toBeNull();
     });
 
     it("returns noop when CSS is undefined", () => {
-      const cleanup = applyStyle("test-style-nocss");
+      applyStyle("test-style-nocss");
       expect(document.getElementById("test-style-nocss")).toBeNull();
     });
   });

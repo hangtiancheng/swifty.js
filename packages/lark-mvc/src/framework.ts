@@ -615,15 +615,3 @@ export const Framework: FrameworkInterface = {
   /** Frame class */
   Frame,
 };
-
-// // Attach to window for global access
-// if (typeof window !== "undefined") {
-//   window.__lark_Framework = Framework;
-//   window.__lark_State = State;
-//   window.__lark_Router = Router;
-//   window.__lark_Frame = Frame;
-//   window.__lark_View = View;
-//   window.__lark_invalidateViewClass = invalidateViewClass;
-//   window.__lark_getViewClassRegistry = getViewClassRegistry;
-//   window.__lark_registerViewClass = registerViewClass;
-// }
