@@ -1,7 +1,7 @@
 {
   "name": "@swifty.js/cache",
   "version": "0.0.1",
-  "description": "Distributed cache library aligned with swifty-go/swifty_cache",
+  "description": "Distributed cache library aligned with swifty.go/swifty_cache",
   "keywords": [
     "cache",
     "consistent-hash",
@@ -13,14 +13,14 @@
   ],
   "license": "ISC",
   "author": "https://github.com/hangtiancheng",
-  "homepage": "https://github.com/hangtiancheng/swifty/tree/main/packages/cache#readme",
+  "homepage": "https://github.com/hangtiancheng/swifty.js/tree/main/packages/cache#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hangtiancheng/swifty.git",
+    "url": "git+https://github.com/hangtiancheng/swifty.js.git",
     "directory": "packages/cache"
   },
   "bugs": {
-    "url": "https://github.com/hangtiancheng/swifty/issues"
+    "url": "https://github.com/hangtiancheng/swifty.js/issues"
   },
   "files": [
     "dist"

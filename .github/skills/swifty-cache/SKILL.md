@@ -7,7 +7,7 @@ description: Authoritative reference for the @swifty.js/cache distributed in-mem
 
 `@swifty.js/cache` is a TypeScript port of the groupcache architecture popularized by Brad Fitzpatrick, redesigned for the Node.js runtime and shipped from `packages/cache` as ESM (`"type": "module"`, Node ≥ 20). It provides a coherent set of building blocks—`Group`, `Cache`, `LruStore`, `ConHashMap`, `SingleFlightGroup`, `ClientPicker`, `Server`, etcd-based registration—that together yield a peer-to-peer, eventually consistent, sharded read-through cache reachable over gRPC. This skill is the canonical playbook: consult it before designing topologies, wiring callers, debugging timeouts, or evolving the public surface.
 
-The package is intentionally aligned with the Go sibling at `swifty-go/swifty_cache`. APIs, semantics, and wire format match symbol-for-symbol; only naming conventions and language-idiomatic concurrency diverge. When the user mentions concepts that exist on both sides, confirm whether they mean the TypeScript package (`@swifty.js/cache`, this skill) or the Go module (the `cache` Go skill).
+The package is intentionally aligned with the Go sibling at `swifty.go/swifty_cache`. APIs, semantics, and wire format match symbol-for-symbol; only naming conventions and language-idiomatic concurrency diverge. When the user mentions concepts that exist on both sides, confirm whether they mean the TypeScript package (`@swifty.js/cache`, this skill) or the Go module (the `cache` Go skill).
 
 ## When to consult this skill (and when to skip)
 
@@ -19,7 +19,7 @@ Trigger this skill whenever you encounter:
 - requests to add new RPC handlers, swap in a different store, change consistent-hash replicas, tune deadlines, integrate TLS, change etcd endpoints, or re-export new public types;
 - bug reports about cache miss storms, cross-node propagation gaps, `DEADLINE_EXCEEDED` from `pb.SwiftyCache.Get/Set/Delete`, port collisions, or stale peers in the consistent-hash ring.
 
-Do **not** trigger for: the Go module under `swifty-go/swifty_cache` (route to its dedicated skill); generic `node-cache`, `lru-cache`, `keyv`, `cache-manager`, or Redis client questions; gRPC tutorials unrelated to this package; or unrelated browser-side caches.
+Do **not** trigger for: the Go module under `swifty.go/swifty_cache` (route to its dedicated skill); generic `node-cache`, `lru-cache`, `keyv`, `cache-manager`, or Redis client questions; gRPC tutorials unrelated to this package; or unrelated browser-side caches.
 
 ## Mental model
 
