@@ -15,6 +15,7 @@ function Demo() {
   };
 
   const handleClick3 = () => {
+    console.log(cnt3);
     setCnt3((cnt3) => cnt3);
   };
 

@@ -21,10 +21,8 @@
   },
   "scripts": {
     "git:commit": "pnpm git:precommit && git add -A && git commit -m \"feat: Introduce new features\"",
-    "git:commit:ci": "pnpm git:precommit && git add -A && git commit -m \"ci: Deploy homepage\"",
     "git:precommit": "rm -rf ./.claude && ln -s ./.github ./.claude",
     "git:push": "pnpm git:commit && git push origin main",
-    "git:push:ci": "pnpm git:commit:ci && git push origin main",
     "prepare": "husky && pnpm --filter @swifty.js/cache build"
   },
   "type": "module"

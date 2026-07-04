@@ -1,4 +1,3 @@
-let currentFiberTree;
 function createTextNode(nodeValue) {
   return {
     type: "TEXT_ELEMENT",
@@ -26,7 +25,7 @@ function createElement(type, props, ...children) {
 let nextWorkOfUnit = null;
 let workInProgressFiberNode = null;
 let workInProgressFiberRoot = null; // workInProgressFiberRoot 当前处理的 Fiber 树
-// let currentFiberRoot = null; // currentFiberTree 当前渲染的 Fiber 树
+let currentFiberRoot = null; // currentFiberTree 当前渲染的 Fiber 树
 let deletions = [];
 
 function render(vNode /* element */, container) {
