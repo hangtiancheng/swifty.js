@@ -1,0 +1,14 @@
+{
+  "files.associations": {
+    "*.page-template": "vue",
+    "*.layout-template": "vue",
+    "*.vue": "vue",
+    "*.gyp": "json"
+    // "*.ejs": "javascript"
+  },
+  "cmake.ignoreCMakeListsMissing": true,
+  "css.validate": false,
+  "cSpell.words": [
+    "vdom"
+  ]
+}

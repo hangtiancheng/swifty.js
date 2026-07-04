@@ -1,0 +1,21 @@
+{
+  "name": "@swifty.js/mini-webpack",
+  "version": "1.0.0",
+  "description": "mini-webpack",
+  "license": "ISC",
+  "author": "https://github.com/hangtiancheng",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:hangtiancheng/wheel.git"
+  },
+  "type": "module",
+  "main": "src/index.js",
+  "dependencies": {
+    "@babel/core": "^7.29.7",
+    "@babel/parser": "^7.29.7",
+    "@babel/traverse": "^7.29.7",
+    "ejs": "^3.1.10",
+    "tapable": "^2.3.3"
+  },
+  "packageManager": "pnpm@10.10.0"
+}

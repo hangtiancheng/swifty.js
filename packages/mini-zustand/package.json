@@ -1,0 +1,34 @@
+{
+  "name": "@swifty.js/mini-zustand",
+  "version": "1.0.0",
+  "description": "mini-zustand",
+  "license": "ISC",
+  "author": "https://github.com/hangtiancheng",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:hangtiancheng/wheel.git"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "main": "src/index.ts",
+  "publishConfig": {
+    "main": "dist/index.js"
+  },
+  "scripts": {
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.17",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "zustand": "^5.0.14"
+  },
+  "peerDependencies": {
+    "@testing-library/dom": "^10.4.1",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3"
+  },
+  "packageManager": "pnpm@10.10.0"
+}

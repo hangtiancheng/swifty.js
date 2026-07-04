@@ -1,0 +1,6 @@
+allowBuilds:
+  '@2060.io/ffi-napi': true
+  '@2060.io/ref-napi': true
+  es5-ext: true
+  esbuild: true
+  ref-napi: true

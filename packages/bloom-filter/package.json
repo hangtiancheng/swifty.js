@@ -1,0 +1,22 @@
+{
+  "name": "@swifty.js/bloom-filter",
+  "version": "1.0.0",
+  "description": "A standard Bloom Filter implementation in TypeScript",
+  "keywords": [],
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@node-rs/xxhash": "^1.7.6"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "typescript": "^6.0.3"
+  },
+  "packageManager": "pnpm@10.30.3"
+}

@@ -1,0 +1,26 @@
+{
+  "name": "@swifty.js/distributed-lock",
+  "version": "1.0.0",
+  "description": "A distributed lock implementation using Redis and TypeScript",
+  "keywords": [
+    "distributed-lock",
+    "redis",
+    "typescript"
+  ],
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "redis": "^5.12.1"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "typescript": "^5.9.3"
+  },
+  "packageManager": "pnpm@10.30.3"
+}
