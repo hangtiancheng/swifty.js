@@ -1,3 +1,4 @@
+let currentFiberTree;
 function createTextNode(nodeValue) {
   return {
     type: "TEXT_ELEMENT",
@@ -14,7 +15,8 @@ function createElement(type, props, ...children) {
     props: {
       ...props,
       children: children.map((child) => {
-        const isTextNode = typeof child === "string" || typeof child === "number";
+        const isTextNode =
+          typeof child === "string" || typeof child === "number";
         return isTextNode ? createTextNode(child) : child;
       }),
     },
@@ -151,7 +153,9 @@ function commitWorkOfUnit(workOfUnit) {
 }
 
 function createDom(type) {
-  return type === "TEXT_ELEMENT" ? document.createTextNode("") : document.createElement(type);
+  return type === "TEXT_ELEMENT"
+    ? document.createTextNode("")
+    : document.createElement(type);
 }
 
 function reconcileChildren(workOfUnit, children) {
@@ -160,7 +164,8 @@ function reconcileChildren(workOfUnit, children) {
   for (const childWorkOfUnit of children) {
     let newChildWorkOfUnit = null;
 
-    const isSameType = oldChildWorkOfUnit && oldChildWorkOfUnit.type === childWorkOfUnit.type;
+    const isSameType =
+      oldChildWorkOfUnit && oldChildWorkOfUnit.type === childWorkOfUnit.type;
     if (isSameType) {
       // update
       newChildWorkOfUnit = {
@@ -284,7 +289,8 @@ function performWorkOfUnit(workOfUnit) {
 
 function useState(initialValue) {
   let currentWorkOfUnit = workInProgressFiberNode;
-  const oldStateHook = currentWorkOfUnit.alternate?.stateHooks?.[currentWorkOfUnit.stateHookIndex];
+  const oldStateHook =
+    currentWorkOfUnit.alternate?.stateHooks?.[currentWorkOfUnit.stateHookIndex];
   const hook = {
     state: oldStateHook ? oldStateHook.state : initialValue,
     // oldStateHook?.queue && [],
@@ -299,7 +305,8 @@ function useState(initialValue) {
   currentWorkOfUnit.stateHooks.push(hook);
   currentWorkOfUnit.stateHookIndex++;
   const setState = (action) => {
-    const eagerState = typeof action === "function" ? action(hook.state) : action;
+    const eagerState =
+      typeof action === "function" ? action(hook.state) : action;
     if (eagerState === hook.state) {
       return;
     }

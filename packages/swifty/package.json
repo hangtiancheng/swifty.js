@@ -1,7 +1,7 @@
 {
-  "name": "@swifty.js/mini-react",
+  "name": "@swifty.js/swifty",
   "version": "1.0.0",
-  "description": "mini-react",
+  "description": "swifty",
   "license": "ISC",
   "author": "https://github.com/hangtiancheng",
   "repository": {
