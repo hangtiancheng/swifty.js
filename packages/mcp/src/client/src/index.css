@@ -10,59 +10,181 @@
   prefersdark: false;
   color-scheme: light;
 
-  --color-base-100: var(--color-emerald-50);
-  --color-base-200: var(--color-emerald-100);
-  --color-base-300: var(--color-emerald-200);
-  --color-base-content: var(--color-emerald-700);
-  --color-primary: var(--color-emerald-500);
-  --color-primary-content: var(--color-white);
-  --color-secondary: var(--color-teal-400);
-  --color-secondary-content: var(--color-white);
-  --color-accent: var(--color-cyan-400);
-  --color-accent-content: var(--color-white);
-  --color-neutral: var(--color-slate-400);
-  --color-neutral-content: var(--color-white);
-  --color-info: var(--color-sky-400);
-  --color-info-content: var(--color-white);
-  --color-success: var(--color-emerald-400);
-  --color-success-content: var(--color-white);
-  --color-warning: var(--color-amber-400);
-  --color-warning-content: var(--color-white);
-  --color-error: var(--color-rose-400);
-  --color-error-content: var(--color-white);
+  /* Very light blue base palette — arctic frost */
+  --color-base-100: #f0f7ff;
+  --color-base-200: #e1effe;
+  --color-base-300: #cde4fb;
+  --color-base-content: #2e4a6e;
+
+  /* Primary — soft cerulean */
+  --color-primary: #5ba3e6;
+  --color-primary-content: #ffffff;
+
+  /* Secondary — pale sky */
+  --color-secondary: #7cb8ec;
+  --color-secondary-content: #ffffff;
+
+  /* Accent — ice crystal */
+  --color-accent: #89c4f4;
+  --color-accent-content: #1e3a5f;
+
+  /* Neutral — blue-grey */
+  --color-neutral: #8dabc4;
+  --color-neutral-content: #ffffff;
+
+  --color-info: #60a5fa;
+  --color-info-content: #ffffff;
+  --color-success: #6bc4a6;
+  --color-success-content: #ffffff;
+  --color-warning: #e6b980;
+  --color-warning-content: #5c3d10;
+  --color-error: #e88a8a;
+  --color-error-content: #ffffff;
 
   --border: 0.5px;
   --depth: 0;
   --noise: 0;
-  --radius-box: 1rem;
-  --radius-field: 0.5rem;
-  --radius-selector: 0.5rem;
+  --radius-box: 1.25rem;
+  --radius-field: 0.625rem;
+  --radius-selector: 0.625rem;
   --size-field: 0.25rem;
   --size-selector: 0.25rem;
 }
 
 @theme {
   --font-sans:
-    Iosevka, Maple Mono, Menlo, "Cascadia Code", "Sarasa Gothic SC",
-    "PingFang SC", "Microsoft YaHei", sans-serif;
+    "Outfit", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
 
   --font-mono:
-    Iosevka, Maple Mono, Menlo, "Cascadia Code", "Sarasa Gothic SC",
+    "JetBrains Mono", "Fira Code", "Cascadia Code", "Sarasa Gothic SC",
     "PingFang SC", "Microsoft YaHei", monospace;
 }
 
-/* @theme {
-  --font-sans:
-    Iosevka, Maple Mono, Menlo, Cascadia Code, Sarasa Gothic SC, PingFang SC, Microsoft YaHei;
+/* Google Fonts import */
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap");
 
-  --font-mono:
-    Iosevka, Maple Mono, Menlo, Cascadia Code, Sarasa Gothic SC, PingFang SC, Microsoft YaHei;
-} */
+/* Page background — subtle aurora gradient */
+body {
+  background: linear-gradient(
+    160deg,
+    #eaf3fc 0%,
+    #f0f7ff 30%,
+    #f5f9ff 50%,
+    #edf5ff 70%,
+    #e8f1fb 100%
+  );
+  min-height: 100vh;
+}
 
-/* Override daisyUI input/textarea focus styles to use 1px orange border */
+/* Subtle frost texture overlay */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(
+      ellipse 80% 60% at 20% 10%,
+      rgba(147, 197, 253, 0.12),
+      transparent
+    ),
+    radial-gradient(
+      ellipse 60% 50% at 80% 80%,
+      rgba(186, 218, 253, 0.1),
+      transparent
+    ),
+    radial-gradient(
+      ellipse 40% 40% at 50% 50%,
+      rgba(219, 234, 254, 0.08),
+      transparent
+    );
+  pointer-events: none;
+  z-index: 0;
+}
+
+#app {
+  position: relative;
+  z-index: 1;
+}
+
+/* Input/textarea focus — soft blue glow */
 .input:focus,
 .input:focus-within,
 .textarea:focus,
 .textarea:focus-within {
-  @apply border-teal-400 shadow-none outline-none;
+  border-color: #89c4f4;
+  box-shadow:
+    0 0 0 3px rgba(137, 196, 244, 0.15),
+    0 1px 4px rgba(91, 163, 230, 0.06);
+  outline: none;
+}
+
+/* Smooth transitions on all interactive elements */
+.input,
+.textarea,
+.btn,
+.card,
+.badge {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Custom scrollbar for the diagnose panel */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 4px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: rgba(91, 163, 230, 0.2);
+  border-radius: 4px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: rgba(91, 163, 230, 0.35);
+}
+
+/* Animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes gentle-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
 }

@@ -47,23 +47,36 @@ const App = () => {
   };
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center p-4 transition-colors duration-500 ease-in-out">
+    <div className="relative flex min-h-screen flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
+      {/* Language toggle */}
       <button
         onClick={toggleLanguage}
-        className="btn btn-ghost btn-sm text-primary/60 hover:bg-primary/10 absolute top-4 right-4"
+        className="btn btn-ghost btn-sm absolute top-5 right-5 rounded-full px-4 text-sm font-medium tracking-wide text-[#5ba3e6]/70 hover:bg-[#5ba3e6]/8 hover:text-[#5ba3e6]"
       >
         {t("mcp.switch_lang")}
       </button>
 
-      <div className="mx-auto w-full max-w-4xl animate-[fade-in_0.5s_ease-out]">
-        <div className="mb-10 text-center transition-transform duration-300 hover:-translate-y-1">
-          <h1 className="text-primary mb-2 text-5xl font-extrabold drop-shadow-sm">
+      <div className="mx-auto w-full max-w-3xl animate-[fade-in_0.6s_ease-out]">
+        {/* Header */}
+        <div className="mb-12 text-center">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-[#5ba3e6]/8 px-4 py-1.5 text-xs font-medium tracking-widest text-[#5ba3e6]/80 uppercase">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#5ba3e6]/60"></span>
+            MCP
+          </div>
+          <h1 className="mb-3 text-4xl font-bold tracking-tight text-[#2e4a6e] sm:text-5xl">
             {t("mcp.app_title")}
           </h1>
-          <p className="text-secondary/80 font-medium">
+          <p className="text-base font-light tracking-wide text-[#5a7fa3]/70">
             {t("mcp.app_subtitle")}
           </p>
+          {/* Decorative line */}
+          <div className="mx-auto mt-6 flex items-center justify-center gap-2">
+            <span className="h-px w-12 bg-linear-to-r from-transparent to-[#89c4f4]/30"></span>
+            <span className="h-1 w-1 rounded-full bg-[#89c4f4]/40"></span>
+            <span className="h-px w-12 bg-linear-to-l from-transparent to-[#89c4f4]/30"></span>
+          </div>
         </div>
+
         <PromptForm />
       </div>
 
