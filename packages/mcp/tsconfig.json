@@ -42,6 +42,5 @@
     "moduleDetection": "force",
     "skipLibCheck": true
   },
-  "include": ["./src/**/*"],
-  "exclude": ["./src/client/**/*"]
+  "include": ["./src/**/*"]
 }

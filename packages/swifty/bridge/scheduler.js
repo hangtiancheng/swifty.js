@@ -12,10 +12,6 @@ export var unstable_NormalPriority = 3;
 export var unstable_LowPriority = 4;
 export var unstable_IdlePriority = 5;
 
-/**
- * @param {number} priority
- * @param {() => void} callback
- */
 export function unstable_runWithPriority(priority, callback) {
   return callback();
 }

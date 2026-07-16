@@ -1,12 +1,10 @@
-import { render, hydrate, unmountComponentAtNode } from "./internal";
+import { render, hydrate, unmountComponentAtNode } from "../src/compat/internal";
 
 export function createRoot(container) {
   return {
-    // eslint-disable-next-line
     render: function (children) {
       render(children, container);
     },
-    // eslint-disable-next-line
     unmount: function () {
       unmountComponentAtNode(container);
     },

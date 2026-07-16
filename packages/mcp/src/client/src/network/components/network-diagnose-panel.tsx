@@ -28,13 +28,13 @@ import { FunctionComponent } from "@swifty.js/preact";
 interface NetworkDiagnosePanelProps {
   config: Omit<SDKOptions, "onResultsUpdate">;
   title?: string;
-  oncallAction?: (results: DiagnosticResult[]) => void;
+  onCallAction?: (results: DiagnosticResult[]) => void;
 }
 
 const NetworkDiagnosePanel: FunctionComponent<NetworkDiagnosePanelProps> = ({
   config,
   title = "Network Diagnostics",
-  oncallAction: oncallAction,
+  onCallAction: onCallAction,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [results, setResults] = useState<DiagnosticResult[]>([]);
@@ -349,8 +349,8 @@ const NetworkDiagnosePanel: FunctionComponent<NetworkDiagnosePanelProps> = ({
         {hasFailures && (
           <button
             onClick={() => {
-              if (oncallAction) {
-                oncallAction(results);
+              if (onCallAction) {
+                onCallAction(results);
               } else {
                 setShowToast(true);
                 setTimeout(() => setShowToast(false), 3000);
@@ -373,7 +373,7 @@ const NetworkDiagnosePanel: FunctionComponent<NetworkDiagnosePanelProps> = ({
           <div className="alert alert-warning shadow-lg">
             <span className="flex items-center gap-2">
               <Send className="h-5 w-5" />
-              Oncall function not configured
+              OnCall function not configured
             </span>
           </div>
         </div>

@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import PromptForm from "./prompt-form.js";
 import NetworkDiagnosePanel from "./network/components/network-diagnose-panel.js";
 import "./i18n.js";
+// @ts-ignore
 import "./index.css";
 
 const App = () => {
@@ -28,16 +29,16 @@ const App = () => {
       "https://upload.wikimedia.org/wikipedia/commons/3/3d/LARGE_elevation.jpg",
   };
 
-  const handleOncall = (results: unknown[]) => {
+  const handleOnCall = (results: unknown[]) => {
     const payload = JSON.stringify({
       timestamp: new Date().toISOString(),
       userAgent: navigator.userAgent,
       results,
     });
     if (navigator.sendBeacon) {
-      navigator.sendBeacon("/oncall", payload);
+      navigator.sendBeacon("/onCall", payload);
     } else {
-      fetch("/oncall", {
+      fetch("/onCall", {
         method: "POST",
         body: payload,
         keepalive: true,
@@ -68,7 +69,7 @@ const App = () => {
 
       <NetworkDiagnosePanel
         config={diagnosticConfig}
-        oncallAction={handleOncall}
+        onCallAction={handleOnCall}
       />
     </div>
   );

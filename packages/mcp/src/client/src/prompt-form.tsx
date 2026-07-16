@@ -1,4 +1,4 @@
-import { type ChangeEvent, type FC } from "@swifty.js/preact/compat";
+import { type FormEvent, type FC } from "@swifty.js/preact/compat";
 import { useState, useEffect } from "@swifty.js/preact/hooks";
 import { useTranslation } from "react-i18next";
 import { CheckCircle2, AlertCircle } from "lucide-react";
@@ -19,7 +19,7 @@ export const PromptForm: FC = () => {
     }
   }, [status, t]);
 
-  const handleSubmit = async (e: ChangeEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setStatus(t("mcp.saving"));
 
@@ -69,7 +69,7 @@ export const PromptForm: FC = () => {
             <input
               type="text"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => setName(e.currentTarget.value)}
               className="input input-bordered bg-base-100 w-full transition-colors"
               placeholder={t("mcp.prompt_name_placeholder")}
               required
@@ -85,7 +85,7 @@ export const PromptForm: FC = () => {
             <input
               type="text"
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={(e) => setDescription(e.currentTarget.value)}
               className="input input-bordered bg-base-100 w-full transition-colors"
               placeholder={t("mcp.description_placeholder")}
               required
@@ -100,7 +100,7 @@ export const PromptForm: FC = () => {
             </div>
             <textarea
               value={content}
-              onChange={(e) => setContent(e.target.value)}
+              onChange={(e) => setContent(e.currentTarget.value)}
               className="textarea textarea-bordered bg-base-100 h-40 w-full resize-y leading-relaxed transition-colors"
               placeholder={t("mcp.content_placeholder")}
               required

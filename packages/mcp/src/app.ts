@@ -3,9 +3,9 @@ import serve from "koa-static";
 import { MongoClient, Db } from "mongodb";
 import path from "path";
 import { fileURLToPath } from "url";
-import { setupPromptRoutes } from "./routes/prompt-routes.js";
+import { setupPromptRoutes } from "./routes/prompt.js";
 import { setupMcpRoutes } from "./mcp.js";
-import { setupOncallRoutes } from "./routes/oncall-routes.js";
+import { setupOnCallRoutes } from "./routes/on-call.js";
 import bodyParser from "@koa/bodyparser";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -44,8 +44,8 @@ export const buildApp = async (): Promise<AppInstance> => {
   app.use(promptRouter.routes()).use(promptRouter.allowedMethods());
   app.use(mcpRouter.routes()).use(mcpRouter.allowedMethods());
 
-  const oncallRouter = setupOncallRoutes();
-  app.use(oncallRouter.routes()).use(oncallRouter.allowedMethods());
+  const onCallRouter = setupOnCallRoutes();
+  app.use(onCallRouter.routes()).use(onCallRouter.allowedMethods());
 
   // Attach the mongo client so we can close it later if needed
   app.mongoClient = client;

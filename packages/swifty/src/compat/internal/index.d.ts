@@ -152,38 +152,38 @@ declare namespace React {
   export import VideoHTMLAttributes = JSXInternal.VideoHTMLAttributes;
 
   // Events
-  export import TargetedEvent = JSXInternal.TargetedEvent;
-  export import ChangeEvent = JSXInternal.TargetedEvent;
-  export import ClipboardEvent = JSXInternal.TargetedClipboardEvent;
-  export import CompositionEvent = JSXInternal.TargetedCompositionEvent;
-  export import DragEvent = JSXInternal.TargetedDragEvent;
-  export import PointerEvent = JSXInternal.TargetedPointerEvent;
-  export import FocusEvent = JSXInternal.TargetedFocusEvent;
-  export import FormEvent = JSXInternal.TargetedEvent;
-  export import InvalidEvent = JSXInternal.TargetedEvent;
-  export import KeyboardEvent = JSXInternal.TargetedKeyboardEvent;
-  export import MouseEvent = JSXInternal.TargetedMouseEvent;
-  export import TouchEvent = JSXInternal.TargetedTouchEvent;
-  export import UIEvent = JSXInternal.TargetedUIEvent;
-  export import AnimationEvent = JSXInternal.TargetedAnimationEvent;
-  export import TransitionEvent = JSXInternal.TargetedTransitionEvent;
+  export import TargetedEvent = preact.TargetedEvent;
+  export import ChangeEvent = preact.TargetedEvent;
+  export import ClipboardEvent = preact.TargetedClipboardEvent;
+  export import CompositionEvent = preact.TargetedCompositionEvent;
+  export import DragEvent = preact.TargetedDragEvent;
+  export import PointerEvent = preact.TargetedPointerEvent;
+  export import FocusEvent = preact.TargetedFocusEvent;
+  export import FormEvent = preact.TargetedEvent;
+  export import InvalidEvent = preact.TargetedEvent;
+  export import KeyboardEvent = preact.TargetedKeyboardEvent;
+  export import MouseEvent = preact.TargetedMouseEvent;
+  export import TouchEvent = preact.TargetedTouchEvent;
+  export import UIEvent = preact.TargetedUIEvent;
+  export import AnimationEvent = preact.TargetedAnimationEvent;
+  export import TransitionEvent = preact.TargetedTransitionEvent;
 
   // Event Handler Types
-  export import EventHandler = JSXInternal.EventHandler;
-  export import ChangeEventHandler = JSXInternal.GenericEventHandler;
-  export import ClipboardEventHandler = JSXInternal.ClipboardEventHandler;
-  export import CompositionEventHandler = JSXInternal.CompositionEventHandler;
-  export import DragEventHandler = JSXInternal.DragEventHandler;
-  export import PointerEventHandler = JSXInternal.PointerEventHandler;
-  export import FocusEventHandler = JSXInternal.FocusEventHandler;
-  export import FormEventHandler = JSXInternal.GenericEventHandler;
-  export import InvalidEventHandler = JSXInternal.GenericEventHandler;
-  export import KeyboardEventHandler = JSXInternal.KeyboardEventHandler;
-  export import MouseEventHandler = JSXInternal.MouseEventHandler;
-  export import TouchEventHandler = JSXInternal.TouchEventHandler;
-  export import UIEventHandler = JSXInternal.UIEventHandler;
-  export import AnimationEventHandler = JSXInternal.AnimationEventHandler;
-  export import TransitionEventHandler = JSXInternal.TransitionEventHandler;
+  export import EventHandler = preact.EventHandler;
+  export import ChangeEventHandler = preact.GenericEventHandler;
+  export import ClipboardEventHandler = preact.ClipboardEventHandler;
+  export import CompositionEventHandler = preact.CompositionEventHandler;
+  export import DragEventHandler = preact.DragEventHandler;
+  export import PointerEventHandler = preact.PointerEventHandler;
+  export import FocusEventHandler = preact.FocusEventHandler;
+  export import FormEventHandler = preact.GenericEventHandler;
+  export import InvalidEventHandler = preact.GenericEventHandler;
+  export import KeyboardEventHandler = preact.KeyboardEventHandler;
+  export import MouseEventHandler = preact.MouseEventHandler;
+  export import TouchEventHandler = preact.TouchEventHandler;
+  export import UIEventHandler = preact.UIEventHandler;
+  export import AnimationEventHandler = preact.AnimationEventHandler;
+  export import TransitionEventHandler = preact.TransitionEventHandler;
 
   export function createPortal(
     vnode: preact.ComponentChildren,
