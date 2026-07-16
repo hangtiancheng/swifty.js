@@ -50,7 +50,7 @@ class Bus<
       this.results[index] = {
         ...this.results[index],
         ...updates,
-      };
+      } as TResult;
       this.emit();
     }
   }

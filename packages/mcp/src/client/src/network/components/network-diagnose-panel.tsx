@@ -23,7 +23,7 @@ import type {
   NetworkInfo,
 } from "../sdk/types.js";
 import { DiagnosticTaskId } from "../sdk/types.js";
-import { FunctionComponent } from "@swifty.js/preact";
+import type { FunctionComponent } from "@swifty.js/preact";
 
 interface NetworkDiagnosePanelProps {
   config: Omit<SDKOptions, "onResultsUpdate">;
