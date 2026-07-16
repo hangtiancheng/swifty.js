@@ -8,7 +8,5 @@
   },
   "cmake.ignoreCMakeListsMissing": true,
   "css.validate": false,
-  "cSpell.words": [
-    "vdom"
-  ]
+  "cSpell.words": ["hangtiancheng", "Renderable", "swifty", "vdom", "vnode"]
 }

@@ -1,28 +1,25 @@
 {
   "name": "@swifty.js/swifty",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "swifty",
   "license": "ISC",
   "author": "https://github.com/hangtiancheng",
   "repository": {
     "type": "git",
-    "url": "git@github.com:hangtiancheng/wheel.git"
+    "url": "git@github.com:hangtiancheng/swifty.js.git"
   },
   "files": [
-    "dist"
+    "src"
   ],
   "type": "module",
   "main": "src/index.ts",
   "publishConfig": {
-    "main": "dist/index.js"
+    "main": "src/index.js"
   },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview"
-  },
-  "devDependencies": {
-    "vite": "^7.3.6"
   },
   "packageManager": "pnpm@10.10.0"
 }

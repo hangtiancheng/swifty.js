@@ -1,5 +1,5 @@
 /** @jsx React.createElement */
-import React from "./core/react.js";
+import React from "./react.js";
 
 function Demo() {
   const [cnt, setCnt] = React.useState(1);
