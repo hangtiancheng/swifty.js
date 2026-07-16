@@ -53,11 +53,10 @@
 
 @theme {
   --font-sans:
-    "Outfit", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+    "Swifty", "Geist Mono", "Maple Mono", "Iosevka", "Menlo", "Cascadia Code",
+    "Sarasa Gothic SC", "PingFang SC", "Microsoft YaHei";
 
-  --font-mono:
-    "JetBrains Mono", "Fira Code", "Cascadia Code", "Sarasa Gothic SC",
-    "PingFang SC", "Microsoft YaHei", monospace;
+  --font-mono: var(--font-sans);
 }
 
 /* Google Fonts import */

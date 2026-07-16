@@ -1,4 +1,4 @@
-import { render, hydrate, unmountComponentAtNode } from "../src/compat/internal";
+import { render, hydrate, unmountComponentAtNode } from "./internal";
 
 export function createRoot(container) {
   return {

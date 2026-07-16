@@ -21,6 +21,7 @@
     "libheap",
     "libpool",
     "renderable",
+    "Sarasa",
     "signalish",
     "swifty",
     "vdom",

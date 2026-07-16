@@ -55,15 +55,6 @@ export const PromptForm: FC = () => {
   return (
     <div className="card w-full animate-[float-in_0.5s_ease-out] border border-[#cde4fb]/50 bg-white/60 shadow-[0_4px_32px_rgba(91,163,230,0.06)] backdrop-blur-sm">
       <div className="card-body p-8 lg:p-10">
-        {/* Section header */}
-        <div className="mb-8 flex items-center gap-3 border-b border-[#e1effe]/60 pb-5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-linear-to-br from-[#5ba3e6]/12 to-[#89c4f4]/8">
-            <div className="h-3 w-3 rounded-sm bg-[#5ba3e6]/50"></div>
-          </div>
-          <h2 className="text-xl font-semibold tracking-tight text-[#2e4a6e]">
-            {t("mcp.form_title")}
-          </h2>
-        </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           {/* Prompt Name */}

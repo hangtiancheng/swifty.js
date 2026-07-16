@@ -27,8 +27,8 @@ export default {
     hooks: "src/hooks/index.js",
     compat: "src/compat/internal/index.js",
     "jsx-runtime": "src/jsx-runtime/index.js",
-    client: "bridge/client.js",
-    scheduler: "bridge/scheduler.js",
+    client: "src/compat/client.js",
+    scheduler: "src/compat/scheduler.js",
   },
   output: {
     dir: "dist",

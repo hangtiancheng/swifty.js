@@ -1,13 +1,11 @@
 {
   "mcp": {
-    "app_subtitle": "Manage AI prompts",
-    "app_title": "Prompt Manage",
+    "app_title": "Create New Prompt",
     "content_label": "Content",
     "content_placeholder": "The prompt content...",
     "description_label": "Description",
     "description_placeholder": "Description of the prompt",
     "error_message": "Error",
-    "form_title": "Create New Prompt",
     "network_error": "Network error",
     "prompt_name_label": "Prompt Name",
     "prompt_name_placeholder": "e.g. code review expert",

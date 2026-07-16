@@ -1,13 +1,11 @@
 {
   "mcp": {
-    "app_subtitle": "管理 AI 提示词",
-    "app_title": "Prompt 管理",
+    "app_title": "创建新提示词",
     "content_label": "内容",
     "content_placeholder": "提示词内容...",
     "description_label": "描述",
     "description_placeholder": "提示词描述",
     "error_message": "错误",
-    "form_title": "创建新提示词",
     "network_error": "网络错误",
     "prompt_name_label": "提示词名称",
     "prompt_name_placeholder": "例如: code review 专家",
