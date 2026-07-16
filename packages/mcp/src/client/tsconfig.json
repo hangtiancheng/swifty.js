@@ -12,7 +12,7 @@
     "skipLibCheck": true,
     "outDir": "./dist",
     "rootDir": ".",
-    "types": ["node"]
+    "types": ["node", "@swifty.js/preact"]
   },
   "include": ["./src/**/*", "./tsup.config.ts"]
 }
