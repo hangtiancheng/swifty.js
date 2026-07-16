@@ -31,8 +31,7 @@
     "koa-static": "^5.0.0",
     "lucide-react": "^1.23.0",
     "mongodb": "^7.4.0",
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7",
+    "@swifty.js/preact": "workspace:^",
     "react-i18next": "^16.6.6",
     "zod": "^4.4.3"
   },
@@ -54,8 +53,6 @@
     "@types/koa__cors": "^5.0.1",
     "@types/koa__router": "^12.0.5",
     "@types/node": "catalog:",
-    "@types/react": "^19.2.17",
-    "@types/react-dom": "^19.2.3",
     "autocannon": "^7.15.0",
     "autoprefixer": "^10.5.2",
     "concurrently": "^9.2.3",

@@ -5,7 +5,7 @@ import {
   PreactContext,
   HookType,
   ErrorInfo,
-} from "../../src/internal";
+} from "../internal";
 import { Reducer, StateUpdater } from ".";
 
 export { PreactContext };

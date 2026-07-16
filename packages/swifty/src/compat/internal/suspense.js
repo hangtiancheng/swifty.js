@@ -1,5 +1,5 @@
 import { Component, createElement, options, Fragment } from "../..";
-import { MODE_HYDRATE } from "../../src/constants";
+import { MODE_HYDRATE } from "../../constants";
 import { assign } from "./util";
 
 const oldCatchError = options._catchError;

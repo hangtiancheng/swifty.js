@@ -1,4 +1,4 @@
-import { createRoot } from "react-dom/client";
+import { render } from "@swifty.js/preact";
 import { useTranslation } from "react-i18next";
 import PromptForm from "./prompt-form.js";
 import NetworkDiagnosePanel from "./network/components/network-diagnose-panel.js";
@@ -76,6 +76,5 @@ const App = () => {
 
 const container = document.getElementById("app");
 if (container) {
-  const root = createRoot(container);
-  root.render(<App />);
+  render(<App />, container);
 }

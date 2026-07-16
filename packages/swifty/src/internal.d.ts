@@ -1,6 +1,6 @@
 // Intentionally not using a relative path to take advantage of
 // the TS version resolution mechanism
-import * as preact from "preact";
+import * as preact from ".";
 
 export enum HookType {
   useState = 1,

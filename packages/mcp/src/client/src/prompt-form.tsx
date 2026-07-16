@@ -1,4 +1,5 @@
-import { useState, useEffect, type ChangeEvent, type FC } from "react";
+import { type ChangeEvent, type FC } from "@swifty.js/preact/compat";
+import { useState, useEffect } from "@swifty.js/preact/hooks";
 import { useTranslation } from "react-i18next";
 import { CheckCircle2, AlertCircle } from "lucide-react";
 

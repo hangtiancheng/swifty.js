@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo } from "@swifty.js/preact/hooks";
 import { useTranslation } from "react-i18next";
 import {
   Activity,

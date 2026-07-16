@@ -5,6 +5,7 @@
     "lib": ["esnext", "dom"],
     "moduleResolution": "NodeNext",
     "jsx": "react-jsx",
+    "jsxImportSource": "@swifty.js/preact",
     "experimentalDecorators": true,
     "useDefineForClassFields": false,
     "strict": true,

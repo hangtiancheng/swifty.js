@@ -1,30 +1,67 @@
 {
-  "name": "@swifty.js/swifty",
+  "name": "@swifty.js/preact",
   "version": "0.0.1",
-  "description": "swifty",
-  "license": "ISC",
+  "description": "Fast 3kb React-compatible Virtual DOM library.",
+  "license": "MIT",
   "author": "https://github.com/hangtiancheng",
   "repository": {
     "type": "git",
     "url": "git@github.com:hangtiancheng/swifty.js.git"
   },
-  "files": [
-    "src"
-  ],
   "type": "module",
-  "main": "src/index.ts",
-  "publishConfig": {
-    "main": "src/index.js"
+  "main": "dist/preact.mjs",
+  "module": "dist/preact.mjs",
+  "types": "src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "import": "./dist/preact.mjs"
+    },
+    "./hooks": {
+      "types": "./src/hooks/index.d.ts",
+      "import": "./dist/hooks.mjs"
+    },
+    "./compat": {
+      "types": "./src/compat/internal/index.d.ts",
+      "import": "./dist/compat.mjs"
+    },
+    "./compat/client": {
+      "types": "./src/compat/client.d.ts",
+      "import": "./dist/client.mjs"
+    },
+    "./compat/scheduler": {
+      "import": "./dist/scheduler.mjs"
+    },
+    "./jsx-runtime": {
+      "types": "./src/jsx-runtime/index.d.ts",
+      "import": "./dist/jsx-runtime.mjs"
+    },
+    "./jsx-dev-runtime": {
+      "types": "./src/jsx-runtime/index.d.ts",
+      "import": "./dist/jsx-runtime.mjs"
+    },
+    "./compat/jsx-runtime": {
+      "import": "./dist/compat-jsx-runtime.mjs"
+    },
+    "./compat/jsx-dev-runtime": {
+      "import": "./dist/compat-jsx-dev-runtime.mjs"
+    }
   },
+  "files": [
+    "src",
+    "dist",
+    "mangle.json"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
+    "build": "rollup -c rollup.config.mjs",
+    "dev": "rollup -c rollup.config.mjs --watch",
     "format": "prettier -w ."
   },
   "packageManager": "pnpm@10.10.0",
   "devDependencies": {
+    "@rollup/plugin-terser": "^1.0.0",
     "prettier": "^3.9.4",
-    "vite": "^7.3.6"
+    "rollup": "^4.62.2",
+    "rollup-plugin-esbuild": "^6.2.1"
   }
 }
