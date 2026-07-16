@@ -304,7 +304,7 @@ export function diff(
           }
           newVNode._dom = oldDom;
         } else if (excessDomChildren != NULL) {
-          for (let i = excessDomChildren.length; i--; ) {
+          for (let i = excessDomChildren.length; i--;) {
             removeNode(excessDomChildren[i]);
           }
         }
@@ -570,7 +570,7 @@ function diffElementNodes(
 
       // Remove children that are not part of any vnode.
       if (excessDomChildren != NULL) {
-        for (i = excessDomChildren.length; i--; ) {
+        for (i = excessDomChildren.length; i--;) {
           removeNode(excessDomChildren[i]);
         }
       }

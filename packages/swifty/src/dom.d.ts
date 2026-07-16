@@ -1,6 +1,6 @@
 // Most of our DOM-ish types
 
-import { ClassAttributes, PreactDOMAttributes } from "preact";
+import { ClassAttributes, PreactDOMAttributes } from ".";
 
 // Implementations of some DOM events that are not available in TS 5.1
 interface ToggleEvent extends Event {
@@ -62,14 +62,16 @@ export type Signalish<T> = T | SignalLike<T>;
 export type UnpackSignal<T> = T extends SignalLike<infer V> ? V : T;
 
 export type DOMCSSProperties = {
-  [key in keyof Omit<
-    CSSStyleDeclaration,
-    | "item"
-    | "setProperty"
-    | "removeProperty"
-    | "getPropertyValue"
-    | "getPropertyPriority"
-  >]?: string | number | null | undefined;
+  [
+    key in keyof Omit<
+      CSSStyleDeclaration,
+      | "item"
+      | "setProperty"
+      | "removeProperty"
+      | "getPropertyValue"
+      | "getPropertyPriority"
+    >
+  ]?: string | number | null | undefined;
 };
 export type AllCSSProperties = {
   [key: string]: string | number | null | undefined;
@@ -1575,11 +1577,7 @@ export type HTMLAttributeReferrerPolicy =
   | "unsafe-url";
 
 export type HTMLAttributeAnchorTarget =
-  | "_self"
-  | "_blank"
-  | "_parent"
-  | "_top"
-  | (string & {});
+  "_self" | "_blank" | "_parent" | "_top" | (string & {});
 
 export interface AnchorHTMLAttributes<
   T extends EventTarget = HTMLAnchorElement,

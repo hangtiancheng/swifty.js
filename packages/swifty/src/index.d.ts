@@ -44,14 +44,7 @@ export type RefCallback<T> = (instance: T | null) => void | (() => void);
 export type Ref<T> = RefObject<T> | RefCallback<T> | null;
 
 export type ComponentChild =
-  | VNode<any>
-  | object
-  | string
-  | number
-  | bigint
-  | boolean
-  | null
-  | undefined;
+  VNode<any> | object | string | number | bigint | boolean | null | undefined;
 export type ComponentChildren = ComponentChild[] | ComponentChild;
 
 export interface Attributes {
@@ -114,8 +107,7 @@ export interface ComponentConstructor<P = {}, S = {}> extends ComponentClass<
 
 // Type alias for a component instance considered generally, whether stateless or stateful.
 export type AnyComponent<P = {}, S = {}> =
-  | FunctionComponent<P>
-  | ComponentConstructor<P, S>;
+  FunctionComponent<P> | ComponentConstructor<P, S>;
 
 export interface Component<P = {}, S = {}> {
   componentWillMount?(): void;

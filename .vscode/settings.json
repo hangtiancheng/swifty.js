@@ -8,5 +8,20 @@
   },
   "cmake.ignoreCMakeListsMissing": true,
   "css.validate": false,
-  "cSpell.words": ["hangtiancheng", "Renderable", "swifty", "vdom", "vnode"]
+  "cSpell.words": [
+    "acit",
+    "Booleanish",
+    "Defaultize",
+    "DOMCSS",
+    "hangtiancheng",
+    "horiz",
+    "itera",
+    "libheap",
+    "libpool",
+    "Renderable",
+    "Signalish",
+    "swifty",
+    "vdom",
+    "vnode"
+  ]
 }

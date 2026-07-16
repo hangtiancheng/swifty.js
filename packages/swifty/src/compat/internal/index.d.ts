@@ -278,9 +278,7 @@ declare namespace React {
   }
 
   export type ForwardedRef<T> =
-    | ((instance: T | null) => void)
-    | MutableRefObject<T | null>
-    | null;
+    ((instance: T | null) => void) | MutableRefObject<T | null> | null;
 
   export type ElementType<
     P = any,

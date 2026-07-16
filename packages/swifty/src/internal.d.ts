@@ -14,7 +14,7 @@ export enum HookType {
   useContext = 9,
   useErrorBoundary = 10,
   // Not a real hook, but the devtools treat is as such
-  useDebugvalue = 11,
+  useDebugValue = 11,
 }
 
 export interface DevSource {
@@ -54,12 +54,7 @@ export interface Options extends preact.Options {
 }
 
 export type ComponentChild =
-  | VNode<any>
-  | string
-  | number
-  | boolean
-  | null
-  | undefined;
+  VNode<any> | string | number | boolean | null | undefined;
 export type ComponentChildren = ComponentChild[] | ComponentChild;
 
 export interface FunctionComponent<P = {}> extends preact.FunctionComponent<P> {

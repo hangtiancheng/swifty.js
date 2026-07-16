@@ -9,7 +9,7 @@ options._catchError = function (error, newVNode, oldVNode, errorInfo) {
     let component;
     let vnode = newVNode;
 
-    for (; (vnode = vnode._parent); ) {
+    for (; (vnode = vnode._parent);) {
       if ((component = vnode._component) && component._childDidSuspend) {
         if (newVNode._dom == null) {
           newVNode._dom = oldVNode._dom;

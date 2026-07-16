@@ -1,5 +1,5 @@
 /** @jsx Preact.createElement */
-import Preact from "../src";
+import * as Preact from "../src";
 import { useEffect, useState } from "../src/hooks";
 
 function Demo() {

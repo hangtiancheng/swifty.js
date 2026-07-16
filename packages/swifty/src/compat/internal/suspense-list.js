@@ -96,7 +96,7 @@ SuspenseList.prototype.render = function (props) {
   }
   // Build the linked list. Iterate through the children in reverse order
   // so that `_next` points to the first linked list node to be resolved.
-  for (let i = children.length; i--; ) {
+  for (let i = children.length; i--;) {
     // Create a new linked list node as an array of form:
     // 	[suspended_count, resolved_count, next_node]
     // where suspended_count and resolved_count are numeric counters for
