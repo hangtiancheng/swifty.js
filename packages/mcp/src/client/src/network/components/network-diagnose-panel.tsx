@@ -23,6 +23,7 @@ import type {
   NetworkInfo,
 } from "../sdk/types.js";
 import { DiagnosticTaskId } from "../sdk/types.js";
+import { FunctionComponent } from "@swifty.js/preact";
 
 interface NetworkDiagnosePanelProps {
   config: Omit<SDKOptions, "onResultsUpdate">;
@@ -30,7 +31,7 @@ interface NetworkDiagnosePanelProps {
   oncallAction?: (results: DiagnosticResult[]) => void;
 }
 
-const NetworkDiagnosePanel: React.FC<NetworkDiagnosePanelProps> = ({
+const NetworkDiagnosePanel: FunctionComponent<NetworkDiagnosePanelProps> = ({
   config,
   title = "Network Diagnostics",
   oncallAction: oncallAction,

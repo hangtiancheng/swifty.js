@@ -1,7 +1,7 @@
 export as namespace preact;
 
-import { JSXInternal } from "./jsx";
-import { DOMAttributes, HTMLAttributes, SVGAttributes } from "./dom";
+import { JSXInternal } from "./jsx.d.ts";
+import { DOMAttributes, HTMLAttributes, SVGAttributes } from "./dom.d.ts";
 
 export import JSX = JSXInternal;
 export * from "./dom";

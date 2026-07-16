@@ -4,10 +4,19 @@ import { readFileSync } from "fs";
 
 const mangleConfig = JSON.parse(readFileSync("./mangle.json", "utf-8"));
 
+const propsMap = new Map();
+for (const [key, value] of Object.entries(mangleConfig.props.props)) {
+  // mangle.json 中的 key 带 $ 前缀（如 $_children），源码中不带（如 _children）
+  propsMap.set(key.replace(/^\$/, ""), value);
+}
+
 const terserOptions = {
   compress: mangleConfig.minify.compress,
   mangle: {
-    properties: mangleConfig.minify.mangle.properties,
+    properties: {
+      ...mangleConfig.minify.mangle.properties,
+      cache: { props: propsMap },
+    },
   },
 };
 

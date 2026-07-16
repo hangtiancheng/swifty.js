@@ -8,7 +8,7 @@ import {
   FunctionComponent,
   PreactDOMAttributes,
   VNode,
-} from ".";
+} from "./index.d.ts";
 
 type Defaultize<Props, Defaults> =
   // Distribute over unions

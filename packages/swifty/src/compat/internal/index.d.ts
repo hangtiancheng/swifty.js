@@ -1,10 +1,10 @@
-import * as _hooks from "../../hooks";
+import * as _hooks from "../../hooks/index.d.ts";
 // Intentionally not using a relative path to take advantage of
 // the TS version resolution mechanism
-import * as preact from "../..";
-import { JSXInternal } from "../../jsx";
-import * as _Suspense from "./suspense";
-import * as _SuspenseList from "./suspense-list";
+import * as preact from "../../index.d.ts";
+import { JSXInternal } from "../../jsx.d.ts";
+import * as _Suspense from "./suspense.d.ts";
+import * as _SuspenseList from "./suspense-list.d.ts";
 
 // export default React;
 export = React;

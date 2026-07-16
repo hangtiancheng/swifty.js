@@ -10,6 +10,7 @@ import { Reducer, StateUpdater } from ".";
 
 export { PreactContext };
 
+// @ts-expect-error
 export interface Options extends PreactOptions {
   /** Attach a hook that is invoked before a vnode is diffed. */
   _diff?(vnode: VNode): void;

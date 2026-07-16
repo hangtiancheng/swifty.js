@@ -7,8 +7,8 @@ import {
   ComponentChildren,
   VNode,
   Attributes,
-} from "..";
-import { JSXInternal } from "../jsx";
+} from "../index.d.ts";
+import { JSXInternal } from "../jsx.d.ts";
 
 export function jsx(
   type: string,
