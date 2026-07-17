@@ -3,15 +3,28 @@
   "version": "0.0.1",
   "description": "Preact all in one",
   "license": "MIT",
-  "author": "https://github.com/hangtiancheng",
+  "author": "hangtiancheng",
+  "homepage": "https://github.com/hangtiancheng/swifty.js/tree/main/packages/preact#readme",
   "repository": {
     "type": "git",
-    "url": "git@github.com:hangtiancheng/swifty.js.git"
+    "url": "git+https://github.com/hangtiancheng/swifty.js.git",
+    "directory": "packages/preact"
   },
+  "bugs": {
+    "url": "https://github.com/hangtiancheng/swifty.js/issues"
+  },
+  "keywords": [
+    "preact",
+    "fork",
+    "framework",
+    "virtual-dom",
+    "jsx"
+  ],
   "type": "module",
   "main": "dist/preact.mjs",
   "module": "dist/preact.mjs",
   "types": "src/index.d.ts",
+  "sideEffects": false,
   "exports": {
     ".": {
       "types": "./src/index.d.ts",
@@ -41,21 +54,29 @@
       "import": "./dist/jsx-runtime.mjs"
     },
     "./compat/jsx-runtime": {
+      "types": "./src/jsx-runtime/index.d.ts",
       "import": "./dist/compat-jsx-runtime.mjs"
     },
     "./compat/jsx-dev-runtime": {
+      "types": "./src/jsx-runtime/index.d.ts",
       "import": "./dist/compat-jsx-dev-runtime.mjs"
-    }
+    },
+    "./package.json": "./package.json"
   },
   "files": [
-    "src",
+    "src/index.d.ts",
+    "src/hooks/index.d.ts",
+    "src/compat/internal/index.d.ts",
+    "src/compat/client.d.ts",
+    "src/jsx-runtime/index.d.ts",
     "dist",
     "mangle.json"
   ],
   "scripts": {
     "build": "rollup -c rollup.config.mjs",
     "dev": "rollup -c rollup.config.mjs --watch",
-    "format": "prettier -w ."
+    "format": "prettier -w .",
+    "prepublishOnly": "pnpm build"
   },
   "packageManager": "pnpm@10.10.0",
   "devDependencies": {
