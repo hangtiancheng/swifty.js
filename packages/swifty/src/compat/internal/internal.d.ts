@@ -3,8 +3,10 @@ import {
   VNode as PreactVNode,
   FunctionComponent as PreactFunctionComponent,
   PreactElement,
-} from "../../internal";
-import { SuspenseProps } from "./suspense";
+  // @ts-ignore
+} from "../../internal.d.ts";
+// @ts-ignore
+import { SuspenseProps } from "./suspense.d.ts";
 
 export { ComponentChildren } from "../..";
 

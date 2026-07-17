@@ -1,10 +1,12 @@
 export as namespace preact;
-
+// @ts-ignore
 import { JSXInternal } from "./jsx.d.ts";
+// @ts-ignore
 import { DOMAttributes, HTMLAttributes, SVGAttributes } from "./dom.d.ts";
 
 export import JSX = JSXInternal;
-export * from "./dom";
+// @ts-ignore
+export * from "./dom.d.ts";
 
 //
 // Preact Virtual DOM

@@ -7,7 +7,9 @@ import {
   ComponentChildren,
   VNode,
   Attributes,
+  // @ts-ignore
 } from "../index.d.ts";
+// @ts-ignore
 import { JSXInternal } from "../jsx.d.ts";
 
 export function jsx(

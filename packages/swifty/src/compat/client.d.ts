@@ -1,6 +1,7 @@
 // Intentionally not using a relative path to take advantage of
 // the TS version resolution mechanism
-import * as preact from "..";
+// @ts-ignore
+import * as preact from "../index.d.ts";
 
 export function createRoot(container: preact.ContainerNode): {
   render(children: preact.ComponentChild): void;

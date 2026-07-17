@@ -5,8 +5,10 @@ import {
   PreactContext,
   HookType,
   ErrorInfo,
-} from "../internal";
-import { Reducer, StateUpdater } from ".";
+  // @ts-ignore
+} from "../internal.d.ts";
+// @ts-ignore
+import { Reducer, StateUpdater } from "./index.d.ts";
 
 export { PreactContext };
 

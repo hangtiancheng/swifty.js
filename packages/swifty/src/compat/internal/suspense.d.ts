@@ -1,5 +1,6 @@
 // Intentionally not using a relative path to take advantage of
 // the TS version resolution mechanism
+// @ts-ignore
 import { Component, ComponentChild, ComponentChildren } from "../../index.d.ts";
 
 //

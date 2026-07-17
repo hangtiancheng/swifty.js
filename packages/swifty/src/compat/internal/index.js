@@ -28,10 +28,10 @@ import {
   useSyncExternalStore,
   useTransition,
 } from "./hooks";
-import { PureComponent } from "./PureComponent";
+import { PureComponent } from "./pure-component";
 import { memo } from "./memo";
-import { forwardRef } from "./forwardRef";
-import { Children } from "./Children";
+import { forwardRef } from "./forward-ref";
+import { Children } from "./children";
 import { Suspense, lazy } from "./suspense";
 import { SuspenseList } from "./suspense-list";
 import { createPortal } from "./portals";

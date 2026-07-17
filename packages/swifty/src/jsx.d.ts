@@ -8,6 +8,7 @@ import {
   FunctionComponent,
   PreactDOMAttributes,
   VNode,
+  // @ts-ignore
 } from "./index.d.ts";
 
 type Defaultize<Props, Defaults> =

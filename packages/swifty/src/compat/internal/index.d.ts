@@ -1,9 +1,14 @@
+// @ts-ignore
 import * as _hooks from "../../hooks/index.d.ts";
 // Intentionally not using a relative path to take advantage of
 // the TS version resolution mechanism
+// @ts-ignore
 import * as preact from "../../index.d.ts";
+// @ts-ignore
 import { JSXInternal } from "../../jsx.d.ts";
+// @ts-ignore
 import * as _Suspense from "./suspense.d.ts";
+// @ts-ignore
 import * as _SuspenseList from "./suspense-list.d.ts";
 
 // export default React;

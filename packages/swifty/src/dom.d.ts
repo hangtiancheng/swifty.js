@@ -1,5 +1,6 @@
 // Most of our DOM-ish types
 
+// @ts-ignore
 import { ClassAttributes, PreactDOMAttributes } from "./index.d.ts";
 
 // Implementations of some DOM events that are not available in TS 5.1
