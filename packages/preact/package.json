@@ -1,6 +1,6 @@
 {
   "name": "@swifty.js/preact",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Preact all in one",
   "license": "MIT",
   "author": "hangtiancheng",
@@ -64,11 +64,7 @@
     "./package.json": "./package.json"
   },
   "files": [
-    "src/index.d.ts",
-    "src/hooks/index.d.ts",
-    "src/compat/internal/index.d.ts",
-    "src/compat/client.d.ts",
-    "src/jsx-runtime/index.d.ts",
+    "src/**.d.ts",
     "dist",
     "mangle.json"
   ],
