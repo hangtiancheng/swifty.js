@@ -38,6 +38,21 @@ export interface BloomFilterSnapshot {
   config: BloomFilterConfig;
   /** Base-64 encoded bit array. */
   data: string;
+  /** Number of add() calls recorded before serialization. */
+  insertedCount: number;
+}
+
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
+
+/** Maximum addressable bit-array size given 32-bit hash arithmetic. */
+const MAX_M = 2 ** 32;
+
+/** Pre-computed popcount lookup table for all byte values 0x00–0xFF. */
+const POPCNT_TABLE = new Uint8Array(256);
+for (let i = 1; i < 256; i++) {
+  POPCNT_TABLE[i] = POPCNT_TABLE[i >> 1] + (i & 1);
 }
 
 // ---------------------------------------------------------------------------
@@ -46,7 +61,7 @@ export interface BloomFilterSnapshot {
 
 /**
  * Optimal bit-array size:
- *   m = ceil( -n · ln(p) / (ln2)² )
+ *   m = ceil( -n * ln(p) / (ln2)^2 )
  */
 function optimalM(n: number, p: number): number {
   return Math.ceil((-n * Math.log(p)) / (Math.LN2 * Math.LN2));
@@ -54,20 +69,10 @@ function optimalM(n: number, p: number): number {
 
 /**
  * Optimal number of hash functions:
- *   k = round( (m / n) · ln2 )
+ *   k = round( (m / n) * ln2 )
  */
 function optimalK(m: number, n: number): number {
   return Math.max(1, Math.round((m / n) * Math.LN2));
-}
-
-/** Pop-count of a byte (Brian Kernighan). */
-function popcnt8(v: number): number {
-  let count = 0;
-  while (v) {
-    v &= v - 1;
-    count++;
-  }
-  return count;
 }
 
 // ---------------------------------------------------------------------------
@@ -77,13 +82,13 @@ function popcnt8(v: number): number {
 /**
  * A space-efficient probabilistic data structure for set-membership testing.
  *
- * - **No false negatives**: `has()` returning `false` guarantees the item was
+ * - No false negatives: `has()` returning `false` guarantees the item was
  *   never added.
- * - **Possible false positives**: `has()` returning `true` means the item is
+ * - Possible false positives: `has()` returning `true` means the item is
  *   *probably* in the set, subject to the configured false-positive rate.
  *
- * Uses enhanced double-hashing (`h1 + i·h2`) with xxHash32 for fast,
- * well-distributed bit indices.
+ * Uses double hashing (`h1 + i*h2`) with xxHash32 for
+ * fast, well-distributed bit indices.
  */
 export class BloomFilter {
   // --- Immutable configuration ---
@@ -96,22 +101,27 @@ export class BloomFilter {
   // --- Mutable state ---
   private bitArray: Uint8Array;
   private insertedCount: number = 0;
+  /** Incrementally maintained count of bits set to 1. */
+  private setBits: number = 0;
 
   // -----------------------------------------------------------------------
   // Construction
   // -----------------------------------------------------------------------
 
   /**
-   * @param expectedItems      Expected number of items to insert (`n`). Must be > 0.
+   * @param expectedItems      Expected number of items to insert (`n`). Must be a positive integer.
    * @param falsePositiveRate  Desired false-positive probability (`p`), in (0, 1).
-   * @param seed               Optional hash seed (default `0`).
+   * @param seed               Optional hash seed (default `0`). Must be a non-negative 32-bit unsigned integer.
    */
   constructor(expectedItems: number, falsePositiveRate: number, seed: number = 0) {
-    if (!Number.isFinite(expectedItems) || expectedItems <= 0) {
-      throw new RangeError(`expectedItems must be a positive number, got ${expectedItems}`);
+    if (!Number.isInteger(expectedItems) || expectedItems <= 0) {
+      throw new RangeError(`expectedItems must be a positive integer, got ${expectedItems}`);
     }
     if (!Number.isFinite(falsePositiveRate) || falsePositiveRate <= 0 || falsePositiveRate >= 1) {
       throw new RangeError(`falsePositiveRate must be in (0, 1), got ${falsePositiveRate}`);
+    }
+    if (!Number.isInteger(seed) || seed < 0 || seed > 0xFFFFFFFF) {
+      throw new RangeError(`seed must be a 32-bit unsigned integer, got ${seed}`);
     }
 
     this.expectedItems = expectedItems;
@@ -119,6 +129,14 @@ export class BloomFilter {
     this.seed = seed;
     this.m = optimalM(expectedItems, falsePositiveRate);
     this.k = optimalK(this.m, expectedItems);
+
+    if (this.m > MAX_M) {
+      throw new RangeError(
+        `Computed bit-array size m=${this.m} exceeds 2^32. ` +
+          `Reduce expectedItems or increase falsePositiveRate.`,
+      );
+    }
+
     this.bitArray = new Uint8Array(Math.ceil(this.m / 8));
   }
 
@@ -129,13 +147,25 @@ export class BloomFilter {
   /**
    * Add an item to the filter.
    *
+   * Items are namespaced by type to prevent cross-type collisions
+   * (e.g. `add(0)` and `add("0")` are distinct entries).
+   *
    * @returns `this` for chaining.
    */
   public add(item: string | number | boolean): this {
-    const hashes = this.hashIndices(String(item));
-    for (let i = 0; i < hashes.length; i++) {
-      const idx = hashes[i];
-      this.bitArray[idx >>> 3] |= 1 << (idx & 7);
+    const key = typeKey(item);
+    const h1 = xxh32(key, this.seed) >>> 0;
+    // Force h2 to be odd (and therefore non-zero) to avoid index degeneracy.
+    const h2 = (xxh32(key, h1) | 1) >>> 0;
+
+    for (let i = 0; i < this.k; i++) {
+      const idx = ((h1 + Math.imul(i, h2)) >>> 0) % this.m;
+      const byteIdx = idx >>> 3;
+      const bitMask = 1 << (idx & 7);
+      if ((this.bitArray[byteIdx] & bitMask) === 0) {
+        this.bitArray[byteIdx] |= bitMask;
+        this.setBits++;
+      }
     }
     this.insertedCount++;
     return this;
@@ -147,9 +177,12 @@ export class BloomFilter {
    * @returns `true` = possibly present; `false` = definitely absent.
    */
   public has(item: string | number | boolean): boolean {
-    const hashes = this.hashIndices(String(item));
-    for (let i = 0; i < hashes.length; i++) {
-      const idx = hashes[i];
+    const key = typeKey(item);
+    const h1 = xxh32(key, this.seed) >>> 0;
+    const h2 = (xxh32(key, h1) | 1) >>> 0;
+
+    for (let i = 0; i < this.k; i++) {
+      const idx = ((h1 + Math.imul(i, h2)) >>> 0) % this.m;
       if ((this.bitArray[idx >>> 3] & (1 << (idx & 7))) === 0) {
         return false;
       }
@@ -175,6 +208,44 @@ export class BloomFilter {
   public clear(): void {
     this.bitArray.fill(0);
     this.insertedCount = 0;
+    this.setBits = 0;
+  }
+
+  // -----------------------------------------------------------------------
+  // Set operations
+  // -----------------------------------------------------------------------
+
+  /**
+   * Return a new filter that is the union of this filter and `other`.
+   * Both filters must share identical configuration (m, k, seed).
+   */
+  public union(other: BloomFilter): BloomFilter {
+    this.assertCompatible(other);
+    const result = this.clone();
+    for (let i = 0; i < result.bitArray.length; i++) {
+      result.bitArray[i] |= other.bitArray[i];
+    }
+    result.recountSetBits();
+    result.insertedCount = this.insertedCount + other.insertedCount;
+    return result;
+  }
+
+  /**
+   * Return a deep copy of this filter.
+   */
+  public clone(): BloomFilter {
+    const copy = Object.create(BloomFilter.prototype) as BloomFilter;
+    Object.assign(copy, {
+      m: this.m,
+      k: this.k,
+      seed: this.seed,
+      expectedItems: this.expectedItems,
+      falsePositiveRate: this.falsePositiveRate,
+      bitArray: new Uint8Array(this.bitArray),
+      insertedCount: this.insertedCount,
+      setBits: this.setBits,
+    });
+    return copy;
   }
 
   // -----------------------------------------------------------------------
@@ -192,11 +263,26 @@ export class BloomFilter {
    * beyond the configured target.
    */
   public get fillRatio(): number {
-    let setBits = 0;
-    for (let i = 0; i < this.bitArray.length; i++) {
-      setBits += popcnt8(this.bitArray[i]);
-    }
-    return setBits / this.m;
+    return this.setBits / this.m;
+  }
+
+  /**
+   * Whether the filter has exceeded 50% fill, indicating the false-positive
+   * rate is degrading significantly beyond the configured target.
+   */
+  public get isSaturated(): boolean {
+    return this.fillRatio > 0.5;
+  }
+
+  /**
+   * Estimate the number of distinct items currently in the filter based on
+   * the observed fill ratio:  n* = -(m / k) * ln(1 - X / m)
+   * where X is the number of set bits.
+   */
+  public get estimatedItemCount(): number {
+    if (this.setBits === 0) return 0;
+    if (this.setBits >= this.m) return Infinity;
+    return Math.round(-(this.m / this.k) * Math.log(1 - this.setBits / this.m));
   }
 
   /** Full construction-time configuration. */
@@ -214,11 +300,12 @@ export class BloomFilter {
   // Serialization
   // -----------------------------------------------------------------------
 
-  /** Serialize to a JSON-safe snapshot (config + base64 data). */
+  /** Serialize to a JSON-safe snapshot (config + base64 data + insert count). */
   public serialize(): BloomFilterSnapshot {
     return {
       config: this.getConfig(),
       data: Buffer.from(this.bitArray).toString("base64"),
+      insertedCount: this.insertedCount,
     };
   }
 
@@ -244,34 +331,51 @@ export class BloomFilter {
     }
 
     filter.bitArray = new Uint8Array(buf);
-
-    // Exact insert count is not recoverable from a serialized bit array.
-    // NaN signals "unknown" — .size will return NaN, which is truthy-falsy
-    // safe and clearly distinguishable from any valid count.
-    filter.insertedCount = NaN;
+    filter.insertedCount = snapshot.insertedCount ?? NaN;
+    filter.recountSetBits();
 
     return filter;
   }
 
   // -----------------------------------------------------------------------
-  // Hashing internals
+  // Internals
   // -----------------------------------------------------------------------
 
-  /**
-   * Enhanced double-hashing:
-   *   h_i(x) = ( h1(x) + i · h2(x) ) mod m
-   *
-   * All arithmetic uses unsigned 32-bit via `>>> 0` / `Math.imul` to avoid
-   * precision loss when i is large.
-   */
-  private hashIndices(item: string): number[] {
-    const h1 = xxh32(item, this.seed) >>> 0;
-    const h2 = xxh32(item, h1) >>> 0;
-
-    const indices: number[] = new Array(this.k);
-    for (let i = 0; i < this.k; i++) {
-      indices[i] = ((h1 + Math.imul(i, h2)) >>> 0) % this.m;
+  /** Recompute setBits by scanning the entire bit array. */
+  private recountSetBits(): void {
+    let count = 0;
+    for (let i = 0; i < this.bitArray.length; i++) {
+      count += POPCNT_TABLE[this.bitArray[i]];
     }
-    return indices;
+    this.setBits = count;
+  }
+
+  /** Assert that two filters share identical configuration. */
+  private assertCompatible(other: BloomFilter): void {
+    if (this.m !== other.m || this.k !== other.k || this.seed !== other.seed) {
+      throw new Error(
+        `Incompatible filters: this(m=${this.m}, k=${this.k}, seed=${this.seed}) ` +
+          `vs other(m=${other.m}, k=${other.k}, seed=${other.seed})`,
+      );
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Module-private helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Produce a type-prefixed key to prevent cross-type collisions.
+ * e.g. number 0 -> "n:0", string "0" -> "s:0", boolean false -> "b:false"
+ */
+function typeKey(item: string | number | boolean): string {
+  switch (typeof item) {
+    case "string":
+      return `s:${item}`;
+    case "number":
+      return `n:${item}`;
+    case "boolean":
+      return `b:${item}`;
   }
 }

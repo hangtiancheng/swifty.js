@@ -2,11 +2,27 @@
   "name": "@swifty.js/bloom-filter",
   "version": "1.0.0",
   "description": "A standard Bloom Filter implementation in TypeScript",
-  "keywords": [],
-  "license": "ISC",
-  "author": "",
+  "keywords": [
+    "bloom-filter",
+    "probabilistic",
+    "data-structure",
+    "set-membership",
+    "xxhash"
+  ],
+  "license": "Apache-2.0",
+  "author": "hangtiancheng",
   "type": "module",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "vitest run"
@@ -16,7 +32,8 @@
   },
   "devDependencies": {
     "@types/node": "catalog:",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.9"
   },
   "packageManager": "pnpm@10.30.3"
 }

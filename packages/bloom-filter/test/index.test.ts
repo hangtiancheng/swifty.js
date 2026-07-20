@@ -67,6 +67,7 @@ describe("BloomFilter", () => {
       [-1, 0.01, "negative expectedItems"],
       [NaN, 0.01, "NaN expectedItems"],
       [Infinity, 0.01, "Infinity expectedItems"],
+      [100.5, 0.01, "non-integer expectedItems"],
       [100, 0, "zero falsePositiveRate"],
       [100, 1, "falsePositiveRate = 1"],
       [100, 1.5, "falsePositiveRate > 1"],
@@ -75,6 +76,21 @@ describe("BloomFilter", () => {
       [100, Infinity, "Infinity falsePositiveRate"],
     ])("should throw for invalid params: %s", (n, p) => {
       expect(() => new BloomFilter(n, p)).toThrow(RangeError);
+    });
+
+    it.each([
+      [NaN, "NaN seed"],
+      [-1, "negative seed"],
+      [1.5, "non-integer seed"],
+      [2 ** 32, "seed exceeding 32-bit range"],
+      [Infinity, "Infinity seed"],
+    ])("should throw for invalid seed: %s", (seed) => {
+      expect(() => new BloomFilter(100, 0.01, seed)).toThrow(RangeError);
+    });
+
+    it("should throw when computed m exceeds 2^32", () => {
+      // n=1e9, p=1e-15 produces an extremely large m
+      expect(() => new BloomFilter(1_000_000_000, 1e-15)).toThrow(RangeError);
     });
   });
 
@@ -110,6 +126,23 @@ describe("BloomFilter", () => {
       expect(bf.has("beta")).toBe(false);
       expect(bf.has("gamma")).toBe(false);
       expect(bf.has(999)).toBe(false);
+    });
+
+    it("should distinguish between types (no cross-type collision)", () => {
+      const bf = new BloomFilter(1000, 0.01);
+      bf.add(0);
+
+      expect(bf.has(0)).toBe(true);
+      expect(bf.has("0")).toBe(false);
+      expect(bf.has(false)).toBe(false);
+    });
+
+    it("should distinguish boolean false from string 'false'", () => {
+      const bf = new BloomFilter(1000, 0.01);
+      bf.add(false);
+
+      expect(bf.has(false)).toBe(true);
+      expect(bf.has("false")).toBe(false);
     });
 
     it("add should return this for chaining", () => {
@@ -182,6 +215,56 @@ describe("BloomFilter", () => {
   });
 
   // -----------------------------------------------------------------------
+  // Set operations
+  // -----------------------------------------------------------------------
+
+  describe("union", () => {
+    it("should produce a filter containing items from both operands", () => {
+      const a = new BloomFilter(100, 0.01, 7);
+      const b = new BloomFilter(100, 0.01, 7);
+
+      a.add("only_a");
+      b.add("only_b");
+
+      const merged = a.union(b);
+      expect(merged.has("only_a")).toBe(true);
+      expect(merged.has("only_b")).toBe(true);
+    });
+
+    it("should not mutate the original filters", () => {
+      const a = new BloomFilter(100, 0.01, 7);
+      const b = new BloomFilter(100, 0.01, 7);
+
+      a.add("item_a");
+      b.add("item_b");
+
+      a.union(b);
+      expect(a.has("item_b")).toBe(false);
+    });
+
+    it("should throw for incompatible filters", () => {
+      const a = new BloomFilter(100, 0.01, 0);
+      const b = new BloomFilter(200, 0.01, 0);
+
+      expect(() => a.union(b)).toThrow(/Incompatible/);
+    });
+  });
+
+  describe("clone", () => {
+    it("should produce an independent copy", () => {
+      const original = new BloomFilter(100, 0.01);
+      original.add("x");
+
+      const copy = original.clone();
+      copy.add("y");
+
+      expect(copy.has("x")).toBe(true);
+      expect(copy.has("y")).toBe(true);
+      expect(original.has("y")).toBe(false);
+    });
+  });
+
+  // -----------------------------------------------------------------------
   // Diagnostics
   // -----------------------------------------------------------------------
 
@@ -201,6 +284,27 @@ describe("BloomFilter", () => {
       bulkAdd(bf, 100, "item");
       expect(bf.fillRatio).toBeGreaterThan(0);
       expect(bf.fillRatio).toBeLessThanOrEqual(1);
+    });
+
+    it("isSaturated should be false when lightly loaded", () => {
+      const bf = new BloomFilter(1000, 0.01);
+      bulkAdd(bf, 100, "item");
+      expect(bf.isSaturated).toBe(false);
+    });
+
+    it("estimatedItemCount should approximate distinct inserts", () => {
+      const bf = new BloomFilter(1000, 0.01);
+      bulkAdd(bf, 500, "est");
+
+      const estimate = bf.estimatedItemCount;
+      // Allow 20% tolerance for probabilistic estimation
+      expect(estimate).toBeGreaterThan(400);
+      expect(estimate).toBeLessThan(600);
+    });
+
+    it("estimatedItemCount should be 0 for empty filter", () => {
+      const bf = new BloomFilter(100, 0.01);
+      expect(bf.estimatedItemCount).toBe(0);
     });
 
     it("getConfig should return full construction parameters", () => {
@@ -231,6 +335,7 @@ describe("BloomFilter", () => {
         expect(restored.has(`ser_${i}`)).toBe(true);
       }
       expect(restored.getConfig()).toEqual(bf.getConfig());
+      expect(restored.size).toBe(200);
     });
 
     it("should produce valid JSON", () => {
@@ -242,6 +347,7 @@ describe("BloomFilter", () => {
       const restored = BloomFilter.deserialize(parsed);
 
       expect(restored.has("json_test")).toBe(true);
+      expect(restored.size).toBe(1);
     });
 
     it("should reject a corrupted snapshot (wrong data length)", () => {
@@ -299,7 +405,7 @@ describe("BloomFilter", () => {
       [1_000, 0.01],
       [1_000, 0.05],
       [5_000, 0.001],
-    ])("n=%i, p=%f → actual FP rate should stay below 2× target", (n, targetP) => {
+    ])("n=%i, p=%f -> actual FP rate should stay below 2x target", (n, targetP) => {
       const bf = new BloomFilter(n, targetP);
       bulkAdd(bf, n, "in");
 

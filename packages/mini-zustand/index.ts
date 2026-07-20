@@ -14,77 +14,108 @@
  * limitations under the License.
  */
 
-import { useSyncExternalStore } from "react";
+import { useSyncExternalStore, useRef } from "react";
 
 type GetStateSlice<TState> = (state: TState) => TState | Partial<TState>;
 
 type StateSlice<TState> = TState | Partial<TState> | GetStateSlice<TState>;
 
 type StateCreator<TState> = (
-  set: (partial: StateSlice<TState>) => void,
+  set: (partial: StateSlice<TState>, replace?: boolean) => void,
   get: () => TState,
 ) => TState;
 
-type Selector<TState> = (state: TState) => TState[keyof TState];
-
-type Listener<TState> = (newState: TState | Partial<TState>, oldState: TState) => void;
+type Listener<TState> = (newState: TState, oldState: TState) => void;
 
 type Off = () => void;
 
 interface IStore<TState> {
   getState: () => TState;
-  setState: (partial: StateSlice<TState>) => void;
+  setState: (partial: StateSlice<TState>, replace?: boolean) => void;
   subscribe: (listener: Listener<TState>) => Off;
 }
 
-function createStore<TState>(createState: StateCreator<TState>) {
+function createStore<TState extends object>(createState: StateCreator<TState>): IStore<TState> {
   let state: TState;
   const listeners = new Set<Listener<TState>>();
 
   const getState = () => state;
 
-  const setState = (partial: StateSlice<TState>) => {
-    const newState =
+  const setState = (partial: StateSlice<TState>, replace?: boolean) => {
+    const nextState =
       typeof partial === "function"
         ? (partial as GetStateSlice<TState>)(getState())
         : (partial as TState | Partial<TState>);
 
-    if (!Object.is(state, newState)) {
-      const oldState = state;
-      state = { ...state, ...newState };
-      listeners.forEach((listener) => listener(newState, oldState));
+    if (Object.is(state, nextState)) {
+      return;
     }
+
+    const oldState = state;
+    // When replace is true, swap the entire state reference;
+    // otherwise perform a shallow merge (spread).
+    state = replace
+      ? (nextState as TState)
+      : { ...state, ...(nextState as Partial<TState>) };
+
+    // NOTE: Reentrant setState calls within a listener callback are not
+    // guarded against. Subsequent listeners in the same notification cycle
+    // may observe a stale oldState if an earlier listener triggers another
+    // setState. This is acceptable for a lightweight implementation.
+    listeners.forEach((listener) => listener(state, oldState));
   };
 
-  const subscribe = (listener: Listener<TState>) => {
+  const subscribe = (listener: Listener<TState>): Off => {
     listeners.add(listener);
-    const off = () => {
+    return () => {
       listeners.delete(listener);
     };
-    return off;
   };
 
   state = createState(setState, getState);
-  const store = {
-    getState,
-    setState,
-    subscribe,
-  };
-  return store;
+
+  return { getState, setState, subscribe };
 }
 
-function useStore<TState>(
+function useStore<TState extends object, TSelected>(
   store: IStore<TState>,
-  selector?: Selector<TState>,
-): TState | TState[keyof TState] {
-  const state: TState = useSyncExternalStore(
-    store.subscribe, // subscribe
-    store.getState, // getSnapshot
-  );
-  return selector ? selector(state) : state;
+  selector: (state: TState) => TSelected = (s) => s as unknown as TSelected,
+  isEqual: (a: TSelected, b: TSelected) => boolean = Object.is,
+): TSelected {
+  // Cache the last selected value to preserve referential stability.
+  // useSyncExternalStore compares snapshots via Object.is; returning the
+  // same reference when the selected slice is logically equal prevents
+  // unnecessary re-renders.
+  const cache = useRef<{ hasValue: boolean; value?: TSelected }>({ hasValue: false });
+
+  const getSnapshot = (): TSelected => {
+    const next = selector(store.getState());
+    if (cache.current.hasValue && isEqual(cache.current.value as TSelected, next)) {
+      return cache.current.value as TSelected;
+    }
+    cache.current = { hasValue: true, value: next };
+    return next;
+  };
+
+  return useSyncExternalStore(store.subscribe, getSnapshot);
 }
 
-export function create<TState>(createState: StateCreator<TState>) {
+export function create<TState extends object>(createState: StateCreator<TState>) {
   const store = createStore<TState>(createState);
-  return (selector?: Selector<TState>) => useStore<TState>(store, selector);
+
+  function useBoundStore(): TState;
+  function useBoundStore<TSelected>(
+    selector: (state: TState) => TSelected,
+    isEqual?: (a: TSelected, b: TSelected) => boolean,
+  ): TSelected;
+  function useBoundStore<TSelected>(
+    selector?: (state: TState) => TSelected,
+    isEqual?: (a: TSelected, b: TSelected) => boolean,
+  ) {
+    return useStore(store, selector as (state: TState) => TSelected, isEqual);
+  }
+
+  // Expose the store API on the hook itself so consumers can call
+  // getState / setState / subscribe outside of React components.
+  return Object.assign(useBoundStore, store);
 }

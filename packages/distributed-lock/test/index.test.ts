@@ -16,7 +16,7 @@
 
 import { describe, it, expect, beforeAll, afterAll, afterEach } from "vitest";
 import { createClient, type RedisClientType } from "redis";
-import { DistributedLock, type LockHandle } from "../src/index.js";
+import { DistributedLock, DEFAULTS, type LockHandle, type LostInfo } from "../src/index.js";
 import crypto from "node:crypto";
 
 // ---------------------------------------------------------------------------
@@ -204,6 +204,32 @@ describe("DistributedLock", () => {
   });
 
   // -----------------------------------------------------------------------
+  // acquireTimeoutMs
+  // -----------------------------------------------------------------------
+
+  it("should return null when acquireTimeoutMs is exceeded", async () => {
+    const key = uniqueKey();
+
+    // Hold the lock for longer than the timeout budget
+    await acquireTracked({ key, ownerId: uuid(), ttlMs: 5000 });
+
+    const start = Date.now();
+    const handle = await acquireTracked({
+      key,
+      ownerId: uuid(),
+      ttlMs: 5000,
+      retryCount: 100,
+      retryDelayMs: 50,
+      retryWithBackoff: false,
+      acquireTimeoutMs: 300,
+    });
+
+    const elapsed = Date.now() - start;
+    expect(handle).toBeNull();
+    expect(elapsed).toBeLessThan(600); // generous upper bound
+  });
+
+  // -----------------------------------------------------------------------
   // Manual renewal
   // -----------------------------------------------------------------------
 
@@ -227,6 +253,42 @@ describe("DistributedLock", () => {
 
     const renewed = await lock.renew(key, uuid(), 10000);
     expect(renewed).toBe(false);
+  });
+
+  // -----------------------------------------------------------------------
+  // LockHandle.renew
+  // -----------------------------------------------------------------------
+
+  it("should renew via handle.renew()", async () => {
+    const key = uniqueKey();
+    const ownerId = uuid();
+
+    const handle = await acquireTracked({ key, ownerId, ttlMs: 5000 });
+    expect(handle).not.toBeNull();
+
+    const renewed = await handle!.renew(10000);
+    expect(renewed).toBe(true);
+
+    const pttl = await redis.pTTL(key);
+    expect(pttl).toBeGreaterThan(5000);
+  });
+
+  it("should renew via handle.renew() with default ttl", async () => {
+    const key = uniqueKey();
+    const ownerId = uuid();
+
+    const handle = await acquireTracked({ key, ownerId, ttlMs: 5000 });
+    expect(handle).not.toBeNull();
+
+    // Let some time pass so the TTL decreases
+    await sleep(200);
+
+    const renewed = await handle!.renew();
+    expect(renewed).toBe(true);
+
+    const pttl = await redis.pTTL(key);
+    // Should be close to the original 5000ms (minus test overhead)
+    expect(pttl).toBeGreaterThan(4000);
   });
 
   // -----------------------------------------------------------------------
@@ -256,6 +318,215 @@ describe("DistributedLock", () => {
   });
 
   // -----------------------------------------------------------------------
+  // Non-owner release must NOT kill the real owner's watchdog (P1-6a)
+  // -----------------------------------------------------------------------
+
+  it("should not stop watchdog when a non-owner calls release", async () => {
+    const key = uniqueKey();
+    const realOwner = uuid();
+    const impostor = uuid();
+
+    const handle = await acquireTracked({
+      key,
+      ownerId: realOwner,
+      ttlMs: 300,
+      autoRenew: true,
+    });
+    expect(handle).not.toBeNull();
+
+    // Impostor attempts release — Lua rejects, watchdog must survive
+    const released = await lock.release(key, impostor);
+    expect(released).toBe(false);
+
+    // Wait past original TTL — watchdog should have renewed
+    await sleep(500);
+
+    const value = await redis.get(key);
+    expect(value).toBe(realOwner);
+
+    await handle!.release();
+  });
+
+  // -----------------------------------------------------------------------
+  // onLost callback
+  // -----------------------------------------------------------------------
+
+  it("should invoke onLost when the lock expires during autoRenew", async () => {
+    const key = uniqueKey();
+    const ownerId = uuid();
+    const lostEvents: LostInfo[] = [];
+
+    const handle = await acquireTracked({
+      key,
+      ownerId,
+      ttlMs: 300,
+      autoRenew: true,
+      onLost: (info) => lostEvents.push(info),
+    });
+    expect(handle).not.toBeNull();
+
+    // Forcibly delete the key to simulate lock theft / external expiry
+    await redis.del(key);
+
+    // Wait for the watchdog to detect the loss (interval = 100ms)
+    await sleep(250);
+
+    expect(lostEvents.length).toBe(1);
+    expect(lostEvents[0]).toEqual({ key, ownerId, reason: "expired" });
+  });
+
+  // -----------------------------------------------------------------------
+  // Fencing token
+  // -----------------------------------------------------------------------
+
+  it("should return a monotonically increasing fencing token", async () => {
+    const key = uniqueKey();
+
+    const h1 = await acquireTracked({
+      key,
+      ownerId: uuid(),
+      ttlMs: 300,
+      fencingToken: true,
+    });
+    expect(h1).not.toBeNull();
+    expect(h1!.fencingToken).toBeGreaterThan(0);
+
+    // Release and re-acquire — token must increase
+    await h1!.release();
+
+    const h2 = await acquireTracked({
+      key,
+      ownerId: uuid(),
+      ttlMs: 300,
+      fencingToken: true,
+    });
+    expect(h2).not.toBeNull();
+    expect(h2!.fencingToken).toBeGreaterThan(h1!.fencingToken!);
+  });
+
+  it("should not include fencingToken when option is disabled", async () => {
+    const key = uniqueKey();
+
+    const handle = await acquireTracked({
+      key,
+      ownerId: uuid(),
+      ttlMs: 5000,
+    });
+    expect(handle).not.toBeNull();
+    expect(handle!.fencingToken).toBeUndefined();
+  });
+
+  // -----------------------------------------------------------------------
+  // Observability callbacks
+  // -----------------------------------------------------------------------
+
+  it("should invoke onAcquired with attempt info", async () => {
+    const key = uniqueKey();
+    const ownerId = uuid();
+    let acquiredInfo: { attempt: number } | null = null;
+
+    await acquireTracked({
+      key,
+      ownerId,
+      ttlMs: 5000,
+      onAcquired: (info) => {
+        acquiredInfo = info;
+      },
+    });
+
+    expect(acquiredInfo).not.toBeNull();
+    expect(acquiredInfo!.attempt).toBe(0);
+  });
+
+  it("should invoke onRetry before each retry sleep", async () => {
+    const key = uniqueKey();
+    const retries: number[] = [];
+
+    await acquireTracked({ key, ownerId: uuid(), ttlMs: 5000 });
+
+    await acquireTracked({
+      key,
+      ownerId: uuid(),
+      ttlMs: 5000,
+      retryCount: 2,
+      retryDelayMs: 30,
+      retryWithBackoff: false,
+      onRetry: (info) => retries.push(info.attempt),
+    });
+
+    expect(retries).toEqual([0, 1]);
+  });
+
+  // -----------------------------------------------------------------------
+  // stopAllRenewals
+  // -----------------------------------------------------------------------
+
+  it("should let the lock expire after stopAllRenewals", async () => {
+    const key = uniqueKey();
+    const ownerId = uuid();
+
+    await acquireTracked({
+      key,
+      ownerId,
+      ttlMs: 300,
+      autoRenew: true,
+    });
+
+    // Stop all watchdogs
+    lock.stopAllRenewals();
+
+    // Wait past TTL — lock should expire without renewal
+    await sleep(450);
+
+    const value = await redis.get(key);
+    expect(value).toBeNull();
+  });
+
+  // -----------------------------------------------------------------------
+  // Lifecycle: acquire -> release -> re-acquire same key
+  // -----------------------------------------------------------------------
+
+  it("should support sequential acquire-release-acquire on the same key", async () => {
+    const key = uniqueKey();
+    const owner1 = uuid();
+    const owner2 = uuid();
+
+    const h1 = await acquireTracked({ key, ownerId: owner1, ttlMs: 5000 });
+    expect(h1).not.toBeNull();
+
+    await h1!.release();
+
+    const h2 = await acquireTracked({ key, ownerId: owner2, ttlMs: 5000 });
+    expect(h2).not.toBeNull();
+    expect(h2!.ownerId).toBe(owner2);
+
+    const value = await redis.get(key);
+    expect(value).toBe(owner2);
+  });
+
+  // -----------------------------------------------------------------------
+  // Concurrent acquisition stress
+  // -----------------------------------------------------------------------
+
+  it("should grant the lock to exactly one owner under concurrency", async () => {
+    const key = uniqueKey();
+    const ownerCount = 10;
+    const owners = Array.from({ length: ownerCount }, () => uuid());
+
+    const results = await Promise.all(
+      owners.map((ownerId) =>
+        lock.acquire({ key, ownerId, ttlMs: 5000 }),
+      ),
+    );
+
+    const winners = results.filter((r) => r !== null);
+    expect(winners.length).toBe(1);
+
+    // Cleanup
+    await winners[0]!.release();
+  });
+
+  // -----------------------------------------------------------------------
   // Input validation
   // -----------------------------------------------------------------------
 
@@ -279,5 +550,54 @@ describe("DistributedLock", () => {
     await expect(lock.acquire({ key: uniqueKey(), ownerId: "", ttlMs: 1000 })).rejects.toThrow(
       TypeError,
     );
+  });
+
+  it("should throw RangeError on negative retryCount", async () => {
+    await expect(
+      lock.acquire({ key: uniqueKey(), ownerId: uuid(), ttlMs: 1000, retryCount: -1 }),
+    ).rejects.toThrow(RangeError);
+  });
+
+  it("should throw RangeError on NaN retryDelayMs", async () => {
+    await expect(
+      lock.acquire({ key: uniqueKey(), ownerId: uuid(), ttlMs: 1000, retryDelayMs: NaN }),
+    ).rejects.toThrow(RangeError);
+  });
+
+  it("should throw RangeError on negative maxRetryDelayMs", async () => {
+    await expect(
+      lock.acquire({ key: uniqueKey(), ownerId: uuid(), ttlMs: 1000, maxRetryDelayMs: -100 }),
+    ).rejects.toThrow(RangeError);
+  });
+
+  it("should throw RangeError when autoRenew is enabled with tiny ttlMs", async () => {
+    await expect(
+      lock.acquire({
+        key: uniqueKey(),
+        ownerId: uuid(),
+        ttlMs: 50,
+        autoRenew: true,
+      }),
+    ).rejects.toThrow(RangeError);
+  });
+
+  it("should throw RangeError on non-positive acquireTimeoutMs", async () => {
+    await expect(
+      lock.acquire({ key: uniqueKey(), ownerId: uuid(), ttlMs: 1000, acquireTimeoutMs: 0 }),
+    ).rejects.toThrow(RangeError);
+  });
+
+  // -----------------------------------------------------------------------
+  // DEFAULTS export
+  // -----------------------------------------------------------------------
+
+  it("should export sensible defaults", () => {
+    expect(DEFAULTS.retryCount).toBe(0);
+    expect(DEFAULTS.retryDelayMs).toBe(200);
+    expect(DEFAULTS.retryWithBackoff).toBe(true);
+    expect(DEFAULTS.maxRetryDelayMs).toBe(5000);
+    expect(DEFAULTS.autoRenew).toBe(false);
+    expect(DEFAULTS.fencingToken).toBe(false);
+    expect(DEFAULTS.minAutoRenewTtlMs).toBe(300);
   });
 });
