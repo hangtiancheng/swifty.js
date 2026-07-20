@@ -1,0 +1,10 @@
+# Node / packaging
+node_modules/
+*.tsbuildinfo
+
+# Build artifacts
+build/
+
+# Tooling caches
+.cache/
+compile_commands.json

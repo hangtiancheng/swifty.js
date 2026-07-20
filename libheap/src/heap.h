@@ -17,12 +17,15 @@
 #ifndef LIBHEAP_HEAP_H
 #define LIBHEAP_HEAP_H
 
-#include <algorithm>
-#include <functional>
 #include <stdexcept>
+#include <utility>
 #include <vector>
 
 namespace libheap {
+
+// Compare is a three-way comparator: cmp(a, b) must return a value < 0 when
+// a orders before b, > 0 when a orders after b, and 0 when equivalent.
+// heappushpop relies on this exact contract (it tests cmp(...) <= 0).
 
 template <typename T, typename Compare>
 void sift_down(std::vector<T> &heap, size_t index, Compare cmp) {
@@ -72,8 +75,8 @@ T heappop(std::vector<T> &heap, Compare cmp) {
   if (heap.empty()) {
     throw std::runtime_error("heap is empty");
   }
-  T result = heap.front();
-  heap[0] = heap.back();
+  T result = std::move(heap.front());
+  heap[0] = std::move(heap.back());
   heap.pop_back();
   if (!heap.empty()) {
     sift_down(heap, 0, cmp);
@@ -83,7 +86,7 @@ T heappop(std::vector<T> &heap, Compare cmp) {
 
 template <typename T, typename Compare>
 void heappush(std::vector<T> &heap, T item, Compare cmp) {
-  heap.push_back(item);
+  heap.push_back(std::move(item));
   sift_up(heap, heap.size() - 1, cmp);
 }
 
@@ -92,8 +95,8 @@ T heappushpop(std::vector<T> &heap, T item, Compare cmp) {
   if (heap.empty() || cmp(item, heap.front()) <= 0) {
     return item;
   }
-  T result = heap.front();
-  heap[0] = item;
+  T result = std::move(heap.front());
+  heap[0] = std::move(item);
   sift_down(heap, 0, cmp);
   return result;
 }
@@ -103,20 +106,10 @@ T heapreplace(std::vector<T> &heap, T item, Compare cmp) {
   if (heap.empty()) {
     throw std::runtime_error("heap is empty");
   }
-  T result = heap.front();
-  heap[0] = item;
+  T result = std::move(heap.front());
+  heap[0] = std::move(item);
   sift_down(heap, 0, cmp);
   return result;
-}
-
-template <typename T> int default_compare(const T &a, const T &b) {
-  if (a < b) {
-    return -1;
-  }
-  if (a > b) {
-    return 1;
-  }
-  return 0;
 }
 
 } // namespace libheap

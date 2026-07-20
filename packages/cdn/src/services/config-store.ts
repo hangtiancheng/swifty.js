@@ -15,7 +15,7 @@
  */
 
 import path from "node:path";
-import { Cache } from "../../../cache/dist/index.js";
+import { Cache } from "@swifty.js/cache";
 import { Project, toProjectConfig } from "../models/project.js";
 import type { ConfigMap, ProjectConfig } from "../types/index.js";
 import type { PrefixIndex } from "./cache-utils.js";

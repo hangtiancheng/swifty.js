@@ -17,7 +17,7 @@
 import Koa from "koa";
 import bodyParser from "@koa/bodyparser";
 import cors from "@koa/cors";
-import { Cache } from "../../cache/dist/index.js";
+import { Cache } from "@swifty.js/cache";
 import type { ServerConfig } from "./types/index.js";
 import { PrefixIndex } from "./services/cache-utils.js";
 import { errorMiddleware } from "./middleware/error.js";

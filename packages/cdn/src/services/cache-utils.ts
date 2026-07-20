@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { ByteView } from "../../../cache/dist/index.js";
+import { ByteView } from "@swifty.js/cache";
 import type { CacheEntry } from "../types/index.js";
 
 export class PrefixIndex {

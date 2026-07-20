@@ -20,7 +20,7 @@ import crypto from "node:crypto";
 import { createReadStream } from "node:fs";
 import type { Context, Next } from "koa";
 import mime from "mime-types";
-import { Cache, ByteView } from "../../../cache/dist/index.js";
+import { Cache, ByteView } from "@swifty.js/cache";
 import type { CacheKey, ServerConfig } from "../types/index.js";
 import { getProjectConfig } from "../services/config-store.js";
 import { parseRoute } from "../utils/route-parser.js";

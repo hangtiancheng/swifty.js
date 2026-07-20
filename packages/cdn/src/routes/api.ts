@@ -16,7 +16,7 @@
 
 import Router from "@koa/router";
 import type { Context } from "koa";
-import { Cache } from "../../../cache/dist/index.js";
+import { Cache } from "@swifty.js/cache";
 import { Project, toProjectConfig } from "../models/project.js";
 import {
   ProjectCreateSchema,

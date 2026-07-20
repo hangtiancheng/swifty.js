@@ -5,23 +5,32 @@
     "heap",
     "priority-queue"
   ],
-  "license": "MIT",
+  "license": "Apache-2.0",
   "author": "https://github.com/hangtiancheng",
-  "type": "commonjs",
-  "main": "build/Release/heap.node",
+  "type": "module",
+  "main": "index.js",
   "types": "index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    }
+  },
   "scripts": {
+    "bench": "vitest bench",
     "build": "node-gyp rebuild",
+    "test": "vitest run",
     "cmake": "cmake -S ./ -B ./build && cmake --build ./build"
   },
   "dependencies": {
     "node-addon-api": "^8.8.0"
   },
   "devDependencies": {
-    "@types/node": "^24.13.1"
+    "@types/node": "^24.13.1",
+    "vitest": "^4.1.9"
   },
   "engines": {
-    "node": "20"
+    "node": ">=24.13.3"
   },
   "gypfile": true
 }

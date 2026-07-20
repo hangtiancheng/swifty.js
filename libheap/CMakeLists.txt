@@ -70,21 +70,3 @@ set_target_properties(addon PROPERTIES
 if(APPLE)
   set_target_properties(addon PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
 endif()
-
-# Build shared library
-add_library(heap SHARED heap.cc)
-
-# Set output name without 'lib' prefix on some platforms
-set_target_properties(heap PROPERTIES
-  OUTPUT_NAME "heap"
-  PUBLIC_HEADER "heap.h"
-)
-
-# Export symbols for shared library
-target_compile_definitions(heap PRIVATE BUILDING_LIBHEAP)
-
-# Install targets
-install(TARGETS heap
-  LIBRARY DESTINATION lib
-  PUBLIC_HEADER DESTINATION include
-)

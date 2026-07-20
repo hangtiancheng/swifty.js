@@ -12,13 +12,16 @@
     "acit",
     "addrs",
     "autocannon",
+    "bodyparser",
     "booleanish",
     "defaultize",
     "DOMCSS",
     "EVALSHA",
     "gypfile",
     "hangtiancheng",
+    "heapified",
     "heapify",
+    "heappeek",
     "heappop",
     "heappush",
     "heappushpop",
@@ -30,6 +33,7 @@
     "libpool",
     "NAPI",
     "PEXPIRE",
+    "pino",
     "POPCNT",
     "popcount",
     "pttl",
@@ -39,6 +43,7 @@
     "signalish",
     "swifty",
     "vdom",
-    "vnode"
+    "vnode",
+    "xxhash"
   ]
 }

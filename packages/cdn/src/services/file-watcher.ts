@@ -15,7 +15,7 @@
  */
 
 import { watch, type FSWatcher } from "chokidar";
-import { Cache } from "../../../cache/dist/index.js";
+import { Cache } from "@swifty.js/cache";
 import { getProjectConfig, getConfigMap, invalidateVersionCache } from "./config-store.js";
 import type { PrefixIndex } from "./cache-utils.js";
 import { logger } from "../utils/logger.js";
