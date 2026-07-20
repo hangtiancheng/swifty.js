@@ -18,11 +18,16 @@ import { Peer, PeerPicker } from "./peers.js";
 import { ConHashMap } from "./consistent-hash.js";
 import { Client } from "./client.js";
 import { ServiceDiscovery } from "./register.js";
+import { validPeerAddr } from "./utils.js";
+import { log } from "./logger.js";
 
 const DEFAULT_SVC_NAME = "swifty_cache";
 
 export interface PickerOption {
   serviceName?: string;
+  etcdEndpoints?: string[];
+  /** Per-call deadline for peer RPCs in milliseconds. */
+  peerDeadlineMs?: number;
 }
 
 export class ClientPicker implements PeerPicker {
@@ -31,20 +36,26 @@ export class ClientPicker implements PeerPicker {
   private consHash: ConHashMap;
   private clients: Map<string, Client> = new Map();
   private discovery: ServiceDiscovery;
+  private peerDeadlineMs?: number;
 
   constructor(addr: string, opts?: PickerOption) {
     this.selfAddr = addr;
     this.svcName = opts?.serviceName || DEFAULT_SVC_NAME;
+    this.peerDeadlineMs = opts?.peerDeadlineMs;
     this.consHash = new ConHashMap();
 
     this.discovery = new ServiceDiscovery(
       this.svcName,
       (peerAddr) => this.onPeerDiscovered(peerAddr),
       (peerAddr) => this.onPeerRemoved(peerAddr),
+      opts?.etcdEndpoints ? { endpoints: opts.etcdEndpoints } : undefined,
     );
   }
 
   async start(): Promise<void> {
+    // self participates in the ring so key ownership is globally consistent
+    this.consHash.add(this.selfAddr);
+
     const addrs = await this.discovery.fetchAll();
     for (const addr of addrs) {
       if (addr && addr !== this.selfAddr) {
@@ -73,9 +84,9 @@ export class ClientPicker implements PeerPicker {
   }
 
   printPeers(): void {
-    console.log("[SwiftyCache] Discovered peers:");
+    log.info("Discovered peers:");
     for (const addr of this.clients.keys()) {
-      console.log(`  - ${addr}`);
+      log.info(`  - ${addr}`);
     }
   }
 
@@ -83,7 +94,6 @@ export class ClientPicker implements PeerPicker {
     if (addr === this.selfAddr) return;
     if (this.clients.has(addr)) return;
     this.addPeer(addr);
-    console.log(`[SwiftyCache] New service discovered at ${addr}`);
   }
 
   private onPeerRemoved(addr: string): void {
@@ -93,14 +103,21 @@ export class ClientPicker implements PeerPicker {
       client.close();
       this.clients.delete(addr);
       this.consHash.remove(addr);
-      console.log(`[SwiftyCache] Service removed at ${addr}`);
+      log.info(`Service removed at ${addr}`);
     }
   }
 
   private addPeer(addr: string): void {
-    const client = new Client(addr);
+    if (!validPeerAddr(addr)) {
+      log.warn(`ignoring invalid peer address from registry: ${addr}`);
+      return;
+    }
+    const client = new Client(addr, {
+      peerRequest: true,
+      deadlineMs: this.peerDeadlineMs,
+    });
     this.consHash.add(addr);
     this.clients.set(addr, client);
-    console.log(`[SwiftyCache] Successfully created client for ${addr}`);
+    log.info(`New peer discovered at ${addr}`);
   }
 }

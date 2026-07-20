@@ -2,6 +2,10 @@
   "name": "@swifty.js/promises-a-plus",
   "version": "1.0.0",
   "private": true,
+  "keywords": [],
+  "license": "ISC",
+  "author": "",
+  "type": "module",
   "main": "src/my-promise.ts",
   "types": "src/my-promise.ts",
   "exports": {
@@ -17,12 +21,9 @@
     "build": "rm -rf ./dist && tsc",
     "test": "pnpm build && node ./dist/index.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@types/node": "catalog:",
+    "@types/node": "^24.13.3",
     "eslint": "^10.6.0",
     "globals": "^17.7.0",
     "prettier": "^3.9.4",
@@ -30,7 +31,6 @@
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.62.1"
   },
-  "type": "module",
   "engines": {
     "node": ">=22"
   }

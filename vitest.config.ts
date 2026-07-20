@@ -30,9 +30,6 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     setupFiles: resolve(dirname__, "./setup-tests.ts"),
-    include: [
-      "**/*.test.ts?(x)",
-      "**/*.spec.ts?(x)",
-    ],
+    include: ["**/*.test.ts?(x)", "**/*.spec.ts?(x)"],
   },
 });

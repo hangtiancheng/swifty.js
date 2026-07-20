@@ -22,7 +22,7 @@
  * Mirrors the previous bootstrap.sh:
  *   1. Make sure an etcd is reachable on 127.0.0.1:2379 (fork a local one via
  *      the brew-installed `etcd` binary when missing).
- *   2. Compile main.ts into ./.demo-dist so we don't touch rollup's dist/.
+ *   2. Compile main.ts into ./.dist so we don't touch rollup's dist/.
  *   3. Launch three cache servers (:8001, :8002, :8003).
  *   4. Drive them with the gRPC Client built from the demo dist.
  *
@@ -246,10 +246,7 @@ async function compileDemo() {
   });
   mkdirSync(join(DEMO_DIST, "proto"), { recursive: true });
   copyFileSync("src/proto/swifty.proto", join(DEMO_DIST, "proto", "swifty.proto"));
-  copyFileSync(
-    "src/proto/health.proto",
-    join(DEMO_DIST, "proto", "health.proto"),
-  );
+  copyFileSync("src/proto/health.proto", join(DEMO_DIST, "proto", "health.proto"));
 }
 
 /**
@@ -258,11 +255,9 @@ async function compileDemo() {
  * @returns {ChildProcess}
  */
 function startCacheServer(port) {
-  const proc = spawn(
-    "node",
-    [join(DEMO_DIST, "main.js"), "--port", String(port)],
-    { stdio: "inherit" },
-  );
+  const proc = spawn("node", [join(DEMO_DIST, "main.js"), "--port", String(port)], {
+    stdio: "inherit",
+  });
   proc.once("error", (err) => {
     console.error(`[server :${port}]`, err);
   });
@@ -342,9 +337,7 @@ async function main() {
   registerSignalHandlers();
   await ensureEtcd();
   await compileDemo();
-  console.log(
-    `>>> starting cache servers on ${CACHE_PORTS.map((p) => `:${p}`).join(" ")}`,
-  );
+  console.log(`>>> starting cache servers on ${CACHE_PORTS.map((p) => `:${p}`).join(" ")}`);
   for (const port of CACHE_PORTS) startCacheServer(port);
   await sleep(SERVER_BOOT_DELAY_MS);
   console.log(">>> start grpc test");

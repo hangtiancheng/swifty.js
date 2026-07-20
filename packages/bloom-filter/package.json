@@ -4,13 +4,16 @@
   "description": "A standard Bloom Filter implementation in TypeScript",
   "keywords": [
     "bloom-filter",
-    "probabilistic",
     "data-structure",
+    "probabilistic",
     "set-membership",
     "xxhash"
   ],
   "license": "Apache-2.0",
   "author": "hangtiancheng",
+  "files": [
+    "dist"
+  ],
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -20,9 +23,6 @@
       "import": "./dist/index.js"
     }
   },
-  "files": [
-    "dist"
-  ],
   "scripts": {
     "build": "tsc",
     "test": "vitest run"
@@ -31,7 +31,7 @@
     "@node-rs/xxhash": "^1.7.6"
   },
   "devDependencies": {
-    "@types/node": "catalog:",
+    "@types/node": "^24.13.3",
     "typescript": "^6.0.3",
     "vitest": "^4.1.9"
   },

@@ -16,14 +16,7 @@
 
 import { diff, unmount, applyRef } from "./index";
 import { createVNode, Fragment } from "../create-element";
-import {
-  EMPTY_OBJ,
-  EMPTY_ARR,
-  INSERT_VNODE,
-  MATCHED,
-  UNDEFINED,
-  NULL,
-} from "../constants";
+import { EMPTY_OBJ, EMPTY_ARR, INSERT_VNODE, MATCHED, UNDEFINED, NULL } from "../constants";
 import { isArray } from "../util";
 import { getDomSibling } from "../component";
 
@@ -100,8 +93,7 @@ export function diffChildren(
 
     // At this point, constructNewChildrenArray has assigned _index to be the
     // matchingIndex for this VNode's oldVNode (or -1 if there is no oldVNode).
-    oldVNode =
-      (childVNode._index != -1 && oldChildren[childVNode._index]) || EMPTY_OBJ;
+    oldVNode = (childVNode._index != -1 && oldChildren[childVNode._index]) || EMPTY_OBJ;
 
     // Update childVNode._index to its final index
     childVNode._index = i;
@@ -126,11 +118,7 @@ export function diffChildren(
       if (oldVNode.ref) {
         applyRef(oldVNode.ref, NULL, childVNode);
       }
-      refQueue.push(
-        childVNode.ref,
-        childVNode._component || newDom,
-        childVNode,
-      );
+      refQueue.push(childVNode.ref, childVNode._component || newDom, childVNode);
     }
 
     if (firstChildDom == NULL && newDom != NULL) {
@@ -193,11 +181,7 @@ function constructNewChildrenArray(
     // pre and post normalized childVNode
     childVNode = renderResult[i];
 
-    if (
-      childVNode == NULL ||
-      typeof childVNode == "boolean" ||
-      typeof childVNode == "function"
-    ) {
+    if (childVNode == NULL || typeof childVNode == "boolean" || typeof childVNode == "function") {
       newParentVNode._children[i] = NULL;
       continue;
     }
@@ -211,13 +195,7 @@ function constructNewChildrenArray(
       typeof childVNode == "bigint" ||
       childVNode.constructor == String
     ) {
-      childVNode = newParentVNode._children[i] = createVNode(
-        NULL,
-        childVNode,
-        NULL,
-        NULL,
-        NULL,
-      );
+      childVNode = newParentVNode._children[i] = createVNode(NULL, childVNode, NULL, NULL, NULL);
     } else if (isArray(childVNode)) {
       childVNode = newParentVNode._children[i] = createVNode(
         Fragment,
@@ -420,12 +398,7 @@ export function toChildArray(children, out) {
  * @param {number} remainingOldChildren
  * @returns {number}
  */
-function findMatchingIndex(
-  childVNode,
-  oldChildren,
-  skewedIndex,
-  remainingOldChildren,
-) {
+function findMatchingIndex(childVNode, oldChildren, skewedIndex, remainingOldChildren) {
   const key = childVNode.key;
   const type = childVNode.type;
   let oldVNode = oldChildren[skewedIndex];

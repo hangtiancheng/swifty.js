@@ -1,5 +1,21 @@
 {
+  "name": "swifty.js",
+  "homepage": "https://github.com/hangtiancheng/swifty.js/tree/main/#readme",
+  "bugs": {
+    "url": "https://github.com/hangtiancheng/swifty.js/issues"
+  },
   "author": "https://github.com/hangtiancheng",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hangtiancheng/swifty.js.git"
+  },
+  "type": "module",
+  "scripts": {
+    "git:commit": "pnpm git:precommit && git add -A && git commit -m \"feat: Introduce new features\"",
+    "git:precommit": "rm -rf ./.claude && ln -s ./.github ./.claude",
+    "git:push": "pnpm git:commit && git push origin main",
+    "prepare": "husky && pnpm --filter @swifty.js/cache build"
+  },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
@@ -9,21 +25,5 @@
     "lint-staged": "^17.0.8",
     "prettier-plugin-tailwindcss": "^0.8.0",
     "vitest": "^4.1.9"
-  },
-  "name": "swifty.js",
-  "homepage": "https://github.com/hangtiancheng/swifty.js/tree/main/#readme",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/hangtiancheng/swifty.js.git"
-  },
-  "bugs": {
-    "url": "https://github.com/hangtiancheng/swifty.js/issues"
-  },
-  "scripts": {
-    "git:commit": "pnpm git:precommit && git add -A && git commit -m \"feat: Introduce new features\"",
-    "git:precommit": "rm -rf ./.claude && ln -s ./.github ./.claude",
-    "git:push": "pnpm git:commit && git push origin main",
-    "prepare": "husky && pnpm --filter @swifty.js/cache build"
-  },
-  "type": "module"
+  }
 }

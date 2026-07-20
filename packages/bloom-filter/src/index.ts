@@ -120,7 +120,7 @@ export class BloomFilter {
     if (!Number.isFinite(falsePositiveRate) || falsePositiveRate <= 0 || falsePositiveRate >= 1) {
       throw new RangeError(`falsePositiveRate must be in (0, 1), got ${falsePositiveRate}`);
     }
-    if (!Number.isInteger(seed) || seed < 0 || seed > 0xFFFFFFFF) {
+    if (!Number.isInteger(seed) || seed < 0 || seed > 0xffffffff) {
       throw new RangeError(`seed must be a 32-bit unsigned integer, got ${seed}`);
     }
 

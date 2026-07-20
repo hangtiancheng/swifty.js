@@ -30,14 +30,8 @@ const LOADER_OPTIONS: protoLoader.Options = {
   oneofs: true,
 };
 
-const swiftyDef = protoLoader.loadSync(
-  join(__dirname, "swifty.proto"),
-  LOADER_OPTIONS,
-);
+const swiftyDef = protoLoader.loadSync(join(__dirname, "swifty.proto"), LOADER_OPTIONS);
 export const proto = grpc.loadPackageDefinition(swiftyDef) as any;
 
-const healthDef = protoLoader.loadSync(
-  join(__dirname, "health.proto"),
-  LOADER_OPTIONS,
-);
+const healthDef = protoLoader.loadSync(join(__dirname, "health.proto"), LOADER_OPTIONS);
 export const healthProto = grpc.loadPackageDefinition(healthDef) as any;

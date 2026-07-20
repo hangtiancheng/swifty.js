@@ -54,9 +54,7 @@ function createStore<TState extends object>(createState: StateCreator<TState>): 
     const oldState = state;
     // When replace is true, swap the entire state reference;
     // otherwise perform a shallow merge (spread).
-    state = replace
-      ? (nextState as TState)
-      : { ...state, ...(nextState as Partial<TState>) };
+    state = replace ? (nextState as TState) : { ...state, ...(nextState as Partial<TState>) };
 
     // NOTE: Reentrant setState calls within a listener callback are not
     // guarded against. Subsequent listeners in the same notification cycle

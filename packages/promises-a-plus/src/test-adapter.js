@@ -27,9 +27,7 @@ const adapter = {
       reject = rej;
     });
     if (resolve === undefined || reject === undefined) {
-      throw new Error(
-        "Deferred promise must have resolve and reject functions",
-      );
+      throw new Error("Deferred promise must have resolve and reject functions");
     }
     return {
       promise,

@@ -62,7 +62,14 @@ export type RefCallback<T> = (instance: T | null) => void | (() => void);
 export type Ref<T> = RefObject<T> | RefCallback<T> | null;
 
 export type ComponentChild =
-  VNode<any> | object | string | number | bigint | boolean | null | undefined;
+  | VNode<any>
+  | object
+  | string
+  | number
+  | bigint
+  | boolean
+  | null
+  | undefined;
 export type ComponentChildren = ComponentChild[] | ComponentChild;
 
 export interface Attributes {
@@ -91,9 +98,7 @@ export type RenderableProps<P, RefType = any> = P &
 export type ComponentType<P = {}> = ComponentClass<P> | FunctionComponent<P>;
 export type ComponentFactory<P = {}> = ComponentType<P>;
 
-export type ComponentProps<
-  C extends ComponentType<any> | keyof JSXInternal.IntrinsicElements,
-> =
+export type ComponentProps<C extends ComponentType<any> | keyof JSXInternal.IntrinsicElements> =
   C extends ComponentType<infer P>
     ? P
     : C extends keyof JSXInternal.IntrinsicElements
@@ -112,20 +117,13 @@ export interface ComponentClass<P = {}, S = {}> {
   displayName?: string;
   defaultProps?: Partial<P>;
   contextType?: Context<any>;
-  getDerivedStateFromProps?(
-    props: Readonly<P>,
-    state: Readonly<S>,
-  ): Partial<S> | null;
+  getDerivedStateFromProps?(props: Readonly<P>, state: Readonly<S>): Partial<S> | null;
   getDerivedStateFromError?(error: any): Partial<S> | null;
 }
-export interface ComponentConstructor<P = {}, S = {}> extends ComponentClass<
-  P,
-  S
-> {}
+export interface ComponentConstructor<P = {}, S = {}> extends ComponentClass<P, S> {}
 
 // Type alias for a component instance considered generally, whether stateless or stateful.
-export type AnyComponent<P = {}, S = {}> =
-  FunctionComponent<P> | ComponentConstructor<P, S>;
+export type AnyComponent<P = {}, S = {}> = FunctionComponent<P> | ComponentConstructor<P, S>;
 
 export interface Component<P = {}, S = {}> {
   componentWillMount?(): void;
@@ -133,22 +131,10 @@ export interface Component<P = {}, S = {}> {
   componentWillUnmount?(): void;
   getChildContext?(): object;
   componentWillReceiveProps?(nextProps: Readonly<P>, nextContext: any): void;
-  shouldComponentUpdate?(
-    nextProps: Readonly<P>,
-    nextState: Readonly<S>,
-    nextContext: any,
-  ): boolean;
-  componentWillUpdate?(
-    nextProps: Readonly<P>,
-    nextState: Readonly<S>,
-    nextContext: any,
-  ): void;
+  shouldComponentUpdate?(nextProps: Readonly<P>, nextState: Readonly<S>, nextContext: any): boolean;
+  componentWillUpdate?(nextProps: Readonly<P>, nextState: Readonly<S>, nextContext: any): void;
   getSnapshotBeforeUpdate?(oldProps: Readonly<P>, oldState: Readonly<S>): any;
-  componentDidUpdate?(
-    previousProps: Readonly<P>,
-    previousState: Readonly<S>,
-    snapshot: any,
-  ): void;
+  componentDidUpdate?(previousProps: Readonly<P>, previousState: Readonly<S>, snapshot: any): void;
   componentDidCatch?(error: any, errorInfo: ErrorInfo): void;
 }
 
@@ -165,10 +151,7 @@ export abstract class Component<P, S> {
   // constraint under no circumstances, see #1356.In general type arguments
   // seem to be a bit buggy and not supported well at the time of this
   // writing with TS 3.3.3333.
-  static getDerivedStateFromProps?(
-    props: Readonly<object>,
-    state: Readonly<object>,
-  ): object | null;
+  static getDerivedStateFromProps?(props: Readonly<object>, state: Readonly<object>): object | null;
   static getDerivedStateFromError?(error: any): object | null;
 
   state: Readonly<S>;
@@ -181,10 +164,7 @@ export abstract class Component<P, S> {
   // // See: https://github.com/DefinitelyTyped/DefinitelyTyped/issues/18365#issuecomment-351013257
   setState<K extends keyof S>(
     state:
-      | ((
-          prevState: Readonly<S>,
-          props: Readonly<P>,
-        ) => Pick<S, K> | Partial<S> | null)
+      | ((prevState: Readonly<S>, props: Readonly<P>) => Pick<S, K> | Partial<S> | null)
       | (Pick<S, K> | Partial<S> | null),
     callback?: () => void,
   ): void;
@@ -204,23 +184,15 @@ export abstract class Component<P, S> {
 
 export function createElement(
   type: "input",
-  props:
-    | (DOMAttributes<HTMLInputElement> & ClassAttributes<HTMLInputElement>)
-    | null,
+  props: (DOMAttributes<HTMLInputElement> & ClassAttributes<HTMLInputElement>) | null,
   ...children: ComponentChildren[]
 ): VNode<DOMAttributes<HTMLInputElement> & ClassAttributes<HTMLInputElement>>;
-export function createElement<
-  P extends HTMLAttributes<T>,
-  T extends HTMLElement,
->(
+export function createElement<P extends HTMLAttributes<T>, T extends HTMLElement>(
   type: keyof JSXInternal.IntrinsicElements,
   props: (ClassAttributes<T> & P) | null,
   ...children: ComponentChildren[]
 ): VNode<ClassAttributes<T> & P>;
-export function createElement<
-  P extends SVGAttributes<T>,
-  T extends HTMLElement,
->(
+export function createElement<P extends SVGAttributes<T>, T extends HTMLElement>(
   type: keyof JSXInternal.IntrinsicSVGElements,
   props: (ClassAttributes<T> & P) | null,
   ...children: ComponentChildren[]
@@ -241,9 +213,7 @@ export namespace createElement {
 
 export function h(
   type: "input",
-  props:
-    | (DOMAttributes<HTMLInputElement> & ClassAttributes<HTMLInputElement>)
-    | null,
+  props: (DOMAttributes<HTMLInputElement> & ClassAttributes<HTMLInputElement>) | null,
   ...children: ComponentChildren[]
 ): VNode<DOMAttributes<HTMLInputElement> & ClassAttributes<HTMLInputElement>>;
 export function h<P extends HTMLAttributes<T>, T extends HTMLElement>(
@@ -351,9 +321,7 @@ export const options: Options;
 // Preact helpers
 // -----------------------------------
 export function createRef<T = any>(): RefObject<T>;
-export function toChildArray(
-  children: ComponentChildren,
-): Array<VNode | string | number>;
+export function toChildArray(children: ComponentChildren): Array<VNode | string | number>;
 export function isValidElement(vnode: any): vnode is VNode;
 
 //
@@ -369,8 +337,7 @@ export interface Provider<T> extends FunctionComponent<{
   children?: ComponentChildren;
 }> {}
 export interface PreactProvider<T> extends Provider<T> {}
-export type ContextType<C extends Context<any>> =
-  C extends Context<infer T> ? T : never;
+export type ContextType<C extends Context<any>> = C extends Context<infer T> ? T : never;
 
 export interface Context<T> extends preact.Provider<T> {
   Consumer: preact.Consumer<T>;

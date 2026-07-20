@@ -2,17 +2,6 @@
   "name": "@swifty.js/preact",
   "version": "0.0.3",
   "description": "Preact all in one",
-  "license": "MIT",
-  "author": "hangtiancheng",
-  "homepage": "https://github.com/hangtiancheng/swifty.js/tree/main/packages/preact#readme",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/hangtiancheng/swifty.js.git",
-    "directory": "packages/preact"
-  },
-  "bugs": {
-    "url": "https://github.com/hangtiancheng/swifty.js/issues"
-  },
   "keywords": [
     "all-in-one",
     "fork",
@@ -23,11 +12,27 @@
     "react",
     "virtual-dom"
   ],
+  "homepage": "https://github.com/hangtiancheng/swifty.js/tree/main/packages/preact#readme",
+  "bugs": {
+    "url": "https://github.com/hangtiancheng/swifty.js/issues"
+  },
+  "license": "MIT",
+  "author": "hangtiancheng",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hangtiancheng/swifty.js.git",
+    "directory": "packages/preact"
+  },
+  "files": [
+    "src/**/*.d.ts",
+    "dist",
+    "mangle.json"
+  ],
   "type": "module",
+  "sideEffects": false,
   "main": "dist/preact.mjs",
   "module": "dist/preact.mjs",
   "types": "src/index.d.ts",
-  "sideEffects": false,
   "exports": {
     ".": {
       "types": "./src/index.d.ts",
@@ -66,22 +71,17 @@
     },
     "./package.json": "./package.json"
   },
-  "files": [
-    "src/**/*.d.ts",
-    "dist",
-    "mangle.json"
-  ],
   "scripts": {
     "build": "rollup -c rollup.config.mjs",
     "dev": "rollup -c rollup.config.mjs --watch",
     "format": "prettier -w .",
     "prepublishOnly": "pnpm build"
   },
-  "packageManager": "pnpm@10.10.0",
   "devDependencies": {
     "@rollup/plugin-terser": "^1.0.0",
     "prettier": "^3.9.4",
     "rollup": "^4.62.2",
     "rollup-plugin-esbuild": "^6.2.1"
-  }
+  },
+  "packageManager": "pnpm@10.10.0"
 }

@@ -38,11 +38,23 @@ export class ConHashMap {
     for (const opt of opts) {
       opt(this);
     }
-    this.startBalancer();
+    if (this.config.autoRebalance) {
+      this.startBalancer();
+    }
   }
 
   setConfig(config: ConHashConfig): void {
     this.config = config;
+    if (this.config.autoRebalance && !this.balancerTimer) {
+      this.startBalancer();
+    } else if (!this.config.autoRebalance && this.balancerTimer) {
+      clearInterval(this.balancerTimer);
+      this.balancerTimer = null;
+    }
+  }
+
+  rebalance(): void {
+    this.rebalanceNodes();
   }
 
   add(...nodes: string[]): void {
@@ -114,8 +126,8 @@ export class ConHashMap {
     for (let i = 0; i < replicas; i++) {
       const hash = this.config.hashFunc(`${node}-${i}`);
       this.hashMap.delete(hash);
-      const keyIdx = this.keys.indexOf(hash);
-      if (keyIdx !== -1) {
+      const keyIdx = this.binarySearch(hash);
+      if (keyIdx < this.keys.length && this.keys[keyIdx] === hash) {
         this.keys.splice(keyIdx, 1);
       }
     }
@@ -163,8 +175,7 @@ export class ConHashMap {
     const updates: Map<string, number> = new Map();
 
     for (const [node, count] of this.nodeCounts) {
-      const currentReplicas =
-        this.nodeReplicas.get(node) || this.config.defaultReplicas;
+      const currentReplicas = this.nodeReplicas.get(node) || this.config.defaultReplicas;
       const loadRatio = count / avgLoad;
 
       let newReplicas: number;
@@ -182,8 +193,10 @@ export class ConHashMap {
       }
     }
 
-    for (const [node, replicas] of updates) {
+    for (const node of updates.keys()) {
       this.removeNodeInternal(node);
+    }
+    for (const [node, replicas] of updates) {
       this.addNodeInternal(node, replicas);
     }
 

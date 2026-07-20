@@ -521,9 +521,7 @@ All entry points that write a distPath (POST /projects, POST /versions, PUT /ver
 ```ts
 const resolved = path.resolve(distPath);
 const normalizedRoot = path.resolve(workspaceRoot);
-return (
-  resolved.startsWith(normalizedRoot + path.sep) || resolved === normalizedRoot
-);
+return resolved.startsWith(normalizedRoot + path.sep) || resolved === normalizedRoot;
 ```
 
 A distPath outside the workspace is immediately rejected with 400, preventing directories like `/etc` from being registered.
@@ -555,7 +553,7 @@ Therefore, cdn should not be exposed to the public internet or untrusted network
 
 ### 14.1 vs Nginx Static Serving
 
-| Dimension      | Nginx              | @swifty.js/cdn                              |
+| Dimension      | Nginx              | @swifty.js/cdn                            |
 | -------------- | ------------------ | ----------------------------------------- |
 | Configuration  | nginx.conf         | MongoDB + REST API                        |
 | Multi-version  | rewrite + map      | URL `@version` + header + cookie + weight |
@@ -567,7 +565,7 @@ Therefore, cdn should not be exposed to the public internet or untrusted network
 
 ### 14.2 vs Cloud CDN (Cloudflare / Alibaba Cloud)
 
-| Dimension   | Cloud CDN               | @swifty.js/cdn                |
+| Dimension   | Cloud CDN               | @swifty.js/cdn              |
 | ----------- | ----------------------- | --------------------------- |
 | Edge nodes  | Globally distributed    | Single machine              |
 | TLS         | Termination + cert mgmt | Not handled                 |
@@ -745,10 +743,7 @@ Each core module is a side-effect-free pure function / class that can be used in
 import { parseRoute } from "@swifty.js/cdn/dist/utils/route-parser.js";
 import { resolveVersion } from "@swifty.js/cdn/dist/utils/grayscale.js";
 import { LruCache } from "@swifty.js/cdn/dist/services/memory-cache.js";
-import {
-  resolveSafePath,
-  buildCacheKey,
-} from "@swifty.js/cdn/dist/utils/path-security.js";
+import { resolveSafePath, buildCacheKey } from "@swifty.js/cdn/dist/utils/path-security.js";
 
 const parsed = parseRoute("/cdn/admin@1.0.0/app.js", "/cdn");
 // { projectName: "admin", explicitVersion: "1.0.0", filePath: "app.js" }

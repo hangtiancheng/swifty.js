@@ -28,14 +28,9 @@ export type StateUpdater<S> = S | ((prevState: S) => S);
  * Returns a stateful value, and a function to update it.
  * @param initialState The initial value (or a function that returns the initial value)
  */
-export function useState<S>(
-  initialState: S | (() => S),
-): [S, Dispatch<StateUpdater<S>>];
+export function useState<S>(initialState: S | (() => S)): [S, Dispatch<StateUpdater<S>>];
 
-export function useState<S = undefined>(): [
-  S | undefined,
-  Dispatch<StateUpdater<S | undefined>>,
-];
+export function useState<S = undefined>(): [S | undefined, Dispatch<StateUpdater<S | undefined>>];
 
 export type Reducer<S, A> = (prevState: S, action: A) => S;
 
@@ -48,10 +43,7 @@ export type Reducer<S, A> = (prevState: S, action: A) => S;
  * @param reducer Given the current state and an action, returns the new state
  * @param initialState The initial value to store as state
  */
-export function useReducer<S, A>(
-  reducer: Reducer<S, A>,
-  initialState: S,
-): [S, Dispatch<A>];
+export function useReducer<S, A>(reducer: Reducer<S, A>, initialState: S): [S, Dispatch<A>];
 
 /**
  * An alternative to `useState`.

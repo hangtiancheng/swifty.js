@@ -33,14 +33,8 @@ enum PromiseState {
 
 type Resolve<T> = (value: T | PromiseLike<T>) => void;
 type Reject = (reason?: any) => void;
-type OnFulfilled<T, TResult> =
-  | ((value: T) => TResult | PromiseLike<TResult>)
-  | undefined
-  | null;
-type OnRejected<TResult> =
-  | ((reason: any) => TResult | PromiseLike<TResult>)
-  | undefined
-  | null;
+type OnFulfilled<T, TResult> = ((value: T) => TResult | PromiseLike<TResult>) | undefined | null;
+type OnRejected<TResult> = ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null;
 
 class MyPromise<T = any> {
   // 2.1.1 pending 时
@@ -274,9 +268,7 @@ class MyPromise<T = any> {
     });
   }
 
-  public catch<TResult = never>(
-    onRejected?: OnRejected<TResult>,
-  ): MyPromise<T | TResult> {
+  public catch<TResult = never>(onRejected?: OnRejected<TResult>): MyPromise<T | TResult> {
     return this.then(undefined, onRejected);
   }
 

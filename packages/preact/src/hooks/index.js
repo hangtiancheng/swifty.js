@@ -204,9 +204,7 @@ export function useReducer(reducer, initialState, init) {
       !init ? invokeOrReturn(undefined, initialState) : init(initialState),
 
       (action) => {
-        const currentValue = hookState._nextValue
-          ? hookState._nextValue[0]
-          : hookState._value[0];
+        const currentValue = hookState._nextValue ? hookState._nextValue[0] : hookState._value[0];
         const nextValue = hookState._reducer(currentValue, action);
 
         if (currentValue !== nextValue) {
@@ -403,9 +401,7 @@ export function useContext(context) {
  */
 export function useDebugValue(value, formatter) {
   if (options.useDebugValue) {
-    options.useDebugValue(
-      formatter ? formatter(value) : /** @type {any}*/ (value),
-    );
+    options.useDebugValue(formatter ? formatter(value) : /** @type {any}*/ (value));
   }
 }
 

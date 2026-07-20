@@ -51,10 +51,7 @@ export interface ComponentHooks {
   _pendingEffects: EffectHookState[];
 }
 
-export interface Component extends Omit<
-  PreactComponent<any, any>,
-  "_renderCallbacks"
-> {
+export interface Component extends Omit<PreactComponent<any, any>, "_renderCallbacks"> {
   __hooks?: ComponentHooks;
   // Extend to include HookStates
   _renderCallbacks?: Array<HookState | (() => void)>;
@@ -102,10 +99,7 @@ export interface MemoHookState<T = unknown> extends BaseHookState {
   _factory?: () => T;
 }
 
-export interface ReducerHookState<
-  S = unknown,
-  A = unknown,
-> extends BaseHookState {
+export interface ReducerHookState<S = unknown, A = unknown> extends BaseHookState {
   _nextValue?: [S, StateUpdater<S>];
   _value?: [S, StateUpdater<S>];
   _component?: Component;

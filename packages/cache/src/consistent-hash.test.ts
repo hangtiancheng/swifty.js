@@ -167,6 +167,7 @@ describe("ConHashMap", () => {
         minReplicas: 2,
         maxReplicas: 20,
         loadBalanceThreshold: 0.01,
+        autoRebalance: true,
         hashFunc: (data) => {
           const s = typeof data === "string" ? data : data.toString();
           let hash = 0;

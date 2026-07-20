@@ -58,8 +58,7 @@ export default {
     {
       name: "post-build-bridge",
       writeBundle() {
-        const jsxBridge =
-          'import "./compat.mjs";\nexport * from "./jsx-runtime.mjs";\n';
+        const jsxBridge = 'import "./compat.mjs";\nexport * from "./jsx-runtime.mjs";\n';
         writeFileSync("dist/compat-jsx-runtime.mjs", jsxBridge);
         writeFileSync("dist/compat-jsx-dev-runtime.mjs", jsxBridge);
       },

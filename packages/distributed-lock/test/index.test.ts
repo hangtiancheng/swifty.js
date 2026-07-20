@@ -514,9 +514,7 @@ describe("DistributedLock", () => {
     const owners = Array.from({ length: ownerCount }, () => uuid());
 
     const results = await Promise.all(
-      owners.map((ownerId) =>
-        lock.acquire({ key, ownerId, ttlMs: 5000 }),
-      ),
+      owners.map((ownerId) => lock.acquire({ key, ownerId, ttlMs: 5000 })),
     );
 
     const winners = results.filter((r) => r !== null);

@@ -76,10 +76,7 @@ function Portal(props) {
   }
 
   // Render our wrapping element into temp.
-  render(
-    createElement(ContextProvider, { context: _this.context }, props._vnode),
-    _this._temp,
-  );
+  render(createElement(ContextProvider, { context: _this.context }, props._vnode), _this._temp);
 }
 
 /**

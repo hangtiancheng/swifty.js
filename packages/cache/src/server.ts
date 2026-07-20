@@ -19,6 +19,7 @@ import { readFileSync } from "fs";
 import { proto, healthProto } from "./proto/index.js";
 import { getGroup } from "./group.js";
 import { register } from "./register.js";
+import { log } from "./logger.js";
 
 export interface ServerOptions {
   etcdEndpoints?: string[];
@@ -27,6 +28,11 @@ export interface ServerOptions {
   tls?: boolean;
   certFile?: string;
   keyFile?: string;
+  /**
+   * Address published to the registry for peers to dial. Defaults to the
+   * bind address; set this when binding to 0.0.0.0 or a wildcard address.
+   */
+  advertiseAddr?: string;
 }
 
 const defaultServerOptions: ServerOptions = {
@@ -41,6 +47,12 @@ const PEER_REQUEST_METADATA_KEY = "x-peer-request";
 function isPeerRequest(call: grpc.ServerUnaryCall<any, any>): boolean {
   const meta = call.metadata.get(PEER_REQUEST_METADATA_KEY);
   return meta.length > 0 && meta[0] === "true";
+}
+
+function requestSignal(call: grpc.ServerUnaryCall<any, any>): AbortSignal {
+  const controller = new AbortController();
+  call.on("cancelled", () => controller.abort());
+  return controller.signal;
 }
 
 export class Server {
@@ -81,10 +93,7 @@ export class Server {
     const servingStatuses = new Map<string, number>();
     servingStatuses.set(svcName, 1); // SERVING
     this.grpcServer.addService(healthProto.grpc.health.v1.Health.service, {
-      Check: (
-        call: grpc.ServerUnaryCall<any, any>,
-        callback: grpc.sendUnaryData<any>,
-      ) => {
+      Check: (call: grpc.ServerUnaryCall<any, any>, callback: grpc.sendUnaryData<any>) => {
         const service = call.request.service || "";
         const status = servingStatuses.get(service) ?? 0; // UNKNOWN
         callback(null, { status });
@@ -103,26 +112,25 @@ export class Server {
       });
     });
 
-    register(this.svcName, this.addr, this.abortController.signal).catch(
-      (err) => {
-        console.log(`[SwiftyCache] failed to register service: ${err}`);
-      },
-    );
+    const registerAddr = this.opts.advertiseAddr || this.addr;
+    register(this.svcName, registerAddr, this.abortController.signal, {
+      endpoints: this.opts.etcdEndpoints,
+      dialTimeout: this.opts.dialTimeout,
+    }).catch((err) => {
+      log.error(`failed to register service: ${err}`);
+    });
 
-    console.log(`[SwiftyCache] Server starting at ${this.addr}`);
+    log.info(`Server starting at ${this.addr}`);
   }
 
   stop(): void {
     this.abortController.abort();
     this.grpcServer.tryShutdown(() => {
-      console.log("[SwiftyCache] Server stopped");
+      log.info("Server stopped");
     });
   }
 
-  private handleGet(
-    call: grpc.ServerUnaryCall<any, any>,
-    callback: grpc.sendUnaryData<any>,
-  ): void {
+  private handleGet(call: grpc.ServerUnaryCall<any, any>, callback: grpc.sendUnaryData<any>): void {
     const { group: groupName, key } = call.request;
     const group = getGroup(groupName);
     if (!group) {
@@ -134,7 +142,7 @@ export class Server {
     }
 
     group
-      .get(this.abortController.signal, key)
+      .get(requestSignal(call), key)
       .then((view) => {
         callback(null, { value: view.byteSlice() });
       })
@@ -143,10 +151,7 @@ export class Server {
       });
   }
 
-  private handleSet(
-    call: grpc.ServerUnaryCall<any, any>,
-    callback: grpc.sendUnaryData<any>,
-  ): void {
+  private handleSet(call: grpc.ServerUnaryCall<any, any>, callback: grpc.sendUnaryData<any>): void {
     const { group: groupName, key, value } = call.request;
     const group = getGroup(groupName);
     if (!group) {
@@ -159,9 +164,9 @@ export class Server {
 
     const peerRequest = isPeerRequest(call);
     group
-      .set(this.abortController.signal, key, Buffer.from(value), peerRequest)
+      .set(requestSignal(call), key, Buffer.from(value), peerRequest)
       .then(() => {
-        callback(null, { value });
+        callback(null, { success: true });
       })
       .catch((err) => {
         callback({ code: grpc.status.INTERNAL, message: err.message });
@@ -184,7 +189,7 @@ export class Server {
 
     const peerRequest = isPeerRequest(call);
     group
-      .delete(this.abortController.signal, key, peerRequest)
+      .delete(requestSignal(call), key, peerRequest)
       .then(() => {
         callback(null, { value: true });
       })

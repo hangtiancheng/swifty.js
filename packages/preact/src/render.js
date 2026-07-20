@@ -45,12 +45,11 @@ export function render(vnode, parentDom, replaceNode) {
   // this by assigning a new `_children` property to DOM nodes which points
   // to the last rendered tree. By default this property is not present, which
   // means that we are mounting a new tree for the first time.
-  let oldVNode = isHydrating
-    ? NULL
-    : (replaceNode && replaceNode._children) || parentDom._children;
+  let oldVNode = isHydrating ? NULL : (replaceNode && replaceNode._children) || parentDom._children;
 
-  vnode = ((!isHydrating && replaceNode) || parentDom)._children =
-    createElement(Fragment, NULL, [vnode]);
+  vnode = ((!isHydrating && replaceNode) || parentDom)._children = createElement(Fragment, NULL, [
+    vnode,
+  ]);
 
   // List of effects that need to be called after diffing.
   let commitQueue = [],
@@ -71,11 +70,7 @@ export function render(vnode, parentDom, replaceNode) {
           ? slice.call(parentDom.childNodes)
           : NULL,
     commitQueue,
-    !isHydrating && replaceNode
-      ? replaceNode
-      : oldVNode
-        ? oldVNode._dom
-        : parentDom.firstChild,
+    !isHydrating && replaceNode ? replaceNode : oldVNode ? oldVNode._dom : parentDom.firstChild,
     isHydrating,
     refQueue,
   );

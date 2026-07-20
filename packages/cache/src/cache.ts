@@ -17,6 +17,7 @@
 import { LruStore } from "./lru.js";
 import { Store, StoreOptions, Value } from "./store.js";
 import { ByteView } from "./byte-view.js";
+import { log } from "./logger.js";
 
 export interface CacheOptions {
   maxBytes?: number;
@@ -25,6 +26,15 @@ export interface CacheOptions {
   level2Cap?: number;
   cleanupTime?: number;
   onEvicted?: (key: string, value: Value) => void;
+}
+
+export interface CacheStats {
+  initialized: boolean;
+  closed: boolean;
+  hits: number;
+  misses: number;
+  size?: number;
+  hit_rate?: number;
 }
 
 export function defaultCacheOptions(): CacheOptions {
@@ -62,14 +72,12 @@ export class Cache {
     };
     this.store = new LruStore(storeOpts);
     this.initialized = true;
-    console.log(
-      `[SwiftyCache] Cache initialized, max bytes: ${this.opts.maxBytes}`,
-    );
+    log.info(`Cache initialized, max bytes: ${this.opts.maxBytes}`);
   }
 
   add(key: string, value: ByteView): void {
     if (this.closed) {
-      console.log(`[SwiftyCache] Attempted to add to a closed cache: ${key}`);
+      log.warn(`Attempted to add to a closed cache: ${key}`);
       return;
     }
     this.ensureInitialized();
@@ -93,21 +101,16 @@ export class Cache {
     return [val as ByteView, true];
   }
 
-  addWithExpiration(
-    key: string,
-    value: ByteView,
-    expirationTime: number,
-  ): void {
+  addWithExpiration(key: string, value: ByteView, expirationTime: number): void {
     if (this.closed) {
-      console.log(`[SwiftyCache] Attempted to add to a closed cache: ${key}`);
+      log.warn(`Attempted to add to a closed cache: ${key}`);
       return;
     }
 
     const expirationMs = expirationTime - Date.now();
     if (expirationMs <= 0) {
-      console.log(
-        `[SwiftyCache] Key ${key} already expired, not adding to cache`,
-      );
+      // writing an already-expired value is equivalent to a delete
+      this.delete(key);
       return;
     }
 
@@ -140,13 +143,11 @@ export class Cache {
       this.store = null;
     }
     this.initialized = false;
-    console.log(
-      `[SwiftyCache] Cache closed, hits: ${this.hits}, misses: ${this.misses}`,
-    );
+    log.info(`Cache closed, hits: ${this.hits}, misses: ${this.misses}`);
   }
 
-  stats(): Record<string, unknown> {
-    const s: Record<string, unknown> = {
+  stats(): CacheStats {
+    const s: CacheStats = {
       initialized: this.initialized,
       closed: this.closed,
       hits: this.hits,
@@ -154,13 +155,9 @@ export class Cache {
     };
 
     if (this.initialized) {
-      s["size"] = this.len();
+      s.size = this.len();
       const totalRequests = this.hits + this.misses;
-      if (totalRequests > 0) {
-        s["hit_rate"] = this.hits / totalRequests;
-      } else {
-        s["hit_rate"] = 0;
-      }
+      s.hit_rate = totalRequests > 0 ? this.hits / totalRequests : 0;
     }
 
     return s;

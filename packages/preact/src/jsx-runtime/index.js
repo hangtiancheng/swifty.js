@@ -117,9 +117,7 @@ const CSS_REGEX = /[A-Z]/g;
  * @returns {*}
  */
 function normalizeAttrValue(value) {
-  return value !== null &&
-    typeof value === "object" &&
-    typeof value.valueOf === "function"
+  return value !== null && typeof value === "object" && typeof value.valueOf === "function"
     ? value.valueOf()
     : value;
 }
@@ -149,8 +147,7 @@ function jsxAttr(name, value) {
         const name =
           prop[0] == "-"
             ? prop
-            : JS_TO_CSS[prop] ||
-              (JS_TO_CSS[prop] = prop.replace(CSS_REGEX, "-$&").toLowerCase());
+            : JS_TO_CSS[prop] || (JS_TO_CSS[prop] = prop.replace(CSS_REGEX, "-$&").toLowerCase());
 
         let suffix = ";";
         if (
@@ -187,11 +184,7 @@ function jsxAttr(name, value) {
  * @returns {string | null | VNode | Array<string | null | VNode>}
  */
 function jsxEscape(value) {
-  if (
-    value == null ||
-    typeof value === "boolean" ||
-    typeof value === "function"
-  ) {
+  if (value == null || typeof value === "boolean" || typeof value === "function") {
     return null;
   }
 

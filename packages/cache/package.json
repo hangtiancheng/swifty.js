@@ -11,16 +11,16 @@
     "lru",
     "single-flight"
   ],
+  "homepage": "https://github.com/hangtiancheng/swifty.js/tree/main/packages/cache#readme",
+  "bugs": {
+    "url": "https://github.com/hangtiancheng/swifty.js/issues"
+  },
   "license": "ISC",
   "author": "https://github.com/hangtiancheng",
-  "homepage": "https://github.com/hangtiancheng/swifty.js/tree/main/packages/cache#readme",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/hangtiancheng/swifty.js.git",
     "directory": "packages/cache"
-  },
-  "bugs": {
-    "url": "https://github.com/hangtiancheng/swifty.js/issues"
   },
   "files": [
     "dist"
@@ -38,9 +38,6 @@
     "./proto/swifty.proto": "./dist/proto/swifty.proto",
     "./proto/health.proto": "./dist/proto/health.proto",
     "./package.json": "./package.json"
-  },
-  "engines": {
-    "node": ">=20"
   },
   "publishConfig": {
     "access": "public"
@@ -67,5 +64,8 @@
     "rollup-plugin-dts": "^6.4.1",
     "tslib": "^2.8.1",
     "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }

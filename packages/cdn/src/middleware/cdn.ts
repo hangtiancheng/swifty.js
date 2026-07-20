@@ -25,11 +25,7 @@ import type { CacheKey, ServerConfig } from "../types/index.js";
 import { getProjectConfig } from "../services/config-store.js";
 import { parseRoute } from "../utils/route-parser.js";
 import { resolveVersion } from "../utils/grayscale.js";
-import {
-  resolveSafePath,
-  hasFileExtension,
-  buildCacheKey,
-} from "../utils/path-security.js";
+import { resolveSafePath, hasFileExtension, buildCacheKey } from "../utils/path-security.js";
 import {
   PrefixIndex,
   serializeCacheEntry,
@@ -70,10 +66,7 @@ export function createCdnMiddleware(
     ctx.set("Access-Control-Allow-Origin", origin);
     ctx.set("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS");
     ctx.set("Access-Control-Allow-Headers", "Content-Type");
-    ctx.set(
-      "Access-Control-Expose-Headers",
-      "ETag, X-Cache, X-CDN-Version, X-Resolution-Source",
-    );
+    ctx.set("Access-Control-Expose-Headers", "ETag, X-Cache, X-CDN-Version, X-Resolution-Source");
 
     // Handle preflight requests
     if (ctx.method === "OPTIONS") {
@@ -118,11 +111,7 @@ export function createCdnMiddleware(
     }
 
     // L1 cache lookup
-    const cacheKey: CacheKey = buildCacheKey(
-      projectName,
-      versionConfig.version,
-      filePath,
-    );
+    const cacheKey: CacheKey = buildCacheKey(projectName, versionConfig.version, filePath);
     const [cachedView, found] = cache.get(cacheKey);
     if (found && cachedView !== null) {
       const cached = deserializeCacheEntry(cachedView);

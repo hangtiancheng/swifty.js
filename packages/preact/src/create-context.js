@@ -67,10 +67,7 @@ export function createContext(defaultValue) {
   };
 
   // we could also get rid of _contextRef entirely
-  Context.Provider =
-    Context._contextRef =
-    Context.Consumer.contextType =
-      Context;
+  Context.Provider = Context._contextRef = Context.Consumer.contextType = Context;
 
   return Context;
 }

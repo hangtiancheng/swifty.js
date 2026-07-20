@@ -63,14 +63,10 @@ export interface Options extends preact.Options {
     errorInfo?: ErrorInfo | undefined,
   ): void;
   /** Attach a hook that fires when hydration can't find a proper DOM-node to match with */
-  _hydrationMismatch?(
-    vnode: VNode,
-    excessDomChildren: Array<PreactElement | null>,
-  ): void;
+  _hydrationMismatch?(vnode: VNode, excessDomChildren: Array<PreactElement | null>): void;
 }
 
-export type ComponentChild =
-  VNode<any> | string | number | boolean | null | undefined;
+export type ComponentChild = VNode<any> | string | number | boolean | null | undefined;
 export type ComponentChildren = ComponentChild[] | ComponentChild;
 
 export interface FunctionComponent<P = {}> extends preact.FunctionComponent<P> {
@@ -170,10 +166,7 @@ export interface VNode<P = {}> extends preact.VNode<P> {
   _flags: number;
 }
 
-export interface Component<P = {}, S = {}> extends Omit<
-  preact.Component<P, S>,
-  "base"
-> {
+export interface Component<P = {}, S = {}> extends Omit<preact.Component<P, S>, "base"> {
   // When component is functional component, this is reset to functional component
   constructor: ComponentType<P>;
   state: S; // Override Component["state"] to not be readonly for internal use, specifically Hooks

@@ -22,6 +22,7 @@ export interface ConHashConfig {
   maxReplicas: number;
   hashFunc: (data: string | Buffer) => number;
   loadBalanceThreshold: number;
+  autoRebalance?: boolean;
 }
 
 export const defaultConHashConfig: ConHashConfig = {
@@ -30,4 +31,5 @@ export const defaultConHashConfig: ConHashConfig = {
   maxReplicas: 200,
   hashFunc: crc32,
   loadBalanceThreshold: 0.25,
+  autoRebalance: false,
 };

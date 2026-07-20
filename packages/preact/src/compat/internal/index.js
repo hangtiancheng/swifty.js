@@ -93,9 +93,7 @@ function isFragment(element) {
  */
 function isMemo(element) {
   return (
-    !!element &&
-    typeof element.displayName == "string" &&
-    element.displayName.indexOf("Memo(") == 0
+    !!element && typeof element.displayName == "string" && element.displayName.indexOf("Memo(") == 0
   );
 }
 
@@ -130,11 +128,7 @@ function unmountComponentAtNode(container) {
  * @returns {import('./internal').PreactElement | null}
  */
 function findDOMNode(component) {
-  return (
-    (component &&
-      (component.base || (component.nodeType === 1 && component))) ||
-    null
-  );
+  return (component && (component.base || (component.nodeType === 1 && component))) || null;
 }
 
 /**

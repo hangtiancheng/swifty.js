@@ -107,20 +107,12 @@ export function setProperty(dom, name, value, oldValue, namespace) {
     if (value) {
       if (!oldValue) {
         value[EVENT_ATTACHED] = eventClock;
-        dom.addEventListener(
-          name,
-          useCapture ? eventProxyCapture : eventProxy,
-          useCapture,
-        );
+        dom.addEventListener(name, useCapture ? eventProxyCapture : eventProxy, useCapture);
       } else {
         value[EVENT_ATTACHED] = oldValue[EVENT_ATTACHED];
       }
     } else {
-      dom.removeEventListener(
-        name,
-        useCapture ? eventProxyCapture : eventProxy,
-        useCapture,
-      );
+      dom.removeEventListener(name, useCapture ? eventProxyCapture : eventProxy, useCapture);
     }
   } else {
     if (namespace == SVG_NAMESPACE) {

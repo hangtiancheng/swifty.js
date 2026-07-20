@@ -243,9 +243,7 @@ function validateOptions(opts: LockOptions): void {
   }
   if (opts.retryCount !== undefined) {
     if (!Number.isInteger(opts.retryCount) || opts.retryCount < 0) {
-      throw new RangeError(
-        `retryCount must be a non-negative integer, got ${opts.retryCount}`,
-      );
+      throw new RangeError(`retryCount must be a non-negative integer, got ${opts.retryCount}`);
     }
   }
   if (opts.retryDelayMs !== undefined) {
@@ -357,8 +355,7 @@ export class DistributedLock {
       onLost,
     } = options;
 
-    const deadline =
-      acquireTimeoutMs !== undefined ? Date.now() + acquireTimeoutMs : Infinity;
+    const deadline = acquireTimeoutMs !== undefined ? Date.now() + acquireTimeoutMs : Infinity;
 
     for (let attempt = 0; attempt <= retryCount; attempt++) {
       // Check timeout before each attempt
@@ -410,12 +407,7 @@ export class DistributedLock {
 
       // Don't sleep after the final attempt
       if (attempt < retryCount) {
-        const delay = computeRetryDelay(
-          attempt,
-          retryDelayMs,
-          maxRetryDelayMs,
-          retryWithBackoff,
-        );
+        const delay = computeRetryDelay(attempt, retryDelayMs, maxRetryDelayMs, retryWithBackoff);
 
         // Respect acquireTimeoutMs — clamp or bail
         const remaining = deadline - Date.now();

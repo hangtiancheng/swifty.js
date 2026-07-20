@@ -15,9 +15,10 @@
  */
 
 import { ByteView, cloneBytes } from "./byte-view.js";
-import { Cache, CacheOptions, defaultCacheOptions } from "./cache.js";
+import { Cache, CacheOptions, CacheStats, defaultCacheOptions } from "./cache.js";
 import { Peer, PeerPicker } from "./peers.js";
 import { SingleFlightGroup } from "./single-flight.js";
+import { log } from "./logger.js";
 
 export type Getter = (ctx: AbortSignal, key: string) => Promise<Buffer>;
 
@@ -47,7 +48,7 @@ const ErrKeyRequired = new Error("key is required");
 const ErrValueRequired = new Error("value is required");
 const ErrGroupClosed = new Error("cache group is closed");
 
-interface GroupStats {
+interface GroupCounters {
   loads: number;
   localHits: number;
   localMisses: number;
@@ -58,8 +59,33 @@ interface GroupStats {
   loadDuration: number;
 }
 
+export interface GroupStats {
+  name: string;
+  closed: boolean;
+  expiration: number;
+  loads: number;
+  local_hits: number;
+  local_misses: number;
+  peer_hits: number;
+  peer_misses: number;
+  loader_hits: number;
+  loader_errors: number;
+  hit_rate?: number;
+  avg_load_time_ms?: number;
+  cache: CacheStats;
+}
+
 const groups: Map<string, Group> = new Map();
 
+/**
+ * Group implements a read-through cache with cache-aside write propagation.
+ *
+ * Consistency model: set/delete are applied locally and forwarded
+ * asynchronously to the single peer that owns the key on the hash ring
+ * (fire-and-forget). Other nodes are NOT notified, so their local caches
+ * may serve stale values until eviction or expiration. This is weak,
+ * eventually-consistent semantics, not replication.
+ */
 export class Group {
   private name: string;
   private getter: Getter;
@@ -68,7 +94,7 @@ export class Group {
   private loader: SingleFlightGroup;
   private expiration = 0;
   private closed = false;
-  private stats: GroupStats = {
+  private counters: GroupCounters = {
     loads: 0,
     localHits: 0,
     localMisses: 0,
@@ -79,12 +105,7 @@ export class Group {
     loadDuration: 0,
   };
 
-  constructor(
-    name: string,
-    cacheBytes: number,
-    getter: Getter,
-    ...opts: GroupOption[]
-  ) {
+  constructor(name: string, cacheBytes: number, getter: Getter, ...opts: GroupOption[]) {
     if (!getter) throw new Error("nil Getter");
 
     this.name = name;
@@ -106,20 +127,15 @@ export class Group {
 
     const [view, ok] = this.mainCache.get(key);
     if (ok && view) {
-      this.stats.localHits++;
+      this.counters.localHits++;
       return view;
     }
 
-    this.stats.localMisses++;
+    this.counters.localMisses++;
     return this.load(ctx, key);
   }
 
-  async set(
-    ctx: AbortSignal,
-    key: string,
-    value: Buffer,
-    isPeerRequest = false,
-  ): Promise<void> {
+  async set(ctx: AbortSignal, key: string, value: Buffer, isPeerRequest = false): Promise<void> {
     if (this.closed) throw ErrGroupClosed;
     if (!key) throw ErrKeyRequired;
     if (!value || value.length === 0) throw ErrValueRequired;
@@ -136,11 +152,7 @@ export class Group {
     }
   }
 
-  async delete(
-    ctx: AbortSignal,
-    key: string,
-    isPeerRequest = false,
-  ): Promise<void> {
+  async delete(ctx: AbortSignal, key: string, isPeerRequest = false): Promise<void> {
     if (this.closed) throw ErrGroupClosed;
     if (!key) throw ErrKeyRequired;
 
@@ -154,7 +166,7 @@ export class Group {
   clear(): void {
     if (this.closed) return;
     this.mainCache.clear();
-    console.log(`[SwiftyCache] cleared cache for group [${this.name}]`);
+    log.info(`cleared cache for group [${this.name}]`);
   }
 
   close(): void {
@@ -162,42 +174,36 @@ export class Group {
     this.closed = true;
     this.mainCache.close();
     groups.delete(this.name);
-    console.log(`[SwiftyCache] closed cache group [${this.name}]`);
+    log.info(`closed cache group [${this.name}]`);
   }
 
   registerPeers(peers: PeerPicker): void {
     if (this.peers) throw new Error("RegisterPeers called more than once");
     this.peers = peers;
-    console.log(`[SwiftyCache] registered peers for group [${this.name}]`);
+    log.info(`registered peers for group [${this.name}]`);
   }
 
-  getStats(): Record<string, unknown> {
-    const s: Record<string, unknown> = {
+  getStats(): GroupStats {
+    const totalGets = this.counters.localHits + this.counters.localMisses;
+    const s: GroupStats = {
       name: this.name,
       closed: this.closed,
       expiration: this.expiration,
-      loads: this.stats.loads,
-      local_hits: this.stats.localHits,
-      local_misses: this.stats.localMisses,
-      peer_hits: this.stats.peerHits,
-      peer_misses: this.stats.peerMisses,
-      loader_hits: this.stats.loaderHits,
-      loader_errors: this.stats.loaderErrors,
+      loads: this.counters.loads,
+      local_hits: this.counters.localHits,
+      local_misses: this.counters.localMisses,
+      peer_hits: this.counters.peerHits,
+      peer_misses: this.counters.peerMisses,
+      loader_hits: this.counters.loaderHits,
+      loader_errors: this.counters.loaderErrors,
+      cache: this.mainCache.stats(),
     };
 
-    const totalGets = this.stats.localHits + this.stats.localMisses;
     if (totalGets > 0) {
-      s["hit_rate"] = this.stats.localHits / totalGets;
+      s.hit_rate = this.counters.localHits / totalGets;
     }
-
-    const totalLoads = this.stats.loads;
-    if (totalLoads > 0) {
-      s["avg_load_time_ms"] = this.stats.loadDuration / totalLoads;
-    }
-
-    const cacheStats = this.mainCache.stats();
-    for (const [k, v] of Object.entries(cacheStats)) {
-      s[`cache_${k}`] = v;
+    if (this.counters.loads > 0) {
+      s.avg_load_time_ms = this.counters.loadDuration / this.counters.loads;
     }
 
     return s;
@@ -216,27 +222,27 @@ export class Group {
   }
 
   _setCacheOptions(opts: CacheOptions): void {
+    this.mainCache.close();
     this.mainCache = new Cache(opts);
   }
 
   private async load(ctx: AbortSignal, key: string): Promise<ByteView> {
-    const startTime = Date.now();
+    // stats and cache population run inside the single-flight callback so
+    // they execute once per actual load, not once per waiting caller
+    return this.loader.do(key, async () => {
+      const startTime = Date.now();
+      const view = await this.loadData(ctx, key);
+      this.counters.loadDuration += Date.now() - startTime;
+      this.counters.loads++;
 
-    const view = await this.loader.do(key, async () => {
-      return this.loadData(ctx, key);
+      if (this.expiration > 0) {
+        this.mainCache.addWithExpiration(key, view, Date.now() + this.expiration);
+      } else {
+        this.mainCache.add(key, view);
+      }
+
+      return view;
     });
-
-    const loadDuration = Date.now() - startTime;
-    this.stats.loadDuration += loadDuration;
-    this.stats.loads++;
-
-    if (this.expiration > 0) {
-      this.mainCache.addWithExpiration(key, view, Date.now() + this.expiration);
-    } else {
-      this.mainCache.add(key, view);
-    }
-
-    return view;
   }
 
   private async loadData(ctx: AbortSignal, key: string): Promise<ByteView> {
@@ -245,21 +251,21 @@ export class Group {
       if (ok && !isSelf && peer) {
         try {
           const value = await this.getFromPeer(peer, key);
-          this.stats.peerHits++;
+          this.counters.peerHits++;
           return value;
         } catch (err) {
-          this.stats.peerMisses++;
-          console.log(`[SwiftyCache] failed to get from peer: ${err}`);
+          this.counters.peerMisses++;
+          log.warn(`failed to get from peer: ${err}`);
         }
       }
     }
 
     try {
       const bytes = await this.getter(ctx, key);
-      this.stats.loaderHits++;
+      this.counters.loaderHits++;
       return new ByteView(cloneBytes(bytes));
     } catch (err) {
-      this.stats.loaderErrors++;
+      this.counters.loaderErrors++;
       throw new Error(`failed to get data: ${err}`);
     }
   }
@@ -285,7 +291,7 @@ export class Group {
             break;
         }
       } catch (err) {
-        console.log(`[SwiftyCache] failed to sync ${op} to peer: ${err}`);
+        log.warn(`failed to sync ${op} to peer: ${err}`);
       }
     })();
   }
@@ -302,15 +308,11 @@ export function newGroup(
   const g = new Group(name, cacheBytes, getter, ...opts);
 
   if (groups.has(name)) {
-    console.log(
-      `[SwiftyCache] Group with name ${name} already exists; replacing it`,
-    );
+    log.warn(`Group with name ${name} already exists; replacing it`);
   }
 
   groups.set(name, g);
-  console.log(
-    `[SwiftyCache] Created cache group [${name}] with cacheBytes=${cacheBytes}`,
-  );
+  log.info(`Created cache group [${name}] with cacheBytes=${cacheBytes}`);
   return g;
 }
 
@@ -327,7 +329,7 @@ export function destroyGroup(name: string): boolean {
   if (!g) return false;
   groups.delete(name);
   g.close();
-  console.log(`[SwiftyCache] destroyed cache group [${name}]`);
+  log.info(`destroyed cache group [${name}]`);
   return true;
 }
 
@@ -336,6 +338,6 @@ export function destroyAllGroups(): void {
   groups.clear();
   for (const g of toClose) {
     g.close();
-    console.log(`[SwiftyCache] destroyed cache group [${g.getName()}]`);
+    log.info(`destroyed cache group [${g.getName()}]`);
   }
 }

@@ -9,6 +9,9 @@
   ],
   "license": "ISC",
   "author": "",
+  "files": [
+    "dist"
+  ],
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -18,9 +21,6 @@
       "import": "./dist/index.js"
     }
   },
-  "files": [
-    "dist"
-  ],
   "scripts": {
     "build": "tsc",
     "test": "vitest run"
@@ -29,9 +29,9 @@
     "redis": "^5.12.1"
   },
   "devDependencies": {
-    "@types/node": "catalog:",
+    "@types/node": "^24.13.3",
     "typescript": "^5.9.3",
-    "vitest": "catalog:"
+    "vitest": "^4.1.9"
   },
   "packageManager": "pnpm@10.30.3"
 }

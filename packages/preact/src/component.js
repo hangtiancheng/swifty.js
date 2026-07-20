@@ -107,9 +107,7 @@ BaseComponent.prototype.render = Fragment;
 export function getDomSibling(vnode, childIndex) {
   if (childIndex == NULL) {
     // Use childIndex==null as a signal to resume the search from the vnode's sibling
-    return vnode._parent
-      ? getDomSibling(vnode._parent, vnode._index + 1)
-      : NULL;
+    return vnode._parent ? getDomSibling(vnode._parent, vnode._index + 1) : NULL;
   }
 
   let sibling;
@@ -204,9 +202,7 @@ let rerenderQueue = [];
 let prevDebounce;
 
 const defer =
-  typeof Promise == "function"
-    ? Promise.prototype.then.bind(Promise.resolve())
-    : setTimeout;
+  typeof Promise == "function" ? Promise.prototype.then.bind(Promise.resolve()) : setTimeout;
 
 /**
  * Enqueue a rerender of a component
@@ -214,10 +210,7 @@ const defer =
  */
 export function enqueueRender(c) {
   if (
-    (!c._dirty &&
-      (c._dirty = true) &&
-      rerenderQueue.push(c) &&
-      !process._rerenderCount++) ||
+    (!c._dirty && (c._dirty = true) && rerenderQueue.push(c) && !process._rerenderCount++) ||
     prevDebounce != options.debounceRendering
   ) {
     prevDebounce = options.debounceRendering;

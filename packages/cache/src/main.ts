@@ -17,6 +17,7 @@
 import { Group, newGroup } from "./group.js";
 import { Server } from "./server.js";
 import { ClientPicker } from "./client-picker.js";
+import { getLocalIP } from "./utils.js";
 
 const GROUP_NAME = "user";
 const MAX_BYTES = 2 << 10;
@@ -42,11 +43,17 @@ function createGroup(): Group {
   );
 }
 
-async function startCacheServer(addr: string, group: Group): Promise<void> {
-  const server = new Server(addr, DEFAULT_SVC_NAME);
+async function startCacheServer(
+  bindAddr: string,
+  advertiseAddr: string,
+  group: Group,
+): Promise<void> {
+  const server = new Server(bindAddr, DEFAULT_SVC_NAME, { advertiseAddr });
   await server.start();
 
-  const picker = new ClientPicker(addr, { serviceName: DEFAULT_SVC_NAME });
+  const picker = new ClientPicker(advertiseAddr, {
+    serviceName: DEFAULT_SVC_NAME,
+  });
   await picker.start();
   group.registerPeers(picker);
   picker.printPeers();
@@ -63,9 +70,17 @@ async function main(): Promise<void> {
     }
   }
 
-  const addr = `0.0.0.0:${port}`;
+  let host: string;
+  try {
+    host = getLocalIP();
+  } catch {
+    host = "127.0.0.1";
+  }
+
+  const bindAddr = `0.0.0.0:${port}`;
+  const advertiseAddr = `${host}:${port}`;
   const group = createGroup();
-  await startCacheServer(addr, group);
+  await startCacheServer(bindAddr, advertiseAddr, group);
 }
 
 main().catch((err) => {

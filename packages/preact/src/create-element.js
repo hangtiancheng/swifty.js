@@ -41,8 +41,7 @@ export function createElement(type, props, children) {
   }
 
   if (arguments.length > 2) {
-    normalizedProps.children =
-      arguments.length > 3 ? slice.call(arguments, 2) : children;
+    normalizedProps.children = arguments.length > 3 ? slice.call(arguments, 2) : children;
   }
 
   // If a Component VNode, check for and apply defaultProps
@@ -109,5 +108,4 @@ export function Fragment(props) {
  * @param {*} vnode
  * @returns {vnode is VNode}
  */
-export const isValidElement = (vnode) =>
-  vnode != NULL && vnode.constructor === UNDEFINED;
+export const isValidElement = (vnode) => vnode != NULL && vnode.constructor === UNDEFINED;

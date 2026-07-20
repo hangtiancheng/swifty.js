@@ -37,11 +37,7 @@ describe("Cache", () => {
 
   it("rejects already-expired values in addWithExpiration", () => {
     const cache = new Cache({ maxBytes: 128, cleanupTime: 3_600_000 });
-    cache.addWithExpiration(
-      "expired",
-      new ByteView(Buffer.from("value")),
-      Date.now() - 1000,
-    );
+    cache.addWithExpiration("expired", new ByteView(Buffer.from("value")), Date.now() - 1000);
     const [, ok] = cache.get("expired");
     expect(ok).toBe(false);
     cache.close();

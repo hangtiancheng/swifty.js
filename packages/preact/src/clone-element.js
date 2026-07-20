@@ -50,15 +50,8 @@ export function cloneElement(vnode, props, children) {
   }
 
   if (arguments.length > 2) {
-    normalizedProps.children =
-      arguments.length > 3 ? slice.call(arguments, 2) : children;
+    normalizedProps.children = arguments.length > 3 ? slice.call(arguments, 2) : children;
   }
 
-  return createVNode(
-    vnode.type,
-    normalizedProps,
-    key || vnode.key,
-    ref || vnode.ref,
-    NULL,
-  );
+  return createVNode(vnode.type, normalizedProps, key || vnode.key, ref || vnode.ref, NULL);
 }
