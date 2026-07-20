@@ -23,7 +23,7 @@ try {
   binding = require("./build/Release/heap.node");
 } catch (cause) {
   throw new Error(
-    '@swifty.js/libheap: native addon not found. Run "pnpm build" (node-gyp rebuild) first.',
+    '@swifty.js/libheap: Native addon not found.',
     { cause },
   );
 }
