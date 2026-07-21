@@ -2,7 +2,7 @@
   "name": "@swifty.js/vue-reactivity",
   "version": "1.0.0",
   "private": true,
-  "license": "ISC",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "test": "vitest run"

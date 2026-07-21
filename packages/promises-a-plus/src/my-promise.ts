@@ -1,20 +1,4 @@
 /**
- * Copyright 2026 hangtiancheng
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-/**
  * 1.1 "promise" 有 then 方法的对象或函数，行为符合本规范
  * 1.2 "thenable" 有 then 方法的对象或函数
  * 1.3 "value" 合法的 JS 值 (包括 undefined、thenable 或 promise)
@@ -33,8 +17,10 @@ enum PromiseState {
 
 type Resolve<T> = (value: T | PromiseLike<T>) => void;
 type Reject = (reason?: any) => void;
-type OnFulfilled<T, TResult> = ((value: T) => TResult | PromiseLike<TResult>) | undefined | null;
-type OnRejected<TResult> = ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null;
+type OnFulfilled<T, TResult> =
+  ((value: T) => TResult | PromiseLike<TResult>) | undefined | null;
+type OnRejected<TResult> =
+  ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null;
 
 class MyPromise<T = any> {
   // 2.1.1 pending 时
@@ -268,7 +254,9 @@ class MyPromise<T = any> {
     });
   }
 
-  public catch<TResult = never>(onRejected?: OnRejected<TResult>): MyPromise<T | TResult> {
+  public catch<TResult = never>(
+    onRejected?: OnRejected<TResult>,
+  ): MyPromise<T | TResult> {
     return this.then(undefined, onRejected);
   }
 

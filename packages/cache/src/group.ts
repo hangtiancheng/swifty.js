@@ -1,21 +1,10 @@
-/**
- * Copyright 2026 hangtiancheng
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 import { ByteView, cloneBytes } from "./byte-view.js";
-import { Cache, CacheOptions, CacheStats, defaultCacheOptions } from "./cache.js";
+import {
+  Cache,
+  CacheOptions,
+  CacheStats,
+  defaultCacheOptions,
+} from "./cache.js";
 import { Peer, PeerPicker } from "./peers.js";
 import { SingleFlightGroup } from "./single-flight.js";
 import { log } from "./logger.js";
@@ -105,7 +94,12 @@ export class Group {
     loadDuration: 0,
   };
 
-  constructor(name: string, cacheBytes: number, getter: Getter, ...opts: GroupOption[]) {
+  constructor(
+    name: string,
+    cacheBytes: number,
+    getter: Getter,
+    ...opts: GroupOption[]
+  ) {
     if (!getter) throw new Error("nil Getter");
 
     this.name = name;
@@ -135,7 +129,12 @@ export class Group {
     return this.load(ctx, key);
   }
 
-  async set(ctx: AbortSignal, key: string, value: Buffer, isPeerRequest = false): Promise<void> {
+  async set(
+    ctx: AbortSignal,
+    key: string,
+    value: Buffer,
+    isPeerRequest = false,
+  ): Promise<void> {
     if (this.closed) throw ErrGroupClosed;
     if (!key) throw ErrKeyRequired;
     if (!value || value.length === 0) throw ErrValueRequired;
@@ -152,7 +151,11 @@ export class Group {
     }
   }
 
-  async delete(ctx: AbortSignal, key: string, isPeerRequest = false): Promise<void> {
+  async delete(
+    ctx: AbortSignal,
+    key: string,
+    isPeerRequest = false,
+  ): Promise<void> {
     if (this.closed) throw ErrGroupClosed;
     if (!key) throw ErrKeyRequired;
 
@@ -236,7 +239,11 @@ export class Group {
       this.counters.loads++;
 
       if (this.expiration > 0) {
-        this.mainCache.addWithExpiration(key, view, Date.now() + this.expiration);
+        this.mainCache.addWithExpiration(
+          key,
+          view,
+          Date.now() + this.expiration,
+        );
       } else {
         this.mainCache.add(key, view);
       }

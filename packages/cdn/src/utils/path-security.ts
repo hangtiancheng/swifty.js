@@ -1,20 +1,4 @@
 /**
- * Copyright 2026 hangtiancheng
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-/**
  * Path security utilities.
  * Prevents path traversal attacks when serving files from disk.
  */
@@ -26,7 +10,10 @@ import path from "node:path";
  * @param filePath - The relative file path from the request
  * @returns The safe absolute path, or undefined if traversal detected
  */
-export function resolveSafePath(baseDir: string, filePath: string): string | undefined {
+export function resolveSafePath(
+  baseDir: string,
+  filePath: string,
+): string | undefined {
   // Normalize the base directory
   const normalizedBase = path.resolve(baseDir);
 
@@ -34,7 +21,10 @@ export function resolveSafePath(baseDir: string, filePath: string): string | und
   const resolved = path.resolve(normalizedBase, filePath);
 
   // Verify the resolved path is still under the base directory
-  if (!resolved.startsWith(normalizedBase + path.sep) && resolved !== normalizedBase) {
+  if (
+    !resolved.startsWith(normalizedBase + path.sep) &&
+    resolved !== normalizedBase
+  ) {
     return undefined;
   }
 

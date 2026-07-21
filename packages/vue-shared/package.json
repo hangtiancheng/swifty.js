@@ -2,6 +2,6 @@
   "name": "@swifty.js/vue-shared",
   "version": "1.0.0",
   "private": true,
-  "license": "ISC",
+  "license": "MIT",
   "packageManager": "pnpm@10.10.0"
 }

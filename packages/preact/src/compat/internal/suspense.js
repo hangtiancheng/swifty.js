@@ -1,19 +1,3 @@
-/**
- * Copyright 2026 hangtiancheng
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 import { Component, createElement, options, Fragment } from "../..";
 import { MODE_HYDRATE } from "../../constants";
 import { assign } from "./util";
@@ -25,7 +9,7 @@ options._catchError = function (error, newVNode, oldVNode, errorInfo) {
     let component;
     let vnode = newVNode;
 
-    for (; (vnode = vnode._parent); ) {
+    for (; (vnode = vnode._parent);) {
       if ((component = vnode._component) && component._childDidSuspend) {
         if (newVNode._dom == null) {
           newVNode._dom = oldVNode._dom;
@@ -82,7 +66,9 @@ function detachedClone(vnode, detachedParent, parentDom) {
 
     vnode._children =
       vnode._children &&
-      vnode._children.map((child) => detachedClone(child, detachedParent, parentDom));
+      vnode._children.map((child) =>
+        detachedClone(child, detachedParent, parentDom),
+      );
   }
 
   return vnode;
@@ -93,7 +79,9 @@ function removeOriginal(vnode, detachedParent, originalParent) {
     vnode._original = null;
     vnode._children =
       vnode._children &&
-      vnode._children.map((child) => removeOriginal(child, detachedParent, originalParent));
+      vnode._children.map((child) =>
+        removeOriginal(child, detachedParent, originalParent),
+      );
 
     if (vnode._component) {
       if (vnode._component._parentDom === detachedParent) {
@@ -191,7 +179,10 @@ Suspense.prototype._childDidSuspend = function (promise, suspendingVNode) {
    * to remain on screen and hydrate it when the suspense actually gets resolved.
    * While in non-hydration cases the usual fallback -> component flow would occour.
    */
-  if (!c._pendingSuspensionCount++ && !(suspendingVNode._flags & MODE_HYDRATE)) {
+  if (
+    !c._pendingSuspensionCount++ &&
+    !(suspendingVNode._flags & MODE_HYDRATE)
+  ) {
     c.setState({ _suspended: (c._detachOnNextRender = c._vnode._children[0]) });
   }
   promise.then(onResolved, onResolved);
@@ -226,10 +217,14 @@ Suspense.prototype.render = function (props, state) {
 
   // Wrap fallback tree in a VNode that prevents itself from being marked as aborting mid-hydration:
   /** @type {import('./internal').VNode} */
-  const fallback = state._suspended && createElement(Fragment, null, props.fallback);
+  const fallback =
+    state._suspended && createElement(Fragment, null, props.fallback);
   if (fallback) fallback._flags &= ~MODE_HYDRATE;
 
-  return [createElement(Fragment, null, state._suspended ? null : props.children), fallback];
+  return [
+    createElement(Fragment, null, state._suspended ? null : props.children),
+    fallback,
+  ];
 };
 
 /**

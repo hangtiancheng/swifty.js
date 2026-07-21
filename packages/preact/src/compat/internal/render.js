@@ -1,19 +1,3 @@
-/**
- * Copyright 2026 hangtiancheng
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 import {
   render as preactRender,
   hydrate as preactHydrate,
@@ -34,10 +18,16 @@ import {
   useRef,
   useState,
 } from "../../hooks";
-import { useDeferredValue, useInsertionEffect, useSyncExternalStore, useTransition } from ".";
+import {
+  useDeferredValue,
+  useInsertionEffect,
+  useSyncExternalStore,
+  useTransition,
+} from ".";
 
 export const REACT_ELEMENT_TYPE =
-  (typeof Symbol != "undefined" && Symbol.for && Symbol.for("react.element")) || 0xeac7;
+  (typeof Symbol != "undefined" && Symbol.for && Symbol.for("react.element")) ||
+  0xeac7;
 
 const CAMEL_PROPS =
   /^(?:accent|alignment|arabic|baseline|cap|clip(?!PathU)|color|dominant|fill|flood|font|glyph(?!R)|horiz|image(!S)|letter|lighting|marker(?!H|W|U)|overline|paint|pointer|shape|stop|strikethrough|stroke|text(?!L)|transform|underline|unicode|units|v|vector|vert|word|writing|x(?!C))[A-Z]/;
@@ -49,9 +39,10 @@ const IS_DOM = typeof document !== "undefined";
 // type="file|checkbox|radio", plus "range" in IE11.
 // (IE11 doesn't support Symbol, which we use here to turn `rad` into `ra` which matches "range")
 const onChangeInputType = (type) =>
-  (typeof Symbol != "undefined" && typeof Symbol() == "symbol" ? /fil|che|rad/ : /fil|che|ra/).test(
-    type,
-  );
+  (typeof Symbol != "undefined" && typeof Symbol() == "symbol"
+    ? /fil|che|rad/
+    : /fil|che|ra/
+  ).test(type);
 
 // Some libraries like `react-virtualized` explicitly check for this.
 Component.prototype.isReactComponent = true;
@@ -63,7 +54,11 @@ Component.prototype.isReactComponent = true;
 // - If a component defines `UNSAFE_componentDidMount()`, `componentDidMount` is the alias getter/setter.
 // - If anything assigns to an `UNSAFE_*` property, the assignment is forwarded to the unprefixed property.
 // See https://github.com/preactjs/preact/issues/1941
-["componentWillMount", "componentWillReceiveProps", "componentWillUpdate"].forEach((key) => {
+[
+  "componentWillMount",
+  "componentWillReceiveProps",
+  "componentWillUpdate",
+].forEach((key) => {
   Object.defineProperty(Component.prototype, key, {
     configurable: true,
     get() {
@@ -201,7 +196,8 @@ function handleDomVNode(vnode) {
     if (normalizedProps.multiple && Array.isArray(normalizedProps.value)) {
       // forEach() always returns undefined, which we abuse here to unset the value prop.
       normalizedProps.value = toChildArray(props.children).forEach((child) => {
-        child.props.selected = normalizedProps.value.indexOf(child.props.value) != -1;
+        child.props.selected =
+          normalizedProps.value.indexOf(child.props.value) != -1;
       });
     }
 
@@ -209,9 +205,11 @@ function handleDomVNode(vnode) {
     if (normalizedProps.defaultValue != null) {
       normalizedProps.value = toChildArray(props.children).forEach((child) => {
         if (normalizedProps.multiple) {
-          child.props.selected = normalizedProps.defaultValue.indexOf(child.props.value) != -1;
+          child.props.selected =
+            normalizedProps.defaultValue.indexOf(child.props.value) != -1;
         } else {
-          child.props.selected = normalizedProps.defaultValue == child.props.value;
+          child.props.selected =
+            normalizedProps.defaultValue == child.props.value;
         }
       });
     }
@@ -219,7 +217,11 @@ function handleDomVNode(vnode) {
 
   if (props.class && !props.className) {
     normalizedProps.class = props.class;
-    Object.defineProperty(normalizedProps, "className", classNameDescriptorNonEnumberable);
+    Object.defineProperty(
+      normalizedProps,
+      "className",
+      classNameDescriptorNonEnumberable,
+    );
   } else if (props.className) {
     normalizedProps.class = normalizedProps.className = props.className;
   }
@@ -259,7 +261,12 @@ options.diffed = function (vnode) {
   const props = vnode.props;
   const dom = vnode._dom;
 
-  if (dom != null && vnode.type === "textarea" && "value" in props && props.value !== dom.value) {
+  if (
+    dom != null &&
+    vnode.type === "textarea" &&
+    "value" in props &&
+    props.value !== dom.value
+  ) {
     dom.value = props.value == null ? "" : props.value;
   }
 

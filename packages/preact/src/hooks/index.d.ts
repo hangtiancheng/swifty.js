@@ -1,19 +1,3 @@
-/**
- * Copyright 2026 hangtiancheng
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 // Intentionally not using a relative path to take advantage of
 // the TS version resolution mechanism
 // @ts-ignore
@@ -28,9 +12,14 @@ export type StateUpdater<S> = S | ((prevState: S) => S);
  * Returns a stateful value, and a function to update it.
  * @param initialState The initial value (or a function that returns the initial value)
  */
-export function useState<S>(initialState: S | (() => S)): [S, Dispatch<StateUpdater<S>>];
+export function useState<S>(
+  initialState: S | (() => S),
+): [S, Dispatch<StateUpdater<S>>];
 
-export function useState<S = undefined>(): [S | undefined, Dispatch<StateUpdater<S | undefined>>];
+export function useState<S = undefined>(): [
+  S | undefined,
+  Dispatch<StateUpdater<S | undefined>>,
+];
 
 export type Reducer<S, A> = (prevState: S, action: A) => S;
 
@@ -43,7 +32,10 @@ export type Reducer<S, A> = (prevState: S, action: A) => S;
  * @param reducer Given the current state and an action, returns the new state
  * @param initialState The initial value to store as state
  */
-export function useReducer<S, A>(reducer: Reducer<S, A>, initialState: S): [S, Dispatch<A>];
+export function useReducer<S, A>(
+  reducer: Reducer<S, A>,
+  initialState: S,
+): [S, Dispatch<A>];
 
 /**
  * An alternative to `useState`.

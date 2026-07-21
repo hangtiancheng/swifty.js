@@ -1,19 +1,4 @@
 #!/usr/bin/env node
-/**
- * Copyright 2026 hangtiancheng
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 
 // @ts-check
 /**
@@ -245,8 +230,14 @@ async function compileDemo() {
     stdio: "inherit",
   });
   mkdirSync(join(DEMO_DIST, "proto"), { recursive: true });
-  copyFileSync("src/proto/swifty.proto", join(DEMO_DIST, "proto", "swifty.proto"));
-  copyFileSync("src/proto/health.proto", join(DEMO_DIST, "proto", "health.proto"));
+  copyFileSync(
+    "src/proto/swifty.proto",
+    join(DEMO_DIST, "proto", "swifty.proto"),
+  );
+  copyFileSync(
+    "src/proto/health.proto",
+    join(DEMO_DIST, "proto", "health.proto"),
+  );
 }
 
 /**
@@ -255,9 +246,13 @@ async function compileDemo() {
  * @returns {ChildProcess}
  */
 function startCacheServer(port) {
-  const proc = spawn("node", [join(DEMO_DIST, "main.js"), "--port", String(port)], {
-    stdio: "inherit",
-  });
+  const proc = spawn(
+    "node",
+    [join(DEMO_DIST, "main.js"), "--port", String(port)],
+    {
+      stdio: "inherit",
+    },
+  );
   proc.once("error", (err) => {
     console.error(`[server :${port}]`, err);
   });
@@ -337,7 +332,9 @@ async function main() {
   registerSignalHandlers();
   await ensureEtcd();
   await compileDemo();
-  console.log(`>>> starting cache servers on ${CACHE_PORTS.map((p) => `:${p}`).join(" ")}`);
+  console.log(
+    `>>> starting cache servers on ${CACHE_PORTS.map((p) => `:${p}`).join(" ")}`,
+  );
   for (const port of CACHE_PORTS) startCacheServer(port);
   await sleep(SERVER_BOOT_DELAY_MS);
   console.log(">>> start grpc test");

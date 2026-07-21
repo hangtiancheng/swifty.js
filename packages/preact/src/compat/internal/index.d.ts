@@ -1,19 +1,3 @@
-/**
- * Copyright 2026 hangtiancheng
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 // @ts-ignore
 import * as _hooks from "../../hooks/index.d.ts";
 // Intentionally not using a relative path to take advantage of
@@ -95,7 +79,9 @@ declare namespace React {
   export function startTransition(cb: () => void): void;
 
   // HTML
-  export interface HTMLAttributes<T extends EventTarget> extends JSXInternal.HTMLAttributes<T> {}
+  export interface HTMLAttributes<
+    T extends EventTarget,
+  > extends JSXInternal.HTMLAttributes<T> {}
   export interface HTMLProps<T extends EventTarget>
     extends JSXInternal.AllHTMLAttributes<T>, preact.ClassAttributes<T> {}
   export interface AllHTMLAttributes<
@@ -221,17 +207,28 @@ declare namespace React {
     callback?: () => void,
   ): Component | null;
 
-  export function unmountComponentAtNode(container: preact.ContainerNode): boolean;
+  export function unmountComponentAtNode(
+    container: preact.ContainerNode,
+  ): boolean;
 
   export function createFactory(
     type: preact.VNode<any>["type"],
-  ): (props?: any, ...children: preact.ComponentChildren[]) => preact.VNode<any>;
+  ): (
+    props?: any,
+    ...children: preact.ComponentChildren[]
+  ) => preact.VNode<any>;
   export function isValidElement(element: any): boolean;
   export function isFragment(element: any): boolean;
   export function isMemo(element: any): boolean;
-  export function findDOMNode(component: preact.Component | Element): Element | null;
+  export function findDOMNode(
+    component: preact.Component | Element,
+  ): Element | null;
 
-  export abstract class PureComponent<P = {}, S = {}, SS = any> extends preact.Component<P, S> {
+  export abstract class PureComponent<
+    P = {},
+    S = {},
+    SS = any,
+  > extends preact.Component<P, S> {
     isPureReactComponent: boolean;
   }
 
@@ -246,7 +243,10 @@ declare namespace React {
   ): preact.FunctionComponent<P>;
   export function memo<C extends preact.FunctionalComponent<any>>(
     component: C,
-    comparer?: (prev: preact.ComponentProps<C>, next: preact.ComponentProps<C>) => boolean,
+    comparer?: (
+      prev: preact.ComponentProps<C>,
+      next: preact.ComponentProps<C>,
+    ) => boolean,
   ): C;
 
   export interface RefAttributes<R> extends preact.Attributes {
@@ -266,7 +266,9 @@ declare namespace React {
     displayName?: string;
   }
 
-  export interface ForwardRefExoticComponent<P> extends preact.FunctionComponent<P> {
+  export interface ForwardRefExoticComponent<
+    P,
+  > extends preact.FunctionComponent<P> {
     defaultProps?: Partial<P> | undefined;
   }
 
@@ -280,14 +282,19 @@ declare namespace React {
     current: T;
   }
 
-  export type ForwardedRef<T> = ((instance: T | null) => void) | MutableRefObject<T | null> | null;
+  export type ForwardedRef<T> =
+    ((instance: T | null) => void) | MutableRefObject<T | null> | null;
 
   export type ElementType<
     P = any,
     Tag extends keyof JSX.IntrinsicElements = keyof JSX.IntrinsicElements,
-  > = { [K in Tag]: P extends JSX.IntrinsicElements[K] ? K : never }[Tag] | ComponentType<P>;
+  > =
+    | { [K in Tag]: P extends JSX.IntrinsicElements[K] ? K : never }[Tag]
+    | ComponentType<P>;
 
-  export type ComponentPropsWithoutRef<T extends ElementType> = PropsWithoutRef<ComponentProps<T>>;
+  export type ComponentPropsWithoutRef<T extends ElementType> = PropsWithoutRef<
+    ComponentProps<T>
+  >;
 
   export type ComponentPropsWithRef<C extends ElementType> = C extends new (
     props: infer P,
@@ -302,7 +309,9 @@ declare namespace React {
       | ((props: any) => ReactNode)
       | keyof JSXInternal.IntrinsicElements,
   > = "ref" extends keyof ComponentPropsWithRef<C>
-    ? NonNullable<ComponentPropsWithRef<C>["ref"]> extends RefAttributes<infer Instance>["ref"]
+    ? NonNullable<ComponentPropsWithRef<C>["ref"]> extends RefAttributes<
+        infer Instance
+      >["ref"]
       ? Instance
       : never
     : never;
@@ -310,14 +319,20 @@ declare namespace React {
   export function flushSync<R>(fn: () => R): R;
   export function flushSync<A, R>(fn: (a: A) => R, a: A): R;
 
-  export function unstable_batchedUpdates(callback: (arg?: any) => void, arg?: any): void;
+  export function unstable_batchedUpdates(
+    callback: (arg?: any) => void,
+    arg?: any,
+  ): void;
 
   export type PropsWithChildren<P = unknown> = P & {
     children?: preact.ComponentChildren | undefined;
   };
 
   export const Children: {
-    map<T extends preact.ComponentChild, R>(children: T | T[], fn: (child: T, i: number) => R): R[];
+    map<T extends preact.ComponentChild, R>(
+      children: T | T[],
+      fn: (child: T, i: number) => R,
+    ): R[];
     forEach<T extends preact.ComponentChild>(
       children: T | T[],
       fn: (child: T, i: number) => void,
@@ -333,6 +348,9 @@ declare namespace React {
   export const unstable_NormalPriority: number;
   export const unstable_LowPriority: number;
   export const unstable_IdlePriority: number;
-  export function unstable_runWithPriority(priority: number, callback: () => void): void;
+  export function unstable_runWithPriority(
+    priority: number,
+    callback: () => void,
+  ): void;
   export const unstable_now: () => number;
 }

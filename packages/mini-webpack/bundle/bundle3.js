@@ -1,19 +1,3 @@
-/**
- * Copyright 2026 hangtiancheng
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 // @ts-check
 
 (function (absoluteFilePath2moduleFn) {
@@ -23,7 +7,8 @@
    * @returns {any}
    */
   function __webpack_require(absoluteFilePath) {
-    const [moduleFn, relativeDepPath2absoluteDepPath] = absoluteFilePath2moduleFn[absoluteFilePath];
+    const [moduleFn, relativeDepPath2absoluteDepPath] =
+      absoluteFilePath2moduleFn[absoluteFilePath];
     if (!moduleFn) {
       return;
     }
@@ -33,7 +18,8 @@
      * @returns {any}
      */
     const __decorated_require = (relativeFilePath) => {
-      const absoluteFilePath = relativeDepPath2absoluteDepPath[relativeFilePath];
+      const absoluteFilePath =
+        relativeDepPath2absoluteDepPath[relativeFilePath];
       return __webpack_require(absoluteFilePath);
     };
     const __webpack_module = { exports: {} };
@@ -41,7 +27,9 @@
     return __webpack_module.exports;
   }
 
-  __webpack_require("/Users/usr1/github/wheel/packages/mini-webpack/src/main.js");
+  __webpack_require(
+    "/Users/usr1/github/wheel/packages/mini-webpack/src/main.js",
+  );
 })({
   "/Users/usr1/github/wheel/packages/mini-webpack/src/main.js": [
     /**

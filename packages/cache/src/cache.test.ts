@@ -1,19 +1,3 @@
-/**
- * Copyright 2026 hangtiancheng
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 import { describe, it, expect } from "vitest";
 import { Cache } from "./cache.js";
 import { ByteView } from "./byte-view.js";
@@ -37,7 +21,11 @@ describe("Cache", () => {
 
   it("rejects already-expired values in addWithExpiration", () => {
     const cache = new Cache({ maxBytes: 128, cleanupTime: 3_600_000 });
-    cache.addWithExpiration("expired", new ByteView(Buffer.from("value")), Date.now() - 1000);
+    cache.addWithExpiration(
+      "expired",
+      new ByteView(Buffer.from("value")),
+      Date.now() - 1000,
+    );
     const [, ok] = cache.get("expired");
     expect(ok).toBe(false);
     cache.close();

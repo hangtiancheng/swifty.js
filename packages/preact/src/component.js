@@ -1,19 +1,3 @@
-/**
- * Copyright 2026 hangtiancheng
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 import { assign } from "./util";
 import { diff, commitRoot } from "./diff/index";
 import options from "./options";
@@ -107,7 +91,9 @@ BaseComponent.prototype.render = Fragment;
 export function getDomSibling(vnode, childIndex) {
   if (childIndex == NULL) {
     // Use childIndex==null as a signal to resume the search from the vnode's sibling
-    return vnode._parent ? getDomSibling(vnode._parent, vnode._index + 1) : NULL;
+    return vnode._parent
+      ? getDomSibling(vnode._parent, vnode._index + 1)
+      : NULL;
   }
 
   let sibling;
@@ -202,7 +188,9 @@ let rerenderQueue = [];
 let prevDebounce;
 
 const defer =
-  typeof Promise == "function" ? Promise.prototype.then.bind(Promise.resolve()) : setTimeout;
+  typeof Promise == "function"
+    ? Promise.prototype.then.bind(Promise.resolve())
+    : setTimeout;
 
 /**
  * Enqueue a rerender of a component
@@ -210,7 +198,10 @@ const defer =
  */
 export function enqueueRender(c) {
   if (
-    (!c._dirty && (c._dirty = true) && rerenderQueue.push(c) && !process._rerenderCount++) ||
+    (!c._dirty &&
+      (c._dirty = true) &&
+      rerenderQueue.push(c) &&
+      !process._rerenderCount++) ||
     prevDebounce != options.debounceRendering
   ) {
     prevDebounce = options.debounceRendering;

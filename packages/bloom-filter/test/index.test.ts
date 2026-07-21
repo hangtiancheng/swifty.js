@@ -1,19 +1,3 @@
-/**
- * Copyright 2026 hangtiancheng
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 import { describe, it, expect } from "vitest";
 import { BloomFilter } from "../src/index.js";
 
@@ -27,7 +11,11 @@ function bulkAdd(filter: BloomFilter, count: number, prefix: string): void {
   }
 }
 
-function countFalsePositives(filter: BloomFilter, count: number, prefix: string): number {
+function countFalsePositives(
+  filter: BloomFilter,
+  count: number,
+  prefix: string,
+): number {
   let fp = 0;
   for (let i = 0; i < count; i++) {
     if (filter.has(`${prefix}_${i}`)) fp++;
@@ -355,7 +343,9 @@ describe("BloomFilter", () => {
       const snapshot = bf.serialize();
       snapshot.data = Buffer.from([0, 1, 2]).toString("base64");
 
-      expect(() => BloomFilter.deserialize(snapshot)).toThrow(/length mismatch/);
+      expect(() => BloomFilter.deserialize(snapshot)).toThrow(
+        /length mismatch/,
+      );
     });
 
     it("should reject a tampered config (m/k mismatch)", () => {
@@ -363,7 +353,9 @@ describe("BloomFilter", () => {
       const snapshot = bf.serialize();
       snapshot.config = { ...snapshot.config, m: 999 };
 
-      expect(() => BloomFilter.deserialize(snapshot)).toThrow(/config mismatch/);
+      expect(() => BloomFilter.deserialize(snapshot)).toThrow(
+        /config mismatch/,
+      );
     });
   });
 
@@ -405,22 +397,25 @@ describe("BloomFilter", () => {
       [1_000, 0.01],
       [1_000, 0.05],
       [5_000, 0.001],
-    ])("n=%i, p=%f -> actual FP rate should stay below 2x target", (n, targetP) => {
-      const bf = new BloomFilter(n, targetP);
-      bulkAdd(bf, n, "in");
+    ])(
+      "n=%i, p=%f -> actual FP rate should stay below 2x target",
+      (n, targetP) => {
+        const bf = new BloomFilter(n, targetP);
+        bulkAdd(bf, n, "in");
 
-      // Zero false negatives
-      for (let i = 0; i < n; i++) {
-        expect(bf.has(`in_${i}`)).toBe(true);
-      }
+        // Zero false negatives
+        for (let i = 0; i < n; i++) {
+          expect(bf.has(`in_${i}`)).toBe(true);
+        }
 
-      // Measure false-positive rate on a disjoint set
-      const probeCount = 50_000;
-      const fp = countFalsePositives(bf, probeCount, "out");
-      const actualRate = fp / probeCount;
+        // Measure false-positive rate on a disjoint set
+        const probeCount = 50_000;
+        const fp = countFalsePositives(bf, probeCount, "out");
+        const actualRate = fp / probeCount;
 
-      expect(actualRate).toBeLessThan(targetP * 2);
-    });
+        expect(actualRate).toBeLessThan(targetP * 2);
+      },
+    );
   });
 
   // -----------------------------------------------------------------------

@@ -1,19 +1,3 @@
-/**
- * Copyright 2026 hangtiancheng
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 // https://ahooks.js.org/hooks/use-url-state/
 
 import { useMemoizedFn, useUpdate } from "../index.js";
@@ -74,7 +58,9 @@ const useUrlState = <S extends UrlState = UrlState>(
   const update = useUpdate();
 
   const initialStateRef = useRef(
-    typeof initialState === "function" ? (initialState as () => S)() : (initialState ?? {}),
+    typeof initialState === "function"
+      ? (initialState as () => S)()
+      : (initialState ?? {}),
   );
 
   const queryFromUrl = useMemo(
@@ -93,7 +79,9 @@ const useUrlState = <S extends UrlState = UrlState>(
   const setState = (s: SetStateAction<State>, options?: ISetStateOptions) => {
     const newQuery = typeof s === "function" ? s(targetQuery) : s;
     const { clearState = false } = options ?? {};
-    const queryObject = clearState ? { ...newQuery } : { ...queryFromUrl, ...newQuery };
+    const queryObject = clearState
+      ? { ...newQuery }
+      : { ...queryFromUrl, ...newQuery };
 
     // update 和 history 的更新会被合并, 不会导致多次渲染
     // React 自动批处理: 在同一个同步任务中调度的多个状态更新会被合并为一次渲染
@@ -102,7 +90,8 @@ const useUrlState = <S extends UrlState = UrlState>(
       history[navigateMode](
         {
           hash: location.hash,
-          search: queryString.stringify(queryObject, mergedStringifyOptions) || "?",
+          search:
+            queryString.stringify(queryObject, mergedStringifyOptions) || "?",
         },
         location.state,
       );
@@ -111,7 +100,8 @@ const useUrlState = <S extends UrlState = UrlState>(
       navigate(
         {
           hash: location.hash,
-          search: queryString.stringify(queryObject, mergedStringifyOptions) || "?",
+          search:
+            queryString.stringify(queryObject, mergedStringifyOptions) || "?",
         },
         {
           replace: navigateMode === "replace",

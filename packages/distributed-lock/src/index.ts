@@ -1,19 +1,3 @@
-/**
- * Copyright 2026 hangtiancheng
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 import type { RedisClientType } from "redis";
 
 // ---------------------------------------------------------------------------
@@ -243,7 +227,9 @@ function validateOptions(opts: LockOptions): void {
   }
   if (opts.retryCount !== undefined) {
     if (!Number.isInteger(opts.retryCount) || opts.retryCount < 0) {
-      throw new RangeError(`retryCount must be a non-negative integer, got ${opts.retryCount}`);
+      throw new RangeError(
+        `retryCount must be a non-negative integer, got ${opts.retryCount}`,
+      );
     }
   }
   if (opts.retryDelayMs !== undefined) {
@@ -355,7 +341,8 @@ export class DistributedLock {
       onLost,
     } = options;
 
-    const deadline = acquireTimeoutMs !== undefined ? Date.now() + acquireTimeoutMs : Infinity;
+    const deadline =
+      acquireTimeoutMs !== undefined ? Date.now() + acquireTimeoutMs : Infinity;
 
     for (let attempt = 0; attempt <= retryCount; attempt++) {
       // Check timeout before each attempt
@@ -407,7 +394,12 @@ export class DistributedLock {
 
       // Don't sleep after the final attempt
       if (attempt < retryCount) {
-        const delay = computeRetryDelay(attempt, retryDelayMs, maxRetryDelayMs, retryWithBackoff);
+        const delay = computeRetryDelay(
+          attempt,
+          retryDelayMs,
+          maxRetryDelayMs,
+          retryWithBackoff,
+        );
 
         // Respect acquireTimeoutMs — clamp or bail
         const remaining = deadline - Date.now();
@@ -457,7 +449,11 @@ export class DistributedLock {
    *
    * @returns `true` if renewed, `false` if the lock is expired or not owned.
    */
-  public async renew(key: string, ownerId: string, ttlMs: number): Promise<boolean> {
+  public async renew(
+    key: string,
+    ownerId: string,
+    ttlMs: number,
+  ): Promise<boolean> {
     const result = (await this.evalCached(RENEW_SCRIPT, {
       keys: [key],
       arguments: [ownerId, ttlMs.toString()],

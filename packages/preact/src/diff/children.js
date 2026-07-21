@@ -1,22 +1,13 @@
-/**
- * Copyright 2026 hangtiancheng
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 import { diff, unmount, applyRef } from "./index";
 import { createVNode, Fragment } from "../create-element";
-import { EMPTY_OBJ, EMPTY_ARR, INSERT_VNODE, MATCHED, UNDEFINED, NULL } from "../constants";
+import {
+  EMPTY_OBJ,
+  EMPTY_ARR,
+  INSERT_VNODE,
+  MATCHED,
+  UNDEFINED,
+  NULL,
+} from "../constants";
 import { isArray } from "../util";
 import { getDomSibling } from "../component";
 
@@ -93,7 +84,8 @@ export function diffChildren(
 
     // At this point, constructNewChildrenArray has assigned _index to be the
     // matchingIndex for this VNode's oldVNode (or -1 if there is no oldVNode).
-    oldVNode = (childVNode._index != -1 && oldChildren[childVNode._index]) || EMPTY_OBJ;
+    oldVNode =
+      (childVNode._index != -1 && oldChildren[childVNode._index]) || EMPTY_OBJ;
 
     // Update childVNode._index to its final index
     childVNode._index = i;
@@ -118,7 +110,11 @@ export function diffChildren(
       if (oldVNode.ref) {
         applyRef(oldVNode.ref, NULL, childVNode);
       }
-      refQueue.push(childVNode.ref, childVNode._component || newDom, childVNode);
+      refQueue.push(
+        childVNode.ref,
+        childVNode._component || newDom,
+        childVNode,
+      );
     }
 
     if (firstChildDom == NULL && newDom != NULL) {
@@ -181,7 +177,11 @@ function constructNewChildrenArray(
     // pre and post normalized childVNode
     childVNode = renderResult[i];
 
-    if (childVNode == NULL || typeof childVNode == "boolean" || typeof childVNode == "function") {
+    if (
+      childVNode == NULL ||
+      typeof childVNode == "boolean" ||
+      typeof childVNode == "function"
+    ) {
       newParentVNode._children[i] = NULL;
       continue;
     }
@@ -195,7 +195,13 @@ function constructNewChildrenArray(
       typeof childVNode == "bigint" ||
       childVNode.constructor == String
     ) {
-      childVNode = newParentVNode._children[i] = createVNode(NULL, childVNode, NULL, NULL, NULL);
+      childVNode = newParentVNode._children[i] = createVNode(
+        NULL,
+        childVNode,
+        NULL,
+        NULL,
+        NULL,
+      );
     } else if (isArray(childVNode)) {
       childVNode = newParentVNode._children[i] = createVNode(
         Fragment,
@@ -398,7 +404,12 @@ export function toChildArray(children, out) {
  * @param {number} remainingOldChildren
  * @returns {number}
  */
-function findMatchingIndex(childVNode, oldChildren, skewedIndex, remainingOldChildren) {
+function findMatchingIndex(
+  childVNode,
+  oldChildren,
+  skewedIndex,
+  remainingOldChildren,
+) {
   const key = childVNode.key;
   const type = childVNode.type;
   let oldVNode = oldChildren[skewedIndex];

@@ -1,19 +1,3 @@
-/**
- * Copyright 2026 hangtiancheng
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 import { options as _options } from "..";
 
 /** @type {number} */
@@ -204,7 +188,9 @@ export function useReducer(reducer, initialState, init) {
       !init ? invokeOrReturn(undefined, initialState) : init(initialState),
 
       (action) => {
-        const currentValue = hookState._nextValue ? hookState._nextValue[0] : hookState._value[0];
+        const currentValue = hookState._nextValue
+          ? hookState._nextValue[0]
+          : hookState._value[0];
         const nextValue = hookState._reducer(currentValue, action);
 
         if (currentValue !== nextValue) {
@@ -401,7 +387,9 @@ export function useContext(context) {
  */
 export function useDebugValue(value, formatter) {
   if (options.useDebugValue) {
-    options.useDebugValue(formatter ? formatter(value) : /** @type {any}*/ (value));
+    options.useDebugValue(
+      formatter ? formatter(value) : /** @type {any}*/ (value),
+    );
   }
 }
 

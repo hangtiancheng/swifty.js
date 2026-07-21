@@ -1,19 +1,3 @@
-/**
- * Copyright 2026 hangtiancheng
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 import { Component, toChildArray } from "../..";
 import { suspended } from "./suspense.js";
 
@@ -46,7 +30,10 @@ const resolve = (list, child, node) => {
   // callbacks won't get queued in the node anyway.
   // If revealOrder is 'together' then also do an early exit
   // if all suspended descendants have not yet been resolved.
-  if (!list.props.revealOrder || (list.props.revealOrder[0] === "t" && list._map.size)) {
+  if (
+    !list.props.revealOrder ||
+    (list.props.revealOrder[0] === "t" && list._map.size)
+  ) {
     return;
   }
 
@@ -109,7 +96,7 @@ SuspenseList.prototype.render = function (props) {
   }
   // Build the linked list. Iterate through the children in reverse order
   // so that `_next` points to the first linked list node to be resolved.
-  for (let i = children.length; i--; ) {
+  for (let i = children.length; i--;) {
     // Create a new linked list node as an array of form:
     // 	[suspended_count, resolved_count, next_node]
     // where suspended_count and resolved_count are numeric counters for
@@ -126,14 +113,15 @@ SuspenseList.prototype.render = function (props) {
   return props.children;
 };
 
-SuspenseList.prototype.componentDidUpdate = SuspenseList.prototype.componentDidMount = function () {
-  // Iterate through all children after mounting for two reasons:
-  // 1. As each node[SUSPENDED_COUNT] starts from 1, this iteration increases
-  //    each node[RELEASED_COUNT] by 1, therefore balancing the counters.
-  //    The nodes can now be completely consumed from the linked list.
-  // 2. Handle nodes that might have gotten resolved between render and
-  //    componentDidMount.
-  this._map.forEach((node, child) => {
-    resolve(this, child, node);
-  });
-};
+SuspenseList.prototype.componentDidUpdate =
+  SuspenseList.prototype.componentDidMount = function () {
+    // Iterate through all children after mounting for two reasons:
+    // 1. As each node[SUSPENDED_COUNT] starts from 1, this iteration increases
+    //    each node[RELEASED_COUNT] by 1, therefore balancing the counters.
+    //    The nodes can now be completely consumed from the linked list.
+    // 2. Handle nodes that might have gotten resolved between render and
+    //    componentDidMount.
+    this._map.forEach((node, child) => {
+      resolve(this, child, node);
+    });
+  };

@@ -1,19 +1,3 @@
-/**
- * Copyright 2026 hangtiancheng
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 import {
   EMPTY_ARR,
   EMPTY_OBJ,
@@ -120,7 +104,10 @@ export function diff(
           newVNode._component = c = new newType(newProps, componentContext); // eslint-disable-line new-cap
         } else {
           // @ts-expect-error Trust me, Component implements the interface we want
-          newVNode._component = c = new BaseComponent(newProps, componentContext);
+          newVNode._component = c = new BaseComponent(
+            newProps,
+            componentContext,
+          );
           c.constructor = newType;
           c.render = doRender;
         }
@@ -143,7 +130,10 @@ export function diff(
           c._nextState = assign({}, c._nextState);
         }
 
-        assign(c._nextState, newType.getDerivedStateFromProps(newProps, c._nextState));
+        assign(
+          c._nextState,
+          newType.getDerivedStateFromProps(newProps, c._nextState),
+        );
       }
 
       oldProps = c.props;
@@ -177,7 +167,11 @@ export function diff(
           newVNode._original == oldVNode._original ||
           (!c._force &&
             c.shouldComponentUpdate != NULL &&
-            c.shouldComponentUpdate(newProps, c._nextState, componentContext) === false)
+            c.shouldComponentUpdate(
+              newProps,
+              c._nextState,
+              componentContext,
+            ) === false)
         ) {
           // More info about this here: https://gist.github.com/JoviDeCroock/bec5f2ce93544d2e6070ef8e0036e4e8
           if (newVNode._original != oldVNode._original) {
@@ -297,7 +291,9 @@ export function diff(
       // if hydrating or creating initial tree, bailout preserves DOM:
       if (isHydrating || excessDomChildren != NULL) {
         if (e.then) {
-          newVNode._flags |= isHydrating ? MODE_HYDRATE | MODE_SUSPENDED : MODE_SUSPENDED;
+          newVNode._flags |= isHydrating
+            ? MODE_HYDRATE | MODE_SUSPENDED
+            : MODE_SUSPENDED;
 
           while (oldDom && oldDom.nodeType == 8 && oldDom.nextSibling) {
             oldDom = oldDom.nextSibling;
@@ -308,7 +304,7 @@ export function diff(
           }
           newVNode._dom = oldDom;
         } else if (excessDomChildren != NULL) {
-          for (let i = excessDomChildren.length; i--; ) {
+          for (let i = excessDomChildren.length; i--;) {
             removeNode(excessDomChildren[i]);
           }
         }
@@ -323,7 +319,10 @@ export function diff(
       if (!e.then) markAsForce(newVNode);
       options._catchError(e, newVNode, oldVNode);
     }
-  } else if (excessDomChildren == NULL && newVNode._original == oldVNode._original) {
+  } else if (
+    excessDomChildren == NULL &&
+    newVNode._original == oldVNode._original
+  ) {
     newVNode._children = oldVNode._children;
     newVNode._dom = oldVNode._dom;
   } else {
@@ -463,12 +462,17 @@ function diffElementNodes(
       return document.createTextNode(newProps);
     }
 
-    dom = document.createElementNS(namespace, nodeType, newProps.is && newProps);
+    dom = document.createElementNS(
+      namespace,
+      nodeType,
+      newProps.is && newProps,
+    );
 
     // we are creating a new node, so we can assume this is a new subtree (in
     // case we are hydrating), this deopts the hydrate
     if (isHydrating) {
-      if (options._hydrationMismatch) options._hydrationMismatch(newVNode, excessDomChildren);
+      if (options._hydrationMismatch)
+        options._hydrationMismatch(newVNode, excessDomChildren);
       isHydrating = false;
     }
     // we created a new parent, so none of the previously attached children can be reused:
@@ -524,7 +528,10 @@ function diffElementNodes(
         inputValue = value;
       } else if (i == "checked") {
         checked = value;
-      } else if ((!isHydrating || typeof value == "function") && oldProps[i] !== value) {
+      } else if (
+        (!isHydrating || typeof value == "function") &&
+        oldProps[i] !== value
+      ) {
         setProperty(dom, i, value, oldProps[i], namespace);
       }
     }
@@ -534,7 +541,8 @@ function diffElementNodes(
       // Avoid re-applying the same '__html' if it did not changed between re-render
       if (
         !isHydrating &&
-        (!oldHtml || (newHtml.__html != oldHtml.__html && newHtml.__html != dom.innerHTML))
+        (!oldHtml ||
+          (newHtml.__html != oldHtml.__html && newHtml.__html != dom.innerHTML))
       ) {
         dom.innerHTML = newHtml.__html;
       }
@@ -553,14 +561,16 @@ function diffElementNodes(
         nodeType == "foreignObject" ? XHTML_NAMESPACE : namespace,
         excessDomChildren,
         commitQueue,
-        excessDomChildren ? excessDomChildren[0] : oldVNode._children && getDomSibling(oldVNode, 0),
+        excessDomChildren
+          ? excessDomChildren[0]
+          : oldVNode._children && getDomSibling(oldVNode, 0),
         isHydrating,
         refQueue,
       );
 
       // Remove children that are not part of any vnode.
       if (excessDomChildren != NULL) {
-        for (i = excessDomChildren.length; i--; ) {
+        for (i = excessDomChildren.length; i--;) {
           removeNode(excessDomChildren[i]);
         }
       }
@@ -656,7 +666,11 @@ export function unmount(vnode, parentVNode, skipRemove) {
   if ((r = vnode._children)) {
     for (let i = 0; i < r.length; i++) {
       if (r[i]) {
-        unmount(r[i], parentVNode, skipRemove || typeof vnode.type != "function");
+        unmount(
+          r[i],
+          parentVNode,
+          skipRemove || typeof vnode.type != "function",
+        );
       }
     }
   }

@@ -1,19 +1,3 @@
-/**
- * Copyright 2026 hangtiancheng
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 // Intentionally not using a relative path to take advantage of
 // the TS version resolution mechanism
 import * as preact from ".";
@@ -63,10 +47,14 @@ export interface Options extends preact.Options {
     errorInfo?: ErrorInfo | undefined,
   ): void;
   /** Attach a hook that fires when hydration can't find a proper DOM-node to match with */
-  _hydrationMismatch?(vnode: VNode, excessDomChildren: Array<PreactElement | null>): void;
+  _hydrationMismatch?(
+    vnode: VNode,
+    excessDomChildren: Array<PreactElement | null>,
+  ): void;
 }
 
-export type ComponentChild = VNode<any> | string | number | boolean | null | undefined;
+export type ComponentChild =
+  VNode<any> | string | number | boolean | null | undefined;
 export type ComponentChildren = ComponentChild[] | ComponentChild;
 
 export interface FunctionComponent<P = {}> extends preact.FunctionComponent<P> {
@@ -166,7 +154,10 @@ export interface VNode<P = {}> extends preact.VNode<P> {
   _flags: number;
 }
 
-export interface Component<P = {}, S = {}> extends Omit<preact.Component<P, S>, "base"> {
+export interface Component<P = {}, S = {}> extends Omit<
+  preact.Component<P, S>,
+  "base"
+> {
   // When component is functional component, this is reset to functional component
   constructor: ComponentType<P>;
   state: S; // Override Component["state"] to not be readonly for internal use, specifically Hooks

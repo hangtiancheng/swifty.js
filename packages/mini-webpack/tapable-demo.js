@@ -1,19 +1,3 @@
-/**
- * Copyright 2026 hangtiancheng
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 import { SyncHook, AsyncParallelHook } from "tapable";
 
 class TapableDemo {
@@ -65,18 +49,29 @@ tapableDemo.hooks.asyncHook.tapPromise("eventName2", (arg1, arg2, arg3) => {
   });
 });
 
-tapableDemo.publishAsyncHookUsePromise(3 /** arg1 */, 4 /** arg2 */, [] /** arg3 */);
+tapableDemo.publishAsyncHookUsePromise(
+  3 /** arg1 */,
+  4 /** arg2 */,
+  [] /** arg3 */,
+);
 
 // subscribe
-tapableDemo.hooks.asyncHook2.tapAsync("eventName3", async (arg1, arg2, arg3, callback) => {
-  console.log("tapAsync", arg1, arg2, arg3); // tapAsync 5 6 []
-  await new Promise((resolve) => {
-    setTimeout(() => {
-      arg3.push(arg1, arg2);
-      callback(arg3);
-      resolve(arg3);
-    }, 5000);
-  });
-});
+tapableDemo.hooks.asyncHook2.tapAsync(
+  "eventName3",
+  async (arg1, arg2, arg3, callback) => {
+    console.log("tapAsync", arg1, arg2, arg3); // tapAsync 5 6 []
+    await new Promise((resolve) => {
+      setTimeout(() => {
+        arg3.push(arg1, arg2);
+        callback(arg3);
+        resolve(arg3);
+      }, 5000);
+    });
+  },
+);
 
-tapableDemo.publishAsyncHookUseAsync(5 /** arg1 */, 6 /** arg2 */, [] /** arg3 */);
+tapableDemo.publishAsyncHookUseAsync(
+  5 /** arg1 */,
+  6 /** arg2 */,
+  [] /** arg3 */,
+);

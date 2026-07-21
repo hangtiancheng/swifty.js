@@ -1,19 +1,3 @@
-/**
- * Copyright 2026 hangtiancheng
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 import fs from "node:fs/promises";
 import path from "node:path";
 import type { DiscoveredDist } from "../types/index.js";
@@ -63,13 +47,19 @@ async function readDistVersion(distPath: string): Promise<string> {
   return DEFAULT_VERSION;
 }
 
-export async function discoverDists(workspaceRoot: string): Promise<DiscoveredDist[]> {
+export async function discoverDists(
+  workspaceRoot: string,
+): Promise<DiscoveredDist[]> {
   const results: DiscoveredDist[] = [];
   await scanDir(workspaceRoot, 0, results);
   return results;
 }
 
-async function scanDir(dir: string, depth: number, results: DiscoveredDist[]): Promise<void> {
+async function scanDir(
+  dir: string,
+  depth: number,
+  results: DiscoveredDist[],
+): Promise<void> {
   if (depth > MAX_SCAN_DEPTH) return;
 
   let entries: string[];

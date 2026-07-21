@@ -1,19 +1,3 @@
-/**
- * Copyright 2026 hangtiancheng
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
@@ -81,14 +65,15 @@ function createAsset(absoluteFilePath) {
   });
 
   const /** @type {string[]} */ absoluteDepPathArr = [];
-  const /** @type {Record<string, string>} */ relativeDepPath2absoluteDepPath = {};
+  const /** @type {Record<string, string>} */ relativeDepPath2absoluteDepPath =
+      {};
   traverser(babelAst, {
     ImportDeclaration({ node: { source } }) {
       const /** @type {string} */ relativeDepPath = source.value;
-      const absoluteDepPath = join(dirname(absoluteFilePath), relativeDepPath).replaceAll(
-        "\\",
-        "/",
-      );
+      const absoluteDepPath = join(
+        dirname(absoluteFilePath),
+        relativeDepPath,
+      ).replaceAll("\\", "/");
       relativeDepPath2absoluteDepPath[relativeDepPath] = absoluteDepPath;
       absoluteDepPathArr.push(absoluteDepPath);
     },
@@ -100,7 +85,10 @@ function createAsset(absoluteFilePath) {
   });
 
   if (babelFileResult && babelFileResult.code) {
-    sourceCode = babelFileResult.code.replaceAll("require", "__webpack_require");
+    sourceCode = babelFileResult.code.replaceAll(
+      "require",
+      "__webpack_require",
+    );
   }
 
   return {

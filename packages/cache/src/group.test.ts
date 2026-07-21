@@ -1,19 +1,3 @@
-/**
- * Copyright 2026 hangtiancheng
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 import { describe, it, expect, beforeEach } from "vitest";
 import {
   Group,
@@ -108,23 +92,33 @@ describe("Group validation and close", () => {
   });
 
   it("rejects empty key on set", async () => {
-    const group = newGroup("group-val-set", 1024, async () => Buffer.from("value"));
+    const group = newGroup("group-val-set", 1024, async () =>
+      Buffer.from("value"),
+    );
     const ctrl = new AbortController();
 
-    await expect(group.set(ctrl.signal, "", Buffer.from("value"))).rejects.toThrow();
+    await expect(
+      group.set(ctrl.signal, "", Buffer.from("value")),
+    ).rejects.toThrow();
     group.close();
   });
 
   it("rejects empty value on set", async () => {
-    const group = newGroup("group-val-set2", 1024, async () => Buffer.from("value"));
+    const group = newGroup("group-val-set2", 1024, async () =>
+      Buffer.from("value"),
+    );
     const ctrl = new AbortController();
 
-    await expect(group.set(ctrl.signal, "key", Buffer.alloc(0))).rejects.toThrow();
+    await expect(
+      group.set(ctrl.signal, "key", Buffer.alloc(0)),
+    ).rejects.toThrow();
     group.close();
   });
 
   it("rejects empty key on delete", async () => {
-    const group = newGroup("group-val-del", 1024, async () => Buffer.from("value"));
+    const group = newGroup("group-val-del", 1024, async () =>
+      Buffer.from("value"),
+    );
     const ctrl = new AbortController();
 
     await expect(group.delete(ctrl.signal, "")).rejects.toThrow();
@@ -132,12 +126,16 @@ describe("Group validation and close", () => {
   });
 
   it("operations fail after close", async () => {
-    const group = newGroup("group-closed", 1024, async () => Buffer.from("value"));
+    const group = newGroup("group-closed", 1024, async () =>
+      Buffer.from("value"),
+    );
     const ctrl = new AbortController();
 
     group.close();
     await expect(group.get(ctrl.signal, "key")).rejects.toThrow();
-    await expect(group.set(ctrl.signal, "key", Buffer.from("v"))).rejects.toThrow();
+    await expect(
+      group.set(ctrl.signal, "key", Buffer.from("v")),
+    ).rejects.toThrow();
     await expect(group.delete(ctrl.signal, "key")).rejects.toThrow();
   });
 });
@@ -259,7 +257,9 @@ describe("Group set and delete sync to peer", () => {
 
 describe("RegisterPeers throws when called twice", () => {
   it("throws on second call", () => {
-    const group = newGroup("group-reg-panic", 1024, async () => Buffer.from("value"));
+    const group = newGroup("group-reg-panic", 1024, async () =>
+      Buffer.from("value"),
+    );
     group.registerPeers(new FakePeerPicker());
 
     expect(() => group.registerPeers(new FakePeerPicker())).toThrow();
@@ -283,7 +283,9 @@ describe("Group suppresses concurrent loads", () => {
 
     const ctrl = new AbortController();
     const callers = 16;
-    const promises = Array.from({ length: callers }, () => group.get(ctrl.signal, "key"));
+    const promises = Array.from({ length: callers }, () =>
+      group.get(ctrl.signal, "key"),
+    );
 
     await new Promise((r) => setTimeout(r, 20));
     resolveGate!();
@@ -300,7 +302,9 @@ describe("Group suppresses concurrent loads", () => {
 
 describe("Group registry operations", () => {
   it("getGroup returns created group", () => {
-    const group = newGroup("group-registry", 1024, async () => Buffer.from("value"));
+    const group = newGroup("group-registry", 1024, async () =>
+      Buffer.from("value"),
+    );
     expect(getGroup("group-registry")).toBe(group);
     group.close();
   });

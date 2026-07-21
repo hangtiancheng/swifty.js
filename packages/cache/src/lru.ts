@@ -1,19 +1,3 @@
-/**
- * Copyright 2026 hangtiancheng
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 import { Store, StoreOptions, Value } from "./store.js";
 
 const MAX_EXPIRE_AT = Number.MAX_SAFE_INTEGER;
@@ -139,7 +123,13 @@ class InternalCache {
     let idx = this.doubleLink[0][N];
     while (idx !== 0) {
       if (this.m[idx - 1].expireAt > 0) {
-        if (!walker(this.m[idx - 1].k, this.m[idx - 1].v, this.m[idx - 1].expireAt)) {
+        if (
+          !walker(
+            this.m[idx - 1].k,
+            this.m[idx - 1].v,
+            this.m[idx - 1].expireAt,
+          )
+        ) {
           return;
         }
       }
@@ -202,14 +192,21 @@ export class LruStore implements Store {
     this.onEvicted = opts.onEvicted;
     this.caches = new Array(this.mask + 1);
     this.bucketBytes = new Array(this.mask + 1).fill(0);
-    this.bucketMaxBytes = maxBytes > 0 ? Math.max(1, Math.floor(maxBytes / (this.mask + 1))) : 0;
+    this.bucketMaxBytes =
+      maxBytes > 0 ? Math.max(1, Math.floor(maxBytes / (this.mask + 1))) : 0;
 
     for (let i = 0; i <= this.mask; i++) {
-      this.caches[i] = [new InternalCache(capPerBucket), new InternalCache(level2Cap)];
+      this.caches[i] = [
+        new InternalCache(capPerBucket),
+        new InternalCache(level2Cap),
+      ];
     }
 
     if (cleanupInterval > 0) {
-      this.cleanupTimer = setInterval(() => this.cleanupLoop(), cleanupInterval);
+      this.cleanupTimer = setInterval(
+        () => this.cleanupLoop(),
+        cleanupInterval,
+      );
     }
   }
 
@@ -227,7 +224,9 @@ export class LruStore implements Store {
       }
       // promote to L2; drop any stale L2 copy first
       this.removeFromLevel(key, idx, 1);
-      this.caches[idx][1].put(key, n1.v, n1.expireAt, (k, v) => this.handleEviction(idx, k, v));
+      this.caches[idx][1].put(key, n1.v, n1.expireAt, (k, v) =>
+        this.handleEviction(idx, k, v),
+      );
       return [n1.v, true];
     }
 
@@ -260,12 +259,15 @@ export class LruStore implements Store {
     this.removeFromLevel(key, idx, 0);
     this.removeFromLevel(key, idx, 1);
 
-    this.caches[idx][0].put(key, value, expireAt, (k, v) => this.handleEviction(idx, k, v));
+    this.caches[idx][0].put(key, value, expireAt, (k, v) =>
+      this.handleEviction(idx, k, v),
+    );
     this.bucketBytes[idx] += sizeOf(key, value);
 
     if (this.bucketMaxBytes > 0) {
       while (this.bucketBytes[idx] > this.bucketMaxBytes) {
-        const victim = this.caches[idx][0].evictTail() ?? this.caches[idx][1].evictTail();
+        const victim =
+          this.caches[idx][0].evictTail() ?? this.caches[idx][1].evictTail();
         if (!victim) break;
         this.handleEviction(idx, victim.k, victim.v);
       }

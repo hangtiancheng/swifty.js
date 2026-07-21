@@ -1,20 +1,4 @@
 /**
- * Copyright 2026 hangtiancheng
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-/**
  * Grayscale version resolver.
  * Implements the 3-level priority strategy:
  *   1. URL explicit version (highest)
@@ -36,7 +20,9 @@ import type {
  * Select a version by weighted random from active versions.
  * @returns The selected version, or the first active version as fallback
  */
-export function getVersionByWeight(versions: readonly VersionConfig[]): VersionConfig | undefined {
+export function getVersionByWeight(
+  versions: readonly VersionConfig[],
+): VersionConfig | undefined {
   const activeVersions = versions.filter((v) => v.isActive);
   if (activeVersions.length === 0) return undefined;
   if (activeVersions.length === 1) return activeVersions[0];
@@ -59,7 +45,10 @@ export function getVersionByWeight(versions: readonly VersionConfig[]): VersionC
 /**
  * Find a version config by its version string within a project.
  */
-function findVersion(project: ProjectConfig, versionId: string): VersionConfig | undefined {
+function findVersion(
+  project: ProjectConfig,
+  versionId: string,
+): VersionConfig | undefined {
   return project.versions.find((v) => v.version === versionId);
 }
 
@@ -144,7 +133,12 @@ export function resolveVersion(
   }
 
   // Level 2: Header/Cookie override
-  const headerVersion = getVersionFromHeaders(headers, project.name, headerName, cookiePrefix);
+  const headerVersion = getVersionFromHeaders(
+    headers,
+    project.name,
+    headerName,
+    cookiePrefix,
+  );
   if (headerVersion !== undefined) {
     const version = findVersion(project, headerVersion);
     if (version !== undefined) {

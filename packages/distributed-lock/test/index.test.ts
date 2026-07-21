@@ -1,22 +1,11 @@
-/**
- * Copyright 2026 hangtiancheng
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 import { describe, it, expect, beforeAll, afterAll, afterEach } from "vitest";
 import { createClient, type RedisClientType } from "redis";
-import { DistributedLock, DEFAULTS, type LockHandle, type LostInfo } from "../src/index.js";
+import {
+  DistributedLock,
+  DEFAULTS,
+  type LockHandle,
+  type LostInfo,
+} from "../src/index.js";
 import crypto from "node:crypto";
 
 // ---------------------------------------------------------------------------
@@ -529,42 +518,57 @@ describe("DistributedLock", () => {
   // -----------------------------------------------------------------------
 
   it("should throw RangeError on ttlMs <= 0", async () => {
-    await expect(lock.acquire({ key: uniqueKey(), ownerId: uuid(), ttlMs: 0 })).rejects.toThrow(
-      RangeError,
-    );
+    await expect(
+      lock.acquire({ key: uniqueKey(), ownerId: uuid(), ttlMs: 0 }),
+    ).rejects.toThrow(RangeError);
 
-    await expect(lock.acquire({ key: uniqueKey(), ownerId: uuid(), ttlMs: -1 })).rejects.toThrow(
-      RangeError,
-    );
+    await expect(
+      lock.acquire({ key: uniqueKey(), ownerId: uuid(), ttlMs: -1 }),
+    ).rejects.toThrow(RangeError);
   });
 
   it("should throw TypeError on empty key", async () => {
-    await expect(lock.acquire({ key: "", ownerId: uuid(), ttlMs: 1000 })).rejects.toThrow(
-      TypeError,
-    );
+    await expect(
+      lock.acquire({ key: "", ownerId: uuid(), ttlMs: 1000 }),
+    ).rejects.toThrow(TypeError);
   });
 
   it("should throw TypeError on empty ownerId", async () => {
-    await expect(lock.acquire({ key: uniqueKey(), ownerId: "", ttlMs: 1000 })).rejects.toThrow(
-      TypeError,
-    );
+    await expect(
+      lock.acquire({ key: uniqueKey(), ownerId: "", ttlMs: 1000 }),
+    ).rejects.toThrow(TypeError);
   });
 
   it("should throw RangeError on negative retryCount", async () => {
     await expect(
-      lock.acquire({ key: uniqueKey(), ownerId: uuid(), ttlMs: 1000, retryCount: -1 }),
+      lock.acquire({
+        key: uniqueKey(),
+        ownerId: uuid(),
+        ttlMs: 1000,
+        retryCount: -1,
+      }),
     ).rejects.toThrow(RangeError);
   });
 
   it("should throw RangeError on NaN retryDelayMs", async () => {
     await expect(
-      lock.acquire({ key: uniqueKey(), ownerId: uuid(), ttlMs: 1000, retryDelayMs: NaN }),
+      lock.acquire({
+        key: uniqueKey(),
+        ownerId: uuid(),
+        ttlMs: 1000,
+        retryDelayMs: NaN,
+      }),
     ).rejects.toThrow(RangeError);
   });
 
   it("should throw RangeError on negative maxRetryDelayMs", async () => {
     await expect(
-      lock.acquire({ key: uniqueKey(), ownerId: uuid(), ttlMs: 1000, maxRetryDelayMs: -100 }),
+      lock.acquire({
+        key: uniqueKey(),
+        ownerId: uuid(),
+        ttlMs: 1000,
+        maxRetryDelayMs: -100,
+      }),
     ).rejects.toThrow(RangeError);
   });
 
@@ -581,7 +585,12 @@ describe("DistributedLock", () => {
 
   it("should throw RangeError on non-positive acquireTimeoutMs", async () => {
     await expect(
-      lock.acquire({ key: uniqueKey(), ownerId: uuid(), ttlMs: 1000, acquireTimeoutMs: 0 }),
+      lock.acquire({
+        key: uniqueKey(),
+        ownerId: uuid(),
+        ttlMs: 1000,
+        acquireTimeoutMs: 0,
+      }),
     ).rejects.toThrow(RangeError);
   });
 

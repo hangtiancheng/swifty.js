@@ -1,19 +1,3 @@
-/**
- * Copyright 2026 hangtiancheng
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 import * as grpc from "@grpc/grpc-js";
 import { readFileSync } from "fs";
 import { proto, healthProto } from "./proto/index.js";
@@ -93,7 +77,10 @@ export class Server {
     const servingStatuses = new Map<string, number>();
     servingStatuses.set(svcName, 1); // SERVING
     this.grpcServer.addService(healthProto.grpc.health.v1.Health.service, {
-      Check: (call: grpc.ServerUnaryCall<any, any>, callback: grpc.sendUnaryData<any>) => {
+      Check: (
+        call: grpc.ServerUnaryCall<any, any>,
+        callback: grpc.sendUnaryData<any>,
+      ) => {
         const service = call.request.service || "";
         const status = servingStatuses.get(service) ?? 0; // UNKNOWN
         callback(null, { status });
@@ -130,7 +117,10 @@ export class Server {
     });
   }
 
-  private handleGet(call: grpc.ServerUnaryCall<any, any>, callback: grpc.sendUnaryData<any>): void {
+  private handleGet(
+    call: grpc.ServerUnaryCall<any, any>,
+    callback: grpc.sendUnaryData<any>,
+  ): void {
     const { group: groupName, key } = call.request;
     const group = getGroup(groupName);
     if (!group) {
@@ -151,7 +141,10 @@ export class Server {
       });
   }
 
-  private handleSet(call: grpc.ServerUnaryCall<any, any>, callback: grpc.sendUnaryData<any>): void {
+  private handleSet(
+    call: grpc.ServerUnaryCall<any, any>,
+    callback: grpc.sendUnaryData<any>,
+  ): void {
     const { group: groupName, key, value } = call.request;
     const group = getGroup(groupName);
     if (!group) {

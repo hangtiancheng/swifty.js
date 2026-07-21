@@ -5,7 +5,7 @@
     "heap",
     "priority-queue"
   ],
-  "license": "Apache-2.0",
+  "license": "MIT",
   "author": "https://github.com/hangtiancheng",
   "type": "module",
   "main": "index.js",

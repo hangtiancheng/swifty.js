@@ -1,20 +1,4 @@
 /**
- * Copyright 2026 hangtiancheng
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-/**
  * Zod validation schemas for API boundary validation.
  * All external data (API input, DB output) MUST be validated through these schemas.
  */
@@ -29,7 +13,10 @@ export const VersionCreateSchema = z.object({
   version: z
     .string()
     .min(1, "Version string is required")
-    .regex(/^[a-zA-Z0-9._-]+$/, "Version must contain only alphanumeric, dot, hyphen, underscore"),
+    .regex(
+      /^[a-zA-Z0-9._-]+$/,
+      "Version must contain only alphanumeric, dot, hyphen, underscore",
+    ),
   distPath: z.string().min(1, "distPath is required"),
   weight: z.number().int().min(0).max(100).default(100),
   isActive: z.boolean().default(true),
@@ -110,7 +97,10 @@ export const PublishSchema = z.object({
   version: z
     .string()
     .min(1, "Version string is required")
-    .regex(/^[a-zA-Z0-9._-]+$/, "Version must contain only alphanumeric, dot, hyphen, underscore"),
+    .regex(
+      /^[a-zA-Z0-9._-]+$/,
+      "Version must contain only alphanumeric, dot, hyphen, underscore",
+    ),
   distPath: z.string().min(1, "distPath is required"),
 });
 export type PublishInput = z.infer<typeof PublishSchema>;
