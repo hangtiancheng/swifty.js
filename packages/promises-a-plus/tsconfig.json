@@ -2,7 +2,7 @@
   // Visit https://aka.ms/tsconfig to read more about this file
   "compilerOptions": {
     // File Layout
-    "rootDir": "./src",
+    "rootDir": ".",
     "outDir": "./dist",
     "allowJs": true,
 
@@ -20,6 +20,7 @@
     "sourceMap": true,
     "declaration": true,
     "declarationMap": true,
+    "noEmit": true,
 
     // Stricter Typechecking Options
     "noUncheckedIndexedAccess": true,
@@ -44,5 +45,5 @@
     "moduleDetection": "force",
     "skipLibCheck": true
   },
-  "exclude": ["./dist", "./examples", "./node_modules", "./eslint.config.js"]
+  "exclude": ["./dist", "./node_modules"]
 }
