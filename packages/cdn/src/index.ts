@@ -50,10 +50,17 @@ async function main(): Promise<void> {
     );
   });
 
+  let shuttingDown = false;
   const shutdown = async (): Promise<void> => {
+    if (shuttingDown) return;
+    shuttingDown = true;
     logger.info("Shutting down...");
-    server.close();
+    await new Promise<void>((resolve) => {
+      server.close(() => resolve());
+      server.closeAllConnections?.();
+    });
     await stopFileWatcher();
+    cache.close();
     await mongoose.disconnect();
     logger.info("Shutdown complete");
     process.exit(0);

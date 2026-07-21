@@ -25,58 +25,65 @@
  * Reads from environment variables with sensible defaults.
  */
 import path from "node:path";
+import { z } from "zod";
 import type { ServerConfig } from "./types/index.js";
 
-const defaultConfig: ServerConfig = {
-  port: 3300,
-  mongoUri: "mongodb://localhost:27017/cdn",
-  cacheMaxSize: 128 * 1024 * 1024, // 128 MB
-  cacheMaxEntrySize: 2 * 1024 * 1024, // 2 MB
-  cdnPrefix: "/cdn",
-  apiPrefix: "/api",
-  grayscaleHeader: "x-use-gray",
-  grayscaleCookiePrefix: "cdn_gray_",
-  workspaceRoot: "../",
-};
+const PrefixSchema = z
+  .string()
+  .min(1)
+  .transform((p) => (p.startsWith("/") ? p : `/${p}`));
+
+const EnvSchema = z.object({
+  CDN_PORT: z.coerce.number().int().min(1).max(65535).default(3300),
+  CDN_MONGO_URI: z.string().default("mongodb://localhost:27017/cdn"),
+  CDN_CACHE_MAX_SIZE: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(128 * 1024 * 1024),
+  CDN_CACHE_MAX_ENTRY_SIZE: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(2 * 1024 * 1024),
+  CDN_PREFIX: PrefixSchema.default("/cdn"),
+  CDN_API_PREFIX: PrefixSchema.default("/api"),
+  CDN_GRAYSCALE_HEADER: z.string().min(1).default("x-use-gray"),
+  CDN_GRAYSCALE_COOKIE_PREFIX: z.string().min(1).default("cdn_gray_"),
+  CDN_WORKSPACE_ROOT: z.string().min(1).default("../"),
+});
 
 /**
  * Load server configuration from environment variables.
  * Environment variables take precedence over defaults.
+ * Empty-string variables are treated as unset (defaults apply).
+ * Throws with a readable message when a variable is invalid (e.g. CDN_PORT=abc).
  */
 export function loadConfig(): ServerConfig {
-  const env = process.env;
+  const rawEnv: Record<string, string> = {};
+  for (const key of Object.keys(EnvSchema.shape)) {
+    const value = process.env[key];
+    if (value !== undefined && value !== "") rawEnv[key] = value;
+  }
+
+  const parsed = EnvSchema.safeParse(rawEnv);
+  if (!parsed.success) {
+    const details = parsed.error.issues
+      .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+      .join("; ");
+    throw new Error(`Invalid environment configuration — ${details}`);
+  }
+  const env = parsed.data;
 
   return {
-    port:
-      env["CDN_PORT"] !== undefined
-        ? parseInt(env["CDN_PORT"], 10)
-        : defaultConfig.port,
-
-    mongoUri: env["CDN_MONGO_URI"] ?? defaultConfig.mongoUri,
-
-    cacheMaxSize:
-      env["CDN_CACHE_MAX_SIZE"] !== undefined
-        ? parseInt(env["CDN_CACHE_MAX_SIZE"], 10)
-        : defaultConfig.cacheMaxSize,
-
-    cacheMaxEntrySize:
-      env["CDN_CACHE_MAX_ENTRY_SIZE"] !== undefined
-        ? parseInt(env["CDN_CACHE_MAX_ENTRY_SIZE"], 10)
-        : defaultConfig.cacheMaxEntrySize,
-
-    cdnPrefix: env["CDN_PREFIX"] ?? defaultConfig.cdnPrefix,
-
-    apiPrefix: env["CDN_API_PREFIX"] ?? defaultConfig.apiPrefix,
-
-    grayscaleHeader:
-      env["CDN_GRAYSCALE_HEADER"] ?? defaultConfig.grayscaleHeader,
-
-    grayscaleCookiePrefix:
-      env["CDN_GRAYSCALE_COOKIE_PREFIX"] ?? defaultConfig.grayscaleCookiePrefix,
-
-    workspaceRoot: path.resolve(
-      process.cwd(),
-      env["CDN_WORKSPACE_ROOT"] ?? defaultConfig.workspaceRoot,
-    ),
+    port: env.CDN_PORT,
+    mongoUri: env.CDN_MONGO_URI,
+    cacheMaxSize: env.CDN_CACHE_MAX_SIZE,
+    cacheMaxEntrySize: env.CDN_CACHE_MAX_ENTRY_SIZE,
+    cdnPrefix: env.CDN_PREFIX,
+    apiPrefix: env.CDN_API_PREFIX,
+    grayscaleHeader: env.CDN_GRAYSCALE_HEADER.toLowerCase(),
+    grayscaleCookiePrefix: env.CDN_GRAYSCALE_COOKIE_PREFIX,
+    workspaceRoot: path.resolve(process.cwd(), env.CDN_WORKSPACE_ROOT),
   };
 }

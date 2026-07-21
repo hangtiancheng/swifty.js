@@ -35,10 +35,7 @@ export const VersionCreateSchema = z.object({
   version: z
     .string()
     .min(1, "Version string is required")
-    .regex(
-      /^[a-zA-Z0-9._-]+$/,
-      "Version must contain only alphanumeric, dot, hyphen, underscore",
-    ),
+    .regex(/^[a-zA-Z0-9._-]+$/, "Version must contain only alphanumeric, dot, hyphen, underscore"),
   distPath: z.string().min(1, "distPath is required"),
   weight: z.number().int().min(0).max(100).default(100),
   isActive: z.boolean().default(true),
@@ -119,10 +116,7 @@ export const PublishSchema = z.object({
   version: z
     .string()
     .min(1, "Version string is required")
-    .regex(
-      /^[a-zA-Z0-9._-]+$/,
-      "Version must contain only alphanumeric, dot, hyphen, underscore",
-    ),
+    .regex(/^[a-zA-Z0-9._-]+$/, "Version must contain only alphanumeric, dot, hyphen, underscore"),
   distPath: z.string().min(1, "distPath is required"),
 });
 export type PublishInput = z.infer<typeof PublishSchema>;

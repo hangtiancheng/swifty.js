@@ -78,14 +78,8 @@ export function invalidateVersionCache(
   index.deletePrefix(prefix);
 }
 
-export function validateDistPath(
-  distPath: string,
-  workspaceRoot: string,
-): boolean {
+export function validateDistPath(distPath: string, workspaceRoot: string): boolean {
   const resolved = path.resolve(distPath);
   const normalizedRoot = path.resolve(workspaceRoot);
-  return (
-    resolved.startsWith(normalizedRoot + path.sep) ||
-    resolved === normalizedRoot
-  );
+  return resolved.startsWith(normalizedRoot + path.sep) || resolved === normalizedRoot;
 }

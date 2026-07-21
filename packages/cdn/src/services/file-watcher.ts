@@ -22,11 +22,7 @@
 
 import { watch, type FSWatcher } from "chokidar";
 import { Cache } from "@swifty.js/cache";
-import {
-  getProjectConfig,
-  getConfigMap,
-  invalidateVersionCache,
-} from "./config-store.js";
+import { getProjectConfig, getConfigMap, invalidateVersionCache } from "./config-store.js";
 import type { PrefixIndex } from "./cache-utils.js";
 import { logger } from "../utils/logger.js";
 
@@ -38,13 +34,7 @@ export function startFileWatcher(cache: Cache, prefixIndex: PrefixIndex): void {
   for (const [, project] of configMap) {
     for (const version of project.versions) {
       if (!version.isActive) continue;
-      watchDistPath(
-        cache,
-        prefixIndex,
-        project.name,
-        version.version,
-        version.distPath,
-      );
+      watchDistPath(cache, prefixIndex, project.name, version.version, version.distPath);
     }
   }
 }
@@ -103,19 +93,10 @@ export function addWatch(
   const versionConfig = project.versions.find((v) => v.version === version);
   if (versionConfig === undefined || !versionConfig.isActive) return;
 
-  watchDistPath(
-    cache,
-    prefixIndex,
-    projectName,
-    version,
-    versionConfig.distPath,
-  );
+  watchDistPath(cache, prefixIndex, projectName, version, versionConfig.distPath);
 }
 
-export async function removeWatch(
-  projectName: string,
-  version: string,
-): Promise<void> {
+export async function removeWatch(projectName: string, version: string): Promise<void> {
   const key = `${projectName}@${version}`;
   const watcher = watchers.get(key);
   if (watcher !== undefined) {

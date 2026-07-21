@@ -42,9 +42,7 @@ import type {
  * Select a version by weighted random from active versions.
  * @returns The selected version, or the first active version as fallback
  */
-export function getVersionByWeight(
-  versions: readonly VersionConfig[],
-): VersionConfig | undefined {
+export function getVersionByWeight(versions: readonly VersionConfig[]): VersionConfig | undefined {
   const activeVersions = versions.filter((v) => v.isActive);
   if (activeVersions.length === 0) return undefined;
   if (activeVersions.length === 1) return activeVersions[0];
@@ -67,10 +65,7 @@ export function getVersionByWeight(
 /**
  * Find a version config by its version string within a project.
  */
-function findVersion(
-  project: ProjectConfig,
-  versionId: string,
-): VersionConfig | undefined {
+function findVersion(project: ProjectConfig, versionId: string): VersionConfig | undefined {
   return project.versions.find((v) => v.version === versionId);
 }
 
@@ -83,26 +78,29 @@ function findVersion(
  * Header supports two formats:
  *   - plain string: applies to all projects
  *   - JSON object: per-project mapping, e.g. {"projectA": "1.0", "projectB": "2.0"}
+ * Falls back to the per-project cookie when the header yields nothing.
  */
 function getVersionFromHeaders(
   headers: Readonly<Record<string, string | undefined>>,
   projectName: string,
   headerName: string,
   cookiePrefix: string,
-): string | undefined {
-  const headerValue = headers[headerName];
+): { version: string; source: "header-override" | "cookie-override" } | undefined {
+  const headerValue = headers[headerName.toLowerCase()];
   if (typeof headerValue === "string" && headerValue.length > 0) {
     if (headerValue.startsWith("{")) {
       try {
         const parsed = JSON.parse(headerValue) as Record<string, unknown>;
         const ver = parsed[projectName];
-        if (typeof ver === "string" && ver.length > 0) return ver;
+        if (typeof ver === "string" && ver.length > 0) {
+          return { version: ver, source: "header-override" };
+        }
       } catch {
         // invalid JSON, treat as plain string
-        return headerValue;
+        return { version: headerValue, source: "header-override" };
       }
     } else {
-      return headerValue;
+      return { version: headerValue, source: "header-override" };
     }
   }
 
@@ -116,7 +114,7 @@ function getVersionFromHeaders(
     const trimmed = cookie.trim();
     if (trimmed.startsWith(`${cookieName}=`)) {
       const value = trimmed.slice(cookieName.length + 1);
-      if (value.length > 0) return value;
+      if (value.length > 0) return { version: value, source: "cookie-override" };
     }
   }
 
@@ -155,18 +153,13 @@ export function resolveVersion(
   }
 
   // Level 2: Header/Cookie override
-  const headerVersion = getVersionFromHeaders(
-    headers,
-    project.name,
-    headerName,
-    cookiePrefix,
-  );
-  if (headerVersion !== undefined) {
-    const version = findVersion(project, headerVersion);
+  const override = getVersionFromHeaders(headers, project.name, headerName, cookiePrefix);
+  if (override !== undefined) {
+    const version = findVersion(project, override.version);
     if (version !== undefined) {
       return {
         config: version,
-        source: "header-override" as VersionResolutionSource,
+        source: override.source,
       };
     }
   }

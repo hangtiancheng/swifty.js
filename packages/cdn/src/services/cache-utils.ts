@@ -45,9 +45,12 @@ export class PrefixIndex {
     }
   }
 
+  // Index keys are version-level prefixes ("project@version:"), so only a
+  // ":"-suffixed prefix can be looked up exactly; project-level prefixes
+  // ("project@") must scan.
   getKeysWithPrefix(prefix: string): string[] {
     const result: string[] = [];
-    if (prefix.endsWith(":") || prefix.endsWith("@")) {
+    if (prefix.endsWith(":")) {
       const keys = this.index.get(prefix);
       if (keys !== undefined) {
         for (const key of keys) result.push(key);
@@ -64,7 +67,7 @@ export class PrefixIndex {
 
   deletePrefix(prefix: string): number {
     let deleted = 0;
-    if (prefix.endsWith(":") || prefix.endsWith("@")) {
+    if (prefix.endsWith(":")) {
       const keys = this.index.get(prefix);
       if (keys === undefined) return 0;
       deleted = keys.size;

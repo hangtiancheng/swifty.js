@@ -1,6 +1,6 @@
 # @swifty.js/cdn
 
-A 1677-line local CDN server that unifies `dist` artifacts from multiple projects in your workspace under a single `/cdn/<project>[@version]/<path>` endpoint. Core features:
+A local CDN server that unifies `dist` artifacts from multiple projects in your workspace under a single `/cdn/<project>[@version]/<path>` endpoint. Core features:
 
 - Grayscale release with a 4-level strategy: URL `@version` / header / cookie / weighted random
 - MongoDB-backed project and version CRUD (including one-click publish)
@@ -99,7 +99,7 @@ All environment variables and their defaults (see `.env.example`):
 | `CDN_WORKSPACE_ROOT`          | `../` (resolved relative to cwd) | Root directory for dist auto-discovery                              |
 | `LOG_LEVEL`                   | `info`                           | pino log level: trace / debug / info / warn / error / fatal         |
 
-Note: Numeric fields (PORT / CACHE_MAX_SIZE etc.) currently lack invalid-value validation. Passing `abc` produces `NaN` and causes Koa listen to fail. Use `.env` files rather than ad-hoc shell variables.
+Note: All environment variables are validated with zod at startup. Invalid values (e.g. `CDN_PORT=abc`) fail fast with a readable error message instead of producing NaN.
 
 ## 3 URL Routing Format
 
@@ -142,7 +142,8 @@ Every CDN request passes through `resolveVersion` to determine which version to 
 
 ```
 Level 1: URL explicit @version          -> X-Resolution-Source: url-explicit
-Level 2: header / cookie match          -> X-Resolution-Source: header-override
+Level 2: header match                   -> X-Resolution-Source: header-override
+         cookie match                   -> X-Resolution-Source: cookie-override
 Level 3: weighted random (active vers.) -> X-Resolution-Source: weighted-random
 Level 4: defaultVersion fallback        -> X-Resolution-Source: default-fallback
 ```
@@ -180,7 +181,7 @@ In Format B, if the current project is not among the JSON keys, resolution falls
 curl -H "Cookie: cdn_gray_admin=1.0.0" http://localhost:3300/cdn/admin/app.js
 ```
 
-Cookie name = `${grayscaleCookiePrefix}${projectName}`, default prefix `cdn_gray_`. Priority is lower than header (when both are present, the header takes effect).
+Cookie name = `${grayscaleCookiePrefix}${projectName}`, default prefix `cdn_gray_`. Priority is lower than header (when both are present, the header takes effect). Cookie matches are labeled `X-Resolution-Source: cookie-override`.
 
 ### 4.4 Weighted Random
 
@@ -236,7 +237,7 @@ curl -H 'If-None-Match: "abc123def456..."' -i http://localhost:3300/cdn/admin/ap
 # HTTP/1.1 304 Not Modified
 ```
 
-Streamed large files (>= 2 MB) currently do not emit ETags and do not support 304 negotiation (see known limitation K7).
+Streamed large files (>= 2 MB) use weak ETags derived from size + mtime (`W/"<size>-<mtime>"`) and support 304 negotiation. Range requests (206) are still not supported.
 
 ### 5.4 Cache Invalidation Triggers
 
@@ -259,8 +260,10 @@ curl http://localhost:3300/api/cache/stats
   "success": true,
   "data": {
     "entries": 124,
-    "sizeBytes": 18459200,
-    "maxSizeBytes": 134217728
+    "maxSizeBytes": 134217728,
+    "hits": 980,
+    "misses": 124,
+    "hitRate": 0.8876
   }
 }
 ```
@@ -286,11 +289,11 @@ File extension detection uses `path.basename(filePath).includes(".")`, which cor
 
 Every CDN response (200 / 304) includes three custom headers for diagnostics:
 
-| Header                | Values                                                                      | Meaning                                                           |
-| --------------------- | --------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| `X-Cache`             | `HIT-MEMORY` / `MISS` / `MISS-STREAM`                                       | Cache hit / miss (cached) / miss (streamed)                       |
-| `X-CDN-Version`       | version string                                                              | Actual version served (may differ from the URL-requested version) |
-| `X-Resolution-Source` | `url-explicit` / `header-override` / `weighted-random` / `default-fallback` | Which resolution level produced the decision                      |
+| Header                | Values                                                                                          | Meaning                                                           |
+| --------------------- | ----------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| `X-Cache`             | `HIT-MEMORY` / `MISS` / `MISS-STREAM`                                                           | Cache hit / miss (cached) / miss (streamed)                       |
+| `X-CDN-Version`       | version string                                                                                  | Actual version served (may differ from the URL-requested version) |
+| `X-Resolution-Source` | `url-explicit` / `header-override` / `cookie-override` / `weighted-random` / `default-fallback` | Which resolution level produced the decision                      |
 
 To debug grayscale behavior, simply run `curl -i` and inspect these three headers.
 
@@ -303,7 +306,7 @@ All API responses use a unified envelope:
 { "success": true, "data": <T> }
 
 // Business error (zod validation failure / resource not found / conflict)
-{ "success": false, "error": "ValidationError" | "NotFound", "message": "..." }
+{ "success": false, "error": "ValidationError" | "NotFound" | "Conflict", "message": "..." }
 
 // Global catch-all (error middleware)
 { "success": false, "error": "Internal Server Error", "message": "..." }
@@ -584,20 +587,20 @@ Not suitable for: public-facing production traffic, high-availability requiremen
 
 Listed by priority (see `code-review.md` sections 8/9 for details):
 
-| ID    | Limitation                                                  | Impact                                                          |
-| ----- | ----------------------------------------------------------- | --------------------------------------------------------------- |
-| K11   | Binds all interfaces by default + no authentication         | Any machine on the LAN can access the service                   |
-| K6    | Invalid numeric env vars (`CDN_PORT=abc`) produce NaN crash | Poor startup experience                                         |
-| K2    | `cookie-override` source type reserved but never emitted    | Cookie matches are labeled `header-override`                    |
-| K3    | weighted-random always precedes default-fallback            | `defaultVersion` only effective when all versions are inactive  |
-| K5    | `cors({ origin: "*" })` fully open                          | Must be tightened for production deployment                     |
-| K7    | Large files (>= 2 MB) streamed without ETag or Range        | Repeated large file requests re-read every time; no 206 support |
-| K8    | No L2 disk cache                                            | L1 is fully cold after process restart                          |
-| K10   | discover scans subdirectories serially                      | Slow on large workspaces                                        |
-| K12   | No Prometheus / metrics endpoint                            | Difficult to integrate with monitoring systems                  |
-| K14   | discover assumes `<dist>/../package.json`                   | Fails to find version for deeply nested dist structures         |
-| K15   | `findOneAndUpdate` does not run schema validator by default | Update path bypasses Mongoose validation                        |
-| Other | K1 K4 K9 K13 documented in code-review.md                   | Lower impact                                                    |
+| ID    | Limitation                                                  | Impact                                                         |
+| ----- | ----------------------------------------------------------- | -------------------------------------------------------------- |
+| K11   | Binds all interfaces by default + no authentication         | Any machine on the LAN can access the service                  |
+| K3    | weighted-random always precedes default-fallback            | `defaultVersion` only effective when all versions are inactive |
+| K5    | `cors({ origin: "*" })` fully open                          | Must be tightened for production deployment                    |
+| K7    | Large files (>= 2 MB) streamed without Range support        | No 206 partial content; weak ETag + 304 are supported          |
+| K8    | No L2 disk cache                                            | L1 is fully cold after process restart                         |
+| K10   | discover scans subdirectories serially                      | Slow on large workspaces                                       |
+| K12   | No Prometheus / metrics endpoint                            | Difficult to integrate with monitoring systems                 |
+| K14   | discover assumes `<dist>/../package.json`                   | Fails to find version for deeply nested dist structures        |
+| K15   | `findOneAndUpdate` does not run schema validator by default | Update path bypasses Mongoose validation                       |
+| Other | K1 K4 K9 K13 documented in code-review.md                   | Lower impact                                                   |
+
+Fixed since the last review: K2 (cookie matches now emit `cookie-override`), K6 (env vars validated with zod at startup), plus the project-level cache-invalidation bug, SPA-fallback cache-key amplification, and missing headers on 304 responses.
 
 ## 16 Troubleshooting
 
@@ -671,13 +674,13 @@ Under normal SIGTERM/SIGINT, the shutdown handler executes server.close, stopFil
 
 ## 17 Embedding and Extending
 
-Code structure (17 ts files, 1677 lines):
+Code structure:
 
 ```
 src/
 ├── index.ts                   # Entry point (main)
 ├── app.ts                     # Koa app assembly
-├── config.ts                  # Environment variable loading
+├── config.ts                  # Environment variable loading (zod-validated)
 ├── middleware/
 │   ├── cdn.ts                 # CDN request handler (core)
 │   └── error.ts               # Global error catch-all
@@ -689,16 +692,18 @@ src/
 │   ├── config-store.ts        # In-memory configMap + invalidation
 │   ├── discover.ts            # Workspace dist auto-discovery
 │   ├── file-watcher.ts        # chokidar watching
-│   └── memory-cache.ts        # LRU + per-version secondary index
+│   └── cache-utils.ts         # PrefixIndex + cache entry (de)serialization
 ├── types/
 │   ├── index.ts               # All interfaces / types
 │   └── schemas.ts             # zod schemas
 └── utils/
     ├── grayscale.ts           # 4-level grayscale algorithm
     ├── logger.ts              # pino logger
-    ├── path-security.ts       # resolveSafePath / buildCacheKey
+    ├── path-security.ts       # resolveSafePath / normalizeFilePath / buildCacheKey
     └── route-parser.ts        # URL parsing
 ```
+
+The L1 cache itself is provided by the workspace package `@swifty.js/cache`.
 
 ### 17.1 Embedding into Another Koa Application
 

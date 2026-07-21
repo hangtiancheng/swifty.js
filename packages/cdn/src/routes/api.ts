@@ -48,7 +48,11 @@ function success(ctx: Context, data: unknown, status = 200): void {
 
 function fail(ctx: Context, message: string, status = 400): void {
   ctx.status = status;
-  ctx.body = { success: false, error: "ValidationError", message };
+  ctx.body = {
+    success: false,
+    error: status === 409 ? "Conflict" : "ValidationError",
+    message,
+  };
 }
 
 function notFound(ctx: Context, message: string): void {
@@ -115,6 +119,12 @@ export function createApiRouter(
       }
     }
 
+    const versionIds = parsed.data.versions.map((v) => v.version);
+    if (new Set(versionIds).size !== versionIds.length) {
+      fail(ctx, "Duplicate version strings in versions array");
+      return;
+    }
+
     const existing = await Project.findOne({ name: parsed.data.name });
     if (existing !== null) {
       fail(ctx, `Project "${parsed.data.name}" already exists`, 409);
@@ -175,128 +185,123 @@ export function createApiRouter(
   // Version CRUD
   // ==========================================================
 
-  router.get(
-    "/projects/:name/versions",
-    async (ctx: Context): Promise<void> => {
-      const { name } = ctx.params;
-      const project = await Project.findOne({ name }).lean();
-      if (project === null) {
-        notFound(ctx, `Project "${name}" not found`);
-        return;
-      }
-      success(ctx, project.versions);
-    },
-  );
+  router.get("/projects/:name/versions", async (ctx: Context): Promise<void> => {
+    const { name } = ctx.params;
+    const project = await Project.findOne({ name }).lean();
+    if (project === null) {
+      notFound(ctx, `Project "${name}" not found`);
+      return;
+    }
+    success(ctx, project.versions);
+  });
 
-  router.post(
-    "/projects/:name/versions",
-    async (ctx: Context): Promise<void> => {
-      const { name } = ctx.params;
-      const parsed = VersionCreateSchema.safeParse(ctx.request.body);
-      if (!parsed.success) {
-        fail(ctx, parsed.error.message);
-        return;
-      }
+  router.post("/projects/:name/versions", async (ctx: Context): Promise<void> => {
+    const { name } = ctx.params;
+    const parsed = VersionCreateSchema.safeParse(ctx.request.body);
+    if (!parsed.success) {
+      fail(ctx, parsed.error.message);
+      return;
+    }
 
-      if (!validateDistPath(parsed.data.distPath, config.workspaceRoot)) {
-        fail(
-          ctx,
-          `distPath "${parsed.data.distPath}" is outside workspace root`,
-        );
-        return;
-      }
+    if (!validateDistPath(parsed.data.distPath, config.workspaceRoot)) {
+      fail(ctx, `distPath "${parsed.data.distPath}" is outside workspace root`);
+      return;
+    }
 
-      const project = await Project.findOne({ name });
-      if (project === null) {
-        notFound(ctx, `Project "${name}" not found`);
-        return;
-      }
+    const project = await Project.findOne({ name });
+    if (project === null) {
+      notFound(ctx, `Project "${name}" not found`);
+      return;
+    }
 
-      project.versions.push(parsed.data);
-      await project.save();
+    if (project.versions.some((v) => v.version === parsed.data.version)) {
+      fail(ctx, `Version "${parsed.data.version}" already exists in project "${name}"`, 409);
+      return;
+    }
 
-      invalidateProjectCache(cache, prefixIndex, name);
-      await refreshProjectConfig(name);
-      addWatch(cache, prefixIndex, name, parsed.data.version);
-      success(ctx, toProjectConfig(project.toObject()), 201);
-    },
-  );
+    project.versions.push(parsed.data);
+    await project.save();
 
-  router.put(
-    "/projects/:name/versions/:version",
-    async (ctx: Context): Promise<void> => {
-      const { name, version } = ctx.params;
-      const parsed = VersionUpdateSchema.safeParse(ctx.request.body);
-      if (!parsed.success) {
-        fail(ctx, parsed.error.message);
-        return;
-      }
+    invalidateProjectCache(cache, prefixIndex, name);
+    await refreshProjectConfig(name);
+    addWatch(cache, prefixIndex, name, parsed.data.version);
+    success(ctx, toProjectConfig(project.toObject()), 201);
+  });
 
-      if (
-        parsed.data.distPath !== undefined &&
-        !validateDistPath(parsed.data.distPath, config.workspaceRoot)
-      ) {
-        fail(
-          ctx,
-          `distPath "${parsed.data.distPath}" is outside workspace root`,
-        );
-        return;
-      }
+  router.put("/projects/:name/versions/:version", async (ctx: Context): Promise<void> => {
+    const { name, version } = ctx.params;
+    const parsed = VersionUpdateSchema.safeParse(ctx.request.body);
+    if (!parsed.success) {
+      fail(ctx, parsed.error.message);
+      return;
+    }
 
-      const project = await Project.findOne({ name });
-      if (project === null) {
-        notFound(ctx, `Project "${name}" not found`);
-        return;
-      }
+    if (
+      parsed.data.distPath !== undefined &&
+      !validateDistPath(parsed.data.distPath, config.workspaceRoot)
+    ) {
+      fail(ctx, `distPath "${parsed.data.distPath}" is outside workspace root`);
+      return;
+    }
 
-      const versionDoc = project.versions.find((v) => v.version === version);
-      if (versionDoc === undefined) {
-        notFound(ctx, `Version "${version}" not found in project "${name}"`);
-        return;
-      }
+    const project = await Project.findOne({ name });
+    if (project === null) {
+      notFound(ctx, `Project "${name}" not found`);
+      return;
+    }
 
-      const update = parsed.data;
-      if (update.version !== undefined) versionDoc.version = update.version;
-      if (update.distPath !== undefined) versionDoc.distPath = update.distPath;
-      if (update.weight !== undefined) versionDoc.weight = update.weight;
-      if (update.isActive !== undefined) versionDoc.isActive = update.isActive;
+    const versionDoc = project.versions.find((v) => v.version === version);
+    if (versionDoc === undefined) {
+      notFound(ctx, `Version "${version}" not found in project "${name}"`);
+      return;
+    }
 
-      await project.save();
+    const update = parsed.data;
+    if (
+      update.version !== undefined &&
+      update.version !== version &&
+      project.versions.some((v) => v.version === update.version)
+    ) {
+      fail(ctx, `Version "${update.version}" already exists in project "${name}"`, 409);
+      return;
+    }
+    if (update.version !== undefined) versionDoc.version = update.version;
+    if (update.distPath !== undefined) versionDoc.distPath = update.distPath;
+    if (update.weight !== undefined) versionDoc.weight = update.weight;
+    if (update.isActive !== undefined) versionDoc.isActive = update.isActive;
 
-      await removeWatch(name, version);
-      invalidateProjectCache(cache, prefixIndex, name);
-      await refreshProjectConfig(name);
-      addWatch(cache, prefixIndex, name, update.version ?? version);
-      success(ctx, toProjectConfig(project.toObject()));
-    },
-  );
+    await project.save();
 
-  router.delete(
-    "/projects/:name/versions/:version",
-    async (ctx: Context): Promise<void> => {
-      const { name, version } = ctx.params;
+    await removeWatch(name, version);
+    invalidateProjectCache(cache, prefixIndex, name);
+    await refreshProjectConfig(name);
+    addWatch(cache, prefixIndex, name, update.version ?? version);
+    success(ctx, toProjectConfig(project.toObject()));
+  });
 
-      const project = await Project.findOne({ name });
-      if (project === null) {
-        notFound(ctx, `Project "${name}" not found`);
-        return;
-      }
+  router.delete("/projects/:name/versions/:version", async (ctx: Context): Promise<void> => {
+    const { name, version } = ctx.params;
 
-      const index = project.versions.findIndex((v) => v.version === version);
-      if (index === -1) {
-        notFound(ctx, `Version "${version}" not found in project "${name}"`);
-        return;
-      }
+    const project = await Project.findOne({ name });
+    if (project === null) {
+      notFound(ctx, `Project "${name}" not found`);
+      return;
+    }
 
-      project.versions.splice(index, 1);
-      await project.save();
+    const index = project.versions.findIndex((v) => v.version === version);
+    if (index === -1) {
+      notFound(ctx, `Version "${version}" not found in project "${name}"`);
+      return;
+    }
 
-      await removeWatch(name, version);
-      invalidateProjectCache(cache, prefixIndex, name);
-      await refreshProjectConfig(name);
-      success(ctx, toProjectConfig(project.toObject()));
-    },
-  );
+    project.versions.splice(index, 1);
+    await project.save();
+
+    await removeWatch(name, version);
+    invalidateProjectCache(cache, prefixIndex, name);
+    await refreshProjectConfig(name);
+    success(ctx, toProjectConfig(project.toObject()));
+  });
 
   // ==========================================================
   // Discovery & Publish
@@ -330,9 +335,7 @@ export function createApiRouter(
         versions: [{ version, distPath, weight: 100, isActive: true }],
       });
     } else {
-      const existingVersion = project.versions.find(
-        (v) => v.version === version,
-      );
+      const existingVersion = project.versions.find((v) => v.version === version);
       if (existingVersion !== undefined) {
         existingVersion.distPath = distPath;
         existingVersion.isActive = true;

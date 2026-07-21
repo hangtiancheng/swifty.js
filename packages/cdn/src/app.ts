@@ -45,7 +45,12 @@ export function createApp(config: ServerConfig): AppInstance {
   });
 
   app.use(errorMiddleware);
-  app.use(cors({ origin: "*" }));
+  app.use(
+    cors({
+      origin: "*",
+      exposeHeaders: ["ETag", "X-Cache", "X-CDN-Version", "X-Resolution-Source"],
+    }),
+  );
   app.use(bodyParser());
 
   const apiRouter = createApiRouter(cache, prefixIndex, config);

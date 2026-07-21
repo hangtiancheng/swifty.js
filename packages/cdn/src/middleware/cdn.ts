@@ -34,6 +34,7 @@ import { resolveVersion } from "../utils/grayscale.js";
 import {
   resolveSafePath,
   hasFileExtension,
+  normalizeFilePath,
   buildCacheKey,
 } from "../utils/path-security.js";
 import {
@@ -45,8 +46,33 @@ import type { CacheEntry } from "../types/index.js";
 
 const HASHED_FILE_RE = /[.-][a-f0-9]{8,}\.\w+$/;
 
+// Memoizes deserialization per stored ByteView so cache hits skip the
+// JSON.parse on every request. Entries vanish with the ByteView on eviction.
+const entryMemo = new WeakMap<ByteView, CacheEntry>();
+
+function getCachedEntry(view: ByteView): CacheEntry {
+  let entry = entryMemo.get(view);
+  if (entry === undefined) {
+    entry = deserializeCacheEntry(view);
+    entryMemo.set(view, entry);
+  }
+  return entry;
+}
+
 function computeETag(content: Buffer): string {
   return `"${crypto.createHash("md5").update(content).digest("hex")}"`;
+}
+
+function computeWeakETag(size: number, mtimeMs: number): string {
+  return `W/"${size.toString(16)}-${Math.round(mtimeMs).toString(16)}"`;
+}
+
+/** RFC 9110 If-None-Match: supports "*", comma-separated lists, weak tags. */
+function etagMatches(ifNoneMatch: string, etag: string): boolean {
+  if (ifNoneMatch === "") return false;
+  if (ifNoneMatch.trim() === "*") return true;
+  const opaque = etag.replace(/^W\//, "");
+  return ifNoneMatch.split(",").some((tag) => tag.trim().replace(/^W\//, "") === opaque);
 }
 
 function getCacheControl(filePath: string): string {
@@ -65,23 +91,27 @@ export function createCdnMiddleware(
   prefixIndex: PrefixIndex,
   config: ServerConfig,
 ): (ctx: Context, next: Next) => Promise<void> {
+  const serveCached = (ctx: Context, entry: CacheEntry, version: string, source: string): void => {
+    ctx.set("Content-Type", entry.contentType);
+    ctx.set("Cache-Control", entry.cacheControl);
+    ctx.set("ETag", entry.etag);
+    ctx.set("X-Cache", "HIT-MEMORY");
+    ctx.set("X-CDN-Version", version);
+    ctx.set("X-Resolution-Source", source);
+    if (etagMatches(ctx.get("If-None-Match"), entry.etag)) {
+      ctx.status = 304;
+      return;
+    }
+    ctx.body = entry.content;
+  };
+
   return async (ctx: Context, next: Next): Promise<void> => {
     const parsed = parseRoute(ctx.path, config.cdnPrefix);
     if (parsed === undefined) {
       return next();
     }
 
-    // CORS headers — allow cross-origin access from dev servers (Vite, Webpack, etc.)
-    const origin = ctx.get("Origin") || "*";
-    ctx.set("Access-Control-Allow-Origin", origin);
-    ctx.set("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS");
-    ctx.set("Access-Control-Allow-Headers", "Content-Type");
-    ctx.set(
-      "Access-Control-Expose-Headers",
-      "ETag, X-Cache, X-CDN-Version, X-Resolution-Source",
-    );
-
-    // Handle preflight requests
+    // Preflight is handled by the global CORS middleware; guard plain OPTIONS.
     if (ctx.method === "OPTIONS") {
       ctx.status = 204;
       return;
@@ -115,35 +145,20 @@ export function createCdnMiddleware(
     }
 
     const versionConfig = resolved.config;
+    const normalizedPath = normalizeFilePath(filePath);
 
-    const safePath = resolveSafePath(versionConfig.distPath, filePath);
+    const safePath = resolveSafePath(versionConfig.distPath, normalizedPath);
     if (safePath === undefined) {
       ctx.status = 403;
       ctx.body = { error: "Path traversal detected" };
       return;
     }
 
-    // L1 cache lookup
-    const cacheKey: CacheKey = buildCacheKey(
-      projectName,
-      versionConfig.version,
-      filePath,
-    );
+    // L1 cache lookup with the normalized request path
+    const cacheKey: CacheKey = buildCacheKey(projectName, versionConfig.version, normalizedPath);
     const [cachedView, found] = cache.get(cacheKey);
     if (found && cachedView !== null) {
-      const cached = deserializeCacheEntry(cachedView);
-      const ifNoneMatch = ctx.get("If-None-Match");
-      if (ifNoneMatch === cached.etag) {
-        ctx.status = 304;
-        return;
-      }
-      ctx.set("Content-Type", cached.contentType);
-      ctx.set("Cache-Control", cached.cacheControl);
-      ctx.set("ETag", cached.etag);
-      ctx.set("X-Cache", "HIT-MEMORY");
-      ctx.set("X-CDN-Version", versionConfig.version);
-      ctx.set("X-Resolution-Source", resolved.source);
-      ctx.body = cached.content;
+      serveCached(ctx, getCachedEntry(cachedView), versionConfig.version, resolved.source);
       return;
     }
 
@@ -166,7 +181,7 @@ export function createCdnMiddleware(
         statResult = { size: stat.size, mtimeMs: stat.mtimeMs };
       }
     } catch {
-      if (!hasFileExtension(filePath)) {
+      if (!hasFileExtension(normalizedPath)) {
         const indexPath = resolveSafePath(versionConfig.distPath, "index.html");
         if (indexPath !== undefined) {
           try {
@@ -191,24 +206,33 @@ export function createCdnMiddleware(
       return;
     }
 
+    // Cache under the canonical resolved path so every SPA route that falls
+    // back to index.html shares one entry instead of caching N copies.
+    const canonicalPath = normalizeFilePath(
+      path.relative(versionConfig.distPath, finalPath).split(path.sep).join("/"),
+    );
+    const canonicalKey: CacheKey = buildCacheKey(projectName, versionConfig.version, canonicalPath);
+    if (canonicalKey !== cacheKey) {
+      const [fallbackView, fallbackFound] = cache.get(canonicalKey);
+      if (fallbackFound && fallbackView !== null) {
+        serveCached(ctx, getCachedEntry(fallbackView), versionConfig.version, resolved.source);
+        return;
+      }
+    }
+
     const contentType = mime.lookup(finalPath) || "application/octet-stream";
     const cacheControl = getCacheControl(finalPath);
 
     ctx.set("Content-Type", contentType);
     ctx.set("Content-Length", statResult.size.toString());
     ctx.set("Cache-Control", cacheControl);
+    ctx.set("Last-Modified", new Date(statResult.mtimeMs).toUTCString());
     ctx.set("X-CDN-Version", versionConfig.version);
     ctx.set("X-Resolution-Source", resolved.source);
 
     if (statResult.size < config.cacheMaxEntrySize) {
       const content = await fs.readFile(finalPath);
       const etag = computeETag(content);
-
-      const ifNoneMatch = ctx.get("If-None-Match");
-      if (ifNoneMatch === etag) {
-        ctx.status = 304;
-        return;
-      }
 
       ctx.set("ETag", etag);
       ctx.set("X-Cache", "MISS");
@@ -222,11 +246,23 @@ export function createCdnMiddleware(
         size: statResult.size,
       };
       const serialized = serializeCacheEntry(entry);
-      cache.add(cacheKey, new ByteView(serialized));
-      prefixIndex.add(cacheKey);
+      cache.add(canonicalKey, new ByteView(serialized));
+      prefixIndex.add(canonicalKey);
+
+      if (etagMatches(ctx.get("If-None-Match"), etag)) {
+        ctx.status = 304;
+        return;
+      }
       ctx.body = content;
     } else {
+      const etag = computeWeakETag(statResult.size, statResult.mtimeMs);
+      ctx.set("ETag", etag);
       ctx.set("X-Cache", "MISS-STREAM");
+
+      if (etagMatches(ctx.get("If-None-Match"), etag)) {
+        ctx.status = 304;
+        return;
+      }
       ctx.body = createReadStream(finalPath);
     }
   };
