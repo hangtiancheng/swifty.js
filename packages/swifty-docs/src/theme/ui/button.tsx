@@ -1,5 +1,5 @@
 import { cva, type VariantProps } from "class-variance-authority";
-import type { JSX } from "preact";
+import Preact from "preact";
 import { cn } from "../lib/utils";
 
 export const buttonVariants = cva(
@@ -30,7 +30,7 @@ export const buttonVariants = cva(
   },
 );
 
-type ButtonProps = JSX.HTMLAttributes<HTMLButtonElement> &
+type ButtonProps = Preact.HTMLAttributes<HTMLButtonElement> &
   VariantProps<typeof buttonVariants>;
 
 export function Button({

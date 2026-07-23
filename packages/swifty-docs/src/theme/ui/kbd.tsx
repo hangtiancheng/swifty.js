@@ -1,10 +1,10 @@
-import type { JSX } from "preact";
+import Preact from "preact";
 import { cn } from "../lib/utils";
 
 export function Kbd({
   class: className,
   ...rest
-}: JSX.HTMLAttributes<HTMLElement>) {
+}: Preact.HTMLAttributes<HTMLElement>) {
   return (
     <kbd
       class={cn(

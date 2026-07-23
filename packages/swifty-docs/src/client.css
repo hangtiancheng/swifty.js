@@ -382,7 +382,7 @@
 }
 
 .codeblock pre {
-  @apply m-0 [scrollbar-width:thin] overflow-x-auto bg-transparent! p-[1.1rem] pt-10 text-[0.9375rem] leading-[1.75];
+  @apply m-0 scrollbar-thin overflow-x-auto bg-transparent! p-[1.1rem] pt-10 text-[0.9375rem] leading-[1.75];
 }
 
 .codeblock code {

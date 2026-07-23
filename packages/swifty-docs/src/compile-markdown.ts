@@ -67,7 +67,7 @@ export async function compileMarkdown(
 
   // 5. Build page metadata
   // Resolve relativePath via path.relative so absolute filePath inputs
-  // (as produced by the Vite/Webpack/Rspack loaders) yield the same
+  // (as produced by the Vite loaders) yield the same
   // "guide/config.md" form the scanner produces — the previous
   // startsWith(docsPrefix) check failed for absolute paths.
   const projectRoot = options.projectRoot ?? process.cwd();

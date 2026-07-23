@@ -109,7 +109,7 @@ export function DocsLayout() {
     <div class="bg-background text-foreground min-h-screen font-sans antialiased">
       <a
         href="#main-content"
-        class="bg-primary text-primary-foreground fixed -top-full left-4 z-[100] rounded-md px-[0.9rem] py-2 text-[0.8rem] font-medium transition-[top] duration-200 ease-out focus:top-3"
+        class="bg-primary text-primary-foreground fixed -top-full left-4 z-100 rounded-md px-[0.9rem] py-2 text-[0.8rem] font-medium transition-[top] duration-200 ease-out focus:top-3"
       >
         Skip to content
       </a>

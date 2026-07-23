@@ -1,10 +1,10 @@
-import type { JSX } from "preact";
+import Preact from "preact";
 import { cn } from "../lib/utils";
 
 export function Input({
   class: className,
   ...rest
-}: JSX.HTMLAttributes<HTMLInputElement>) {
+}: Preact.HTMLAttributes<HTMLInputElement>) {
   return (
     <input
       class={cn(
