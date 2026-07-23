@@ -42,6 +42,7 @@
     "pino",
     "POPCNT",
     "popcount",
+    "preact",
     "pttl",
     "pushpop",
     "reentrancy",
