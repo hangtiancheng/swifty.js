@@ -12,7 +12,7 @@
  */
 import MarkdownIt from "markdown-it";
 import type { Token } from "markdown-it/index.js";
-import type { HeadingInfo } from "../types";
+import type { HeadingInfo } from "@/types";
 import { slugify } from "./slugify";
 
 // Shared parser instance — parsing is on the hot path in the scanner.

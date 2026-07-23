@@ -7,7 +7,7 @@
  * with Zod at the provider boundary before the theme consumes it.
  */
 import { z } from "zod";
-import type { NavItem, SidebarItem } from "../../types";
+import type { NavItem, SidebarItem } from "@/types";
 
 const NavItemSchema: z.ZodType<NavItem> = z.object({
   text: z.string(),

@@ -7,7 +7,7 @@
  *
  * No Algolia account or API key is required.
  */
-import type { SearchEntry } from "../types";
+import type { SearchEntry } from "@/types";
 
 /**
  * Algolia-compatible search client that queries a local SearchEntry index.

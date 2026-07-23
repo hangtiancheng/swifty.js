@@ -22,7 +22,7 @@
  *
  * The optional second argument `projectRoot` controls path resolution
  * for the `docs` directory and the generated output. Defaults to
- * `process.cwd()`, which is the project root in most Vite/Webpack/Rspack
+ * `process.cwd()`, which is the project root in most Vite
  * setups.
  */
 import type { DocsConfig, SidebarConfig } from "./types";

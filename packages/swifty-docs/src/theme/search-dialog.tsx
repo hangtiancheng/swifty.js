@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
-import { useLocation } from "wouter-preact";
+import { useLocation } from "preact-iso";
 import { useDocs } from "./context";
 import { CornerDownLeftIcon, FileTextIcon, SearchIcon } from "./icons";
 import {
@@ -21,7 +21,7 @@ const MAX_RESULTS = 12;
 
 export function SearchDialog() {
   const docs = useDocs();
-  const [, navigate] = useLocation();
+  const { route: navigate } = useLocation();
   const engine = useRef(createSearchEngine(docs.getSearchIndex)).current;
 
   const [query, setQuery] = useState("");

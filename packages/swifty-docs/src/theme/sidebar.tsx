@@ -1,9 +1,8 @@
-import { Link } from "wouter-preact";
 import { useEffect, useMemo, useState } from "preact/hooks";
 import { useDocs } from "./context";
 import { ChevronDownIcon, ChevronRightIcon } from "./icons";
 import { cn } from "./lib/utils";
-import type { SidebarItem } from "../types";
+import type { SidebarItem } from "@/types";
 
 interface SidebarProps {
   path: string;
@@ -142,7 +141,7 @@ function SidebarNode({
   if (!hasChildren) {
     return (
       <li>
-        <Link
+        <a
           href={item.link ?? "#"}
           onClick={() => onNavigate?.()}
           aria-current={active ? "page" : undefined}
@@ -154,7 +153,7 @@ function SidebarNode({
           )}
         >
           {item.text}
-        </Link>
+        </a>
       </li>
     );
   }

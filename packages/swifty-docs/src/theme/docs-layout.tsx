@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
-import { useLocation } from "wouter-preact";
+import { useLocation } from "preact-iso";
 import { ContentRenderer } from "./content-renderer";
 import { useDocs } from "./context";
 import { CompassIcon, XIcon } from "./icons";
@@ -20,7 +20,7 @@ import { Button } from "./ui/button";
 
 export function DocsLayout() {
   const docs = useDocs();
-  const [location, navigate] = useLocation();
+  const { path: location, route: navigate } = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const landing = docs.config.nav?.[0]?.link ?? docs.config.baseUrl ?? "/";
@@ -31,7 +31,7 @@ export function DocsLayout() {
   useEffect(() => {
     const redirect = normalized.redirect;
     if (redirect !== null && redirect !== location) {
-      navigate(redirect, { replace: true });
+      navigate(redirect, true);
     }
   }, [normalized.redirect, location, navigate]);
 
@@ -69,7 +69,7 @@ export function DocsLayout() {
     if (loading || content !== null) return;
     const base = docs.config.baseUrl.replace(/\/+$/, "") || "/";
     if (path === base || path === "/") {
-      navigate(landing, { replace: true });
+      navigate(landing, true);
     }
   }, [loading, content, path, docs.config.baseUrl, landing, navigate]);
 
@@ -119,7 +119,7 @@ export function DocsLayout() {
         onMenuClick={() => setSidebarOpen(true)}
       />
 
-      <div class="mx-auto max-w-[1440px] px-4 pt-14 lg:px-8">
+      <div class="mx-auto max-w-360 px-4 pt-14 lg:px-8">
         <div class="grid grid-cols-1 gap-10 lg:grid-cols-[236px_minmax(0,1fr)] xl:grid-cols-[236px_minmax(0,1fr)_224px]">
           <aside class="hidden lg:block">
             <div class="sidebar-scroll sticky top-14 max-h-[calc(100vh-3.5rem)] overflow-y-auto py-8 pr-3">
@@ -211,7 +211,7 @@ function BackgroundLayers() {
     <div aria-hidden="true" class="pointer-events-none fixed inset-0 -z-10">
       <div class="absolute inset-0 bg-[radial-gradient(56rem_30rem_at_16%_-10%,color-mix(in_oklab,var(--primary)_10%,transparent),transparent_70%)]" />
       <div class="absolute inset-0 bg-[radial-gradient(44rem_26rem_at_96%_-4%,color-mix(in_oklab,var(--primary)_6%,transparent),transparent_70%)]" />
-      <div class="via-primary/40 absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent to-transparent" />
+      <div class="via-primary/40 absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent to-transparent" />
       <div class="docs-grid absolute inset-0" />
       <div class="docs-grain absolute inset-0" />
     </div>

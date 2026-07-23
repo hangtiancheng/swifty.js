@@ -1,9 +1,8 @@
-import { Link } from "wouter-preact";
 import { useEffect, useState } from "preact/hooks";
 import { useDocs } from "./context";
 import { ArrowUpRightIcon, MenuIcon, SearchIcon } from "./icons";
 import { cn } from "./lib/utils";
-import type { NavItem } from "../types";
+import type { NavItem } from "@/types";
 import { Logo } from "./logo";
 import { DocSearchWidget } from "./doc-search-widget";
 import { ThemeToggle } from "./theme-toggle";
@@ -36,7 +35,7 @@ export function Navbar({ path, landing, onMenuClick }: NavbarProps) {
           : "border-b border-transparent bg-transparent",
       )}
     >
-      <div class="mx-auto flex h-14 max-w-[1440px] items-center gap-2 px-4 lg:px-8">
+      <div class="mx-auto flex h-14 max-w-360 items-center gap-2 px-4 lg:px-8">
         <Button
           variant="ghost"
           size="icon"
@@ -123,8 +122,8 @@ function NavMenuItem({ item, path }: { item: NavItem; path: string }) {
   }
 
   return (
-    <Link href={item.link} class={classes}>
+    <a href={item.link} class={classes}>
       {item.text}
-    </Link>
+    </a>
   );
 }

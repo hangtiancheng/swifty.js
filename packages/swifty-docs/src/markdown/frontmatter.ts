@@ -13,7 +13,7 @@
  * 4. Return the rest as content
  */
 import { load as yamlLoad } from "js-yaml";
-import type { FrontmatterResult } from "../types";
+import type { FrontmatterResult } from "@/types";
 
 // The closing `---` may immediately follow the opening `---\n` for an
 // empty frontmatter block, so the separator before the closing `---` is

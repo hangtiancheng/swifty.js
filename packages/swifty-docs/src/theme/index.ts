@@ -9,7 +9,7 @@
  * import { DocsProvider, DocsLayout } from "@swifty.js/docs";
  * import { docsConfig, loadContent, getSearchIndex } from "@swifty-docs/generated";
  * import { render } from "preact";
- * import { Router, Route } from "wouter-preact";
+ * import { LocationProvider, Router, Route } from "preact-iso";
  *
  * render(
  *   <DocsProvider
@@ -17,9 +17,11 @@
  *     loadContent={loadContent}
  *     getSearchIndex={getSearchIndex}
  *   >
- *     <Router>
- *       <Route path="/*" component={DocsLayout} />
- *     </Router>
+ *     <LocationProvider>
+ *       <Router>
+ *         <Route default component={DocsLayout} />
+ *       </Router>
+ *     </LocationProvider>
  *   </DocsProvider>,
  *   document.getElementById("app")!,
  * );

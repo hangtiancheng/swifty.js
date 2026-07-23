@@ -1,7 +1,7 @@
 /**
  * Public compiler entry point.
  *
- * Re-exports compileMarkdown for use by build plugins (Vite/Webpack/Rspack)
+ * Re-exports compileMarkdown for use by build plugins (Vite)
  * and for direct programmatic usage.
  */
 export { compileMarkdown } from "./compile-markdown";

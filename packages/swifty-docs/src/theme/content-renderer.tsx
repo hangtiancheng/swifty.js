@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import { render } from "preact";
-import { useLocation } from "wouter-preact";
 import { CheckIcon, CopyIcon } from "./icons";
 import type { PageHeading } from "./lib/content";
 import { cn } from "./lib/utils";
@@ -12,7 +11,6 @@ interface ContentRendererProps {
 }
 
 export function ContentRenderer({ html, headings }: ContentRendererProps) {
-  const [, navigate] = useLocation();
   const articleRef = useRef<HTMLElement>(null);
   const disposersRef = useRef<Array<() => void>>([]);
 
@@ -62,16 +60,13 @@ export function ContentRenderer({ html, headings }: ContentRendererProps) {
     const anchor = target.closest("a");
     if (!anchor) return;
     const href = anchor.getAttribute("href") ?? "";
+    // In-page hash links get smooth scrolling; all other same-origin links
+    // are intercepted globally by preact-iso's LocationProvider.
     if (href.startsWith("#")) {
       e.preventDefault();
       document
         .getElementById(href.slice(1))
         ?.scrollIntoView({ behavior: "smooth", block: "start" });
-      return;
-    }
-    if (anchor.hasAttribute("data-swifty-nav")) {
-      e.preventDefault();
-      navigate(href);
     }
   };
 

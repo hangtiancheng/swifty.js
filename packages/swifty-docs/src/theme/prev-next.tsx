@@ -1,4 +1,3 @@
-import { Link } from "wouter-preact";
 import { ArrowLeftIcon, ArrowRightIcon } from "./icons";
 import type { NavLink } from "./lib/content";
 
@@ -16,7 +15,7 @@ export function PrevNext({ prev, next }: PrevNextProps) {
       aria-label="Page navigation"
     >
       {prev && (
-        <Link
+        <a
           href={prev.link}
           class="group border-border/80 bg-card/60 hover:border-primary/40 hover:bg-accent/40 flex items-center gap-3 rounded-xl border px-4 py-3 transition-[border-color,background-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:shadow-sm"
         >
@@ -29,10 +28,10 @@ export function PrevNext({ prev, next }: PrevNextProps) {
               {prev.text}
             </span>
           </span>
-        </Link>
+        </a>
       )}
       {next && (
-        <Link
+        <a
           href={next.link}
           class="group border-border/80 bg-card/60 hover:border-primary/40 hover:bg-accent/40 flex flex-row-reverse items-center gap-3 rounded-xl border px-4 py-3 text-right transition-[border-color,background-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:shadow-sm sm:min-w-56 sm:justify-self-end"
         >
@@ -45,7 +44,7 @@ export function PrevNext({ prev, next }: PrevNextProps) {
               {next.text}
             </span>
           </span>
-        </Link>
+        </a>
       )}
     </nav>
   );

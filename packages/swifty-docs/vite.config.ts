@@ -15,7 +15,7 @@ import {
   type Rollup,
 } from "vite";
 import dts from "vite-plugin-dts";
-import { resolve } from "node:path";
+import { resolve, dirname } from "node:path";
 import preact from "@preact/preset-vite";
 import tailwindcss from "@tailwindcss/vite";
 // !!! For your project, it should be:
@@ -26,6 +26,7 @@ import { VitePWA } from "vite-plugin-pwa";
 /** Documentation site configuration used in docs mode. */
 import swiftyDocsConfig from "./swifty-docs.config";
 import pkg from "./package.json" with { type: "json" };
+import { fileURLToPath } from "node:url";
 
 // === Shared constants ===
 
@@ -187,6 +188,7 @@ function docsConfig(options?: { isDev?: boolean }): UserConfig {
     ],
     resolve: {
       alias: {
+        "@": resolve(dirname(fileURLToPath(new URL(import.meta.url))), "src"),
         "@swifty-docs/generated": resolve(PKG_DIR, ".swifty-docs/generated"),
         "@swifty.js/docs": resolve(PKG_DIR, "src"),
       },

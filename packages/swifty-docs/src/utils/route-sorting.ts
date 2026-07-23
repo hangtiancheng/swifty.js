@@ -10,7 +10,7 @@
  *
  * Position values are 0-based (0 = first, 1 = second, ...).
  */
-import type { DocsRoute } from "../types";
+import type { DocsRoute } from "@/types";
 
 /**
  * Extract the filename stem (without .md extension) from a relative path.
