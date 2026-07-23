@@ -218,18 +218,13 @@
   mask-image: linear-gradient(to bottom, black, transparent 440px);
 }
 
-/* Film grain for a paper-like tooth. Opacity/blend set at usage site. */
-@utility docs-grain {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
-}
-
 @utility sidebar-scroll {
   scrollbar-width: thin;
   scrollbar-color: color-mix(in oklab, var(--color-foreground) 18%, transparent)
     transparent;
 
   &::-webkit-scrollbar {
-    @apply w-[5px];
+    @apply w-1.25;
   }
 
   &::-webkit-scrollbar-thumb {
@@ -249,7 +244,7 @@
     color-mix(in oklab, var(--color-muted) 45%, var(--color-background)) 50%,
     var(--color-muted) 60%
   );
-  @apply animate-shimmer bg-[size:200%_100%];
+  @apply animate-shimmer bg-size-[200%_100%];
 }
 
 /* ------------------------------------------------------------------ */
@@ -374,7 +369,7 @@
 }
 
 /* ------------------------------------------------------------------ */
-/* Code blocks                                                         */
+/* Code blocks                                                        */
 /* ------------------------------------------------------------------ */
 
 .codeblock {
@@ -387,7 +382,7 @@
 }
 
 .codeblock pre {
-  @apply m-0 [scrollbar-width:thin] overflow-x-auto bg-transparent! p-[1.1rem] pt-10 text-[0.8125rem] leading-[1.75];
+  @apply m-0 [scrollbar-width:thin] overflow-x-auto bg-transparent! p-[1.1rem] pt-10 text-[0.9375rem] leading-[1.75];
 }
 
 .codeblock code {
@@ -430,97 +425,71 @@
 /* ------------------------------------------------------------------ */
 
 .callout {
-  margin: 1.4rem 0;
-  border: 1px solid;
-  border-radius: 10px;
-  padding: 0.85rem 1rem 0.85rem 1.1rem;
-  font-size: 0.875rem;
-  line-height: 1.7;
+  @apply my-[1.4rem] rounded-[10px] border py-[0.85rem] pr-4 pl-[1.1rem] text-sm leading-[1.7];
 }
 
 .callout > :first-child {
-  margin-top: 0;
+  @apply mt-0;
 }
 
 .callout > :last-child {
-  margin-bottom: 0;
+  @apply mb-0;
 }
 
 .callout-title {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  margin: 0 0 0.4rem;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  @apply mt-0 mb-[0.4rem] flex items-center gap-[0.45rem] font-mono text-[11px] font-semibold tracking-[0.14em] uppercase;
 }
 
 .callout-title svg {
-  width: 14px;
-  height: 14px;
-  flex-shrink: 0;
+  @apply size-3.5 shrink-0;
 }
 
 .callout p {
-  margin: 0.3rem 0;
+  @apply my-[0.3rem];
 }
 
 .callout-tip {
-  border-color: color-mix(in oklab, var(--primary) 32%, transparent);
-  background: color-mix(in oklab, var(--primary) 7%, var(--background));
+  @apply border-primary/32 bg-[color-mix(in_oklab,var(--color-primary)_7%,var(--color-background))];
 }
 
 .callout-tip .callout-title {
-  color: var(--primary);
+  @apply text-primary;
 }
 
 .callout-warning {
-  border-color: color-mix(in oklab, var(--callout-warning) 38%, transparent);
-  background: color-mix(in oklab, var(--callout-warning) 8%, var(--background));
+  @apply border-callout-warning/38 bg-[color-mix(in_oklab,var(--color-callout-warning)_8%,var(--color-background))];
 }
 
 .callout-warning .callout-title {
-  color: var(--callout-warning);
+  @apply text-callout-warning;
 }
 
 .callout-danger {
-  border-color: color-mix(in oklab, var(--callout-danger) 36%, transparent);
-  background: color-mix(in oklab, var(--callout-danger) 7%, var(--background));
+  @apply border-callout-danger/36 bg-[color-mix(in_oklab,var(--color-callout-danger)_7%,var(--color-background))];
 }
 
 .callout-danger .callout-title {
-  color: var(--callout-danger);
+  @apply text-callout-danger;
 }
 
 .callout-details {
-  border-color: var(--border);
-  background: color-mix(in oklab, var(--muted) 45%, transparent);
+  @apply border-border bg-muted/45;
 }
 
 .callout-details .callout-title {
-  color: var(--foreground);
-  cursor: pointer;
-  margin-bottom: 0;
-  list-style: none;
-}
-
-.callout-details .callout-title::-webkit-details-marker {
-  display: none;
+  @apply text-foreground mb-0 cursor-pointer list-none [&::-webkit-details-marker]:hidden;
 }
 
 .callout-details .callout-title svg {
-  transition: transform 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+  @apply transition-transform duration-[0.25s] ease-[cubic-bezier(0.32,0.72,0,1)];
 }
 
 .callout-details[open] .callout-title {
-  margin-bottom: 0.4rem;
+  @apply mb-[0.4rem];
 }
 
 .callout-details[open] .callout-title svg {
-  transform: rotate(90deg);
+  @apply rotate-90;
 }
 
 /* ------------------------------------------------------------------ */

@@ -107,7 +107,10 @@ export function DocsLayout() {
 
   return (
     <div class="bg-background text-foreground min-h-screen font-sans antialiased">
-      <a href="#main-content" class="skip-link">
+      <a
+        href="#main-content"
+        class="bg-primary text-primary-foreground fixed -top-full left-4 z-[100] rounded-md px-[0.9rem] py-2 text-[0.8rem] font-medium transition-[top] duration-200 ease-out focus:top-3"
+      >
         Skip to content
       </a>
 
@@ -212,8 +215,7 @@ function BackgroundLayers() {
       <div class="absolute inset-0 bg-[radial-gradient(56rem_30rem_at_16%_-10%,color-mix(in_oklab,var(--primary)_10%,transparent),transparent_70%)]" />
       <div class="absolute inset-0 bg-[radial-gradient(44rem_26rem_at_96%_-4%,color-mix(in_oklab,var(--primary)_6%,transparent),transparent_70%)]" />
       <div class="via-primary/40 absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent to-transparent" />
-      <div class="docs-grid absolute inset-0" />
-      <div class="docs-grain absolute inset-0" />
+      <div class="docs-grid absolute inset-0 opacity-55 dark:opacity-30" />
     </div>
   );
 }

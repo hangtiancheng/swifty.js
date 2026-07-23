@@ -25,9 +25,9 @@ export function ContentRenderer({ html, headings }: ContentRendererProps) {
     // contains runtime user input.
     el.innerHTML = html;
 
-    el.classList.remove("page-enter");
+    el.classList.remove("animate-page-in");
     void el.offsetWidth;
-    el.classList.add("page-enter");
+    el.classList.add("animate-page-in");
 
     for (const holder of Array.from(
       el.querySelectorAll<HTMLElement>("[data-swifty-toc]"),
