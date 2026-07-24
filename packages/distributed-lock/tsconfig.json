@@ -19,7 +19,7 @@
 
     // Stricter Typechecking Options
     "noUncheckedIndexedAccess": true,
-    "exactOptionalPropertyTypes": true,
+    "exactOptionalPropertyTypes": false,
 
     // Recommended Options
     "strict": true,
@@ -27,6 +27,9 @@
     "isolatedModules": true,
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
-    "skipLibCheck": true
+    "skipLibCheck": true,
+
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
   }
 }

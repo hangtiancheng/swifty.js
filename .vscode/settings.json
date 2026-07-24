@@ -59,6 +59,7 @@
     "stylesheet",
     "swifty",
     "tsup",
+    "tsyringe",
     "vdom",
     "vnode",
     "xxhash"

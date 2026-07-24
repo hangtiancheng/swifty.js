@@ -1,0 +1,61 @@
+{
+  "name": "tsyringe",
+  "version": "4.10.0",
+  "description": "Lightweight dependency injection container for JavaScript/TypeScript",
+  "main": "dist/cjs/index.js",
+  "typings": "./dist/typings/index.d.ts",
+  "scripts": {
+    "build": "pnpm clean && pnpm build:cjs && pnpm build:es2015 && pnpm build:types",
+    "build:cjs": "tsc",
+    "clean": "rm -rf ./dist",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:inspect": "vitest --inspect-brk --no-file-parallelism",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint ./src",
+    "lint:fix": "eslint --fix ./src",
+    "format": "prettier -w ./",
+    "format:check": "prettier --check ./"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hangtiancheng/swifty.js.git",
+    "directory": "packages/decorator"
+  },
+  "keywords": [
+    "dependency injection",
+    "dependency",
+    "injection",
+    "ioc",
+    "container",
+    "javascript",
+    "typescript"
+  ],
+  "type": "module",
+  "engines": {
+    "node": ">= 6.0.0"
+  },
+  "author": "https://github.com/hangtiancheng",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/hangtiancheng/swifty.js#issue"
+  },
+  "homepage": "https://github.com/hangtiancheng/swifty.js#readme",
+  "dependencies": {
+    "tslib": "^2.8.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@swc/core": "^1.15.46",
+    "@types/node": "^24.13.3",
+    "@vitest/coverage-v8": "^4.1.10",
+    "eslint": "^10.7.0",
+    "globals": "^17.7.0",
+    "prettier": "^3.9.6",
+    "reflect-metadata": "^0.2.2",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.62.1",
+    "unplugin-swc": "^1.5.9",
+    "vitest": "^4.1.10"
+  }
+}

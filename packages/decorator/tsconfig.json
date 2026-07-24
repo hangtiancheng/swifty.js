@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "rootDir": "./",
+    "allowSyntheticDefaultImports": true,
+    "alwaysStrict": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "module": "es2022",
+    "moduleResolution": "bundler",
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "outDir": "dist",
+    "removeComments": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "strictNullChecks": true,
+    "stripInternal": true,
+    "target": "es2022",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  }
+}
