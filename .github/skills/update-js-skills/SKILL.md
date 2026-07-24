@@ -1,8 +1,8 @@
 ---
 name: update-js-skills
 description: >
-  Regenerate the swifty.js framework skill documentation by reading the latest package source code and rewriting skill files for @swifty.js/cache (packages/cache → .github/skills/swifty-cache), @swifty.js/cdn (packages/cdn → .github/skills/swifty-cdn), and @swifty.js/docs (packages/swifty-docs → .github/skills/swifty-docs).
-  Use this skill when the user asks to update, refresh, regenerate, or sync the skill docs with the current source, or when source code under packages/cache, packages/cdn, or packages/swifty-docs has changed and the skills need to reflect the new API surface. Also trigger when the user mentions "update skills", "refresh skill docs", "sync skills with source", or says the skill documentation is outdated.
+  Regenerate the swifty.js framework skill documentation by reading the latest package source code and rewriting skill files for @swifty.js/cache (packages/cache → .github/skills/swifty-cache), and @swifty.js/docs (packages/swifty-docs → .github/skills/swifty-docs).
+  Use this skill when the user asks to update, refresh, regenerate, or sync the skill docs with the current source, or when source code under packages/cache, or packages/swifty-docs has changed and the skills need to reflect the new API surface. Also trigger when the user mentions "update skills", "refresh skill docs", "sync skills with source", or says the skill documentation is outdated.
   Do NOT use for creating entirely new skills unrelated to these three packages, or for editing the skill description/triggering metadata only.
 ---
 
@@ -17,7 +17,6 @@ professional English documentation for each package.
 | Source directory        | Skill files to update                                     |
 | ----------------------- | --------------------------------------------------------- |
 | `packages/cache/`       | `.github/skills/swifty-cache/SKILL.md`                    |
-| `packages/cdn/`         | `.github/skills/swifty-cdn/SKILL.md`                      |
 | `packages/swifty-docs/` | `.github/skills/swifty-docs/SKILL.md` + `references/*.md` |
 
 All paths are relative to the repository root.
@@ -32,8 +31,7 @@ keep the SKILL.md pointer table in sync with the reference file set.
 For each of the three packages, execute the following steps in order:
 
 1. Read every `.ts`/`.tsx` file under the package's `src/` directory, including
-   subdirectories (e.g. `packages/cache/src/proto/`, `packages/cdn/src/
-middleware|models|routes|services|types|utils/`, `packages/swifty-docs/src/
+   subdirectories (e.g. `packages/cache/src/proto/`, `packages/swifty-docs/src/
 theme|markdown|utils/`). Do not skip test files
    (`*.test.ts`) — they reveal usage patterns, edge cases, and cleanup
    conventions that downstream users need to know. Also read non-TS runtime
@@ -75,7 +73,7 @@ theme|markdown|utils/`). Do not skip test files
 
 4. Rewrite the target skill files following the format specification below.
    The frontmatter `name` field must be exactly the skill directory name:
-   `swifty-cache`, `swifty-cdn`, or `swifty-docs`. Regenerate the
+   `swifty-cache`, or `swifty-docs`. Regenerate the
    `description` and body content.
 
 ## Output format specification
@@ -86,7 +84,7 @@ Each SKILL.md must contain:
 
 ```yaml
 ---
-name: <skill-directory-name> # swifty-cache | swifty-cdn | swifty-docs
+name: <skill-directory-name> # swifty-cache | swifty-docs
 description: <single long line optimized for skill triggering>
 ---
 ```
@@ -94,7 +92,7 @@ description: <single long line optimized for skill triggering>
 The `description` field is the primary mechanism that determines whether an
 agent invokes the skill. It must:
 
-- Name the npm package (`@swifty.js/cache`, `@swifty.js/cdn`, or
+- Name the npm package (`@swifty.js/cache`, or
   `@swifty.js/docs`) and its source path under `packages/`
 - List the most important exported symbols, env vars, headers, and endpoints
   as concrete trigger tokens
@@ -135,9 +133,6 @@ The body must cover all of the following (adapt headings to fit the package):
 7. Quick recipes: minimal, correct code examples that compile against the
    current API surface (for swifty-docs, include theme-customization recipes:
    token overrides, fonts, palette).
-8. Cross-references: cache ↔ cdn integration points, the Go sibling
-   parity table for the cache package, and for swifty-docs the pointer table
-   into its `references/` files.
 
 ## Writing standards
 
