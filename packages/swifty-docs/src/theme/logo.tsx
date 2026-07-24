@@ -42,7 +42,7 @@ export function Logo({ href, title, class: className }: LogoProps) {
       <span class="from-primary to-primary/70 text-primary-foreground shadow-primary/30 grid size-8 place-items-center rounded-lg bg-linear-to-br shadow-sm transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:scale-105 group-hover:-rotate-6">
         <FeatherIcon class="size-4.5" stroke-width={2.4} />
       </span>
-      <span class="flex items-baseline gap-2">
+      <span class="flex items-center gap-2">
         <span class="font-display text-foreground text-lg font-semibold tracking-tight">
           {title}
         </span>
