@@ -219,9 +219,5 @@ function docsConfig(options?: { isDev?: boolean }): UserConfig {
       outDir: resolve(PKG_DIR, "dist-docs"),
       emptyOutDir: true,
     },
-    server: {
-      port: 3200,
-      open: false,
-    },
   };
 }

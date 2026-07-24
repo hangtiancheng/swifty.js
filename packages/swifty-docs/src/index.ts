@@ -85,3 +85,4 @@ export {
   type PageHeading,
 } from "./theme/lib/content";
 export { createLocalSearchClient } from "./theme/docs-search-local";
+export { decryptContent } from "./utils/guard"
