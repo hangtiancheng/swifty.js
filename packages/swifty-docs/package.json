@@ -1,6 +1,6 @@
 {
   "name": "@swifty.js/docs",
-  "version": "0.2.0",
+  "version": "0.0.1",
   "description": "Preact + shadcn-style documentation site generator with a markdown-it pipeline",
   "keywords": [
     "@swifty.js",

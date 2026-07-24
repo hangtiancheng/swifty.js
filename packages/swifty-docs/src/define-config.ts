@@ -103,7 +103,7 @@ function generateRoutesFile(config: DocsConfig, projectRoot: string): void {
   const generatedDir = resolve(projectRoot, ".swifty-docs/generated");
 
   // Generate dynamic-import loaders: route path -> () => import(filePath).
-  // Each .md is compiled by the bundler plugin (swiftyDocsPlugin) into a module
+  // Each .md is compiled by the Vite plugin (swiftyDocsPlugin) into a module
   // exporting { pageData, contentHtml }. The layout view calls loadContent()
   // on navigation to fetch the matching page.
   // Use relative paths so the generated file is portable across machines.

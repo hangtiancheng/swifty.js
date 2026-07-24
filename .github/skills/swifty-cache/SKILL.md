@@ -1,141 +1,148 @@
 ---
 name: cache
-description: Authoritative reference for the @swifty.js/cache distributed in-memory cache package located at packages/cache (TypeScript/Node.js, ESM, published as `@swifty.js/cache`). Use this skill whenever the user reads, writes, debugs, reviews, or extends code that imports from `@swifty.js/cache`, references the `packages/cache` source tree, or invokes its CLI/demo (`packages/cache/src/main.ts`, `packages/cache/bootstrap.js`). Trigger eagerly on any of these symbols and concepts—`Group`, `newGroup`, `getGroup`, `listGroups`, `destroyGroup`, `destroyAllGroups`, `Getter`, `GroupOption`, `GroupStats`, `withExpiration`, `withPeers`, `withCacheOptions`, `Cache`, `CacheOptions`, `CacheStats`, `defaultCacheOptions`, `Store`, `StoreOptions`, `LruStore`, `defaultStoreOptions`, `usedBytes`, `ByteView`, `cloneBytes`, `Value`, `SingleFlightGroup`, `ConHashMap`, `ConHashConfig`, `ConHashOption`, `withConHashConfig`, `defaultConHashConfig`, `autoRebalance`, `crc32`, `HashFunc`, `hashBKRD`, `maskOfNextPowOf2`, `Peer`, `PeerPicker`, `Client`, `ClientOptions`, `deadlineMs`, `ClientPicker`, `PickerOption`, `peerDeadlineMs`, `Server`, `ServerOptions`, `advertiseAddr`, `register`, `RegisterConfig`, `defaultRegisterConfig`, `leaseTTL`, `ServiceDiscovery`, `validPeerAddr`, `getLocalIP`, `Logger`, `log`, `setLogger`, the `pb.SwiftyCache` gRPC service (Get/Set/Delete RPCs), and the `x-peer-request` metadata flag. Also trigger on conceptual phrases like "groupcache for Node", "TypeScript distributed cache with consistent hashing", "single-flight cache stampede", "etcd-based peer discovery", "two-level LRU cache", "peer fan-out write propagation", and on file paths under `packages/cache/src/**`. Do NOT use this skill for the Go sibling `github.com/hangtiancheng/swifty.go/swifty_cache`—route those tasks to the `swifty-cache` Go skill instead. The two share architecture but diverge on naming (PascalCase Go vs. camelCase TS), concurrency primitives (`context.Context`/goroutine vs. `AbortSignal`/`async`), and packaging.
+description: Authoritative reference for the @swifty.js/cache distributed in-memory cache package located at packages/cache (TypeScript/Node.js ≥ 20, ESM, published as `@swifty.js/cache`), a groupcache-style peer-to-peer sharded read-through cache over gRPC with etcd discovery. Use this skill whenever the user reads, writes, debugs, reviews, or extends code that imports from `@swifty.js/cache`, references the `packages/cache` source tree, or invokes its demo/runner (`packages/cache/src/main.ts`, `packages/cache/bootstrap.js`). Trigger eagerly on any of these exported symbols—`Group`, `newGroup`, `getGroup`, `listGroups`, `destroyGroup`, `destroyAllGroups`, `Getter`, `GroupOption`, `GroupStats`, `withExpiration`, `withPeers`, `withCacheOptions`, `Cache`, `CacheOptions`, `CacheStats`, `defaultCacheOptions`, `Value`, `Store`, `StoreOptions`, `defaultStoreOptions`, `LruStore`, `usedBytes`, `hashBKRD`, `maskOfNextPowOf2`, `ByteView`, `cloneBytes`, `SingleFlightGroup`, `ConHashMap`, `ConHashOption`, `withConHashConfig`, `ConHashConfig`, `defaultConHashConfig`, `crc32`, `HashFunc`, `Peer`, `PeerPicker`, `Client`, `ClientOptions`, `deadlineMs`, `ClientPicker`, `PickerOption`, `peerDeadlineMs`, `Server`, `ServerOptions`, `advertiseAddr`, `register`, `RegisterConfig`, `defaultRegisterConfig`, `leaseTTL`, `ServiceDiscovery`, `validPeerAddr`, `getLocalIP`, `Logger`, `log`, `setLogger`, the `pb.SwiftyCache` gRPC service (Get/Set/Delete RPCs), and the `x-peer-request` metadata flag—and on conceptual phrases like "groupcache for Node", "TypeScript distributed cache with consistent hashing", "single-flight cache stampede", "cache miss thundering herd", "etcd-based peer discovery", "two-level LRU cache", "peer fan-out write propagation", or file paths under `packages/cache/src/**`. Do NOT use this skill for the CDN server that consumes this cache—the `@swifty.js/cdn` package at `packages/cdn` is covered by the `swifty-cdn` skill—and do NOT use it for the Go sibling `github.com/hangtiancheng/swifty.go/swifty_cache`, which is covered by its own Go skill; the two siblings share architecture and wire format but diverge on naming (PascalCase Go vs. camelCase TS), concurrency primitives (`context.Context`/goroutines vs. `AbortSignal`/`async`), and packaging.
 ---
 
 # @swifty.js/cache — Distributed Cache for Node.js
 
-`@swifty.js/cache` is a TypeScript port of the groupcache architecture popularized by Brad Fitzpatrick, redesigned for the Node.js runtime and shipped from `packages/cache` as ESM (`"type": "module"`, Node ≥ 20). It provides a coherent set of building blocks—`Group`, `Cache`, `LruStore`, `ConHashMap`, `SingleFlightGroup`, `ClientPicker`, `Server`, etcd-based registration—that together yield a peer-to-peer, eventually consistent, sharded read-through cache reachable over gRPC. This skill is the canonical playbook: consult it before designing topologies, wiring callers, debugging timeouts, or evolving the public surface.
+`@swifty.js/cache` is a TypeScript port of the groupcache architecture, redesigned for the Node.js runtime and shipped from `packages/cache` as pure ESM (`"type": "module"`, `engines.node >= 20`, `main`/`module`/`exports.import` all point at `dist/index.mjs`). It composes a coherent set of building blocks—`Group`, `Cache`, `LruStore`, `ByteView`, `SingleFlightGroup`, `ConHashMap`, `Client`/`ClientPicker`, `Server`, etcd registration/discovery—into a peer-to-peer, eventually consistent, sharded read-through cache reachable over gRPC. Runtime dependencies: `@grpc/grpc-js`, `@grpc/proto-loader`, `etcd3`. It is suitable as an in-process L1 cache (the `@swifty.js/cdn` server uses `Cache` + `ByteView` standalone) or as a clustered cache with peer fan-out; it is NOT a replicated store, offers no quorum or anti-entropy, and should not be used where strong consistency or durability is required.
 
-The package is intentionally aligned with the Go sibling at `swifty.go/swifty_cache`. APIs, semantics, and wire format match symbol-for-symbol; only naming conventions and language-idiomatic concurrency diverge. When the user mentions concepts that exist on both sides, confirm whether they mean the TypeScript package (`@swifty.js/cache`, this skill) or the Go module (the Go skill).
+The package intentionally mirrors the Go sibling `swifty.go/swifty_cache`: APIs, semantics, etcd key layout, and wire format match symbol-for-symbol; only naming conventions and language-idiomatic concurrency diverge. When a user mentions concepts that exist on both sides, confirm whether they mean the TypeScript package (this skill) or the Go module (the Go skill).
 
-Runtime dependencies: `@grpc/grpc-js`, `@grpc/proto-loader`, `etcd3`.
+## Architecture overview
 
-## When to consult this skill (and when to skip)
+```
+packages/cache/
+├── bootstrap.js              # end-to-end demo runner (etcd + 3 nodes + gRPC smoke test)
+├── rollup.config.mjs         # ESM bundle (preserveModules) + dts + copies .proto into dist/proto
+├── package.json              # @swifty.js/cache, type: module, exports ".", "./proto/*.proto"
+└── src/
+    ├── index.ts              # THE export contract; anything not re-exported here is internal
+    ├── group.ts              # Group orchestrator, registry, functional options, stats
+    ├── cache.ts              # Cache facade (lazy LruStore init, hit/miss counters)
+    ├── store.ts              # Value/Store/StoreOptions interfaces, defaultStoreOptions
+    ├── lru.ts                # LruStore: sharded two-level LRU, byte budget, cleanup timer
+    ├── byte-view.ts          # ByteView immutable byte container, cloneBytes
+    ├── single-flight.ts      # SingleFlightGroup load deduplication
+    ├── consistent-hash.ts    # ConHashMap virtual-node ring, adaptive rebalancing
+    ├── config.ts             # ConHashConfig, defaultConHashConfig
+    ├── crc32.ts              # IEEE CRC-32 (default ring hash), HashFunc type
+    ├── peers.ts              # Peer / PeerPicker interfaces
+    ├── client.ts             # Client: gRPC stub implementing Peer
+    ├── client-picker.ts      # ClientPicker: ring + clients + etcd discovery
+    ├── server.ts             # Server: gRPC service + health check + etcd registration
+    ├── register.ts           # register() lease keep-alive, ServiceDiscovery watcher
+    ├── utils.ts              # validPeerAddr, getLocalIP
+    ├── logger.ts             # Logger indirection ([SwiftyCache] console default)
+    ├── main.ts               # demo assembly (not exported from index.ts)
+    └── proto/
+        ├── index.ts          # proto/healthProto loaded at module import via proto-loader
+        ├── swifty.proto      # pb.SwiftyCache: Get/Set/Delete
+        └── health.proto      # grpc.health.v1.Health: Check
+```
 
-Trigger this skill whenever you encounter:
+**Read path (read-through):** `Group.get` → local `Cache` hit? return → miss → `SingleFlightGroup.do(key, …)` deduplicates concurrent loads → `loadData`: if peers are wired, `PeerPicker.pickPeer(key)` elects the consistent-hash owner; a remote owner is queried via `Client.get` over gRPC (`peer_hits`/`peer_misses`); on peer failure or self-ownership the user-supplied `Getter` loads from origin (`loader_hits`/`loader_errors`). The loaded `ByteView` is written into the local cache (with TTL when `withExpiration` is set) inside the single-flight callback.
 
-- imports from `@swifty.js/cache` or relative imports inside `packages/cache/src/**`;
-- discussion of the demo entry `packages/cache/src/main.ts` or the integration runner `packages/cache/bootstrap.js`;
-- any of the symbols listed in the YAML `description`;
-- requests to add new RPC handlers, swap in a different store, change consistent-hash replicas, tune deadlines, integrate TLS, change etcd endpoints, or re-export new public types;
-- bug reports about cache miss storms, cross-node propagation gaps, `DEADLINE_EXCEEDED` from `pb.SwiftyCache.Get/Set/Delete`, port collisions, stale peers in the consistent-hash ring, or self-forwarding loops caused by bind/advertise address mismatches.
-
-Do **not** trigger for: the Go module under `swifty.go/swifty_cache` (route to its dedicated skill); generic `node-cache`, `lru-cache`, `keyv`, `cache-manager`, or Redis client questions; gRPC tutorials unrelated to this package; or unrelated browser-side caches.
-
-## Mental model
-
-Reads are **read-through**: a miss at the local LRU is funnelled through `SingleFlightGroup` to deduplicate concurrent loads; the loader either hops to the consistent-hash–elected peer over gRPC or invokes the user-supplied `Getter` to consult the origin. Writes (`set`/`delete`) update the local cache **and** asynchronously fan out to the single peer that owns the key on the ring (fire-and-forget). Peer-originated traffic carries the `x-peer-request` gRPC metadata so the receiver does not echo the propagation back. Other nodes are NOT notified, so their local caches may serve stale values until eviction or expiration. There is no quorum and no anti-entropy—convergence is best-effort eventual consistency, the same as the Go sibling.
+**Write path (fan-out):** `Group.set`/`Group.delete` update the local cache, then—when `isPeerRequest === false` and peers are wired—asynchronously forward the operation to the single ring owner of the key (fire-and-forget, errors only logged). Peer-originated traffic carries the gRPC metadata `x-peer-request: "true"`, which the receiving `Server` translates into `isPeerRequest = true` so the write is not echoed back. Other nodes are NOT notified; their caches may serve stale values until eviction or expiration. This is weak eventual consistency, not replication.
 
 ## Public API surface
 
-All exports come through `packages/cache/src/index.ts`. Treat that file as the contract: anything not re-exported is internal and must not be relied on by callers.
+All exports flow through `packages/cache/src/index.ts`. Treat that file as the contract; the only sanctioned subpath exports are `@swifty.js/cache/proto/swifty.proto`, `.../proto/health.proto`, and `./package.json`.
 
 ### Group orchestration (`group.ts`)
 
-- `type Getter = (ctx: AbortSignal, key: string) => Promise<Buffer>` — origin loader. Receives the `AbortSignal` from the originating call (or a per-request signal wired to gRPC call cancellation when invoked through the server).
+- `type Getter = (ctx: AbortSignal, key: string) => Promise<Buffer>` — origin loader. Receives the caller's `AbortSignal` (the `Server` derives one from gRPC call cancellation).
 - `interface GroupOption { (g: Group): void }` — functional-options pattern matching the Go side.
-- `withExpiration(ms: number): GroupOption` — set per-entry TTL in milliseconds; `0` (default) means no expiration.
-- `withPeers(peers: PeerPicker): GroupOption` — wire a `PeerPicker` (typically `ClientPicker`) so the group can discover and forward to remote owners.
-- `withCacheOptions(opts: CacheOptions): GroupOption` — replace the default `Cache` with a custom-configured one (closes the default cache first).
-- `class Group` (registered globally by name)
+- `withExpiration(ms: number): GroupOption` — per-entry TTL in milliseconds; `0` (default) means no expiration.
+- `withPeers(peers: PeerPicker): GroupOption` — wire a `PeerPicker` (typically `ClientPicker`) at construction.
+- `withCacheOptions(opts: CacheOptions): GroupOption` — replace the default `Cache` with a custom-configured one (the default cache is closed first).
+- `class Group` (registered globally by name via `newGroup`)
   - `constructor(name, cacheBytes, getter, ...opts)` — throws `"nil Getter"` without a loader; `cacheBytes` becomes `CacheOptions.maxBytes` on top of `defaultCacheOptions()`.
-  - `get(ctx: AbortSignal, key: string): Promise<ByteView>` — read-through with single-flight; throws on closed group or empty key.
-  - `set(ctx: AbortSignal, key: string, value: Buffer, isPeerRequest = false): Promise<void>` — local write (clones the buffer) plus best-effort peer fan-out when `isPeerRequest` is `false` and peers are wired.
+  - `get(ctx: AbortSignal, key: string): Promise<ByteView>` — read-through with single-flight.
+  - `set(ctx: AbortSignal, key: string, value: Buffer, isPeerRequest = false): Promise<void>` — clones the buffer, writes locally (with TTL if configured), then best-effort fan-out unless `isPeerRequest`.
   - `delete(ctx: AbortSignal, key: string, isPeerRequest = false): Promise<void>` — symmetric to `set`.
-  - `clear()` — wipe local entries; does not propagate.
-  - `close()` — idempotently dispose; removes itself from the registry.
-  - `registerPeers(peers)` — late-binding alternative to `withPeers`. Throws `"RegisterPeers called more than once"` if peers already set.
-  - `getStats(): GroupStats` — see below.
-  - `getName()`.
-- `interface GroupStats` (exported) — `{ name, closed, expiration, loads, local_hits, local_misses, peer_hits, peer_misses, loader_hits, loader_errors, hit_rate?, avg_load_time_ms?, cache: CacheStats }`. `hit_rate = local_hits / (local_hits + local_misses)`; load counters and durations are recorded **inside** the single-flight callback, so they count actual loads, not waiting callers.
-- `newGroup(name, cacheBytes, getter, ...opts): Group` — preferred factory; registers in the package-level `Map<string, Group>`. Re-registration logs a warning and replaces the existing entry (the old group is NOT closed automatically).
-- `getGroup(name): Group | undefined`, `listGroups(): string[]`, `destroyGroup(name): boolean`, `destroyAllGroups(): void`.
+  - `clear(): void` — wipe local entries; does not propagate. No-op when closed.
+  - `close(): void` — idempotent; closes the cache and removes the group from the registry.
+  - `registerPeers(peers: PeerPicker): void` — late-binding alternative to `withPeers`; throws `"RegisterPeers called more than once"` if peers already set (note: `withPeers` bypasses this guard via `_setPeers`).
+  - `getStats(): GroupStats`, `getName(): string`.
+  - `_setExpiration`/`_setPeers`/`_setCacheOptions` exist for the option functions; do not call them directly.
+- `interface GroupStats` — `{ name, closed, expiration, loads, local_hits, local_misses, peer_hits, peer_misses, loader_hits, loader_errors, hit_rate?, avg_load_time_ms?, cache: CacheStats }`. `hit_rate = local_hits / (local_hits + local_misses)`; `avg_load_time_ms = loadDuration / loads`. Load counters and durations are recorded inside the single-flight callback, so they count actual loads, not waiting callers.
+- `newGroup(name, cacheBytes, getter, ...opts): Group` — preferred factory; registers in a package-level `Map<string, Group>`. Re-registration logs `"Group with name ${name} already exists; replacing it"` and replaces the entry WITHOUT closing the old group.
+- `getGroup(name): Group | undefined`, `listGroups(): string[]`, `destroyGroup(name): boolean` (removes + closes), `destroyAllGroups(): void`.
 
-Sentinel errors thrown internally (not exported as values): match on `err.message` substrings — `"key is required"`, `"value is required"` (`set` with empty `Buffer`), `"cache group is closed"`, `"nil Getter"`, `"RegisterPeers called more than once"`.
+Sentinel errors are module-level `Error` instances, not exported; match on `err.message`: `"key is required"`, `"value is required"` (empty/zero-length `Buffer` on `set`), `"cache group is closed"`, `"nil Getter"`, `"RegisterPeers called more than once"`, and loader failures wrapped as `"failed to get data: ${cause}"`.
 
 ### Cache and storage (`cache.ts`, `store.ts`, `lru.ts`)
 
-- `interface Value { len(): number }` — minimal sized-value contract. `ByteView` is the canonical implementation.
-- `interface Store` — `get`, `set`, `setWithExpiration`, `delete`, `clear`, `len`, `close`. Pluggable but only `LruStore` is shipped.
-- `interface StoreOptions { maxBytes?, bucketCount?, capPerBucket?, level2Cap?, cleanupInterval?, onEvicted? }`. `defaultStoreOptions()` returns `{ maxBytes: 8192, bucketCount: 16, capPerBucket: 512, level2Cap: 256, cleanupInterval: 60_000 }`. Note: when `LruStore` is constructed with fields omitted, its own fallbacks are `capPerBucket: 1024`, `level2Cap: 1024`—different from `defaultStoreOptions()`.
-- `interface CacheOptions { maxBytes?, bucketCount?, capPerBucket?, level2Cap?, cleanupTime?, onEvicted? }` — mirrors `StoreOptions` but the interval field is named `cleanupTime` (mapped to `cleanupInterval` internally). `defaultCacheOptions()` returns `{ maxBytes: 8 MiB, bucketCount: 16, capPerBucket: 512, level2Cap: 256, cleanupTime: 60_000 }`.
-- `interface CacheStats` (exported) — `{ initialized, closed, hits, misses, size?, hit_rate? }`; `size`/`hit_rate` only present once the store is lazily initialized.
-- `class Cache` — facade owned by `Group`. Lazily instantiates an `LruStore` on first `add`/`addWithExpiration`. Tracks `hits`/`misses`. `addWithExpiration(key, view, expirationTime)` accepts an **absolute** deadline (ms epoch); an already-expired write is treated as a delete. Adds to a closed cache are logged and dropped.
-- `class LruStore` — sharded two-level LRU with a **byte budget**:
-  - `bucketCount` is rounded to a power of two via `maskOfNextPowOf2`; each shard holds two `InternalCache` rings (capacity `capPerBucket` and `level2Cap`).
-  - **Promotion**: a hit in level 1 removes the entry from L1 and re-inserts it into L2, providing scan resistance (2Q-style). L2 hits stay in L2.
-  - **Byte accounting**: each shard gets `bucketMaxBytes = max(1, floor(maxBytes / shardCount))` when `maxBytes > 0`. Entry size is `key.length + value.len()`. After every `set`, tails are evicted (L1 first, then L2) until the shard is under budget, firing `onEvicted` for each victim. `usedBytes()` reports the live total across shards.
-  - Per-entry expiry is enforced lazily on `get` and proactively by an internal `setInterval(cleanupInterval)` sweep (disabled when `cleanupInterval ≤ 0`). Always call `close()` to clear the timer.
-- `hashBKRD(s)` — fast non-cryptographic 32-bit hash used to pick the shard. **Do not** use it for the consistent-hash ring (that's CRC32 by default).
-- `maskOfNextPowOf2(cap)` — utility for power-of-two masks (operates on the low 16 bits).
+- `interface Value { len(): number }` — minimal sized-value contract; `ByteView` is the canonical implementation.
+- `interface Store` — `get`, `set`, `setWithExpiration(key, value, expirationMs)`, `delete`, `clear`, `len`, `close`. Pluggable, but only `LruStore` ships.
+- `interface StoreOptions { maxBytes?, bucketCount?, capPerBucket?, level2Cap?, cleanupInterval?, onEvicted? }`. `defaultStoreOptions()` returns `{ maxBytes: 8192, bucketCount: 16, capPerBucket: 512, level2Cap: 256, cleanupInterval: 60_000, onEvicted: undefined }`. Caveat: when `LruStore` is constructed with fields omitted, its OWN fallbacks are `bucketCount: 16`, `capPerBucket: 1024`, `level2Cap: 1024`, `cleanupInterval: 60_000`, `maxBytes: 0` (no byte budget)—different from `defaultStoreOptions()`, which is never applied implicitly.
+- `interface CacheOptions { maxBytes?, bucketCount?, capPerBucket?, level2Cap?, cleanupTime?, onEvicted? }` — mirrors `StoreOptions` but the interval field is named `cleanupTime` (mapped to `cleanupInterval` internally). `defaultCacheOptions()` returns `{ maxBytes: 8 * 1024 * 1024, bucketCount: 16, capPerBucket: 512, level2Cap: 256, cleanupTime: 60_000, onEvicted: undefined }`.
+- `interface CacheStats` — `{ initialized, closed, hits, misses, size?, hit_rate? }`; `size` and `hit_rate` present only once the store is lazily initialized.
+- `class Cache` — facade owned by `Group` (also consumed standalone by `@swifty.js/cdn`). Lazily instantiates an `LruStore` on first `add`/`addWithExpiration` (logs `"Cache initialized, max bytes: …"`). Tracks `hits`/`misses` (`get` on an uninitialized cache counts a miss). `addWithExpiration(key, view, expirationTime)` takes an ABSOLUTE deadline (ms epoch); an already-expired write is treated as a delete. Adds to a closed cache log `"Attempted to add to a closed cache: ${key}"` and are dropped. `close()` releases the store and its timer.
+- `class LruStore implements Store` — sharded two-level LRU with a byte budget:
+  - `bucketCount` is rounded to a power of two via `maskOfNextPowOf2`; each shard holds two `InternalCache` rings (capacities `capPerBucket` for L1 and `level2Cap` for L2).
+  - **Promotion (2Q-style scan resistance):** a hit in L1 removes the entry from L1 and re-inserts it into L2; L2 hits stay in L2. `set` always lands in L1 after purging any copy from both levels.
+  - **Byte accounting:** with `maxBytes > 0`, each shard gets `bucketMaxBytes = max(1, floor(maxBytes / shardCount))`. Entry size is `key.length + value.len()`. After every `set`, tails are evicted (L1 first, then L2) until the shard is under budget, firing `onEvicted` per victim. `usedBytes()` reports the live total across shards.
+  - Per-entry expiry is enforced lazily on `get` and proactively by an internal `setInterval(cleanupInterval)` sweep (disabled when `cleanupInterval <= 0`; `Cache` disables it by passing the value through). Always call `close()` to clear the timer; `close()` is idempotent.
+  - `onEvicted` fires on capacity overflow, byte-budget eviction, lazy/periodic expiry, and explicit `delete`.
+- `hashBKRD(s: string): number` — fast non-cryptographic 32-bit hash (seed 131) used to pick the shard. Do NOT use it for the consistent-hash ring (that defaults to CRC-32).
+- `maskOfNextPowOf2(cap: number): number` — power-of-two mask helper operating on the low 16 bits (`maskOfNextPowOf2(3) === 3`, `(16) === 15`).
 
 ### Immutable byte container (`byte-view.ts`)
 
-- `class ByteView` wraps a `Buffer`. `len()` returns size; `byteSlice()` returns a **defensive copy** so mutations cannot leak back into the cache; `toString()` decodes UTF-8.
-- `cloneBytes(b)` is the always-copy helper used internally before any value enters a cache or crosses the public boundary. Treat all cached values as immutable.
+- `class ByteView implements Value` wraps a `Buffer`. `len()` returns size; `byteSlice()` returns a DEFENSIVE COPY (`Buffer.from(this.b)`) so mutations cannot leak into the cache; `toString()` decodes UTF-8.
+- `cloneBytes(b: Buffer): Buffer` — always-copy helper used before any value enters a cache or crosses the peer boundary. Treat all cached values as immutable.
 
 ### Coalescing concurrent loads (`single-flight.ts`)
 
-- `class SingleFlightGroup` provides `do<T>(key, fn): Promise<T>`. Concurrent calls with the same key share a single in-flight `Promise`; the entry is removed from the internal map in `finally`, so subsequent identical keys re-execute. Rejections propagate to every waiter (an internal no-op `catch` prevents unhandled-rejection warnings). This is what protects the origin from a thundering-herd cache miss.
+- `class SingleFlightGroup` — `do<T>(key: string, fn: () => Promise<T>): Promise<T>`. Concurrent calls with the same key share one in-flight promise; the entry is removed in `finally`, so subsequent calls re-execute. Rejections propagate to every waiter; an internal no-op `.catch(() => {})` prevents unhandled-rejection warnings. This is the thundering-herd protection for the origin.
 
 ### Consistent hashing (`consistent-hash.ts`, `config.ts`, `crc32.ts`)
 
-- `class ConHashMap` — sorted virtual-node ring keyed by 32-bit hashes. `add(...nodes)`, `remove(node)`, `get(key)` (returns `""` for empty key or empty ring), `getStats()` (per-node fraction of routed requests), `setConfig(config)`, `rebalance()` (manual trigger), `close()`.
-- `withConHashConfig(config): ConHashOption` — override the entire configuration at construction.
-- `interface ConHashConfig { defaultReplicas, minReplicas, maxReplicas, hashFunc, loadBalanceThreshold, autoRebalance? }`. `defaultConHashConfig` is `{ defaultReplicas: 50, minReplicas: 10, maxReplicas: 200, hashFunc: crc32, loadBalanceThreshold: 0.25, autoRebalance: false }`.
-- **Adaptive rebalancing is opt-in** (`autoRebalance: true`; also toggleable at runtime via `setConfig`). When enabled, a 1-second timer inspects accumulated request counts; once `totalRequests ≥ 1000` and the worst node deviates from the average by more than `loadBalanceThreshold` (default 25 %), it scales each node's replica count by `currentReplicas / loadRatio` (overloaded) or `currentReplicas * (2 - loadRatio)` (underloaded), clamped to `[minReplicas, maxReplicas]`. Counters reset and the ring is re-sorted. Call `close()` to stop the timer; without `autoRebalance` there is no timer, but `close()` is still safe and idiomatic.
-- Virtual-node hashes are computed as `hashFunc("{node}-{i}")`.
-- `crc32(data: string | Buffer): number` — IEEE polynomial CRC-32 (table-driven, initialized at module load). Type alias `HashFunc = (data: string | Buffer) => number`.
+- `class ConHashMap` — sorted virtual-node ring keyed by 32-bit hashes. `constructor(...opts: ConHashOption[])`; `add(...nodes: string[])` (empty strings skipped), `remove(node)`, `get(key)` returns the owning node or `""` for an empty key/ring, `getStats(): Record<string, number>` (per-node fraction of routed requests; empty until any request), `setConfig(config)` (also starts/stops the balancer timer), `rebalance()` (manual trigger), `close()` (stops the timer).
+- `type ConHashOption = (m: ConHashMap) => void`; `withConHashConfig(config: ConHashConfig): ConHashOption` replaces the entire configuration.
+- `interface ConHashConfig { defaultReplicas, minReplicas, maxReplicas, hashFunc, loadBalanceThreshold, autoRebalance? }`. `defaultConHashConfig = { defaultReplicas: 50, minReplicas: 10, maxReplicas: 200, hashFunc: crc32, loadBalanceThreshold: 0.25, autoRebalance: false }`.
+- **Adaptive rebalancing is opt-in** (`autoRebalance: true`). When enabled, a 1-second `setInterval` checks accumulated counts; once `totalRequests >= 1000` and the worst node deviates from the average by more than `loadBalanceThreshold`, replicas are scaled per node: overloaded → `floor(currentReplicas / loadRatio)`, underloaded → `floor(currentReplicas * (2 - loadRatio))`, clamped to `[minReplicas, maxReplicas]`. Counters reset and the ring re-sorts. Without `autoRebalance` no timer exists, but `close()` remains safe and idiomatic.
+- Virtual-node hashes are computed as `hashFunc("{node}-{i}")` for `i in [0, replicas)`.
+- `crc32(data: string | Buffer): number` — table-driven IEEE CRC-32 (polynomial `0xedb88320`, table built at module load). `type HashFunc = (data: string | Buffer) => number`.
 
 ### Peer abstractions (`peers.ts`, `client.ts`, `client-picker.ts`)
 
-- `interface Peer` — `get(group, key): Promise<Buffer>`, `set(group, key, value): Promise<void>`, `delete(group, key): Promise<boolean>`, `close(): Promise<void>`; shape mirrors the gRPC service.
-- `interface PeerPicker` — `pickPeer(key): [Peer | null, found, isSelf]`, `close(): Promise<void>`. Implementing your own picker (e.g. for static topologies) is supported.
-- `class Client implements Peer` — gRPC stub over insecure credentials.
-  - `interface ClientOptions { deadlineMs?, peerRequest? }` — `deadlineMs` sets the per-call deadline (default **3000 ms**); `peerRequest: true` attaches `x-peer-request: "true"` metadata to every outgoing call so the receiving server suppresses re-propagation.
-  - Errors surface as `Error("failed to {get|set|delete} value {from|to} swifty_cache: ${grpcMessage}")`. `getAddr()` returns the stored address.
+- `interface Peer` — `get(group, key): Promise<Buffer>`, `set(group, key, value): Promise<void>`, `delete(group, key): Promise<boolean>`, `close(): Promise<void>`. Mirrors the gRPC service.
+- `interface PeerPicker` — `pickPeer(key): [Peer | null, found: boolean, isSelf: boolean]`, `close(): Promise<void>`. Custom pickers (e.g. static topologies) are supported; the test suite's `FakePeerPicker` shows the pattern.
+- `class Client implements Peer` — gRPC stub over `grpc.credentials.createInsecure()` (no TLS client support).
+  - `interface ClientOptions { deadlineMs?, peerRequest? }` — `deadlineMs` is the per-call deadline (default `3000` ms); `peerRequest: true` attaches `x-peer-request: "true"` metadata to every outgoing call.
+  - Errors surface as `Error("failed to get value from swifty_cache: ${grpcMessage}")`, `"failed to set value to swifty_cache: …"`, `"failed to delete value from swifty_cache: …"`.
+  - `getAddr(): string` returns the dialed address; `close()` closes the channel.
 - `class ClientPicker implements PeerPicker`
-  - `constructor(addr, opts?: PickerOption)` with `interface PickerOption { serviceName?, etcdEndpoints?, peerDeadlineMs? }`; default service name is `"swifty_cache"`. `etcdEndpoints` overrides the discovery endpoints; `peerDeadlineMs` is forwarded to every peer `Client` it creates. Peer clients are always constructed with `peerRequest: true`.
-  - `start()` first adds `selfAddr` to the ring (so key ownership is globally consistent even single-node), then performs an initial `fetchAll` from etcd, registers existing peers (excluding self, validated by `validPeerAddr`—invalid registry entries are logged and skipped), then subscribes to live `put`/`delete` events. On watcher reconnect it resyncs by re-fetching all addresses.
-  - `pickPeer(key)` resolves via `ConHashMap` and returns `[null, true, true]` for self-ownership, `[client, true, false]` for a known peer, or `[null, false, false]` when the ring is empty or the address has no client.
-  - `printPeers()` is a debugging helper.
-  - `close()` releases the ring timer, every `Client`, and the etcd watcher.
+  - `constructor(addr: string, opts?: PickerOption)` where `interface PickerOption { serviceName?, etcdEndpoints?, peerDeadlineMs? }`. Default service name is `"swifty_cache"`; `etcdEndpoints` overrides discovery endpoints; `peerDeadlineMs` is forwarded to every peer `Client` it creates. Peer clients are always constructed with `peerRequest: true`. The internal ring is a default `ConHashMap` (CRC-32, 50 replicas, no auto-rebalance).
+  - `start(): Promise<void>` — adds `selfAddr` to the ring first (so key ownership is globally consistent even single-node), does an initial `fetchAll()` from etcd, adds each non-self address that passes `validPeerAddr` (invalid registry entries log `"ignoring invalid peer address from registry: …"` and are skipped), then subscribes to live `put`/`delete` events. On watcher reconnect the discovery layer resyncs by re-fetching all addresses.
+  - `pickPeer(key)` — `[null, true, true]` for self-ownership, `[client, true, false]` for a known peer, `[null, false, false]` when the ring is empty or the elected address has no live client.
+  - `printPeers(): void` — debugging helper listing discovered peers.
+  - `close(): Promise<void>` — stops the ring timer, closes every `Client`, clears the map, cancels the etcd watcher and client.
 
 ### Server and registration (`server.ts`, `register.ts`)
 
-- `interface ServerOptions { etcdEndpoints?, dialTimeout?, maxMsgSize?, tls?, certFile?, keyFile?, advertiseAddr? }`. Defaults: etcd at `localhost:2379`, 5 s dial timeout, 4 MiB max receive size, TLS off. `advertiseAddr` is the address **published to etcd** for peers to dial—set it whenever you bind to `0.0.0.0` or `:port`.
+- `interface ServerOptions { etcdEndpoints?, dialTimeout?, maxMsgSize?, tls?, certFile?, keyFile?, advertiseAddr? }`. Defaults: `etcdEndpoints: ["localhost:2379"]`, `dialTimeout: 5000`, `maxMsgSize: 4 << 20` (4 MiB, applied as `grpc.max_receive_message_length`), `tls: false`. `advertiseAddr` is the address published to etcd for peers to dial—set it whenever binding to `0.0.0.0:{port}` or `:{port}`.
 - `class Server`
-  - Constructor `(addr, svcName, opts?)` builds the gRPC server, registers `pb.SwiftyCache` (Get/Set/Delete) and the `grpc.health.v1.Health` Check RPC (reports `SERVING` for the configured `svcName`, `UNKNOWN` for anything else), and resolves credentials (insecure, or `ServerCredentials.createSsl` when `tls && certFile && keyFile`).
-  - `start()` calls `bindAsync`, then registers `advertiseAddr || addr` in etcd via `register(...)`, passing through `etcdEndpoints` and `dialTimeout`. If registration fails the server still serves traffic but logs the failure.
-  - `stop()` aborts the internal AbortController (revoking the lease and deleting the etcd key) and triggers a graceful gRPC shutdown.
-  - Handlers look up the target `Group` by name; missing groups produce `grpc.status.NOT_FOUND`, handler errors `grpc.status.INTERNAL`. Set/Delete inspect the inbound `x-peer-request` metadata and pass `isPeerRequest` into `Group.set`/`Group.delete` to short-circuit further fan-out. Each handler derives an `AbortSignal` from gRPC call cancellation and passes it down to the `Getter`.
-- `register(svcName, addr, stopSignal, config?: Partial<RegisterConfig>)` — opens an `Etcd3` client, normalizes the advertise address (`:port` and `0.0.0.0:port` expand to `getLocalIP():port`, falling back to `127.0.0.1`), and attaches a lease (default TTL **10 s**) at `/services/{svcName}/{addr}`. On lease loss it automatically re-registers after 1 s (repeats until stopped). On `stopSignal.aborted` it revokes the lease, deletes the key, and closes the client.
-- `interface RegisterConfig { endpoints, dialTimeout, leaseTTL }` and `defaultRegisterConfig = { endpoints: ["localhost:2379"], dialTimeout: 5000, leaseTTL: 10 }`.
-- `class ServiceDiscovery` — the watcher used by `ClientPicker`. Constructor `(svcName, onPut, onDelete, config?: Partial<RegisterConfig>)`. `fetchAll()` snapshots `/services/{svcName}`; `watch()` streams `put`/`delete` deltas (delete addresses are recovered from the key since delete events carry no value) and resyncs via `fetchAll` on reconnect. Always `close()` to release the watcher and the etcd client.
+  - `constructor(addr, svcName, opts?: Partial<ServerOptions>)` — builds the gRPC server, registers `pb.SwiftyCache` (Get/Set/Delete) and `grpc.health.v1.Health` Check (returns `SERVING` (1) for the configured `svcName`, `UNKNOWN` (0) otherwise), and resolves credentials (`ServerCredentials.createSsl` only when `tls && certFile && keyFile`, else insecure).
+  - `start(): Promise<void>` — `bindAsync` (rejects with `"failed to listen: …"`), then registers `advertiseAddr || addr` in etcd via `register(...)` passing `etcdEndpoints`/`dialTimeout`. Registration failure is logged (`"failed to register service: …"`) but does NOT stop the server from serving.
+  - `stop(): void` — aborts the internal `AbortController` (revokes the lease and deletes the etcd key) and calls `tryShutdown` for graceful gRPC shutdown.
+  - Handlers resolve the target `Group` via `getGroup(name)`; missing groups return `grpc.status.NOT_FOUND` with message `"group ${groupName} not found"`; handler errors return `grpc.status.INTERNAL`. Set/Delete read the inbound `x-peer-request` metadata and pass `isPeerRequest` into `Group.set`/`Group.delete`. Each handler derives an `AbortSignal` from the call's `cancelled` event and passes it to the group (and thus the `Getter`).
+- `register(svcName, addr, stopSignal: AbortSignal, config?: Partial<RegisterConfig>): Promise<void>` — opens an `Etcd3` client, normalizes the advertise address (`:port` and `0.0.0.0:port` expand to `getLocalIP():port`, falling back to `127.0.0.1`), attaches a lease (default TTL `10` s) at key `/services/{svcName}/{addr}` with the address as value. On lease loss it logs `"lease lost (…), re-registering …"` and re-acquires after 1 s (repeats until stopped). On `stopSignal` abort it revokes the lease, deletes the key, and closes the client (cleanup errors ignored).
+- `interface RegisterConfig { endpoints, dialTimeout, leaseTTL }`; `defaultRegisterConfig = { endpoints: ["localhost:2379"], dialTimeout: 5000, leaseTTL: 10 }`.
+- `class ServiceDiscovery` — the watcher used by `ClientPicker`. `constructor(svcName, onPut, onDelete, config?: Partial<RegisterConfig>)`. `fetchAll(): Promise<string[]>` snapshots values under `/services/{svcName}`; `watch()` streams `put` events (address from the value, falling back to the key suffix) and `delete` events (address recovered from the key, since delete events carry no value), logs disconnects, and resyncs via `fetchAll` on the `connected` event. Always `close()` to cancel the watcher and release the etcd client.
 
 ### Helpers (`utils.ts`, `logger.ts`)
 
-- `validPeerAddr(addr)` — accepts `localhost:<port>`, `<IPv4>:<port>`, multi-label `hostname:<port>` (RFC-1123-style labels), and `[<IPv6>]:<port>`. Single-label hosts other than `localhost` are rejected. Used by `ClientPicker` to sanitize registry entries.
-- `getLocalIP()` — first non-internal IPv4 address; throws `"no valid local IP found"` if none exists.
-- `interface Logger { info, warn, error }`, `setLogger(logger)`, `log` — the package logs through this indirection (default prefixes `[SwiftyCache]` on console). Call `setLogger` to route into your app's structured logger; this is the supported way to silence or capture package logs (e.g. in tests).
-
-## Lifecycle and orchestration
-
-A typical node has the following lifecycle. Honour the order—starting the picker before the server is fine, but never `registerPeers` before `picker.start()` has resolved, otherwise the ring only contains self and every read falls through to the local `Getter`.
-
-1. Create the singleton `Group` with `newGroup(name, cacheBytes, getter, ...opts)`.
-2. Construct and start the `Server`: `await new Server(bindAddr, svcName, { advertiseAddr }).start()`. This binds the gRPC port and registers the advertise address in etcd.
-3. Construct and start the `ClientPicker` **with the same advertise address**: `const picker = new ClientPicker(advertiseAddr, { serviceName: svcName }); await picker.start();` — seeds the ring with self, loads existing peers, and subscribes to mutations.
-4. Wire the two: `group.registerPeers(picker)` (or supply `withPeers(picker)` when calling `newGroup`).
-5. Serve normal traffic via `group.get/set/delete` (or via the gRPC service `pb.SwiftyCache`).
-6. Shutdown: `server.stop()` revokes the etcd lease and stops the server; `await picker.close()` cancels the watcher and disposes peer clients; `destroyAllGroups()` closes every cache and timer. Each step is independently idempotent.
-
-The reference assembly lives in `packages/cache/src/main.ts` (CLI flags `-p`/`--port`, default 50051; binds `0.0.0.0:{port}` and advertises `getLocalIP():{port}`). The integration runner `packages/cache/bootstrap.js` reuses a reachable etcd on `127.0.0.1:2379` or forks a local one (`brew install etcd`), compiles the demo with `tsc` into `.dist/`, boots three nodes (8001/8002/8003), and smoke-tests each with **set-then-get**—pre-populating a key on a node guarantees the subsequent read is a local hit and sidesteps cold-read peer deadlines.
+- `validPeerAddr(addr: string): boolean` — accepts `localhost:<port>`, `<IPv4>:<port>`, multi-label RFC-1123-style `hostname:<port>`, and `[<IPv6>]:<port>`. Single-label hosts other than `localhost` are rejected; ports must be 1–65535.
+- `getLocalIP(): string` — first non-internal IPv4 address; throws `"no valid local IP found"` if none exists.
+- `interface Logger { info, warn, error }`; `setLogger(logger: Logger): void`; `log: Logger` — all package logs flow through this indirection (default console with prefix `[SwiftyCache]`). `setLogger` is the supported way to route into structured logging or silence output in tests.
 
 ## Wire format and gRPC contract
 
-The proto definitions are bundled and re-exported via `proto/index.ts` (`proto`, `healthProto`); the raw files are also exposed as package exports `@swifty.js/cache/proto/swifty.proto` and `.../health.proto`.
+Proto definitions are loaded at module import by `src/proto/index.ts` (`proto`, `healthProto`; loader options `keepCase: true, longs: String, enums: String, defaults: true, oneofs: true`) and resolved relative to the compiled module (`join(__dirname, "swifty.proto")`)—which is why the Rollup build copies `.proto` files into `dist/proto/`. The raw files are also package exports: `@swifty.js/cache/proto/swifty.proto` and `.../health.proto`.
 
 ```proto
 // packages/cache/src/proto/swifty.proto
@@ -154,54 +161,55 @@ service SwiftyCache {
 }
 ```
 
-Health checks follow the standard `grpc.health.v1.Health/Check` contract; the registered service name matches the constructor's `svcName` (probing any other name returns `UNKNOWN`).
+Health checks follow standard `grpc.health.v1.Health/Check`; the serving service name is the `Server` constructor's `svcName` (any other name returns `UNKNOWN`).
 
-The metadata key `x-peer-request: "true"` is the **propagation guard**. `ClientPicker` builds its peer `Client`s with `peerRequest: true`, so every forwarded call carries the header; `server.ts` reads it and passes `isPeerRequest = true` into `Group.set`/`Group.delete`, which suppresses further fan-out. When you author additional RPCs that mutate state across peers, follow the same convention to avoid propagation storms.
+The metadata key `x-peer-request: "true"` is the **propagation guard**. `ClientPicker` builds its peer clients with `peerRequest: true` so every forwarded call carries the header; `server.ts` reads it (constant `PEER_REQUEST_METADATA_KEY = "x-peer-request"`) and passes `isPeerRequest = true` into `Group.set`/`Group.delete`, suppressing further fan-out. Follow the same convention when adding RPCs that mutate state across peers, or you will create propagation storms.
+
+Etcd key layout: `/services/{svcName}/{addr}` with the address duplicated as the value. Lease TTL 10 s by default; discovery treats the key suffix as the authoritative address on delete events.
+
+## Lifecycle and orchestration
+
+Honor this order—starting the picker before the server is fine, but never wire peers before `picker.start()` has resolved, otherwise the ring holds only self and every read falls through to the local `Getter`:
+
+1. Create the `Group`: `newGroup(name, cacheBytes, getter, ...opts)`.
+2. Start the `Server`: `await new Server(bindAddr, svcName, { advertiseAddr }).start()` — binds the gRPC port and registers the advertise address in etcd.
+3. Start the `ClientPicker` **with the same advertise address**: `const picker = new ClientPicker(advertiseAddr, { serviceName: svcName }); await picker.start();`
+4. Wire them: `group.registerPeers(picker)` (or `withPeers(picker)` at `newGroup` time).
+5. Serve traffic via `group.get/set/delete` or the gRPC service.
+6. Shutdown: `server.stop()` (revokes lease, graceful gRPC shutdown) → `await picker.close()` (ring timer, clients, watcher) → `destroyAllGroups()` (closes caches and their cleanup timers). Each step is independently idempotent.
+
+The reference assembly is `packages/cache/src/main.ts` (flags `-p`/`--port`, default `50051`; binds `0.0.0.0:{port}`, advertises `getLocalIP():{port}` falling back to `127.0.0.1`; group `"user"` with `2 << 10` bytes). The integration runner `packages/cache/bootstrap.js` reuses a reachable etcd on `127.0.0.1:2379` or forks a local one (`brew install etcd`, data dir `.etcd`), compiles the demo with `tsc` into `.dist/` (separate from Rollup's `dist/`), copies the `.proto` files alongside, boots three nodes (`:8001`–`:8003`), and smoke-tests each with **set-then-get**—pre-seeding the key on a node guarantees the read is a local hit and sidesteps cold-read peer deadlines.
 
 ## Operational guidance
 
-**Topology sizing.** `cacheBytes` in `newGroup` sets `Cache.maxBytes`, which `LruStore` enforces as a **per-shard byte budget** (`maxBytes / shardCount`, floor, min 1 byte). Both constraints bind: entry-count capacity (`bucketCount × (capPerBucket + level2Cap)` slots) and bytes. Because the budget is per shard, a pathological key distribution can evict earlier than the global figure suggests. Power-of-two bucket counts are enforced by `maskOfNextPowOf2`, so `bucketCount: 24` quietly becomes 32 (mask `0x1f`). Tune via `withCacheOptions({...defaultCacheOptions(), ...})`.
+**Topology sizing.** `cacheBytes` in `newGroup` sets `Cache.maxBytes`, which `LruStore` enforces as a per-shard byte budget (`maxBytes / shardCount`, floored, min 1 byte). Two constraints bind simultaneously: slot capacity (`bucketCount × (capPerBucket + level2Cap)`) and bytes. Because the budget is per shard, a skewed key distribution can evict earlier than the global figure suggests. Power-of-two bucket counts are enforced by `maskOfNextPowOf2` (`bucketCount: 24` silently becomes 32). Tune via `withCacheOptions({ ...defaultCacheOptions(), ... })`.
 
-**Hot-key fairness.** Ring rebalancing is **off by default**. Enable with `withConHashConfig({ ...defaultConHashConfig, autoRebalance: true })` or call `rebalance()` manually. If one node serves disproportionately, prefer raising `defaultReplicas` (e.g. 100) rather than lowering `loadBalanceThreshold`, because lower thresholds amplify oscillation. Drop `maxReplicas` if you observe runaway memory in the ring maps. `getStats()` on the ring returns each node's fraction of routed requests since the last reset.
+**Hot-key fairness.** Ring rebalancing is OFF by default. Enable with `withConHashConfig({ ...defaultConHashConfig, autoRebalance: true })` on a `ConHashMap` you own, or call `rebalance()` manually. Note `ClientPicker` constructs a default ring internally with no configuration hook—custom ring config requires a custom `PeerPicker`. Prefer raising `defaultReplicas` over lowering `loadBalanceThreshold` (low thresholds oscillate).
 
-**Deadlines and cold reads.** Peer RPCs default to a 3-second deadline, configurable per client (`new Client(addr, { deadlineMs })`) and fleet-wide via `new ClientPicker(addr, { peerDeadlineMs })`. In a cold cluster a `get` may traverse `Group.load → ClientPicker.pickPeer → Client.get → Server.handleGet → Group.get → Getter`; deep pipelines plus origin latency can exceed the budget. Mitigations: (1) pre-warm hot keys by calling `set` on the owner first (the `bootstrap.js` approach); (2) raise `peerDeadlineMs`; (3) accept the timeout—`SingleFlightGroup` coalesces the retries and the peer failure falls back to the local `Getter` (counted as `peer_misses`).
+**Deadlines and cold reads.** Peer RPCs default to 3000 ms, configurable per client (`new Client(addr, { deadlineMs })`) and fleet-wide (`new ClientPicker(addr, { peerDeadlineMs })`). A cold `get` may traverse `Group.load → pickPeer → Client.get → Server.handleGet → Group.get → Getter`; deep hops plus origin latency can exceed the budget. Mitigations: pre-warm hot keys by `set` first (the `bootstrap.js` approach); raise `peerDeadlineMs`; or accept it—the peer failure is swallowed (logged, `peer_misses++`) and the local `Getter` is tried.
 
-**Error semantics.** Loader failures surface as `Error("failed to get data: ${cause}")` from `Group.loadData`; a peer failure before that is swallowed (logged + `peer_misses++`) and the local `Getter` is tried. Propagation failures inside `syncToPeers` are logged but **not** thrown—writes are deliberately fire-and-forget. If you require write acknowledgement, await `Peer.set`/`Peer.delete` directly via `picker.pickPeer`. Message substrings to match on: `"key is required"`, `"value is required"`, `"cache group is closed"`, `"nil Getter"`, `"RegisterPeers called more than once"`.
+**Error semantics.** Loader failures surface as `Error("failed to get data: ${cause}")`. Peer read failures never propagate to the caller. Fan-out failures inside `syncToPeers` are logged (`"failed to sync ${op} to peer: …"`) but never thrown—writes are deliberately fire-and-forget. If you require write acknowledgement, obtain the peer via `picker.pickPeer(key)` and await `peer.set`/`peer.delete` yourself.
 
-**Closing resources.** Memory leaks in this package almost always trace to a forgotten `close`. The active timers/watchers are: `LruStore` cleanup interval, `ConHashMap` balancer interval (only when `autoRebalance` is on), the `ServiceDiscovery` watcher, the etcd lease keep-alive in `register`, and every `Client`'s gRPC channel. `Group.close → Cache.close → LruStore.close` is automatic; the picker and server own the rest. In tests, prefer `try/finally` with `await picker.close()` and `server.stop()` over relying on process exit.
+**Closing resources.** Leaks almost always trace to a missed `close`. Live timers/watchers: the `LruStore` cleanup interval, the `ConHashMap` balancer interval (only with `autoRebalance`), the `ServiceDiscovery` watcher, the etcd lease keep-alive inside `register`, and every `Client` channel. `Group.close → Cache.close → LruStore.close` cascades automatically; the picker and server own the rest. In tests, use `try/finally` (or vitest `afterEach`) with `store.close()` / `await picker.close()` / `server.stop()`—the shipped test files demonstrate the pattern.
 
-**Self vs. remote routing.** `ClientPicker.pickPeer` returns the tuple `[peer, found, isSelf]`. The `Group` only forwards when `found && !isSelf && peer`. Since `start()` always seeds the ring with self, a single-node cluster routes everything as self-owned and falls through to the `Getter`—that is the intended single-node fallback. `[null, false, false]` indicates a ring entry with no live client (e.g. etcd knows a peer the picker failed to add).
+**Bind vs. advertise addresses.** Bind to `0.0.0.0:{port}` and set `ServerOptions.advertiseAddr` to the externally reachable `host:port`; `register` additionally normalizes `:port`/`0.0.0.0:port` to `getLocalIP():port`. The `ClientPicker` MUST be constructed with the exact address that lands in etcd—otherwise it treats its own registration as a foreign peer and forwards to itself. Keep host spellings consistent cluster-wide: `validPeerAddr` accepts both `localhost` and `127.0.0.1`, but the ring treats them as distinct nodes.
 
-**Bind vs. advertise addresses.** Bind the server to `0.0.0.0:{port}` (or `:{port}`) and set `ServerOptions.advertiseAddr` to the externally reachable `host:port`. `register` additionally normalizes `:port`/`0.0.0.0:port` to `getLocalIP():port`. The `ClientPicker` **must be constructed with the exact advertise address that lands in etcd**—otherwise it fails to recognize itself in discovery events and may forward requests back to itself. `main.ts` demonstrates the correct pairing. Also keep host spellings consistent cluster-wide (don't mix `localhost` and `127.0.0.1`): `validPeerAddr` accepts both, but the ring treats them as distinct nodes.
+**Etcd configuration.** `ServerOptions.etcdEndpoints`/`dialTimeout` control registration; `PickerOption.etcdEndpoints` controls discovery; `register` also accepts `Partial<RegisterConfig>` directly including `leaseTTL`. Registration self-heals on lease loss (1 s retry); discovery resyncs the full peer set on watcher reconnect.
 
-**Etcd endpoints.** Both sides are configurable: `ServerOptions.etcdEndpoints` (registration) and `PickerOption.etcdEndpoints` (discovery). `register` also accepts `Partial<RegisterConfig>` directly, including `leaseTTL` (default 10 s). The registration is self-healing: on lease loss it re-acquires after 1 s; the discovery watcher resyncs the full peer set on reconnect.
+**TLS.** `tls: true` with `certFile`/`keyFile` enables SSL server credentials. The shipped `Client` is insecure-only; a TLS client requires extending `client.ts`.
 
-**TLS.** Setting `tls: true, certFile, keyFile` on `ServerOptions` enables SSL server credentials. The shipped `Client` uses `grpc.credentials.createInsecure()` only—if you need a TLS client, fork or extend `client.ts`. This is a deliberate omission that keeps the bundled demo zero-config.
+## Common pitfalls
 
-**Logging.** All internal logs flow through `log` in `logger.ts`. Call `setLogger({ info, warn, error })` once at startup to integrate with your logging stack or to mute output in tests.
-
-## Build, test, and release
-
-The package is consumed as ESM (`main`/`module`/`exports.import` all point at `dist/index.mjs`, types at `dist/index.d.ts`). The Rollup config (`rollup.config.mjs`) bundles the sources and copies the `.proto` files into `dist/proto/` so the runtime loader in `proto/index.ts` (`join(__dirname, "swifty.proto")`) keeps working post-build. Scripts:
-
-- `pnpm --filter @swifty.js/cache run build` — Rollup bundle + dts.
-- `pnpm --filter @swifty.js/cache run test` — Vitest suite (covers `byte-view`, `cache`, `consistent-hash`, `crc32`, `group`, `lru`, `single-flight`, `utils`).
-- `pnpm --filter @swifty.js/cache run format` — Prettier.
-- `node packages/cache/bootstrap.js` — end-to-end smoke (three nodes + etcd; compiles into `.dist/`, distinct from Rollup's `dist/`).
-
-When publishing, `prepublishOnly` cleans and re-builds. Only `dist/` ships (see `package.json#files`).
-
-## Common pitfalls and how to handle them
-
-- **Importing internals.** `packages/cache/src/index.ts` is the only stable surface. Pull requests that import deep paths (`@swifty.js/cache/dist/lru`) must be redirected through new exports there (the only sanctioned subpath exports are the two `.proto` files and `package.json`).
-- **Mutating returned `Buffer`s.** `ByteView.byteSlice()` already copies; `Group.get` returns the `ByteView` itself. If you call `byteSlice()` and mutate, that's safe; mutating the cached `ByteView` is not—do not reach into private fields.
-- **Forgetting `await picker.start()`.** Without it, the ring holds only self and every read falls back to the local `Getter`. Symptom: 100 % `loader_hits`, 0 % `peer_hits` in `getStats()`.
-- **Bind/advertise mismatch.** If the server registers `192.168.x.y:8001` but the picker was constructed with `127.0.0.1:8001`, the picker treats its own registration as a foreign peer and forwards to itself. Always pass the exact registered address pair (see "Bind vs. advertise addresses").
-- **Expecting rebalancing to be on.** `autoRebalance` defaults to `false`; a skewed ring won't self-correct unless you enable it or call `rebalance()`.
-- **Assuming a global byte cap.** The byte budget is sharded; per-shard eviction can trigger below the global `maxBytes`. Use `LruStore.usedBytes()` when instrumenting.
-- **Replacing a group without closing it.** `newGroup` with an existing name replaces the registry entry but does not close the old group—its store timer keeps running. Call `destroyGroup(name)` first when re-creating.
-- **Test flakiness from timers.** `LruStore` (and `ConHashMap` when `autoRebalance` is on) start `setInterval`s. In Vitest, ensure tests `close()` instances or the worker hangs at exit. The existing tests demonstrate the pattern.
-- **Peer deadline budgeting.** 3 s default per RPC; tune via `peerDeadlineMs`/`deadlineMs` rather than forking `client.ts`. Document the chosen value in any user-facing performance budget.
+- **Importing internals.** Only `src/index.ts` re-exports are stable. `main.ts`, `proto/index.ts` internals, and `InternalCache` are not public; deep `dist/` imports must be redirected through new index exports.
+- **Mutating cached bytes.** `ByteView.byteSlice()` copies, so mutating its result is safe; mutating a `Buffer` you passed into `set` is also safe (it was cloned). Never reach into `ByteView` private fields.
+- **Forgetting `await picker.start()`.** Symptom: 100 % `loader_hits`, 0 % `peer_hits` in `getStats()`—the ring only contains self.
+- **Bind/advertise mismatch.** Registering `192.168.x.y:8001` while constructing the picker with `127.0.0.1:8001` makes the node forward to itself as a "peer". Always pass the exact registered address pair.
+- **Expecting rebalancing to be on.** `autoRebalance` defaults to `false`; a skewed ring will not self-correct unless enabled or `rebalance()` is called.
+- **Assuming a global byte cap.** The budget is sharded; per-shard eviction can fire well below the global `maxBytes`. Instrument with `LruStore.usedBytes()`.
+- **Replacing a group without closing it.** `newGroup` with an existing name replaces the registry entry but does NOT close the old group—its cleanup timer keeps running. Call `destroyGroup(name)` first.
+- **Constructing `LruStore` directly with sparse options.** Its internal fallbacks (`capPerBucket`/`level2Cap` = 1024) differ from `defaultStoreOptions()` (512/256); spread `defaultStoreOptions()` explicitly if you want the documented defaults.
+- **Test hangs from timers.** `LruStore` (and `ConHashMap` with `autoRebalance`) run `setInterval`s; un-closed instances keep the vitest worker alive. Pass `cleanupInterval: 0` or close in `afterEach`.
+- **Fan-out is unacknowledged.** `set`/`delete` resolve before the peer write completes (or fails). Do not treat resolution as cluster-wide durability.
 
 ## Quick recipes
 
@@ -213,13 +221,13 @@ import { newGroup, withExpiration } from "@swifty.js/cache";
 const group = newGroup(
   "users",
   8 * 1024 * 1024,
-  async (signal, key) => loadUserFromDB(signal, key),
+  async (signal, key) => loadUserFromDB(signal, key), // Getter
   withExpiration(30_000),
 );
 
 const view = await group.get(new AbortController().signal, "alice");
-const json = view.toString();
-console.log(group.getStats()); // hit rate, load times, cache stats
+console.log(view.toString(), group.getStats());
+group.close();
 ```
 
 **Clustered node (assembled like `main.ts`):**
@@ -257,12 +265,24 @@ process.on("SIGINT", async () => {
 import { Client } from "@swifty.js/cache";
 
 const client = new Client("127.0.0.1:8001", { deadlineMs: 5000 });
-await client.set("users", "alice", Buffer.from("…"));
+await client.set("users", "alice", Buffer.from("payload"));
 const value = await client.get("users", "alice");
 await client.close();
 ```
 
-**Custom consistent-hash configuration with auto-rebalancing:**
+**Standalone in-process cache (the `@swifty.js/cdn` pattern):**
+
+```ts
+import { Cache, ByteView, defaultCacheOptions } from "@swifty.js/cache";
+
+const cache = new Cache({ ...defaultCacheOptions(), maxBytes: 64 << 20 });
+cache.add("k", new ByteView(Buffer.from("v")));
+const [view, ok] = cache.get("k");
+cache.addWithExpiration("t", new ByteView(Buffer.from("x")), Date.now() + 5000); // absolute deadline
+cache.close();
+```
+
+**Custom consistent-hash ring with auto-rebalancing:**
 
 ```ts
 import { ConHashMap, withConHashConfig, crc32 } from "@swifty.js/cache";
@@ -282,7 +302,7 @@ console.log(ring.get("alice"), ring.getStats());
 ring.close(); // stops the balancer timer
 ```
 
-**Route package logs into your logger (or silence them in tests):**
+**Route or silence package logs:**
 
 ```ts
 import { setLogger } from "@swifty.js/cache";
@@ -294,19 +314,32 @@ setLogger({
 });
 ```
 
-## Cross-reference to the Go sibling
+## Build, test, and release
 
-| Concept                  | TypeScript (`@swifty.js/cache`)                                            | Go (`github.com/hangtiancheng/swifty.go/swifty_cache`)              |
-| ------------------------ | -------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| Group factory            | `newGroup(name, cacheBytes, getter, ...opts)`                              | `NewGroup(name, cacheBytes, getter, opts...)`                       |
-| Loader signature         | `(AbortSignal, string) => Promise<Buffer>`                                 | `func(ctx context.Context, key string) ([]byte, error)`             |
-| Cancellation             | `AbortSignal`                                                              | `context.Context`                                                   |
-| Functional options       | `withExpiration / withPeers / withCacheOptions / withConHashConfig`        | `WithExpiration / WithPeers / WithCacheOptions / WithConHashConfig` |
-| Hash default             | `crc32` (IEEE)                                                             | `crc32.ChecksumIEEE`                                                |
-| Bucket hash              | `hashBKRD`                                                                 | `HashBKRD`                                                          |
-| Sentinel errors          | `Error("key is required")`, `... value is required`, `... group is closed` | `ErrKeyRequired`, `ErrValueRequired`, `ErrGroupClosed`              |
-| Peer header              | `x-peer-request: "true"`                                                   | `x-peer-request: "true"`                                            |
-| Client deadline          | 3 000 ms default, configurable via `ClientOptions.deadlineMs`              | 3 s                                                                 |
-| Service-discovery prefix | `/services/{svcName}/{addr}`                                               | `/services/{svcName}/{addr}`                                        |
+- `pnpm --filter @swifty.js/cache run build` — Rollup ESM bundle (`preserveModules`, `.mjs` entries), `dist/index.d.ts` via `rollup-plugin-dts`, and `.proto` copy into `dist/proto/`.
+- `pnpm --filter @swifty.js/cache run test` — Vitest suite (`byte-view`, `cache`, `consistent-hash`, `crc32`, `group`, `lru`, `single-flight`, `utils`).
+- `pnpm --filter @swifty.js/cache run format` — Prettier.
+- `node packages/cache/bootstrap.js` — end-to-end smoke test (etcd + three nodes; compiles into `.dist/`).
+- `prepublishOnly` cleans and rebuilds; only `dist/` ships (`package.json#files`).
 
-Symbol parity makes ports trivial; behavioral parity makes a polyglot deployment safe. When the user describes a behavior change, ask whether they want both packages updated in lock-step—drift between them defeats the design intent.
+## Cross-references
+
+**cache ↔ cdn integration.** The `@swifty.js/cdn` server (`packages/cdn`, `swifty-cdn` skill) consumes this package as a standalone L1 memory cache—`Cache` + `ByteView` only, no `Group`, no gRPC, no etcd. Integration points: `packages/cdn/src/app.ts` constructs the `Cache`; `middleware/cdn.ts` stores serialized entries as `new ByteView(serialized)` and memoizes deserialization in a `WeakMap<ByteView, CacheEntry>` (entries vanish with the `ByteView` on eviction); `services/cache-utils.ts` deserializes from a `ByteView`. Changes to `Cache` semantics (lazy init, absolute-deadline `addWithExpiration`, eviction callbacks) or `ByteView` identity/copy behavior directly affect the CDN—flag cross-package impact when editing either side.
+
+**Go sibling parity.** Route Go work on `github.com/hangtiancheng/swifty.go/swifty_cache` to its dedicated Go skill; use this table to keep polyglot deployments in lock-step:
+
+| Concept            | TypeScript (`@swifty.js/cache`)                                                | Go (`swifty.go/swifty_cache`)                                       |
+| ------------------ | ------------------------------------------------------------------------------ | ------------------------------------------------------------------- |
+| Group factory      | `newGroup(name, cacheBytes, getter, ...opts)`                                  | `NewGroup(name, cacheBytes, getter, opts...)`                       |
+| Loader signature   | `(ctx: AbortSignal, key: string) => Promise<Buffer>`                           | `func(ctx context.Context, key string) ([]byte, error)`             |
+| Cancellation       | `AbortSignal`                                                                  | `context.Context`                                                   |
+| Functional options | `withExpiration / withPeers / withCacheOptions / withConHashConfig`            | `WithExpiration / WithPeers / WithCacheOptions / WithConHashConfig` |
+| Ring hash default  | `crc32` (IEEE)                                                                 | `crc32.ChecksumIEEE`                                                |
+| Shard hash         | `hashBKRD`                                                                     | `HashBKRD`                                                          |
+| Sentinel errors    | `Error("key is required")` / `"value is required"` / `"cache group is closed"` | `ErrKeyRequired` / `ErrValueRequired` / `ErrGroupClosed`            |
+| Propagation guard  | `x-peer-request: "true"` gRPC metadata                                         | `x-peer-request: "true"` gRPC metadata                              |
+| Client deadline    | 3000 ms default via `ClientOptions.deadlineMs`                                 | 3 s                                                                 |
+| Registry key       | `/services/{svcName}/{addr}`                                                   | `/services/{svcName}/{addr}`                                        |
+| Concurrency        | single-flight via shared `Promise`; fire-and-forget async IIFE fan-out         | `singleflight` + goroutines                                         |
+
+Symbol parity makes ports mechanical; behavioral parity makes polyglot clusters safe. When a user requests a behavior change, ask whether both packages should be updated together—drift defeats the design intent.

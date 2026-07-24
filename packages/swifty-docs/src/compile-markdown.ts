@@ -23,7 +23,7 @@
 /**
  * Markdown-to-page-module compiler.
  *
- * Transforms a .md source string into a JS module string that the SolidJS
+ * Transforms a .md source string into a JS module string that the Preact
  * theme consumes at runtime ({ pageData, contentHtml }).
  *
  * Pipeline:

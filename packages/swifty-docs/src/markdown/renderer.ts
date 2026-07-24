@@ -24,7 +24,7 @@
  * Custom markdown-it renderer that produces the theme's content HTML.
  *
  * The rendered HTML is embedded into the compiled page module as
- * `contentHtml` and injected into the article element by the SolidJS
+ * `contentHtml` and injected into the article element by the Preact
  * ContentRenderer at runtime. Internal links use `data-swifty-nav`
  * attributes (intercepted for SPA navigation), and code blocks are
  * pre-rendered at build time.
@@ -37,7 +37,7 @@ import type { Token } from "markdown-it/index.js";
  *
  * The output is static HTML — all content comes from the .md file at
  * build time. Dynamic data (page title, TOC headings, sidebar state)
- * flows through Solid signals in the theme instead.
+ * flows through Preact state in the theme instead.
  */
 export function renderToSwiftyTemplate(
   tokens: Token[],
