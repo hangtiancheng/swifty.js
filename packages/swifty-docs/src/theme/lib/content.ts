@@ -142,6 +142,8 @@ function collectLinks(items: SidebarItem[], out: NavLink[]): void {
 /**
  * Previous/next page relative to `currentPath` in flattened sidebar order.
  * Sidebar keys are iterated in insertion order, matching the config file.
+ * Trailing slashes are ignored on both sides, mirroring the active-state
+ * matching in the sidebar view.
  */
 export function computePrevNext(
   sidebar: RuntimeDocsConfig["sidebar"],
@@ -153,7 +155,10 @@ export function computePrevNext(
       if (Array.isArray(items)) collectLinks(items, flat);
     }
   }
-  const idx = flat.findIndex((item) => item.link === currentPath);
+  const strip = (p: string) =>
+    p.length > 1 && p.endsWith("/") ? p.slice(0, -1) : p;
+  const target = strip(currentPath);
+  const idx = flat.findIndex((item) => strip(item.link) === target);
   if (idx < 0) return { prev: null, next: null };
   return {
     prev: idx > 0 ? flat[idx - 1] : null,

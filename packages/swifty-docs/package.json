@@ -15,6 +15,12 @@
     "README.md"
   ],
   "type": "module",
+  "sideEffects": [
+    "*.css"
+  ],
+  "engines": {
+    "node": ">=20.19.0"
+  },
   "main": "dist/index.cjs",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -97,6 +103,7 @@
   "dependencies": {
     "@docsearch/css": "^4.6.3",
     "@docsearch/js": "^4.6.3",
+    "@preact/preset-vite": "^2.10.0",
     "@tailwindcss/typography": "^0.5.20",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",

@@ -173,4 +173,28 @@ describe("defineConfig baseUrl prefixing", () => {
     const cfg = readGeneratedConfig(root);
     expect(cfg.nav[0].link).toBe("/intro");
   });
+
+  it("excludes protected pages from the search index paths", () => {
+    const root = createTempProject({
+      "docs/public.md": "---\ntitle: Public\n---\n# Public\n",
+      "docs/secret.md": "---\ntitle: Secret\nprotected: true\n---\n# Secret\n",
+    });
+    dirs.push(root);
+
+    defineConfig({ docs: "docs", baseUrl: "/site/", title: "Test" }, root);
+
+    const generated = fs.readFileSync(
+      path.join(root, ".swifty-docs/generated/index.js"),
+      "utf-8",
+    );
+    const match = generated.match(
+      /_searchablePaths = new Set\((\[[\s\S]*?\])\)/,
+    );
+    expect(match).not.toBeNull();
+    const paths: string[] = JSON.parse(match![1]);
+    expect(paths).toContain("/site/public");
+    expect(paths).not.toContain("/site/secret");
+    // The route/loader itself still exists — the page is reachable, just unsearchable.
+    expect(generated).toContain('"/site/secret"');
+  });
 });

@@ -145,6 +145,7 @@ export function scanDocsDir(
         path: fullRoutePath,
         filePath: fullPath,
         pageData,
+        ...(frontmatter["protected"] === true ? { isProtected: true } : {}),
       };
 
       routes.push(route);

@@ -184,6 +184,11 @@ export interface DocsRoute {
    * filename order) and are excluded from the sidebar to avoid duplicates.
    */
   isDirectoryIndex?: boolean;
+  /**
+   * True when the page has `protected: true` frontmatter (docsGuardPlugin).
+   * Protected pages are excluded from the search index.
+   */
+  isProtected?: boolean;
 }
 
 // ============================================================

@@ -159,10 +159,11 @@ function generateRoutesFile(config: DocsConfig, projectRoot: string): void {
     })
     .join("\n");
 
-  // Canonical paths of real content routes (excluding virtual index routes).
-  // Used by getSearchIndex() to avoid duplicate search entries.
+  // Canonical paths of real content routes (excluding virtual index routes
+  // and password-protected pages, which must not enter the search index).
+  // Used by getSearchIndex() to avoid duplicate/leaking search entries.
   const searchablePaths = routes
-    .filter((r) => !r.isDirectoryIndex)
+    .filter((r) => !r.isDirectoryIndex && !r.isProtected)
     .map((r) => r.path);
 
   // Compose runtime docsConfig. searchIndex is NOT included here — it is

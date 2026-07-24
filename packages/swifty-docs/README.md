@@ -56,15 +56,14 @@ swifty-docs.config.ts            Vite Plugin               Browser Runtime
 pnpm add @swifty.js/docs preact preact-iso tailwindcss @tailwindcss/typography
 ```
 
-`preact` is a **peer dependency**: the theme is precompiled against the Preact runtime, so your app and the theme must share a single `preact` instance (install it once at the app level). The theme ships its own stylesheet -- Tailwind CSS v4 with the Typography plugin and shadcn-style semantic tokens -- so your CSS entry only needs to import Tailwind, the theme stylesheet, and scan the theme for utility classes:
+`preact` is a **peer dependency**: the theme is precompiled against the Preact runtime, so your app and the theme must share a single `preact` instance (install it once at the app level). The theme ships its own stylesheet -- Tailwind CSS v4 with the Typography plugin and shadcn-style semantic tokens -- so your CSS entry only needs two imports:
 
 ```css
 @import "tailwindcss";
 @import "@swifty.js/docs/client.css";
-
-/* Scan the precompiled theme so its utility classes survive tree-shaking. */
-@source "@swifty.js/docs/theme.js";
 ```
+
+No manual `@source` is needed: the published `client.css` already scans the packaged `theme-chunk.js` (a single stable file containing all theme components), so Tailwind picks up the theme's utility classes automatically without crawling the whole `dist/` directory.
 
 ### 2. Configure
 
@@ -472,20 +471,79 @@ export default defineConfig({
 });
 ```
 
-The plugin returns a two-plugin array: the `swifty-docs` markdown compiler and `@preact/preset-vite` (which compiles the theme's JSX). Its `resolveId` hook runs in the `pre` enforcement phase and appends a `?swifty-docs` suffix to `.md` imports so Vite does not treat them as static assets. Its `load` hook reads the raw markdown, compiles it through `compileMarkdown()`, and returns the JS module string.
+The plugin returns a plugin array: the `swifty-docs` markdown compiler, `swifty-docs:base-sync`, `swifty-docs:spa-fallback`, and `@preact/preset-vite` (which compiles the theme's JSX). The compiler's `resolveId` hook runs in the `pre` enforcement phase and appends a `?swifty-docs` suffix to `.md` imports so Vite does not treat them as static assets. Its `load` hook reads the raw markdown, compiles it through `compileMarkdown()`, and returns the JS module string.
+
+- **`swifty-docs:base-sync`** — sets Vite's `base` from `DocsConfig.baseUrl` when you haven't set one, so the base URL is declared once.
+- **`swifty-docs:spa-fallback`** — after a production build, copies `index.html` to `404.html` so static hosts (e.g. GitHub Pages) can serve deep links and page refreshes for the history-based router. A `public/404.html` of your own takes precedence.
 
 Options: `{ config: DocsConfig, debug?: boolean }`.
 
+### Automatic baseUrl prefixing
+
+`defineConfig` prepends `baseUrl` to every internal `nav[].link`, manual sidebar `link`, and `"auto"` sidebar prefix, so you write links without the prefix:
+
+```ts
+export default defineConfig({
+  baseUrl: "/my-site/",
+  nav: [{ text: "Guide", link: "/guide/intro" }], // → /my-site/guide/intro
+  sidebar: { "/guide/": "auto" }, // matched against /my-site/guide/*
+});
+```
+
+The prefixing is idempotent — links that already start with `baseUrl` and external URLs (`https://…`, `#…`) pass through unchanged, so existing configs keep working.
+
+## Password-Protected Pages
+
+Mark a page with `protected: true` frontmatter, register `docsGuardPlugin()`, and build with a `DOCS_PASSWORD` environment variable — the page's HTML is then AES-256-GCM encrypted at build time:
+
+```ts
+// vite.config.ts
+import { swiftyDocsPlugin, docsGuardPlugin } from "@swifty.js/docs/vite";
+
+export default defineConfig({
+  plugins: [swiftyDocsPlugin({ config: docsConfig }), docsGuardPlugin()],
+});
+```
+
+On the client, wrap the generated `loadContent` with the built-in guard — it shows a password dialog for protected pages, caches the password for the session, and renders an access-denied notice when dismissed:
+
+```tsx
+import { createContentGuard, DocsProvider, DocsLayout } from "@swifty.js/docs";
+import {
+  docsConfig,
+  loadContent,
+  getSearchIndex,
+} from "@swifty-docs/generated";
+
+const guard = createContentGuard(loadContent);
+
+render(
+  <>
+    <guard.ContentGuard />
+    <DocsProvider
+      config={docsConfig}
+      loadContent={guard.loadContent}
+      getSearchIndex={getSearchIndex}
+    >
+      {/* router */}
+    </DocsProvider>
+  </>,
+  document.getElementById("app")!,
+);
+```
+
+Without `DOCS_PASSWORD` set, `docsGuardPlugin()` is a no-op and protected pages build as plain HTML (useful for local dev).
+
 ## Package Exports
 
-| Sub-path                   | Description                                                                                           |
-| -------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `@swifty.js/docs`          | Main barrel: Preact theme components (`DocsProvider`, `DocsLayout`, ...), primitives, types, runtime  |
-| `@swifty.js/docs/compiler` | `compileMarkdown()` + `CompileMarkdownOptions` type                                                   |
-| `@swifty.js/docs/vite`     | `swiftyDocsPlugin()` Vite plugin + build-time utility re-exports                                      |
-| `@swifty.js/docs/runtime`  | `slugify()` (browser-safe, no build deps)                                                             |
-| `@swifty.js/docs/theme`    | Preact theme components + `createLocalSearchClient` + helpers                                         |
-| `@swifty.js/docs/client`   | Types-only: ambient module declaration for `@swifty-docs/generated` (for `/// <reference types>`)     |
+| Sub-path                   | Description                                                                                          |
+| -------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `@swifty.js/docs`          | Main barrel: Preact theme components (`DocsProvider`, `DocsLayout`, ...), primitives, types, runtime |
+| `@swifty.js/docs/compiler` | `compileMarkdown()` + `CompileMarkdownOptions` type                                                  |
+| `@swifty.js/docs/vite`     | `swiftyDocsPlugin()` Vite plugin + build-time utility re-exports                                     |
+| `@swifty.js/docs/runtime`  | `slugify()` (browser-safe, no build deps)                                                            |
+| `@swifty.js/docs/theme`    | Preact theme components + `createLocalSearchClient` + helpers                                        |
+| `@swifty.js/docs/client`   | Types-only: ambient module declaration for `@swifty-docs/generated` (for `/// <reference types>`)    |
 
 The `/vite` sub-path re-exports build-time utilities (`scanDocsDir`, `generateSidebar`, `defineConfig`) so Node.js contexts (config files) don't pull in the browser-only theme code.
 

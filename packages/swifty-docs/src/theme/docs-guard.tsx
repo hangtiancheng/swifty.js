@@ -239,25 +239,40 @@ export function createContentGuard<T extends { contentHtml: string }>(
     );
     const resolveRef = useRef<((html: string | null) => void) | null>(null);
 
-    ask = useCallback((payload: EncryptedPayload): Promise<string | null> => {
-      return new Promise((resolve) => {
-        resolveRef.current = resolve;
-        setDialog({ payload });
-      });
-    }, []);
-
-    const handleUnlock = useCallback((html: string, password: string) => {
-      sessionStorage.setItem(SESSION_KEY, password);
-      setDialog(null);
+    const settle = useCallback((html: string | null) => {
       resolveRef.current?.(html);
       resolveRef.current = null;
     }, []);
 
+    useEffect(() => {
+      ask = (payload: EncryptedPayload): Promise<string | null> => {
+        // A newer request supersedes a pending one: deny the old request
+        // instead of leaving its loadContent promise hanging.
+        settle(null);
+        return new Promise((resolve) => {
+          resolveRef.current = resolve;
+          setDialog({ payload });
+        });
+      };
+      return () => {
+        ask = null;
+        settle(null);
+      };
+    }, [settle]);
+
+    const handleUnlock = useCallback(
+      (html: string, password: string) => {
+        sessionStorage.setItem(SESSION_KEY, password);
+        setDialog(null);
+        settle(html);
+      },
+      [settle],
+    );
+
     const handleClose = useCallback(() => {
       setDialog(null);
-      resolveRef.current?.(null);
-      resolveRef.current = null;
-    }, []);
+      settle(null);
+    }, [settle]);
 
     if (!dialog) return null;
     return (

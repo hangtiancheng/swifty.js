@@ -75,9 +75,11 @@ export function swiftyDocsPlugin(
     enforce: "pre",
 
     resolveId(source: string, importer?: string) {
-      const cleanSource = source.split("?")[0];
+      const [cleanSource, query] = source.split("?");
       if (!cleanSource.endsWith(".md")) return null;
       if (cleanSource.includes("node_modules")) return null;
+      // Leave Vite asset-style imports (?raw / ?url / ?inline) untouched.
+      if (query && /(^|&)(raw|url|inline)($|&|=)/.test(query)) return null;
       const abs = isAbsolute(cleanSource)
         ? cleanSource
         : importer
@@ -152,10 +154,39 @@ export function swiftyDocsPlugin(
   return [docsPlugin, baseSyncPlugin, spaFallbackPlugin, ...preact()];
 }
 
+const FRONTMATTER_RE = /^---\r?\n([\s\S]*?)\r?\n---/;
+
+function isProtectedMarkdown(id: string): string | null {
+  if (!id.includes(MD_SUFFIX)) return null;
+  const filePath = id.split("?")[0].replace(/^\/@fs/, "");
+  let raw: string;
+  try {
+    raw = readFileSync(filePath, "utf-8");
+  } catch {
+    return null;
+  }
+  const fmMatch = raw.match(FRONTMATTER_RE);
+  if (!fmMatch || !/^protected:\s*true/m.test(fmMatch[1])) return null;
+  return filePath;
+}
+
 export function docsGuardPlugin(): Plugin {
   const password = process.env["DOCS_PASSWORD"];
   if (!password) {
-    return { name: "docs-guard", enforce: "post" };
+    return {
+      name: "docs-guard",
+      enforce: "post",
+      transform(_code, id) {
+        const filePath = isProtectedMarkdown(id);
+        if (filePath) {
+          console.warn(
+            `[@swifty.js/docs] ${filePath} has "protected: true" but ` +
+              `DOCS_PASSWORD is not set — the page will be published UNENCRYPTED.`,
+          );
+        }
+        return null;
+      },
+    };
   }
 
   return {
@@ -163,23 +194,19 @@ export function docsGuardPlugin(): Plugin {
     enforce: "post",
 
     transform(code, id) {
-      if (!id.includes(MD_SUFFIX)) return null;
-
-      const filePath = id.split("?")[0].replace(/^\/@fs/, "");
-      let raw: string;
-      try {
-        raw = readFileSync(filePath, "utf-8");
-      } catch {
-        return null;
-      }
-
-      const fmMatch = raw.match(/^---\n([\s\S]*?)\n---/);
-      if (!fmMatch || !/^protected:\s*true/m.test(fmMatch[1])) return null;
+      const filePath = isProtectedMarkdown(id);
+      if (!filePath) return null;
 
       const htmlMatch = code.match(
         /export const contentHtml = ("(?:[^"\\]|\\.)*");?\s*$/m,
       );
-      if (!htmlMatch) return null;
+      if (!htmlMatch) {
+        this.warn(
+          `[@swifty.js/docs] could not locate contentHtml in ${filePath} — ` +
+            `page left UNENCRYPTED.`,
+        );
+        return null;
+      }
 
       const html = JSON.parse(htmlMatch[1]) as string;
       const salt = randomBytes(16);
@@ -199,13 +226,35 @@ export function docsGuardPlugin(): Plugin {
         iv: iv.toString("base64"),
       });
 
-      return {
-        code: code.replace(
-          htmlMatch[0],
-          `export const contentHtml = ${JSON.stringify(payload)};\nexport const __protected = true;`,
-        ),
-        map: null,
-      };
+      let out = code.replace(
+        htmlMatch[0],
+        `export const contentHtml = ${JSON.stringify(payload)};\nexport const __protected = true;`,
+      );
+
+      // pageData ships in plaintext and feeds the search index; strip the
+      // body-derived fields (excerpt/description/headings) so protected
+      // content cannot be read through search results. The title stays —
+      // it is already visible in the sidebar.
+      const pdMatch = out.match(/export const pageData = (\{[\s\S]*?\n\});/);
+      if (pdMatch) {
+        try {
+          const pd = JSON.parse(pdMatch[1]) as Record<string, unknown>;
+          pd["description"] = undefined;
+          pd["excerpt"] = "";
+          pd["headings"] = [];
+          out = out.replace(
+            pdMatch[0],
+            `export const pageData = ${JSON.stringify(pd, null, 2)};`,
+          );
+        } catch {
+          this.warn(
+            `[@swifty.js/docs] could not sanitize pageData in ${filePath} — ` +
+              `protected excerpt/headings may leak into the search index.`,
+          );
+        }
+      }
+
+      return { code: out, map: null };
     },
   };
 }
