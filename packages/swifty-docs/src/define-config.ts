@@ -47,12 +47,7 @@
  * `process.cwd()`, which is the project root in most Vite
  * setups.
  */
-import type {
-  DocsConfig,
-  NavItem,
-  SidebarConfig,
-  SidebarItem,
-} from "./types";
+import type { DocsConfig, NavItem, SidebarConfig, SidebarItem } from "./types";
 import { scanDocsDir } from "./scanner";
 import { generateSidebar } from "./sidebar-generator";
 import { dirname, isAbsolute, relative, resolve } from "node:path";

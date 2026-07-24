@@ -43,12 +43,7 @@ import tailwindcss from "@tailwindcss/vite";
 // !!! For your project, it should be:
 // import { swiftyDocsPlugin, docsGuardPlugin } from "@swifty.js/docs/vite";
 import { swiftyDocsPlugin, docsGuardPlugin } from "./src/vite";
-import {
-  existsSync,
-  copyFileSync,
-  readFileSync,
-  writeFileSync,
-} from "node:fs";
+import { existsSync, copyFileSync, readFileSync, writeFileSync } from "node:fs";
 import { VitePWA } from "vite-plugin-pwa";
 /** Documentation site configuration used in docs mode. */
 import swiftyDocsConfig from "./swifty-docs.config";

@@ -23,10 +23,7 @@
 import type { ComponentProps } from "preact";
 import { cn } from "../lib/utils";
 
-export function Input({
-  class: className,
-  ...rest
-}: ComponentProps<"input">) {
+export function Input({ class: className, ...rest }: ComponentProps<"input">) {
   return (
     <input
       class={cn(

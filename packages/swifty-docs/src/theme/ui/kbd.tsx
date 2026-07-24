@@ -23,10 +23,7 @@
 import type { ComponentProps } from "preact";
 import { cn } from "../lib/utils";
 
-export function Kbd({
-  class: className,
-  ...rest
-}: ComponentProps<"kbd">) {
+export function Kbd({ class: className, ...rest }: ComponentProps<"kbd">) {
   return (
     <kbd
       class={cn(

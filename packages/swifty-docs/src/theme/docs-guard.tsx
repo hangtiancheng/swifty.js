@@ -46,7 +46,6 @@ import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import type { FunctionComponent } from "preact";
 import { Lock } from "lucide-static";
 import { decryptContent, type EncryptedPayload } from "../utils/guard";
-import type { LoadContentFn } from "./lib/content";
 import { LockIcon, XIcon } from "./icons";
 import { cn } from "./lib/utils";
 import { Button } from "./ui/button";
@@ -140,7 +139,7 @@ export function PasswordDialog({
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogPortal>
         <DialogOverlay class="z-999 backdrop-blur-[6px]" />
-        <div class="z-999 fixed inset-0 grid place-items-center p-4">
+        <div class="fixed inset-0 z-999 grid place-items-center p-4">
           <DialogContent class="w-full max-w-sm p-8" ref={cardRef}>
             <form onSubmit={handleSubmit} class="flex flex-col">
               <button
@@ -174,7 +173,8 @@ export function PasswordDialog({
                 placeholder="Password"
                 class={cn(
                   "h-auto py-2.5",
-                  error && "border-destructive focus-visible:border-destructive",
+                  error &&
+                    "border-destructive focus-visible:border-destructive",
                 )}
               />
               {error && (
@@ -198,18 +198,20 @@ export function PasswordDialog({
   );
 }
 
-export interface ContentGuard {
+export interface ContentGuard<T extends { contentHtml: string }> {
   /** Drop-in replacement for the generated `loadContent`. */
-  loadContent: LoadContentFn;
+  loadContent: (path: string) => Promise<T | null>;
   /** Mount once (outside `<DocsProvider>` is fine) to enable the dialog. */
   ContentGuard: FunctionComponent;
 }
 
-export function createContentGuard(loadContent: LoadContentFn): ContentGuard {
+export function createContentGuard<T extends { contentHtml: string }>(
+  loadContent: (path: string) => Promise<T | null>,
+): ContentGuard<T> {
   let ask: ((payload: EncryptedPayload) => Promise<string | null>) | null =
     null;
 
-  const guardedLoadContent: LoadContentFn = async (path) => {
+  const guardedLoadContent = async (path: string): Promise<T | null> => {
     const mod = await loadContent(path);
     if (!mod) return null;
 
