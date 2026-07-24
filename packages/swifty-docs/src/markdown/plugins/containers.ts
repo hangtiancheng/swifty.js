@@ -30,20 +30,27 @@
 import type MarkdownIt from "markdown-it";
 import container from "markdown-it-container";
 import type { Token } from "markdown-it/index.js";
-import { ChevronRight, Info, OctagonAlert, TriangleAlert } from "lucide-static";
+import { h } from "preact";
+import { renderToString } from "preact-render-to-string";
+import {
+  ChevronRightIcon,
+  InfoIcon,
+  OctagonAlertIcon,
+  TriangleAlertIcon,
+} from "lucide-preact";
 
 const CONTAINER_TYPES = ["tip", "warning", "danger", "details"] as const;
 
 /** Decorative lucide glyphs per container type (sized by .callout-title css). */
 const ICONS: Record<string, string> = {
-  tip: decorative(Info),
-  warning: decorative(TriangleAlert),
-  danger: decorative(OctagonAlert),
-  details: decorative(ChevronRight),
+  tip: decorative(InfoIcon),
+  warning: decorative(TriangleAlertIcon),
+  danger: decorative(OctagonAlertIcon),
+  details: decorative(ChevronRightIcon),
 };
 
-function decorative(svg: string): string {
-  return svg.replace("<svg", '<svg aria-hidden="true"');
+function decorative(icon: typeof InfoIcon): string {
+  return renderToString(h(icon, { "aria-hidden": "true" }));
 }
 
 export interface ContainerOptions {

@@ -44,7 +44,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import type { FunctionComponent } from "preact";
-import { Lock } from "lucide-static";
+import { renderToString } from "preact-render-to-string";
 import { decryptContent, type EncryptedPayload } from "../utils/guard";
 import { LockIcon, XIcon } from "./icons";
 import { cn } from "./lib/utils";
@@ -61,14 +61,20 @@ import {
 
 const SESSION_KEY = "docs-guard-pwd";
 
-const DENIED_HTML = `
-<div class="flex min-h-[45vh] flex-col items-center justify-center gap-4 text-center">
-  <div class="text-foreground opacity-35 [&>svg]:size-13 [&>svg]:stroke-[1.2]">${Lock}</div>
-  <div>
-    <p class="mb-1.5 text-lg font-bold">Access Denied</p>
-    <p class="text-sm opacity-55">This page is password-protected. Enter the correct password to view its content.</p>
-  </div>
-</div>`;
+const DENIED_HTML = renderToString(
+  <div class="flex min-h-[45vh] flex-col items-center justify-center gap-4 text-center">
+    <div class="text-foreground opacity-35 [&>svg]:size-13 [&>svg]:stroke-[1.2]">
+      <LockIcon aria-hidden="true" />
+    </div>
+    <div>
+      <p class="mb-1.5 text-lg font-bold">Access Denied</p>
+      <p class="text-sm opacity-55">
+        This page is password-protected. Enter the correct password to view its
+        content.
+      </p>
+    </div>
+  </div>,
+);
 
 function parsePayload(html: string): EncryptedPayload | null {
   try {

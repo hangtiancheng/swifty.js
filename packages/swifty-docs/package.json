@@ -1,7 +1,7 @@
 {
   "name": "@swifty.js/docs",
   "version": "0.0.1",
-  "description": "Preact + shadcn-style documentation site generator with a markdown-it pipeline",
+  "description": "Preact + shadcn-style documentation site generator",
   "keywords": [
     "@swifty.js",
     "markdown",
@@ -110,11 +110,11 @@
     "ejs": "^3.1.10",
     "js-yaml": "^5.2.0",
     "lucide-preact": "^1.25.0",
-    "lucide-static": "^1.25.0",
     "markdown-it": "^14.2.0",
     "markdown-it-container": "^4.0.0",
     "minisearch": "^7.2.0",
     "preact-iso": "^2.12.1",
+    "preact-render-to-string": "^6.6.1",
     "shiki": "^4.3.0",
     "tailwind-merge": "^3.0.0",
     "zod": "^4.4.3"
