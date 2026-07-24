@@ -76,7 +76,8 @@
       "require": {
         "types": "./dist/client.d.ts"
       }
-    }
+    },
+    "./client.css": "./dist/client.css"
   },
   "scripts": {
     "prepublish": "pnpm build",
