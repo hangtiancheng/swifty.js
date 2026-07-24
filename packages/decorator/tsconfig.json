@@ -1,27 +1,27 @@
 {
   "compilerOptions": {
-    "rootDir": "./",
     "allowSyntheticDefaultImports": true,
     "alwaysStrict": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "importHelpers": true,
     "module": "es2022",
     "moduleResolution": "bundler",
+    "noEmit": true,
     "noImplicitAny": true,
     "noImplicitReturns": true,
     "noImplicitThis": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "outDir": "dist",
-    "removeComments": true,
+    "paths": {
+      "@/": ["./src/index.ts"],
+      "@/*": ["./src/*"]
+    },
+    "rootDir": "./",
     "skipLibCheck": true,
     "strict": true,
     "strictNullChecks": true,
-    "stripInternal": true,
     "target": "es2022",
-    "paths": {
-      "@/*": ["./src/*"]
-    }
-  }
+    "types": ["node", "reflect-metadata"]
+  },
+  "include": ["src", "tests", "vitest.config.ts"]
 }

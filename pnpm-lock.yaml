@@ -168,10 +168,6 @@ importers:
         version: 5.9.3
 
   packages/decorator:
-    dependencies:
-      tslib:
-        specifier: ^2.8.0
-        version: 2.8.1
     devDependencies:
       '@eslint/js':
         specifier: ^10.0.1
@@ -197,6 +193,9 @@ importers:
       reflect-metadata:
         specifier: ^0.2.2
         version: 0.2.2
+      tsup:
+        specifier: ^8.5.1
+        version: 8.5.1(@swc/core@1.15.46)(jiti@2.7.0)(postcss@8.5.16)(tsx@4.22.5)(typescript@5.9.3)(yaml@2.9.0)
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -10039,7 +10038,7 @@ snapshots:
       obug: 2.1.3
       std-env: 4.1.0
       tinyrainbow: 3.1.0
-      vitest: 4.1.9(@types/node@24.13.3)(@vitest/coverage-v8@4.1.9)(jsdom@26.1.0)(vite@8.1.4(@types/node@24.13.3)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.101.0)(terser@5.48.0)(tsx@4.22.5)(yaml@2.9.0))
+      vitest: 4.1.9(@types/node@26.1.0)(@vitest/coverage-v8@4.1.9)(jsdom@26.1.0)(vite@8.1.4(@types/node@26.1.0)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.101.0)(terser@5.48.0)(tsx@4.22.5)(yaml@2.9.0))
 
   '@vitest/expect@3.2.4':
     dependencies:

@@ -20,9 +20,9 @@
  * SOFTWARE.
  */
 
+import { fileURLToPath } from "node:url";
 import swc from "unplugin-swc";
 import { defineConfig } from "vitest/config";
-import type { PluginOption } from "vitest";
 
 export default defineConfig({
   plugins: [
@@ -33,18 +33,23 @@ export default defineConfig({
         parser: { syntax: "typescript", decorators: true },
         transform: { legacyDecorator: true, decoratorMetadata: true },
       },
-    }) as PluginOption,
+    }),
   ],
+  resolve: {
+    alias: {
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
+    },
+  },
   test: {
     environment: "node",
-    include: ["src/__tests__/**/*.{test,tests}.ts"],
-    setupFiles: ["./test/vitest.setup.ts"],
+    include: ["tests/**/*.{test,tests}.ts"],
+    setupFiles: ["./tests/vitest.setup.ts"],
     clearMocks: true,
     coverage: {
       provider: "v8",
       reportsDirectory: "coverage",
       include: ["src/**/*.ts"],
-      exclude: ["src/__tests__/**", "**/types/**", "**/index.ts", "**/*.d.ts"],
+      exclude: ["**/types/**", "**/index.ts", "**/*.d.ts"],
     },
   },
 });

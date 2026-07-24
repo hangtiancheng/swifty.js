@@ -20,7 +20,20 @@
  * SOFTWARE.
  */
 
-export type { default as FactoryFunction } from "./factory-function";
-export { default as instanceCachingFactory } from "./instance-caching-factory";
-export { default as instancePerContainerCachingFactory } from "./instance-per-container-caching-factory";
-export { default as predicateAwareClassFactory } from "./predicate-aware-class-factory";
+import { fileURLToPath } from "node:url";
+import { defineConfig } from "tsup";
+
+const src = fileURLToPath(new URL("./src", import.meta.url));
+
+export default defineConfig({
+  entry: ["src/index.ts"],
+  format: ["esm", "cjs"],
+  target: "es2022",
+  dts: true,
+  sourcemap: false,
+  minify: true,
+  clean: true,
+  esbuildOptions(options) {
+    options.alias = { "@": src };
+  },
+});

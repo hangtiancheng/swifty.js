@@ -1,16 +1,26 @@
 {
-  "name": "tsyringe",
-  "version": "4.10.0",
+  "name": "@swifty.js/decorator",
+  "version": "0.0.1",
   "description": "Lightweight dependency injection container for JavaScript/TypeScript",
-  "main": "dist/cjs/index.js",
-  "typings": "./dist/typings/index.d.ts",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "build": "pnpm clean && pnpm build:cjs && pnpm build:es2015 && pnpm build:types",
-    "build:cjs": "tsc",
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
     "clean": "rm -rf ./dist",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:inspect": "vitest --inspect-brk --no-file-parallelism",
     "test:coverage": "vitest run --coverage",
     "lint": "eslint ./src",
     "lint:fix": "eslint --fix ./src",
@@ -33,7 +43,7 @@
   ],
   "type": "module",
   "engines": {
-    "node": ">= 6.0.0"
+    "node": ">= 20"
   },
   "author": "https://github.com/hangtiancheng",
   "license": "MIT",
@@ -41,9 +51,6 @@
     "url": "https://github.com/hangtiancheng/swifty.js#issue"
   },
   "homepage": "https://github.com/hangtiancheng/swifty.js#readme",
-  "dependencies": {
-    "tslib": "^2.8.0"
-  },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@swc/core": "^1.15.46",
@@ -53,6 +60,7 @@
     "globals": "^17.7.0",
     "prettier": "^3.9.6",
     "reflect-metadata": "^0.2.2",
+    "tsup": "^8.5.1",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.62.1",
     "unplugin-swc": "^1.5.9",
