@@ -400,7 +400,7 @@
 
 .codeblock::after {
   content: attr(data-lang);
-  @apply text-foreground/40 pointer-events-none absolute top-[11px] left-4 font-mono text-[10px] font-medium tracking-[0.14em] uppercase;
+  @apply text-foreground/40 pointer-events-none absolute top-2.75 left-4 font-mono text-[10px] font-medium tracking-[0.14em] uppercase;
 }
 
 .codeblock pre {

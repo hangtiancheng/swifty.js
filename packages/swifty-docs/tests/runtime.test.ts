@@ -21,7 +21,7 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { slugify } from "../src/utils/slugify";
+import { slugify } from "@/utils/slugify";
 
 describe("slugify", () => {
   it("converts text to URL-safe slug", () => {

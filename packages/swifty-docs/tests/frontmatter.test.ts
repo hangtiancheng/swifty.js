@@ -21,7 +21,7 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { extractFrontmatter } from "../src/markdown/frontmatter";
+import { extractFrontmatter } from "@/markdown/frontmatter";
 
 describe("extractFrontmatter", () => {
   it("extracts YAML frontmatter from markdown", () => {

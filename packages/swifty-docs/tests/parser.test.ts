@@ -21,7 +21,7 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { createParser } from "../src/markdown/parser";
+import { createParser } from "@/markdown/parser";
 
 describe("createParser", () => {
   it("creates a markdown-it instance", () => {

@@ -21,7 +21,7 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { scanDocsDir } from "../src/scanner";
+import { scanDocsDir } from "@/scanner";
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
@@ -513,10 +513,10 @@ describe("scanDocsDir", () => {
   });
 
   // ============================================================
-  // Swiftyy project scenario: flat directory with custom baseUrl
+  // Swifty project scenario: flat directory with custom baseUrl
   // ============================================================
 
-  it("handles flat directory with custom baseUrl (swiftyy scenario)", () => {
+  it("handles flat directory with custom baseUrl (swifty scenario)", () => {
     const dir = createTempDocs({
       "ch1.md": "---\ntitle: Introduction\n---\n# Introduction\n",
       "ch2.md": "---\ntitle: Getting Started\n---\n# Getting Started\n",

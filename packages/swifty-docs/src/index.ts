@@ -77,6 +77,7 @@ export { Input } from "./theme/ui/input";
 export { Kbd } from "./theme/ui/kbd";
 export {
   Dialog,
+  DialogAccessibleTitle,
   DialogClose,
   DialogContent,
   DialogDescription,
@@ -85,14 +86,21 @@ export {
   DialogTitle,
   DialogTrigger,
 } from "./theme/ui/dialog";
+export {
+  createContentGuard,
+  PasswordDialog,
+  type ContentGuard,
+  type PasswordDialogProps,
+} from "./theme/docs-guard";
 export { cn } from "./theme/lib/utils";
 export { createSearchEngine, highlightSegments } from "./theme/lib/search";
 export { useScrollSpy } from "./theme/lib/scroll-spy";
 export {
   computePrevNext,
   normalizePath,
+  type LoadContentFn,
   type LoadedContent,
   type PageHeading,
 } from "./theme/lib/content";
 export { createLocalSearchClient } from "./theme/docs-search-local";
-export { decryptContent } from "./utils/guard"
+export { decryptContent, type EncryptedPayload } from "./utils/guard";

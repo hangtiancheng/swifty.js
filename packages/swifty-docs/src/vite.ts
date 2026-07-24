@@ -117,7 +117,39 @@ export function swiftyDocsPlugin(
     },
   };
 
-  return [docsPlugin, ...preact()];
+  const baseSyncPlugin: Plugin = {
+    name: "swifty-docs:base-sync",
+    config(userConfig) {
+      if (userConfig.base === undefined && config.baseUrl) {
+        return { base: config.baseUrl };
+      }
+      return null;
+    },
+  };
+
+  // GitHub Pages (and similar static hosts) serve 404.html for unknown
+  // paths. Shipping a copy of index.html restores deep links / refreshes
+  // for the history-based SPA router.
+  let resolvedOutDir = "";
+  const spaFallbackPlugin: Plugin = {
+    name: "swifty-docs:spa-fallback",
+    apply: "build",
+    configResolved(resolved) {
+      resolvedOutDir = resolve(resolved.root, resolved.build.outDir);
+    },
+    closeBundle() {
+      const indexHtml = resolve(resolvedOutDir, "index.html");
+      const fallbackHtml = resolve(resolvedOutDir, "404.html");
+      if (fs.existsSync(indexHtml) && !fs.existsSync(fallbackHtml)) {
+        fs.copyFileSync(indexHtml, fallbackHtml);
+        if (debug) {
+          console.log("[@swifty.js/docs] emitted 404.html SPA fallback");
+        }
+      }
+    },
+  };
+
+  return [docsPlugin, baseSyncPlugin, spaFallbackPlugin, ...preact()];
 }
 
 export function docsGuardPlugin(): Plugin {

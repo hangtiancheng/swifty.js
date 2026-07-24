@@ -21,9 +21,20 @@
  */
 
 import type { ComponentChildren, Ref } from "preact";
-import { useEffect, useRef } from "preact/hooks";
+import { createContext } from "preact";
+import { useContext, useEffect, useRef } from "preact/hooks";
 import { createPortal } from "preact/compat";
 import { cn } from "../lib/utils";
+
+interface DialogContextValue {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+const DialogContext = createContext<DialogContextValue>({
+  open: true,
+  onOpenChange: () => {},
+});
 
 interface DialogProps {
   open: boolean;
@@ -41,11 +52,16 @@ export function Dialog({ open, onOpenChange, children }: DialogProps) {
     return () => document.removeEventListener("keydown", onKey);
   }, [open, onOpenChange]);
 
-  if (!open) return null;
-  return <>{children}</>;
+  return (
+    <DialogContext.Provider value={{ open, onOpenChange }}>
+      {children}
+    </DialogContext.Provider>
+  );
 }
 
 export function DialogPortal({ children }: { children: ComponentChildren }) {
+  const { open } = useContext(DialogContext);
+  if (!open) return null;
   return createPortal(<>{children}</>, document.body);
 }
 
@@ -134,7 +150,12 @@ export function DialogClose({
   children: ComponentChildren;
   class?: string;
 }) {
-  return <button class={className}>{children}</button>;
+  const { onOpenChange } = useContext(DialogContext);
+  return (
+    <button type="button" class={className} onClick={() => onOpenChange(false)}>
+      {children}
+    </button>
+  );
 }
 
 export function DialogTrigger({
@@ -144,5 +165,10 @@ export function DialogTrigger({
   children: ComponentChildren;
   class?: string;
 }) {
-  return <button class={className}>{children}</button>;
+  const { onOpenChange } = useContext(DialogContext);
+  return (
+    <button type="button" class={className} onClick={() => onOpenChange(true)}>
+      {children}
+    </button>
+  );
 }

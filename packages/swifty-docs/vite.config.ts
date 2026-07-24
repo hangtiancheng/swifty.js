@@ -41,9 +41,14 @@ import { resolve, dirname } from "node:path";
 import preact from "@preact/preset-vite";
 import tailwindcss from "@tailwindcss/vite";
 // !!! For your project, it should be:
-// import { swiftyDocsPlugin } from "@swifty.js/docs/vite";
-import { swiftyDocsPlugin } from "./src/vite";
-import { existsSync, copyFileSync } from "node:fs";
+// import { swiftyDocsPlugin, docsGuardPlugin } from "@swifty.js/docs/vite";
+import { swiftyDocsPlugin, docsGuardPlugin } from "./src/vite";
+import {
+  existsSync,
+  copyFileSync,
+  readFileSync,
+  writeFileSync,
+} from "node:fs";
 import { VitePWA } from "vite-plugin-pwa";
 /** Documentation site configuration used in docs mode. */
 import swiftyDocsConfig from "./swifty-docs.config";
@@ -109,7 +114,16 @@ function copyAssetsPlugin(): Rollup.Plugin {
       for (const file of ASSETS) {
         const src = resolve(srcDir, file);
         const dest = resolve(distDir, file);
-        if (existsSync(src)) {
+        if (!existsSync(src)) continue;
+        if (file === "client.css") {
+          // In src/ the @source points at the theme sources; in the published
+          // package the utility classes live in the stable theme chunk.
+          const css = readFileSync(src, "utf-8").replace(
+            '@source "./theme";',
+            '@source "./theme-chunk.js";',
+          );
+          writeFileSync(dest, css, "utf-8");
+        } else {
           copyFileSync(src, dest);
         }
       }
@@ -118,7 +132,20 @@ function copyAssetsPlugin(): Rollup.Plugin {
 }
 
 function libConfig(): UserConfig {
+  // All Preact theme modules (the only code containing Tailwind utility
+  // classes) are forced into a single stable chunk so consumers can point
+  // Tailwind at exactly one file: @source "@swifty.js/docs/theme-chunk.js".
+  const themeChunk = (id: string): string | undefined =>
+    id.includes("/src/theme/") ? "theme-chunk" : undefined;
+
+  const sharedOutput = {
+    exports: "named" as const,
+    manualChunks: themeChunk,
+  };
+
   return {
+    // Keep the docs-site PWA assets (public/) out of the npm package.
+    publicDir: false,
     build: {
       lib: {
         cssFileName: "swifty-docs",
@@ -135,6 +162,26 @@ function libConfig(): UserConfig {
       },
       rollupOptions: {
         external: isExternal,
+        output: [
+          {
+            ...sharedOutput,
+            format: "es",
+            entryFileNames: "[name].js",
+            chunkFileNames: (chunk) =>
+              chunk.name === "theme-chunk"
+                ? "theme-chunk.js"
+                : "chunks/[name]-[hash].js",
+          },
+          {
+            ...sharedOutput,
+            format: "cjs",
+            entryFileNames: "[name].cjs",
+            chunkFileNames: (chunk) =>
+              chunk.name === "theme-chunk"
+                ? "theme-chunk.cjs"
+                : "chunks/[name]-[hash].cjs",
+          },
+        ],
       },
       outDir: "dist",
       emptyOutDir: true,
@@ -165,6 +212,7 @@ function docsConfig(options?: { isDev?: boolean }): UserConfig {
         config: swiftyDocsConfig,
         debug: true,
       }),
+      docsGuardPlugin(),
       tailwindcss() as PluginOption,
       VitePWA({
         registerType: "autoUpdate",

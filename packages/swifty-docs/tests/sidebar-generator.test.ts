@@ -21,8 +21,8 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { generateSidebar } from "../src/sidebar-generator";
-import type { DocsRoute } from "../src/types";
+import { generateSidebar } from "@/sidebar-generator";
+import type { DocsRoute } from "@/types";
 
 function makeRoute(
   path: string,

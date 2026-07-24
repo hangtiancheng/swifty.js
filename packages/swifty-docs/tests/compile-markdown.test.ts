@@ -21,8 +21,8 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { compileMarkdown } from "../src/compile-markdown";
-import type { DocsConfig } from "../src/types";
+import { compileMarkdown } from "@/compile-markdown";
+import type { DocsConfig } from "@/types";
 
 const baseConfig: DocsConfig = {
   docs: "docs",

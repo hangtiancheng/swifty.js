@@ -67,6 +67,7 @@ export { Input } from "./ui/input";
 export { Kbd } from "./ui/kbd";
 export {
   Dialog,
+  DialogAccessibleTitle,
   DialogClose,
   DialogContent,
   DialogDescription,
@@ -75,6 +76,14 @@ export {
   DialogTitle,
   DialogTrigger,
 } from "./ui/dialog";
+
+// Built-in password guard for docsGuardPlugin-protected pages
+export {
+  createContentGuard,
+  PasswordDialog,
+  type ContentGuard,
+  type PasswordDialogProps,
+} from "./docs-guard";
 
 // Utilities and runtime helpers
 export { cn } from "./lib/utils";

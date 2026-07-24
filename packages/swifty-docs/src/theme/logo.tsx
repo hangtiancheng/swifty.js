@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-import { FeatherIcon, MoonIcon, SunIcon } from "lucide-preact";
+import { FeatherIcon, MoonIcon, SunIcon } from "./icons";
 import { cn } from "./lib/utils";
 
 interface LogoProps {

@@ -1,4 +1,4 @@
-interface EncryptedPayload {
+export interface EncryptedPayload {
   encrypted: string;
   authTag: string;
   salt: string;

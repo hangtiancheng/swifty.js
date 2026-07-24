@@ -21,8 +21,8 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { createParser } from "../src/markdown/parser";
-import { renderToSwiftyTemplate } from "../src/markdown/renderer";
+import { createParser } from "@/markdown/parser";
+import { renderToSwiftyTemplate } from "@/markdown/renderer";
 
 describe("renderToSwiftyTemplate", () => {
   it("renders tokens to HTML string", () => {

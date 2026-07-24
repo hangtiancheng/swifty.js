@@ -47,7 +47,12 @@
  * `process.cwd()`, which is the project root in most Vite
  * setups.
  */
-import type { DocsConfig, SidebarConfig } from "./types";
+import type {
+  DocsConfig,
+  NavItem,
+  SidebarConfig,
+  SidebarItem,
+} from "./types";
 import { scanDocsDir } from "./scanner";
 import { generateSidebar } from "./sidebar-generator";
 import { dirname, isAbsolute, relative, resolve } from "node:path";
@@ -72,6 +77,44 @@ export function defineConfig(
 }
 
 /**
+ * Prefix an internal absolute link with the site baseUrl.
+ *
+ * Idempotent and conservative: external URLs (`https://…`), protocol-relative
+ * URLs, hash links, non-absolute paths, and links already carrying the
+ * baseUrl prefix are returned unchanged, so existing configs that hand-wrote
+ * the prefix keep working.
+ */
+function joinBase(baseUrl: string, link: string): string {
+  if (!link) return link;
+  if (/^[a-z][a-z0-9+.-]*:/i.test(link)) return link;
+  if (link.startsWith("//") || link.startsWith("#")) return link;
+  if (!link.startsWith("/")) return link;
+  const base = baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
+  if (base === "" || base === "/") return link;
+  if (link === base || link.startsWith(base + "/")) return link;
+  return base + link;
+}
+
+function prefixNavItems(baseUrl: string, items: NavItem[]): NavItem[] {
+  return items.map((item) => ({
+    ...item,
+    link: joinBase(baseUrl, item.link),
+    ...(item.items ? { items: prefixNavItems(baseUrl, item.items) } : {}),
+  }));
+}
+
+function prefixSidebarItems(
+  baseUrl: string,
+  items: SidebarItem[],
+): SidebarItem[] {
+  return items.map((item) => ({
+    ...item,
+    ...(item.link ? { link: joinBase(baseUrl, item.link) } : {}),
+    ...(item.items ? { items: prefixSidebarItems(baseUrl, item.items) } : {}),
+  }));
+}
+
+/**
  * Generate a runtime module into `{projectRoot}/.swifty-docs/generated/`.
  *
  * Outputs `index.js` — runtime code (loaders, loadContent, routes, docsConfig,
@@ -88,14 +131,18 @@ function generateRoutesFile(config: DocsConfig, projectRoot: string): void {
 
   const routes = scanDocsDir(docsDir, config.baseUrl);
 
-  // Build sidebar
+  // Build sidebar. "auto" prefixes are matched against generated routes
+  // (which include baseUrl), manual items get baseUrl prepended to links.
   const sidebar: Record<string, SidebarConfig> = {};
   if (config.sidebar) {
     for (const [prefix, sidebarConfig] of Object.entries(config.sidebar)) {
       if (sidebarConfig === "auto") {
-        sidebar[prefix] = generateSidebar(routes, prefix);
+        sidebar[prefix] = generateSidebar(
+          routes,
+          joinBase(config.baseUrl, prefix),
+        );
       } else {
-        sidebar[prefix] = sidebarConfig;
+        sidebar[prefix] = prefixSidebarItems(config.baseUrl, sidebarConfig);
       }
     }
   }
@@ -130,7 +177,7 @@ function generateRoutesFile(config: DocsConfig, projectRoot: string): void {
     title: config.title,
     description: config.description || "",
     baseUrl: config.baseUrl,
-    nav: config.nav || [],
+    nav: prefixNavItems(config.baseUrl, config.nav || []),
     sidebar,
   };
 
