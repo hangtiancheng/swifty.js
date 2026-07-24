@@ -20,13 +20,13 @@
  * SOFTWARE.
  */
 
-import Preact from "preact";
+import type { ComponentProps } from "preact";
 import { cn } from "../lib/utils";
 
 export function Kbd({
   class: className,
   ...rest
-}: Preact.HTMLAttributes<HTMLElement>) {
+}: ComponentProps<"kbd">) {
   return (
     <kbd
       class={cn(

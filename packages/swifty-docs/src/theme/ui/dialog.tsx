@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-import type { ComponentChildren } from "preact";
+import type { ComponentChildren, Ref } from "preact";
 import { useEffect, useRef } from "preact/hooks";
 import { createPortal } from "preact/compat";
 import { cn } from "../lib/utils";
@@ -62,22 +62,30 @@ export function DialogOverlay({ class: className }: { class?: string }) {
 
 interface DialogContentProps {
   class?: string;
+  ref?: Ref<HTMLDivElement>;
   children: ComponentChildren;
 }
 
 export function DialogContent({
   class: className,
+  ref,
   children,
 }: DialogContentProps) {
-  const ref = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    ref.current?.focus();
+    innerRef.current?.focus();
   }, []);
+
+  const setRef = (el: HTMLDivElement | null) => {
+    innerRef.current = el;
+    if (typeof ref === "function") ref(el);
+    else if (ref && typeof ref === "object") ref.current = el;
+  };
 
   return (
     <div
-      ref={ref}
+      ref={setRef}
       role="dialog"
       aria-modal="true"
       tabIndex={-1}

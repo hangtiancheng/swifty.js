@@ -75,6 +75,16 @@ export { Logo } from "./theme/logo";
 export { Button, buttonVariants } from "./theme/ui/button";
 export { Input } from "./theme/ui/input";
 export { Kbd } from "./theme/ui/kbd";
+export {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogOverlay,
+  DialogPortal,
+  DialogTitle,
+  DialogTrigger,
+} from "./theme/ui/dialog";
 export { cn } from "./theme/lib/utils";
 export { createSearchEngine, highlightSegments } from "./theme/lib/search";
 export { useScrollSpy } from "./theme/lib/scroll-spy";

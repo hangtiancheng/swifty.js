@@ -20,13 +20,13 @@
  * SOFTWARE.
  */
 
-import Preact from "preact";
+import type { ComponentProps } from "preact";
 import { cn } from "../lib/utils";
 
 export function Input({
   class: className,
   ...rest
-}: Preact.HTMLAttributes<HTMLInputElement>) {
+}: ComponentProps<"input">) {
   return (
     <input
       class={cn(
