@@ -45,8 +45,10 @@
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import type { FunctionComponent } from "preact";
 import { renderToString } from "preact-render-to-string";
+import { z } from "zod";
 import { decryptContent, type EncryptedPayload } from "../utils/guard";
 import { LockIcon, XIcon } from "./icons";
+import { PageHeadingSchema } from "./lib/content";
 import { cn } from "./lib/utils";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -76,21 +78,33 @@ const DENIED_HTML = renderToString(
   </div>,
 );
 
+const EncryptedPayloadSchema = z.object({
+  encrypted: z.string(),
+  authTag: z.string(),
+  salt: z.string(),
+  iv: z.string(),
+});
+
 function parsePayload(html: string): EncryptedPayload | null {
   try {
-    const obj = JSON.parse(html);
-    if (obj && typeof obj.encrypted === "string" && obj.salt && obj.iv) {
-      return obj as EncryptedPayload;
-    }
+    const parsed = EncryptedPayloadSchema.safeParse(JSON.parse(html));
+    if (parsed.success) return parsed.data;
   } catch {
     // Not an encrypted payload — plain page HTML.
   }
   return null;
 }
 
+// Malformed headings degrade to an empty Toc rather than failing the whole
+// envelope (which would render the raw JSON as page HTML).
+const DecryptedPageSchema = z.object({
+  html: z.string(),
+  headings: z.array(PageHeadingSchema).catch([]),
+});
+
 interface DecryptedPage {
   html: string;
-  headings?: unknown[];
+  headings?: z.infer<typeof PageHeadingSchema>[];
 }
 
 /**
@@ -100,8 +114,8 @@ interface DecryptedPage {
  */
 function parseDecrypted(plaintext: string): DecryptedPage {
   try {
-    const obj = JSON.parse(plaintext);
-    if (obj && typeof obj.html === "string") return obj as DecryptedPage;
+    const parsed = DecryptedPageSchema.safeParse(JSON.parse(plaintext));
+    if (parsed.success) return parsed.data;
   } catch {
     // Legacy payload — plain HTML string.
   }

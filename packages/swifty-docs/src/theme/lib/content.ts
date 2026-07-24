@@ -68,7 +68,7 @@ export const DocsConfigSchema = z.object({
 });
 export type RuntimeDocsConfig = z.infer<typeof DocsConfigSchema>;
 
-const PageHeadingSchema = z.looseObject({
+export const PageHeadingSchema = z.looseObject({
   level: z.number(),
   text: z.string(),
   slug: z.string(),

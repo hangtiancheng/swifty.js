@@ -38,6 +38,7 @@
  */
 import fs, { readFileSync } from "node:fs";
 import { isAbsolute, resolve, dirname } from "node:path";
+import { z } from "zod";
 import type { DocsConfig } from "./types";
 import { compileMarkdown } from "./compile-markdown";
 import type { Plugin } from "vite";
@@ -208,7 +209,9 @@ export function docsGuardPlugin(): Plugin {
         return null;
       }
 
-      const html = JSON.parse(htmlMatch[1]) as string;
+      // The regex above matched a JSON string literal, but validate rather
+      // than assert — encrypting garbage would brick the page silently.
+      const html = z.string().parse(JSON.parse(htmlMatch[1]));
 
       // pageData ships in plaintext and feeds the search index; the
       // body-derived fields (excerpt/description/headings) are stripped so
@@ -219,7 +222,7 @@ export function docsGuardPlugin(): Plugin {
       let pd: Record<string, unknown> | null = null;
       if (pdMatch) {
         try {
-          pd = JSON.parse(pdMatch[1]) as Record<string, unknown>;
+          pd = z.record(z.string(), z.unknown()).parse(JSON.parse(pdMatch[1]));
         } catch {
           this.warn(
             `[@swifty.js/docs] could not sanitize pageData in ${filePath} — protected excerpt/headings may leak into the search index.`,
