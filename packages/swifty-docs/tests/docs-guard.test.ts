@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { docsGuardPlugin } from "@/vite";
 import { decryptContent } from "@/utils/guard";
 import fs from "node:fs";
@@ -84,7 +84,8 @@ describe("docsGuardPlugin", () => {
       "---\nprotected: true\n---\n# Secret\n",
     );
     const html = "<h1>Secret</h1><p>classified</p>";
-    const out = runTransform(compiledModule(html), filePath);
+    const headings = [{ level: 2, text: "Secret Heading", slug: "s" }];
+    const out = runTransform(compiledModule(html, headings), filePath);
 
     expect(out).not.toBeNull();
     expect(out!).not.toContain("classified");
@@ -96,7 +97,10 @@ describe("docsGuardPlugin", () => {
     const payload = JSON.parse(JSON.parse(payloadJson));
     expect(payload.encrypted).toBeTypeOf("string");
 
-    await expect(decryptContent(payload, PASSWORD)).resolves.toBe(html);
+    // The plaintext is a { html, headings } envelope so the Toc can be
+    // restored after unlock.
+    const plaintext = await decryptContent(payload, PASSWORD);
+    expect(JSON.parse(plaintext)).toEqual({ html, headings });
     await expect(decryptContent(payload, "wrong")).rejects.toThrow();
   });
 
@@ -128,6 +132,43 @@ describe("docsGuardPlugin", () => {
     expect(out!).not.toContain("Secret Heading");
     // Title survives for sidebar display.
     expect(out!).toContain("Secret Page");
+  });
+
+  it("restores contentHtml and headings after unlock (cached password)", async () => {
+    const filePath = writeMd(
+      "secret.md",
+      "---\nprotected: true\n---\n# Secret\n",
+    );
+    const html = '<h2 id="s">Secret Heading</h2>';
+    const headings = [{ level: 2, text: "Secret Heading", slug: "s" }];
+    const out = runTransform(compiledModule(html, headings), filePath)!;
+
+    const contentHtml = JSON.parse(
+      out.match(/export const contentHtml = ("(?:[^"\\]|\\.)*");/)![1],
+    ) as string;
+    const pageData = JSON.parse(
+      out.match(/export const pageData = (\{[\s\S]*?\n\});/)![1],
+    ) as Record<string, unknown>;
+    expect(pageData["headings"]).toEqual([]);
+
+    const store = new Map([["docs-guard-pwd", PASSWORD]]);
+    vi.stubGlobal("sessionStorage", {
+      getItem: (k: string) => store.get(k) ?? null,
+      setItem: (k: string, v: string) => void store.set(k, v),
+      removeItem: (k: string) => void store.delete(k),
+    });
+    try {
+      const { createContentGuard } = await import("@/theme/docs-guard");
+      const guard = createContentGuard(async () => ({
+        pageData,
+        contentHtml,
+      }));
+      const result = await guard.loadContent("/secret");
+      expect(result!.contentHtml).toBe(html);
+      expect(result!.pageData!["headings"]).toEqual(headings);
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   it("leaves unprotected pages untouched", () => {

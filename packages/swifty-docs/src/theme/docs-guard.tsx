@@ -88,6 +88,26 @@ function parsePayload(html: string): EncryptedPayload | null {
   return null;
 }
 
+interface DecryptedPage {
+  html: string;
+  headings?: unknown[];
+}
+
+/**
+ * The build-time plugin encrypts a `{ html, headings }` envelope so the Toc
+ * survives the pageData scrub. Payloads produced by older builds contain the
+ * raw HTML string; treat those as an envelope without headings.
+ */
+function parseDecrypted(plaintext: string): DecryptedPage {
+  try {
+    const obj = JSON.parse(plaintext);
+    if (obj && typeof obj.html === "string") return obj as DecryptedPage;
+  } catch {
+    // Legacy payload — plain HTML string.
+  }
+  return { html: plaintext };
+}
+
 function shakeElement(el: HTMLElement) {
   el.animate(
     [
@@ -104,7 +124,7 @@ function shakeElement(el: HTMLElement) {
 
 export interface PasswordDialogProps {
   payload: EncryptedPayload;
-  onUnlock: (html: string, password: string) => void;
+  onUnlock: (plaintext: string, password: string) => void;
   onClose: () => void;
 }
 
@@ -129,8 +149,8 @@ export function PasswordDialog({
       if (!value.trim() || checking) return;
       setChecking(true);
       try {
-        const html = await decryptContent(payload, value);
-        onUnlock(html, value);
+        const plaintext = await decryptContent(payload, value);
+        onUnlock(plaintext, value);
       } catch {
         setError("Incorrect password. Please try again.");
         if (cardRef.current) shakeElement(cardRef.current);
@@ -204,18 +224,32 @@ export function PasswordDialog({
   );
 }
 
-export interface ContentGuard<T extends { contentHtml: string }> {
+export interface ContentGuard<
+  T extends { contentHtml: string; pageData?: { headings?: unknown } },
+> {
   /** Drop-in replacement for the generated `loadContent`. */
   loadContent: (path: string) => Promise<T | null>;
   /** Mount once (outside `<DocsProvider>` is fine) to enable the dialog. */
   ContentGuard: FunctionComponent;
 }
 
-export function createContentGuard<T extends { contentHtml: string }>(
-  loadContent: (path: string) => Promise<T | null>,
-): ContentGuard<T> {
+export function createContentGuard<
+  T extends { contentHtml: string; pageData?: { headings?: unknown } },
+>(loadContent: (path: string) => Promise<T | null>): ContentGuard<T> {
   let ask: ((payload: EncryptedPayload) => Promise<string | null>) | null =
     null;
+
+  const unlockPage = (mod: T, plaintext: string): T => {
+    const page = parseDecrypted(plaintext);
+    const unlocked: T = { ...mod, contentHtml: page.html };
+    if (page.headings && unlocked.pageData) {
+      unlocked.pageData = {
+        ...unlocked.pageData,
+        headings: page.headings,
+      } as T["pageData"];
+    }
+    return unlocked;
+  };
 
   const guardedLoadContent = async (path: string): Promise<T | null> => {
     const mod = await loadContent(path);
@@ -227,16 +261,16 @@ export function createContentGuard<T extends { contentHtml: string }>(
     const cached = sessionStorage.getItem(SESSION_KEY);
     if (cached) {
       try {
-        const html = await decryptContent(payload, cached);
-        return { ...mod, contentHtml: html };
+        const plaintext = await decryptContent(payload, cached);
+        return unlockPage(mod, plaintext);
       } catch {
         sessionStorage.removeItem(SESSION_KEY);
       }
     }
 
-    const html = ask ? await ask(payload) : null;
-    if (html === null) return { ...mod, contentHtml: DENIED_HTML };
-    return { ...mod, contentHtml: html };
+    const plaintext = ask ? await ask(payload) : null;
+    if (plaintext === null) return { ...mod, contentHtml: DENIED_HTML };
+    return unlockPage(mod, plaintext);
   };
 
   function ContentGuardHost() {
@@ -267,10 +301,10 @@ export function createContentGuard<T extends { contentHtml: string }>(
     }, [settle]);
 
     const handleUnlock = useCallback(
-      (html: string, password: string) => {
+      (plaintext: string, password: string) => {
         sessionStorage.setItem(SESSION_KEY, password);
         setDialog(null);
-        settle(html);
+        settle(plaintext);
       },
       [settle],
     );

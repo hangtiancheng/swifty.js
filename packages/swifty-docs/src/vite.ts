@@ -209,12 +209,35 @@ export function docsGuardPlugin(): Plugin {
       }
 
       const html = JSON.parse(htmlMatch[1]) as string;
+
+      // pageData ships in plaintext and feeds the search index; the
+      // body-derived fields (excerpt/description/headings) are stripped so
+      // protected content cannot be read through search results. Headings
+      // are encrypted alongside the HTML so the Toc can be restored after
+      // unlock. The title stays — it is already visible in the sidebar.
+      const pdMatch = code.match(/export const pageData = (\{[\s\S]*?\n\});/);
+      let pd: Record<string, unknown> | null = null;
+      if (pdMatch) {
+        try {
+          pd = JSON.parse(pdMatch[1]) as Record<string, unknown>;
+        } catch {
+          this.warn(
+            `[@swifty.js/docs] could not sanitize pageData in ${filePath} — protected excerpt/headings may leak into the search index.`,
+          );
+        }
+      }
+
+      const plaintext = JSON.stringify({
+        html,
+        headings: Array.isArray(pd?.["headings"]) ? pd["headings"] : [],
+      });
+
       const salt = randomBytes(16);
       const iv = randomBytes(12);
       const key = pbkdf2Sync(password, salt, 100_000, 32, "sha256");
       const cipher = createCipheriv("aes-256-gcm", key, iv);
       const encrypted = Buffer.concat([
-        cipher.update(html, "utf-8"),
+        cipher.update(plaintext, "utf-8"),
         cipher.final(),
       ]);
       const authTag = cipher.getAuthTag();
@@ -231,27 +254,14 @@ export function docsGuardPlugin(): Plugin {
         `export const contentHtml = ${JSON.stringify(payload)};\nexport const __protected = true;`,
       );
 
-      // pageData ships in plaintext and feeds the search index; strip the
-      // body-derived fields (excerpt/description/headings) so protected
-      // content cannot be read through search results. The title stays —
-      // it is already visible in the sidebar.
-      const pdMatch = out.match(/export const pageData = (\{[\s\S]*?\n\});/);
-      if (pdMatch) {
-        try {
-          const pd = JSON.parse(pdMatch[1]) as Record<string, unknown>;
-          pd["description"] = undefined;
-          pd["excerpt"] = "";
-          pd["headings"] = [];
-          out = out.replace(
-            pdMatch[0],
-            `export const pageData = ${JSON.stringify(pd, null, 2)};`,
-          );
-        } catch {
-          this.warn(
-            `[@swifty.js/docs] could not sanitize pageData in ${filePath} — ` +
-              `protected excerpt/headings may leak into the search index.`,
-          );
-        }
+      if (pd && pdMatch) {
+        pd["description"] = undefined;
+        pd["excerpt"] = "";
+        pd["headings"] = [];
+        out = out.replace(
+          pdMatch[0],
+          `export const pageData = ${JSON.stringify(pd, null, 2)};`,
+        );
       }
 
       return { code: out, map: null };
