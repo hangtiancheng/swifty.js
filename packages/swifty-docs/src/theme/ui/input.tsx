@@ -21,11 +21,19 @@
  */
 
 import type { ComponentProps } from "preact";
+import { forwardRef } from "preact/compat";
 import { cn } from "../lib/utils";
 
-export function Input({ class: className, ...rest }: ComponentProps<"input">) {
+// forwardRef is required: Preact 10 attaches a plain `ref` on a function
+// component to its internal instance, not the DOM node, so callers doing
+// `ref.current.focus()` would crash.
+export const Input = forwardRef<
+  HTMLInputElement,
+  Omit<ComponentProps<"input">, "ref">
+>(function Input({ class: className, ...rest }, ref) {
   return (
     <input
+      ref={ref}
       class={cn(
         "border-input placeholder:text-muted-foreground focus-visible:border-ring/60 focus-visible:ring-ring/30 flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-sm transition-colors duration-200 focus-visible:ring-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50",
         className,
@@ -33,4 +41,4 @@ export function Input({ class: className, ...rest }: ComponentProps<"input">) {
       {...rest}
     />
   );
-}
+});

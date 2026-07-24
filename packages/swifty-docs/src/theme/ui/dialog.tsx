@@ -20,10 +20,10 @@
  * SOFTWARE.
  */
 
-import type { ComponentChildren, Ref } from "preact";
+import type { ComponentChildren } from "preact";
 import { createContext } from "preact";
 import { useContext, useEffect, useRef } from "preact/hooks";
-import { createPortal } from "preact/compat";
+import { createPortal, forwardRef } from "preact/compat";
 import { cn } from "../lib/utils";
 
 interface DialogContextValue {
@@ -78,42 +78,42 @@ export function DialogOverlay({ class: className }: { class?: string }) {
 
 interface DialogContentProps {
   class?: string;
-  ref?: Ref<HTMLDivElement>;
   children: ComponentChildren;
 }
 
-export function DialogContent({
-  class: className,
-  ref,
-  children,
-}: DialogContentProps) {
-  const innerRef = useRef<HTMLDivElement | null>(null);
+// forwardRef is required: Preact 10 never puts `ref` into a function
+// component's props (destructuring it always yielded undefined), so the
+// forwarded ref used to silently point at the component instance.
+export const DialogContent = forwardRef<HTMLDivElement, DialogContentProps>(
+  function DialogContent({ class: className, children }, ref) {
+    const innerRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
-    innerRef.current?.focus();
-  }, []);
+    useEffect(() => {
+      innerRef.current?.focus();
+    }, []);
 
-  const setRef = (el: HTMLDivElement | null) => {
-    innerRef.current = el;
-    if (typeof ref === "function") ref(el);
-    else if (ref && typeof ref === "object") ref.current = el;
-  };
+    const setRef = (el: HTMLDivElement | null) => {
+      innerRef.current = el;
+      if (typeof ref === "function") ref(el);
+      else if (ref && typeof ref === "object") ref.current = el;
+    };
 
-  return (
-    <div
-      ref={setRef}
-      role="dialog"
-      aria-modal="true"
-      tabIndex={-1}
-      class={cn(
-        "border-border bg-card text-card-foreground shadow-foreground/10 animate-dialog-in fixed z-50 flex flex-col overflow-hidden rounded-xl border shadow-2xl outline-none",
-        className,
-      )}
-    >
-      {children}
-    </div>
-  );
-}
+    return (
+      <div
+        ref={setRef}
+        role="dialog"
+        aria-modal="true"
+        tabIndex={-1}
+        class={cn(
+          "border-border bg-card text-card-foreground shadow-foreground/10 animate-dialog-in fixed z-50 flex flex-col overflow-hidden rounded-xl border shadow-2xl outline-none",
+          className,
+        )}
+      >
+        {children}
+      </div>
+    );
+  },
+);
 
 export function DialogAccessibleTitle({
   children,
