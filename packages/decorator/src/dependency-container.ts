@@ -1,22 +1,44 @@
+/**
+ * Copyright (c) 2026 hangtiancheng
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 import DependencyContainer, {
   PostResolutionInterceptorCallback,
   PreResolutionInterceptorCallback,
-  ResolutionType
+  ResolutionType,
 } from "./types/dependency-container";
 import {
   isClassProvider,
   isFactoryProvider,
   isNormalToken,
   isTokenProvider,
-  isValueProvider
+  isValueProvider,
 } from "./providers";
-import Provider, {isProvider} from "./providers/provider";
+import Provider, { isProvider } from "./providers/provider";
 import FactoryProvider from "./providers/factory-provider";
 import InjectionToken, {
   isConstructorToken,
   isTokenDescriptor,
   isTransformDescriptor,
-  TokenDescriptor
+  TokenDescriptor,
 } from "./providers/injection-token";
 import TokenProvider from "./providers/token-provider";
 import ValueProvider from "./providers/value-provider";
@@ -26,9 +48,9 @@ import constructor from "./types/constructor";
 import Registry from "./registry";
 import Lifecycle from "./types/lifecycle";
 import ResolutionContext from "./resolution-context";
-import {formatErrorCtor} from "./error-helpers";
-import {DelayedConstructor} from "./lazy-helpers";
-import Disposable, {isDisposable} from "./types/disposable";
+import { formatErrorCtor } from "./error-helpers";
+import { DelayedConstructor } from "./lazy-helpers";
+import Disposable, { isDisposable } from "./types/disposable";
 import InterceptorOptions from "./types/interceptor-options";
 import Interceptors from "./interceptors";
 
@@ -58,38 +80,38 @@ class InternalDependencyContainer implements DependencyContainer {
    */
   public register<T>(
     token: InjectionToken<T>,
-    provider: ValueProvider<T>
+    provider: ValueProvider<T>,
   ): InternalDependencyContainer;
   public register<T>(
     token: InjectionToken<T>,
-    provider: FactoryProvider<T>
+    provider: FactoryProvider<T>,
   ): InternalDependencyContainer;
   public register<T>(
     token: InjectionToken<T>,
     provider: TokenProvider<T>,
-    options?: RegistrationOptions
+    options?: RegistrationOptions,
   ): InternalDependencyContainer;
   public register<T>(
     token: InjectionToken<T>,
     provider: ClassProvider<T>,
-    options?: RegistrationOptions
+    options?: RegistrationOptions,
   ): InternalDependencyContainer;
   public register<T>(
     token: InjectionToken<T>,
     provider: constructor<T>,
-    options?: RegistrationOptions
+    options?: RegistrationOptions,
   ): InternalDependencyContainer;
   public register<T>(
     token: InjectionToken<T>,
     providerOrConstructor: Provider<T> | constructor<T>,
-    options: RegistrationOptions = {lifecycle: Lifecycle.Transient}
+    options: RegistrationOptions = { lifecycle: Lifecycle.Transient },
   ): InternalDependencyContainer {
     this.ensureNotDisposed();
 
     let provider: Provider<T>;
 
     if (!isProvider(providerOrConstructor)) {
-      provider = {useClass: providerOrConstructor};
+      provider = { useClass: providerOrConstructor };
     } else {
       provider = providerOrConstructor;
     }
@@ -104,8 +126,8 @@ class InternalDependencyContainer implements DependencyContainer {
         if (path.includes(currentToken)) {
           throw new Error(
             `Token registration cycle detected! ${[...path, currentToken].join(
-              " -> "
-            )}`
+              " -> ",
+            )}`,
           );
         }
 
@@ -130,55 +152,55 @@ class InternalDependencyContainer implements DependencyContainer {
         throw new Error(
           `Cannot use lifecycle "${
             Lifecycle[options.lifecycle]
-          }" with ValueProviders or FactoryProviders`
+          }" with ValueProviders or FactoryProviders`,
         );
       }
     }
 
-    this._registry.set(token, {provider, options});
+    this._registry.set(token, { provider, options });
 
     return this;
   }
 
   public registerType<T>(
     from: InjectionToken<T>,
-    to: InjectionToken<T>
+    to: InjectionToken<T>,
   ): InternalDependencyContainer {
     this.ensureNotDisposed();
 
     if (isNormalToken(to)) {
       return this.register(from, {
-        useToken: to
+        useToken: to,
       });
     }
 
     return this.register(from, {
-      useClass: to
+      useClass: to,
     });
   }
 
   public registerInstance<T>(
     token: InjectionToken<T>,
-    instance: T
+    instance: T,
   ): InternalDependencyContainer {
     this.ensureNotDisposed();
 
     return this.register(token, {
-      useValue: instance
+      useValue: instance,
     });
   }
 
   public registerSingleton<T>(
     from: InjectionToken<T>,
-    to: InjectionToken<T>
+    to: InjectionToken<T>,
   ): InternalDependencyContainer;
   public registerSingleton<T>(
     token: constructor<T>,
-    to?: constructor<any>
+    to?: constructor<any>,
   ): InternalDependencyContainer;
   public registerSingleton<T>(
     from: InjectionToken<T>,
-    to?: InjectionToken<T>
+    to?: InjectionToken<T>,
   ): InternalDependencyContainer {
     this.ensureNotDisposed();
 
@@ -187,22 +209,22 @@ class InternalDependencyContainer implements DependencyContainer {
         return this.register(
           from,
           {
-            useToken: to
+            useToken: to,
           },
-          {lifecycle: Lifecycle.Singleton}
+          { lifecycle: Lifecycle.Singleton },
         );
       } else if (to) {
         return this.register(
           from,
           {
-            useClass: to
+            useClass: to,
           },
-          {lifecycle: Lifecycle.Singleton}
+          { lifecycle: Lifecycle.Singleton },
         );
       }
 
       throw new Error(
-        'Cannot register a type name as a singleton without a "to" token'
+        'Cannot register a type name as a singleton without a "to" token',
       );
     }
 
@@ -214,16 +236,16 @@ class InternalDependencyContainer implements DependencyContainer {
     return this.register(
       from,
       {
-        useClass
+        useClass,
       },
-      {lifecycle: Lifecycle.Singleton}
+      { lifecycle: Lifecycle.Singleton },
     );
   }
 
   public resolve<T>(
     token: InjectionToken<T>,
     context: ResolutionContext = new ResolutionContext(),
-    isOptional = false
+    isOptional = false,
   ): T {
     this.ensureNotDisposed();
 
@@ -234,7 +256,7 @@ class InternalDependencyContainer implements DependencyContainer {
         return undefined as unknown as T;
       }
       throw new Error(
-        `Attempted to resolve unregistered dependency token: "${token.toString()}"`
+        `Attempted to resolve unregistered dependency token: "${token.toString()}"`,
       );
     }
 
@@ -254,13 +276,13 @@ class InternalDependencyContainer implements DependencyContainer {
     }
 
     throw new Error(
-      "Attempted to construct an undefined constructor. Could mean a circular dependency problem. Try using `delay` function."
+      "Attempted to construct an undefined constructor. Could mean a circular dependency problem. Try using `delay` function.",
     );
   }
 
   private executePreResolutionInterceptor<T>(
     token: InjectionToken<T>,
-    resolutionType: ResolutionType
+    resolutionType: ResolutionType,
   ): void {
     if (this.interceptors.preResolution.has(token)) {
       const remainingInterceptors = [];
@@ -278,12 +300,12 @@ class InternalDependencyContainer implements DependencyContainer {
   private executePostResolutionInterceptor<T>(
     token: InjectionToken<T>,
     result: T | T[],
-    resolutionType: ResolutionType
+    resolutionType: ResolutionType,
   ): void {
     if (this.interceptors.postResolution.has(token)) {
       const remainingInterceptors = [];
       for (const interceptor of this.interceptors.postResolution.getAll(
-        token
+        token,
       )) {
         if (interceptor.options.frequency != "Once") {
           remainingInterceptors.push(interceptor);
@@ -297,7 +319,7 @@ class InternalDependencyContainer implements DependencyContainer {
 
   private resolveRegistration<T>(
     registration: Registration,
-    context: ResolutionContext
+    context: ResolutionContext,
   ): T {
     this.ensureNotDisposed();
 
@@ -324,7 +346,7 @@ class InternalDependencyContainer implements DependencyContainer {
         ? registration.instance ||
           (registration.instance = this.resolve(
             registration.provider.useToken,
-            context
+            context,
           ))
         : this.resolve(registration.provider.useToken, context);
     } else if (isClassProvider(registration.provider)) {
@@ -332,7 +354,7 @@ class InternalDependencyContainer implements DependencyContainer {
         ? registration.instance ||
           (registration.instance = this.construct(
             registration.provider.useClass,
-            context
+            context,
           ))
         : this.construct(registration.provider.useClass, context);
     } else if (isFactoryProvider(registration.provider)) {
@@ -352,7 +374,7 @@ class InternalDependencyContainer implements DependencyContainer {
   public resolveAll<T>(
     token: InjectionToken<T>,
     context: ResolutionContext = new ResolutionContext(),
-    isOptional = false
+    isOptional = false,
   ): T[] {
     this.ensureNotDisposed();
 
@@ -363,15 +385,15 @@ class InternalDependencyContainer implements DependencyContainer {
         return [];
       }
       throw new Error(
-        `Attempted to resolve unregistered dependency token: "${token.toString()}"`
+        `Attempted to resolve unregistered dependency token: "${token.toString()}"`,
       );
     }
 
     this.executePreResolutionInterceptor(token, "All");
 
     if (registrations) {
-      const result = registrations.map(item =>
-        this.resolveRegistration<T>(item, context)
+      const result = registrations.map((item) =>
+        this.resolveRegistration<T>(item, context),
       );
 
       this.executePostResolutionInterceptor(token, result, "All");
@@ -410,12 +432,12 @@ class InternalDependencyContainer implements DependencyContainer {
         token,
         registrations
           // Clear ValueProvider registrations
-          .filter(registration => !isValueProvider(registration.provider))
+          .filter((registration) => !isValueProvider(registration.provider))
           // Clear instances
-          .map(registration => {
+          .map((registration) => {
             registration.instance = undefined;
             return registration;
-          })
+          }),
       );
     }
   }
@@ -431,21 +453,21 @@ class InternalDependencyContainer implements DependencyContainer {
       // the ContainerScoped registrations, we would lose access to the others
       if (
         registrations.some(
-          ({options}) => options.lifecycle === Lifecycle.ContainerScoped
+          ({ options }) => options.lifecycle === Lifecycle.ContainerScoped,
         )
       ) {
         childContainer._registry.setAll(
           token,
-          registrations.map<Registration>(registration => {
+          registrations.map<Registration>((registration) => {
             if (registration.options.lifecycle === Lifecycle.ContainerScoped) {
               return {
                 provider: registration.provider,
-                options: registration.options
+                options: registration.options,
               };
             }
 
             return registration;
-          })
+          }),
         );
       }
     }
@@ -456,22 +478,22 @@ class InternalDependencyContainer implements DependencyContainer {
   beforeResolution<T>(
     token: InjectionToken<T>,
     callback: PreResolutionInterceptorCallback<T>,
-    options: InterceptorOptions = {frequency: "Always"}
+    options: InterceptorOptions = { frequency: "Always" },
   ): void {
     this.interceptors.preResolution.set(token, {
       callback: callback,
-      options: options
+      options: options,
     });
   }
 
   afterResolution<T>(
     token: InjectionToken<T>,
     callback: PostResolutionInterceptorCallback<T>,
-    options: InterceptorOptions = {frequency: "Always"}
+    options: InterceptorOptions = { frequency: "Always" },
   ): void {
     this.interceptors.postResolution.set(token, {
       callback: callback,
-      options: options
+      options: options,
     });
   }
 
@@ -479,7 +501,7 @@ class InternalDependencyContainer implements DependencyContainer {
     this.disposed = true;
 
     const promises: Promise<unknown>[] = [];
-    this.disposables.forEach(disposable => {
+    this.disposables.forEach((disposable) => {
       const maybePromise = disposable.dispose();
 
       if (maybePromise) {
@@ -503,7 +525,7 @@ class InternalDependencyContainer implements DependencyContainer {
   }
 
   private getAllRegistrations<T>(
-    token: InjectionToken<T>
+    token: InjectionToken<T>,
   ): Registration[] | null {
     if (this.isRegistered(token)) {
       return this._registry.getAll(token);
@@ -518,11 +540,11 @@ class InternalDependencyContainer implements DependencyContainer {
 
   private construct<T>(
     ctor: constructor<T> | DelayedConstructor<T>,
-    context: ResolutionContext
+    context: ResolutionContext,
   ): T {
     if (ctor instanceof DelayedConstructor) {
       return ctor.createProxy((target: constructor<T>) =>
-        this.resolve(target, context)
+        this.resolve(target, context),
       );
     }
 
@@ -558,32 +580,32 @@ class InternalDependencyContainer implements DependencyContainer {
                   this.resolveAll(
                     param.token,
                     new ResolutionContext(),
-                    param.isOptional
+                    param.isOptional,
                   ),
-                  ...param.transformArgs
+                  ...param.transformArgs,
                 )
               : this.resolve(param.transform).transform(
                   this.resolve(param.token, context, param.isOptional),
-                  ...param.transformArgs
+                  ...param.transformArgs,
                 );
           } else {
             return param.multiple
               ? this.resolveAll(
                   param.token,
                   new ResolutionContext(),
-                  param.isOptional
+                  param.isOptional,
                 )
               : this.resolve(param.token, context, param.isOptional);
           }
         } else if (isTransformDescriptor(param)) {
           return this.resolve(param.transform, context).transform(
             this.resolve(param.token, context),
-            ...param.transformArgs
+            ...param.transformArgs,
           );
         }
         return this.resolve(param, context);
       } catch (e) {
-        throw new Error(formatErrorCtor(ctor, idx, e as Error), {cause: e});
+        throw new Error(formatErrorCtor(ctor, idx, e as Error), { cause: e });
       }
     };
   }
@@ -591,7 +613,7 @@ class InternalDependencyContainer implements DependencyContainer {
   private ensureNotDisposed(): void {
     if (this.disposed) {
       throw new Error(
-        "This container has been disposed, you cannot interact with a disposed container"
+        "This container has been disposed, you cannot interact with a disposed container",
       );
     }
   }

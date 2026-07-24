@@ -21,7 +21,7 @@
  */
 
 import eslint from "@eslint/js";
-import {defineConfig} from "eslint/config";
+import { defineConfig } from "eslint/config";
 import tseslint from "typescript-eslint";
 import globals from "globals";
 
@@ -32,31 +32,31 @@ export default defineConfig(
   {
     languageOptions: {
       globals: {
-        ...globals.node
+        ...globals.node,
       },
 
       parserOptions: {
         projectService: true,
-        tsconfigRootDir: import.meta.dirname
-      }
-    }
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
   },
   {
     rules: {
       "@typescript-eslint/explicit-function-return-type": [
         "warn",
-        {allowExpressions: true}
+        { allowExpressions: true },
       ],
       // The DI container's public API is inherently untyped at its edges
       "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/no-non-null-assertion": "off",
       "@typescript-eslint/no-unused-vars": [
         "error",
-        {argsIgnorePattern: "^_", varsIgnorePattern: "^_"}
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
       ],
       // Distinct overloads document the supported provider shapes
-      "@typescript-eslint/unified-signatures": "off"
-    }
+      "@typescript-eslint/unified-signatures": "off",
+    },
   },
   {
     files: ["tests/**"],
@@ -65,10 +65,16 @@ export default defineConfig(
       "@typescript-eslint/no-extraneous-class": "off",
       "@typescript-eslint/no-empty-function": "off",
       "@typescript-eslint/no-empty-object-type": "off",
-      "@typescript-eslint/no-useless-constructor": "off"
-    }
+      "@typescript-eslint/no-useless-constructor": "off",
+    },
   },
   {
-    ignores: ["dist", "coverage", "node_modules"]
-  }
+    ignores: [
+      "dist",
+      "coverage",
+      "node_modules",
+      "eslint.config.js",
+      "prettier.config.js",
+    ],
+  },
 );

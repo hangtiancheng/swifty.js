@@ -1,6 +1,28 @@
-import {afterEach, describe, expect, it} from "vitest";
+/**
+ * Copyright (c) 2026 hangtiancheng
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+import { afterEach, describe, expect, it } from "vitest";
 import injectable from "@/decorators/injectable";
-import {instance as globalContainer} from "@/dependency-container";
+import { instance as globalContainer } from "@/dependency-container";
 import Lifecycle from "@/types/lifecycle";
 import scoped from "@/decorators/scoped";
 
@@ -27,14 +49,14 @@ describe("Scoped registrations", () => {
       class A {
         constructor(
           public b: B,
-          public c: C
+          public c: C,
         ) {}
       }
 
       globalContainer.register(
         X,
-        {useClass: X},
-        {lifecycle: Lifecycle.ResolutionScoped}
+        { useClass: X },
+        { lifecycle: Lifecycle.ResolutionScoped },
       );
       const a = globalContainer.resolve(A);
 
@@ -56,8 +78,8 @@ describe("Scoped registrations", () => {
 
       globalContainer.register(
         X,
-        {useClass: X},
-        {lifecycle: Lifecycle.ResolutionScoped}
+        { useClass: X },
+        { lifecycle: Lifecycle.ResolutionScoped },
       );
       const a = globalContainer.resolve(A);
       const b = globalContainer.resolve(A);
@@ -75,7 +97,7 @@ describe("Scoped registrations", () => {
       class Foo {}
 
       globalContainer.register(Foo, Foo, {
-        lifecycle: Lifecycle.ContainerScoped
+        lifecycle: Lifecycle.ContainerScoped,
       });
 
       const foo1 = globalContainer.resolve(Foo);
@@ -101,14 +123,14 @@ describe("Scoped registrations", () => {
       }
 
       globalContainer.register("IBar", Foo, {
-        lifecycle: Lifecycle.ContainerScoped
+        lifecycle: Lifecycle.ContainerScoped,
       });
       globalContainer.register(
         Foo,
-        {useToken: "IBar"},
+        { useToken: "IBar" },
         {
-          lifecycle: Lifecycle.Transient
-        }
+          lifecycle: Lifecycle.Transient,
+        },
       );
 
       const foo1 = globalContainer.resolve(Foo);
@@ -145,7 +167,7 @@ describe("Scoped registrations", () => {
       class Bar {}
 
       globalContainer.register(Bar, Bar, {
-        lifecycle: Lifecycle.ContainerScoped
+        lifecycle: Lifecycle.ContainerScoped,
       });
       const bar = globalContainer.resolve(Bar);
 
@@ -215,7 +237,7 @@ describe("Scoped registrations", () => {
 
       globalContainer.registerSingleton<Foo>("Foo", FooBar);
       globalContainer.register<Foo>("Foo", FooQux, {
-        lifecycle: Lifecycle.ContainerScoped
+        lifecycle: Lifecycle.ContainerScoped,
       });
       const foo1 = globalContainer.resolveAll<Foo>("Foo");
       const foo2 = globalContainer.resolveAll<Foo>("Foo");

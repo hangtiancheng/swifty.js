@@ -1,16 +1,38 @@
-import {afterEach, describe, expect, it, test, vi} from "vitest";
+/**
+ * Copyright (c) 2026 hangtiancheng
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 
-import {inject, injectable, registry, singleton} from "@/decorators";
+import { afterEach, describe, expect, it, test, vi } from "vitest";
+
+import { inject, injectable, registry, singleton } from "@/decorators";
 import {
   instanceCachingFactory,
   instancePerContainerCachingFactory,
-  predicateAwareClassFactory
+  predicateAwareClassFactory,
 } from "@/factories";
-import {DependencyContainer} from "@/types";
-import {instance as globalContainer} from "@/dependency-container";
+import { DependencyContainer } from "@/types";
+import { instance as globalContainer } from "@/dependency-container";
 import injectAll from "@/decorators/inject-all";
 import Lifecycle from "@/types/lifecycle";
-import {ValueProvider} from "@/providers";
+import { ValueProvider } from "@/providers";
 import Disposable from "@/types/disposable";
 
 interface IBar {
@@ -52,7 +74,7 @@ test("allows arrays to be registered by value provider", () => {
   class Bar {}
 
   const value = [new Bar()];
-  globalContainer.register<Bar[]>("BarArray", {useValue: value});
+  globalContainer.register<Bar[]>("BarArray", { useValue: value });
 
   const barArray = globalContainer.resolve<Bar[]>("BarArray");
   expect(Array.isArray(barArray)).toBeTruthy();
@@ -62,11 +84,11 @@ test("allows arrays to be registered by value provider", () => {
 test("allows arrays to be registered by factory provider", () => {
   class Bar {}
 
-  globalContainer.register<Bar>(Bar, {useClass: Bar});
+  globalContainer.register<Bar>(Bar, { useClass: Bar });
   globalContainer.register<Bar[]>("BarArray", {
     useFactory: (container): Bar[] => {
       return [container.resolve(Bar)];
-    }
+    },
   });
 
   const barArray = globalContainer.resolve<Bar[]>("BarArray");
@@ -88,7 +110,7 @@ test("resolves transient instances when not registered", () => {
 
 test("resolves a transient instance when registered by class provider", () => {
   class Bar {}
-  globalContainer.register("Bar", {useClass: Bar});
+  globalContainer.register("Bar", { useClass: Bar });
 
   const myBar = globalContainer.resolve<Bar>("Bar");
   const myBar2 = globalContainer.resolve<Bar>("Bar");
@@ -102,8 +124,8 @@ test("resolves a singleton instance when class provider registered as singleton"
   class Bar {}
   globalContainer.register(
     "Bar",
-    {useClass: Bar},
-    {lifecycle: Lifecycle.Singleton}
+    { useClass: Bar },
+    { lifecycle: Lifecycle.Singleton },
   );
 
   const myBar = globalContainer.resolve<Bar>("Bar");
@@ -115,8 +137,8 @@ test("resolves a singleton instance when class provider registered as singleton"
 
 test("resolves a transient instance when using token alias", () => {
   class Bar {}
-  globalContainer.register("Bar", {useClass: Bar});
-  globalContainer.register("BarAlias", {useToken: "Bar"});
+  globalContainer.register("Bar", { useClass: Bar });
+  globalContainer.register("BarAlias", { useToken: "Bar" });
 
   const myBar = globalContainer.resolve<Bar>("BarAlias");
   const myBar2 = globalContainer.resolve<Bar>("BarAlias");
@@ -127,11 +149,11 @@ test("resolves a transient instance when using token alias", () => {
 
 test("resolves a singleton instance when token alias registered as singleton", () => {
   class Bar {}
-  globalContainer.register("Bar", {useClass: Bar});
+  globalContainer.register("Bar", { useClass: Bar });
   globalContainer.register(
     "SingletonBar",
-    {useToken: "Bar"},
-    {lifecycle: Lifecycle.Singleton}
+    { useToken: "Bar" },
+    { lifecycle: Lifecycle.Singleton },
   );
 
   const myBar = globalContainer.resolve<Bar>("SingletonBar");
@@ -174,7 +196,7 @@ test("registerType() allows for names to be registered for a given type", () => 
 
 test("registerType() doesn't allow tokens to point to themselves", () => {
   expect(() => globalContainer.registerType("Bar", "Bar")).toThrowError(
-    "Token registration cycle detected!"
+    "Token registration cycle detected!",
   );
 });
 
@@ -183,13 +205,13 @@ test("registerType() doesn't allow registration cycles", () => {
   globalContainer.registerType("Foo", "FooBar");
 
   expect(() => globalContainer.registerType("FooBar", "Bar")).toThrowError(
-    "Token registration cycle detected!"
+    "Token registration cycle detected!",
   );
 });
 
 test("executes a registered factory each time resolve is called", () => {
   const factoryMock = vi.fn();
-  globalContainer.register("Test", {useFactory: factoryMock});
+  globalContainer.register("Test", { useFactory: factoryMock });
 
   globalContainer.resolve("Test");
   globalContainer.resolve("Test");
@@ -199,7 +221,7 @@ test("executes a registered factory each time resolve is called", () => {
 
 test("resolves to factory result each time resolve is called", () => {
   const factoryMock = vi.fn();
-  globalContainer.register("Test", {useFactory: factoryMock});
+  globalContainer.register("Test", { useFactory: factoryMock });
   const value1 = 1;
   const value2 = 2;
 
@@ -231,7 +253,7 @@ test("resolves dependencies of superclass with no constructor", () => {
   @injectable()
   class SubClass extends SuperClass {}
   expect(globalContainer.resolve(SubClass).dependency).toBeInstanceOf(
-    Dependency
+    Dependency,
   );
 });
 // --- resolveAll() ---
@@ -255,8 +277,8 @@ test("resolves an array of transient instances bound to a single interface", () 
     public bar = "foo2";
   }
 
-  globalContainer.register<FooInterface>("FooInterface", {useClass: FooOne});
-  globalContainer.register<FooInterface>("FooInterface", {useClass: FooTwo});
+  globalContainer.register<FooInterface>("FooInterface", { useClass: FooOne });
+  globalContainer.register<FooInterface>("FooInterface", { useClass: FooTwo });
 
   const fooArray = globalContainer.resolveAll<FooInterface>("FooInterface");
   expect(Array.isArray(fooArray)).toBeTruthy();
@@ -282,7 +304,7 @@ test("resolves all dependencies that provided an additional token in the @inject
     value(): string;
   }
 
-  @injectable({token: "Bar"})
+  @injectable({ token: "Bar" })
   class Foo implements Bar {
     value(): string {
       return "foo";
@@ -303,7 +325,7 @@ test("resolves all dependencies that provided additional tokens in the @injectab
     test(): string;
   }
 
-  @injectable({token: ["Bar", "TestInterface"]})
+  @injectable({ token: ["Bar", "TestInterface"] })
   class Foo implements Bar, TestInterface {
     value(): string {
       return "foo";
@@ -328,14 +350,14 @@ test("resolves all dependencies that provided additional tokens in the @injectab
     value(): string;
   }
 
-  @injectable({token: "Bar"})
+  @injectable({ token: "Bar" })
   class Foo implements Bar {
     value(): string {
       return "foo";
     }
   }
 
-  @injectable({token: "Bar"})
+  @injectable({ token: "Bar" })
   class Baz implements Bar {
     value(): string {
       return "baz";
@@ -376,7 +398,7 @@ test("returns true for a registered class provider", () => {
   class Foo {
     constructor(public myBar: Bar) {}
   }
-  globalContainer.register(Foo, {useClass: Foo});
+  globalContainer.register(Foo, { useClass: Foo });
 
   expect(globalContainer.isRegistered(Foo)).toBeTruthy();
 });
@@ -391,7 +413,7 @@ test("returns true for a registered value provider", () => {
   class Foo {
     constructor(public myBar: Bar) {}
   }
-  globalContainer.register(Foo, {useValue: {}} as ValueProvider<any>);
+  globalContainer.register(Foo, { useValue: {} } as ValueProvider<any>);
 
   expect(globalContainer.isRegistered(Foo)).toBeTruthy();
 });
@@ -406,7 +428,7 @@ test("returns true for a registered token provider", () => {
   class Foo {
     constructor(public myBar: Bar) {}
   }
-  globalContainer.register(Foo, {useToken: "Bar"});
+  globalContainer.register(Foo, { useToken: "Bar" });
 
   expect(globalContainer.isRegistered(Foo)).toBeTruthy();
 });
@@ -561,7 +583,7 @@ test("passes through the given params", () => {
     constructor(
       public a: any,
       public b: any,
-      public c: any
+      public c: any,
     ) {}
   }
 
@@ -589,7 +611,7 @@ test("registers by type provider", () => {
   class Bar implements IBar {
     public value = "";
   }
-  @registry([{token: Bar, useClass: Bar}])
+  @registry([{ token: Bar, useClass: Bar }])
   class RegisteringFoo {}
 
   new RegisteringFoo();
@@ -604,7 +626,7 @@ test("registers by class provider", () => {
   }
   const registration = {
     token: "IBar",
-    useClass: Bar
+    useClass: Bar,
   };
 
   @registry([registration])
@@ -618,7 +640,7 @@ test("registers by class provider", () => {
 test("registers by value provider", () => {
   const registration = {
     token: "IBar",
-    useValue: {}
+    useValue: {},
   };
 
   @registry([registration])
@@ -632,7 +654,7 @@ test("registers by value provider", () => {
 test("registers by token provider", () => {
   const registration = {
     token: "IBar",
-    useToken: "IFoo"
+    useToken: "IFoo",
   };
 
   @registry([registration])
@@ -652,7 +674,7 @@ test("registers by factory provider", () => {
   const registration = {
     token: "IBar",
     useFactory: (globalContainer: DependencyContainer) =>
-      globalContainer.resolve(Bar)
+      globalContainer.resolve(Bar),
   };
 
   @registry([registration])
@@ -674,10 +696,10 @@ test("registers mixed types", () => {
   }
   const registration = {
     token: "IBar",
-    useClass: Bar
+    useClass: Bar,
   };
 
-  @registry([registration, {token: Foo, useClass: Foo}])
+  @registry([registration, { token: Foo, useClass: Foo }])
   class RegisteringFoo {}
 
   new RegisteringFoo();
@@ -689,7 +711,7 @@ test("registers mixed types", () => {
 test("registers by symbol token provider", () => {
   const registration = {
     token: Symbol("obj1"),
-    useValue: {}
+    useValue: {},
   };
 
   @registry([registration])
@@ -699,7 +721,7 @@ test("registers by symbol token provider", () => {
 
   expect(globalContainer.isRegistered(registration.token)).toBeTruthy();
   expect(globalContainer.resolve(registration.token)).toEqual(
-    registration.useValue
+    registration.useValue,
   );
 });
 
@@ -712,7 +734,7 @@ test("allows interfaces to be resolved from the constructor with injection token
   }
 
   @injectable()
-  @registry([{token: Bar, useClass: Bar}])
+  @registry([{ token: Bar, useClass: Bar }])
   class FooWithInterface {
     constructor(@inject(Bar) public myBar: IBar) {}
   }
@@ -732,8 +754,8 @@ test("allows interfaces to be resolved from the constructor with just a name", (
   @registry([
     {
       token: "IBar",
-      useClass: Bar
-    }
+      useClass: Bar,
+    },
   ])
   class FooWithInterface {
     constructor(@inject("IBar") public myBar: IBar) {}
@@ -746,7 +768,7 @@ test("allows interfaces to be resolved from the constructor with just a name", (
 test("allows for optional injection", () => {
   @injectable()
   class FooWithInterface {
-    constructor(@inject("IBar", {isOptional: true}) public myBar?: IBar) {}
+    constructor(@inject("IBar", { isOptional: true }) public myBar?: IBar) {}
   }
 
   const myFoo = globalContainer.resolve(FooWithInterface);
@@ -765,8 +787,8 @@ test("allows explicit array dependencies to be resolved by inject decorator", ()
   }
 
   const fooArray = [new Foo()];
-  globalContainer.register<Foo[]>("FooArray", {useValue: fooArray});
-  globalContainer.register<Bar>(Bar, {useClass: Bar});
+  globalContainer.register<Foo[]>("FooArray", { useValue: fooArray });
+  globalContainer.register<Bar>(Bar, { useClass: Bar });
 
   const bar = globalContainer.resolve<Bar>(Bar);
   expect(bar.foo === fooArray).toBeTruthy();
@@ -792,8 +814,8 @@ test("injects all dependencies bound to a given interface", () => {
     constructor(@injectAll("Foo") public foo: Foo[]) {}
   }
 
-  globalContainer.register<Foo>("Foo", {useClass: FooImpl1});
-  globalContainer.register<Foo>("Foo", {useClass: FooImpl2});
+  globalContainer.register<Foo>("Foo", { useClass: FooImpl1 });
+  globalContainer.register<Foo>("Foo", { useClass: FooImpl2 });
 
   const bar = globalContainer.resolve<Bar>(Bar);
   expect(Array.isArray(bar.foo)).toBeTruthy();
@@ -809,7 +831,7 @@ test("does not throw when injecting all dependencies bound to a given interface 
 
   @injectable()
   class Bar {
-    constructor(@injectAll("Foo", {isOptional: true}) public foo: Foo[]) {}
+    constructor(@injectAll("Foo", { isOptional: true }) public foo: Foo[]) {}
   }
 
   const bar = globalContainer.resolve<Bar>(Bar);
@@ -825,8 +847,8 @@ test("allows array dependencies to be resolved if a single instance is in the co
   class Bar {
     constructor(@injectAll(Foo) public foo: Foo[]) {}
   }
-  globalContainer.register<Foo>(Foo, {useClass: Foo});
-  globalContainer.register<Bar>(Bar, {useClass: Bar});
+  globalContainer.register<Foo>(Foo, { useClass: Foo });
+  globalContainer.register<Bar>(Bar, { useClass: Bar });
 
   const bar = globalContainer.resolve<Bar>(Bar);
   expect(bar.foo.length).toBe(1);
@@ -864,7 +886,7 @@ test("instancePerContainerCachingFactory caches the returned instance even when 
   let useA = true;
 
   const factory = instancePerContainerCachingFactory(() =>
-    useA ? instanceA : instanceB
+    useA ? instanceA : instanceB,
   );
 
   expect(factory(globalContainer)).toBe(instanceA);
@@ -878,7 +900,7 @@ test("instancePerContainerCachingFactory returns the correct instance per contai
   let useA = true;
 
   const factory = instancePerContainerCachingFactory(() =>
-    useA ? instanceA : instanceB
+    useA ? instanceA : instanceB,
   );
 
   expect(factory(globalContainer)).toBe(instanceA);
@@ -940,7 +962,7 @@ describe("dispose", () => {
   class Baz implements Disposable {
     disposed = false;
     async dispose(): Promise<void> {
-      return new Promise(resolve => {
+      return new Promise((resolve) => {
         process.nextTick(() => {
           this.disposed = true;
           resolve();
@@ -953,8 +975,8 @@ describe("dispose", () => {
     const container = globalContainer.createChildContainer();
     container.dispose();
 
-    expect(() => container.register("Bar", {useClass: Bar})).toThrow(
-      /disposed/
+    expect(() => container.register("Bar", { useClass: Bar })).toThrow(
+      /disposed/,
     );
     expect(() => container.reset()).toThrow(/disposed/);
     expect(() => container.resolve("indisposed")).toThrow(/disposed/);

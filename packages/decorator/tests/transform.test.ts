@@ -1,6 +1,28 @@
-import {afterEach, expect, test} from "vitest";
-import {autoInjectable, container} from "@/";
-import {injectable} from "@/decorators";
+/**
+ * Copyright (c) 2026 hangtiancheng
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+import { afterEach, expect, test } from "vitest";
+import { autoInjectable, container } from "@/";
+import { injectable } from "@/decorators";
 import injectAllWithTransform from "@/decorators/inject-all-with-transform";
 import injectWithTransform from "@/decorators/inject-with-transform";
 import Transform from "@/types/transform";
@@ -44,7 +66,7 @@ test("Injecting with transform should work passing a parameter from the decorato
   @injectable()
   class Foo {
     constructor(
-      @injectWithTransform(Bar, BarTransform, "b") public value: string
+      @injectWithTransform(Bar, BarTransform, "b") public value: string,
     ) {}
   }
 
@@ -69,7 +91,7 @@ test("Injecting with transform should work passing parameters from the decorator
   @injectable()
   class Foo {
     constructor(
-      @injectWithTransform(Bar, BarTransform, "a", "b") public value: string
+      @injectWithTransform(Bar, BarTransform, "a", "b") public value: string,
     ) {}
   }
 
@@ -90,7 +112,7 @@ test("Transformation works with @autoInjectable", () => {
   @autoInjectable()
   class Foo {
     constructor(
-      @injectWithTransform(Bar, BarTransform) public value?: string
+      @injectWithTransform(Bar, BarTransform) public value?: string,
     ) {}
   }
 
@@ -111,7 +133,7 @@ test("Injecting all with transform should work", () => {
   @injectable()
   class Foo {
     constructor(
-      @injectAllWithTransform(Bar, BarTransform) public value: string
+      @injectAllWithTransform(Bar, BarTransform) public value: string,
     ) {}
   }
 
@@ -133,12 +155,12 @@ test("Injecting all with transform should allow the transformer to act over an a
     public bar = "foo2";
   }
 
-  container.register<FooInterface>("FooInterface", {useClass: FooOne});
-  container.register<FooInterface>("FooInterface", {useClass: FooTwo});
+  container.register<FooInterface>("FooInterface", { useClass: FooOne });
+  container.register<FooInterface>("FooInterface", { useClass: FooTwo });
 
   class FooTransform implements Transform<FooInterface[], string> {
     public transform(foos: FooInterface[]): string {
-      return foos.map(f => f.bar).reduce((acc, f) => acc + f);
+      return foos.map((f) => f.bar).reduce((acc, f) => acc + f);
     }
   }
 
@@ -146,7 +168,7 @@ test("Injecting all with transform should allow the transformer to act over an a
   class Bar {
     constructor(
       @injectAllWithTransform("FooInterface", FooTransform, "!!")
-      public value: string
+      public value: string,
     ) {}
   }
 
@@ -168,12 +190,12 @@ test("Injecting all with transform should work with a decorator parameter", () =
     public bar = "foo2";
   }
 
-  container.register<FooInterface>("FooInterface", {useClass: FooOne});
-  container.register<FooInterface>("FooInterface", {useClass: FooTwo});
+  container.register<FooInterface>("FooInterface", { useClass: FooOne });
+  container.register<FooInterface>("FooInterface", { useClass: FooTwo });
 
   class FooTransform implements Transform<FooInterface[], string> {
     public transform(foos: FooInterface[], suffix: string): string {
-      return foos.map(f => f.bar + suffix).reduce((acc, f) => acc + f);
+      return foos.map((f) => f.bar + suffix).reduce((acc, f) => acc + f);
     }
   }
 
@@ -181,7 +203,7 @@ test("Injecting all with transform should work with a decorator parameter", () =
   class Bar {
     constructor(
       @injectAllWithTransform("FooInterface", FooTransform, "!!")
-      public value: string
+      public value: string,
     ) {}
   }
 
@@ -203,17 +225,17 @@ test("Injecting all with transform should allow multiple decorator params", () =
     public bar = "foo2";
   }
 
-  container.register<FooInterface>("FooInterface", {useClass: FooOne});
-  container.register<FooInterface>("FooInterface", {useClass: FooTwo});
+  container.register<FooInterface>("FooInterface", { useClass: FooOne });
+  container.register<FooInterface>("FooInterface", { useClass: FooTwo });
 
   class FooTransform implements Transform<FooInterface[], string> {
     public transform(
       foos: FooInterface[],
       delimiter: string,
-      suffix: string
+      suffix: string,
     ): string {
       return (
-        foos.map(f => f.bar + delimiter).reduce((acc, f) => acc + f) + suffix
+        foos.map((f) => f.bar + delimiter).reduce((acc, f) => acc + f) + suffix
       );
     }
   }
@@ -222,7 +244,7 @@ test("Injecting all with transform should allow multiple decorator params", () =
   class Bar {
     constructor(
       @injectAllWithTransform("FooInterface", FooTransform, ",", "!!")
-      public value: string
+      public value: string,
     ) {}
   }
 
@@ -244,17 +266,17 @@ test("@autoInjectable should work with transforms", () => {
     public bar = "foo2";
   }
 
-  container.register<FooInterface>("FooInterface", {useClass: FooOne});
-  container.register<FooInterface>("FooInterface", {useClass: FooTwo});
+  container.register<FooInterface>("FooInterface", { useClass: FooOne });
+  container.register<FooInterface>("FooInterface", { useClass: FooTwo });
 
   class FooTransform implements Transform<FooInterface[], string> {
     public transform(
       foos: FooInterface[],
       delimiter: string,
-      suffix: string
+      suffix: string,
     ): string {
       return (
-        foos.map(f => f.bar + delimiter).reduce((acc, f) => acc + f) + suffix
+        foos.map((f) => f.bar + delimiter).reduce((acc, f) => acc + f) + suffix
       );
     }
   }
@@ -263,7 +285,7 @@ test("@autoInjectable should work with transforms", () => {
   class Bar {
     constructor(
       @injectAllWithTransform("FooInterface", FooTransform, ",", "!!")
-      public value?: string
+      public value?: string,
     ) {}
   }
 

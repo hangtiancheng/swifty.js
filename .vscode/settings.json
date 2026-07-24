@@ -42,6 +42,7 @@
     "NAPI",
     "noopener",
     "noreferrer",
+    "parameterless",
     "PEXPIRE",
     "pino",
     "POPCNT",

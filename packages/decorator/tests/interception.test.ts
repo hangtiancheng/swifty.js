@@ -1,5 +1,27 @@
-import {expect, test, vi} from "vitest";
-import {instance as globalContainer} from "@/dependency-container";
+/**
+ * Copyright (c) 2026 hangtiancheng
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+import { expect, test, vi } from "vitest";
+import { instance as globalContainer } from "@/dependency-container";
 
 // beforeResolution .resolve() tests
 test("beforeResolution interceptor gets called correctly", () => {
@@ -35,7 +57,7 @@ test("beforeResolution one-time interceptor only gets called once", () => {
   class Bar {}
   const interceptorFn = vi.fn();
   globalContainer.beforeResolution(Bar, interceptorFn, {
-    frequency: "Once"
+    frequency: "Once",
   });
   globalContainer.resolve(Bar);
   globalContainer.resolve(Bar);
@@ -47,7 +69,7 @@ test("beforeResolution always run interceptor gets called on each resolution", (
   class Bar {}
   const interceptorFn = vi.fn();
   globalContainer.beforeResolution(Bar, interceptorFn, {
-    frequency: "Always"
+    frequency: "Always",
   });
   globalContainer.resolve(Bar);
   globalContainer.resolve(Bar);
@@ -60,10 +82,10 @@ test("beforeResolution multiple interceptors get called correctly", () => {
   const interceptorFn1 = vi.fn();
   const interceptorFn2 = vi.fn();
   globalContainer.beforeResolution(Bar, interceptorFn1, {
-    frequency: "Once"
+    frequency: "Once",
   });
   globalContainer.beforeResolution(Bar, interceptorFn2, {
-    frequency: "Once"
+    frequency: "Once",
   });
   globalContainer.resolve(Bar);
 
@@ -76,10 +98,10 @@ test("beforeResolution multiple interceptors get per their options", () => {
   const interceptorFn1 = vi.fn();
   const interceptorFn2 = vi.fn();
   globalContainer.beforeResolution(Bar, interceptorFn1, {
-    frequency: "Once"
+    frequency: "Once",
   });
   globalContainer.beforeResolution(Bar, interceptorFn2, {
-    frequency: "Always"
+    frequency: "Always",
   });
   globalContainer.resolve(Bar);
   globalContainer.resolve(Bar);
@@ -104,7 +126,7 @@ test("afterResolution interceptor gets called correctly", () => {
   const interceptorFn = vi.fn();
 
   globalContainer.afterResolution(Bar, interceptorFn, {
-    frequency: "Always"
+    frequency: "Always",
   });
   globalContainer.resolve(Bar);
 
@@ -116,14 +138,14 @@ test("afterResolution interceptor passes object of correct type", () => {
   const interceptorFn = vi.fn();
 
   globalContainer.afterResolution(Bar, interceptorFn, {
-    frequency: "Always"
+    frequency: "Always",
   });
   globalContainer.resolve(Bar);
 
   expect(interceptorFn).toBeCalledWith(
     expect.any(Function),
     expect.any(Object),
-    "Single"
+    "Single",
   );
 });
 
@@ -150,7 +172,7 @@ test("afterResolution one-time interceptor only gets called once", () => {
   class Bar {}
   const interceptorFn = vi.fn();
   globalContainer.afterResolution(Bar, interceptorFn, {
-    frequency: "Once"
+    frequency: "Once",
   });
   globalContainer.resolve(Bar);
   globalContainer.resolve(Bar);
@@ -162,7 +184,7 @@ test("afterResolution always run interceptor gets called on each resolution", ()
   class Bar {}
   const interceptorFn = vi.fn();
   globalContainer.afterResolution(Bar, interceptorFn, {
-    frequency: "Always"
+    frequency: "Always",
   });
   globalContainer.resolve(Bar);
   globalContainer.resolve(Bar);
@@ -175,10 +197,10 @@ test("afterResolution multiple interceptors get called correctly", () => {
   const interceptorFn1 = vi.fn();
   const interceptorFn2 = vi.fn();
   globalContainer.afterResolution(Bar, interceptorFn1, {
-    frequency: "Once"
+    frequency: "Once",
   });
   globalContainer.afterResolution(Bar, interceptorFn2, {
-    frequency: "Once"
+    frequency: "Once",
   });
   globalContainer.resolve(Bar);
 
@@ -191,10 +213,10 @@ test("beforeResolution multiple interceptors get per their options", () => {
   const interceptorFn1 = vi.fn();
   const interceptorFn2 = vi.fn();
   globalContainer.afterResolution(Bar, interceptorFn1, {
-    frequency: "Once"
+    frequency: "Once",
   });
   globalContainer.afterResolution(Bar, interceptorFn2, {
-    frequency: "Always"
+    frequency: "Always",
   });
   globalContainer.resolve(Bar);
   globalContainer.resolve(Bar);
@@ -213,6 +235,6 @@ test("afterResolution interceptor gets called correctly on resolveAll()", () => 
   expect(interceptorFn).toBeCalledWith(
     expect.any(Function),
     expect.any(Object),
-    "All"
+    "All",
   );
 });

@@ -1,3 +1,25 @@
+/**
+ * Copyright (c) 2026 hangtiancheng
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 import FactoryProvider from "../providers/factory-provider";
 import InjectionToken from "../providers/injection-token";
 import TokenProvider from "../providers/token-provider";
@@ -16,7 +38,7 @@ export type ResolutionType = "Single" | "All";
  */
 export type PreResolutionInterceptorCallback<T = any> = (
   token: InjectionToken<T>,
-  resolutionType: ResolutionType
+  resolutionType: ResolutionType,
 ) => void;
 
 /**
@@ -27,48 +49,48 @@ export type PreResolutionInterceptorCallback<T = any> = (
 export type PostResolutionInterceptorCallback<T = any> = (
   token: InjectionToken<T>,
   result: T | T[],
-  resolutionType: ResolutionType
+  resolutionType: ResolutionType,
 ) => void;
 
 export default interface DependencyContainer extends Disposable {
   register<T>(
     token: InjectionToken<T>,
-    provider: ValueProvider<T>
+    provider: ValueProvider<T>,
   ): DependencyContainer;
   register<T>(
     token: InjectionToken<T>,
-    provider: FactoryProvider<T>
+    provider: FactoryProvider<T>,
   ): DependencyContainer;
   register<T>(
     token: InjectionToken<T>,
     provider: TokenProvider<T>,
-    options?: RegistrationOptions
+    options?: RegistrationOptions,
   ): DependencyContainer;
   register<T>(
     token: InjectionToken<T>,
     provider: ClassProvider<T>,
-    options?: RegistrationOptions
+    options?: RegistrationOptions,
   ): DependencyContainer;
   register<T>(
     token: InjectionToken<T>,
     provider: constructor<T>,
-    options?: RegistrationOptions
+    options?: RegistrationOptions,
   ): DependencyContainer;
 
   registerSingleton<T>(
     from: InjectionToken<T>,
-    to: InjectionToken<T>
+    to: InjectionToken<T>,
   ): DependencyContainer;
   registerSingleton<T>(token: constructor<T>): DependencyContainer;
 
   registerType<T>(
     from: InjectionToken<T>,
-    to: InjectionToken<T>
+    to: InjectionToken<T>,
   ): DependencyContainer;
 
   registerInstance<T>(
     token: InjectionToken<T>,
-    instance: T
+    instance: T,
   ): DependencyContainer;
 
   /**
@@ -106,7 +128,7 @@ export default interface DependencyContainer extends Disposable {
   beforeResolution<T>(
     token: InjectionToken<T>,
     callback: PreResolutionInterceptorCallback<T>,
-    options?: InterceptorOptions
+    options?: InterceptorOptions,
   ): void;
 
   /**
@@ -118,7 +140,7 @@ export default interface DependencyContainer extends Disposable {
   afterResolution<T>(
     token: InjectionToken<T>,
     callback: PostResolutionInterceptorCallback<T>,
-    options?: InterceptorOptions
+    options?: InterceptorOptions,
   ): void;
 
   /**
