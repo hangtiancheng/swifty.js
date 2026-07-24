@@ -72,22 +72,24 @@ export function defineConfig(
 }
 
 /**
- * Prefix an internal absolute link with the site baseUrl.
+ * Prefix an internal link with the site baseUrl.
  *
  * Idempotent and conservative: external URLs (`https://…`), protocol-relative
- * URLs, hash links, non-absolute paths, and links already carrying the
- * baseUrl prefix are returned unchanged, so existing configs that hand-wrote
- * the prefix keep working.
+ * URLs, hash links, and links already carrying the baseUrl prefix are
+ * returned unchanged, so existing configs that hand-wrote the prefix keep
+ * working. Relative paths ("guide/intro") are treated as site paths and made
+ * absolute — left relative, the browser would resolve them against the
+ * CURRENT page and every click would append another segment.
  */
 function joinBase(baseUrl: string, link: string): string {
   if (!link) return link;
   if (/^[a-z][a-z0-9+.-]*:/i.test(link)) return link;
   if (link.startsWith("//") || link.startsWith("#")) return link;
-  if (!link.startsWith("/")) return link;
+  const abs = link.startsWith("/") ? link : "/" + link;
   const base = baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
-  if (base === "" || base === "/") return link;
-  if (link === base || link.startsWith(base + "/")) return link;
-  return base + link;
+  if (base === "" || base === "/") return abs;
+  if (abs === base || abs.startsWith(base + "/")) return abs;
+  return base + abs;
 }
 
 function prefixNavItems(baseUrl: string, items: NavItem[]): NavItem[] {

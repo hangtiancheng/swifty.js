@@ -174,6 +174,32 @@ describe("defineConfig baseUrl prefixing", () => {
     expect(cfg.nav[0].link).toBe("/intro");
   });
 
+  it("normalizes relative links to absolute paths under baseUrl", () => {
+    const root = createTempProject({
+      "docs/guide/intro.md": "# Intro\n",
+    });
+    dirs.push(root);
+
+    defineConfig(
+      {
+        docs: "docs",
+        baseUrl: "/my-site/",
+        title: "Test",
+        nav: [{ text: "Guide", link: "guide/intro" }],
+        sidebar: {
+          "/guide/": [{ text: "Intro", link: "guide/intro" }],
+        },
+      },
+      root,
+    );
+
+    const cfg = readGeneratedConfig(root);
+    // Relative links must become absolute, otherwise the browser resolves
+    // them against the current page and paths accumulate on every click.
+    expect(cfg.nav[0].link).toBe("/my-site/guide/intro");
+    expect(cfg.sidebar["/guide/"][0].link).toBe("/my-site/guide/intro");
+  });
+
   it("excludes protected pages from the search index paths", () => {
     const root = createTempProject({
       "docs/public.md": "---\ntitle: Public\n---\n# Public\n",
