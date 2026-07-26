@@ -27,7 +27,7 @@
  * anchor link for h1-h3 headings.
  */
 import type MarkdownIt from "markdown-it";
-import { slugify } from "../../utils/slugify";
+import { createSlugger } from "../../utils/slugify";
 import type { StateCore } from "markdown-it/index.js";
 
 export interface AnchorOptions {
@@ -39,7 +39,7 @@ export function anchorPlugin(md: MarkdownIt, options?: AnchorOptions): void {
   const addPermalink = options?.permalink ?? true;
 
   md.core.ruler.push("heading_anchors", (state: StateCore) => {
-    const slugs = new Set<string>();
+    const slugger = createSlugger();
 
     for (let i = 0; i < state.tokens.length; i++) {
       const token = state.tokens[i];
@@ -53,15 +53,7 @@ export function anchorPlugin(md: MarkdownIt, options?: AnchorOptions): void {
           .map((t) => t.content)
           .join("") ?? "";
 
-      let slug = slugify(text);
-
-      // Deduplicate slugs within the same document
-      if (slugs.has(slug)) {
-        let counter = 1;
-        while (slugs.has(`${slug}-${counter}`)) counter++;
-        slug = `${slug}-${counter}`;
-      }
-      slugs.add(slug);
+      const slug = slugger(text);
 
       token.attrSet("id", slug);
 

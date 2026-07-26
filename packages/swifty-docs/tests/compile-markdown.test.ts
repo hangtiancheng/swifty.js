@@ -245,4 +245,32 @@ Content here.
     expect(result).toContain('"title": "Real Title"');
     expect(result).not.toContain('"title": "npm install"');
   });
+
+  it("deduplicates slugs for identical headings and keeps TOC in sync with anchor ids", async () => {
+    const source = "# Title\n\n## 示例标题\n\ntext\n\n## 示例标题\n\ntext";
+    const result = await compileMarkdown(source, {
+      config: baseConfig,
+      filePath: "docs/test.md",
+    });
+
+    expect(result).toContain(String.raw`id=\"示例标题\"`);
+    expect(result).toContain(String.raw`id=\"示例标题-1\"`);
+    expect(result).toContain('"slug": "示例标题"');
+    expect(result).toContain('"slug": "示例标题-1"');
+  });
+
+  it("dedup counters stay aligned when h1 shares text with h2/h3", async () => {
+    const source = "# Setup\n\n## Setup\n\ntext\n\n## Setup\n\ntext";
+    const result = await compileMarkdown(source, {
+      config: baseConfig,
+      filePath: "docs/test.md",
+    });
+
+    // h1 takes "setup"; the two h2s must get "setup-1" and "setup-2"
+    // in both anchor ids and TOC slugs.
+    expect(result).toContain(String.raw`id=\"setup-1\"`);
+    expect(result).toContain(String.raw`id=\"setup-2\"`);
+    expect(result).toContain('"slug": "setup-1"');
+    expect(result).toContain('"slug": "setup-2"');
+  });
 });

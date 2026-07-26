@@ -35,7 +35,7 @@
 import MarkdownIt from "markdown-it";
 import type { Token } from "markdown-it/index.js";
 import type { HeadingInfo } from "@/types";
-import { slugify } from "./slugify";
+import { createSlugger } from "./slugify";
 
 // Shared parser instance — parsing is on the hot path in the scanner.
 const md = new MarkdownIt({ html: true, linkify: true });
@@ -77,20 +77,25 @@ export function extractFirstHeading(content: string): string | undefined {
 
 /**
  * Extract h2/h3 headings from markdown content for TOC generation.
+ *
+ * Every heading level runs through the slugger (not just h2/h3) so the
+ * dedup counters match the anchor plugin, which slugs all headings.
  */
 export function extractHeadings(content: string): HeadingInfo[] {
   const tokens = md.parse(content, {});
   const headings: HeadingInfo[] = [];
+  const slugger = createSlugger();
   for (let i = 0; i < tokens.length; i++) {
     const t = tokens[i];
     if (t.type !== "heading_open") continue;
-    if (t.tag !== "h2" && t.tag !== "h3") continue;
     const text = inlineText(tokens[i + 1]);
+    const slug = slugger(text);
+    if (t.tag !== "h2" && t.tag !== "h3") continue;
     if (!text) continue;
     headings.push({
       level: t.tag === "h2" ? 2 : 3,
       text,
-      slug: slugify(text),
+      slug,
     });
   }
   return headings;

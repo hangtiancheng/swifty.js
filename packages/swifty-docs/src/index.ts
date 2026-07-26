@@ -55,7 +55,7 @@ export type {
 // Runtime utilities (browser-safe)
 // ============================================================
 
-export { slugify } from "./runtime";
+export { slugify, createSlugger } from "./runtime";
 
 // ============================================================
 // Preact theme

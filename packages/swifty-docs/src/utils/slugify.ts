@@ -52,3 +52,24 @@ export function slugify(text: string): string {
     .replace(/^-+|-+$/g, "")
     .replace(/^(\d)/, "_$1");
 }
+
+/**
+ * Create a per-document slugger that deduplicates repeated headings.
+ *
+ * Duplicate slugs get a numeric suffix ("foo", "foo-1", "foo-2"), matching
+ * the convention used by VitePress/markdown-it-anchor. The anchor plugin and
+ * the heading extractor must both use this so anchor IDs and TOC links agree.
+ */
+export function createSlugger(): (text: string) => string {
+  const seen = new Set<string>();
+  return (text: string): string => {
+    let slug = slugify(text);
+    if (seen.has(slug)) {
+      let counter = 1;
+      while (seen.has(`${slug}-${counter}`)) counter++;
+      slug = `${slug}-${counter}`;
+    }
+    seen.add(slug);
+    return slug;
+  };
+}
