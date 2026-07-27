@@ -68,8 +68,14 @@ export function DialogPortal({ children }: { children: ComponentChildren }) {
 }
 
 export function DialogOverlay({ class: className }: { class?: string }) {
+  const { onOpenChange } = useContext(DialogContext);
   return (
     <div
+      aria-hidden="true"
+      // Standard modal behavior: clicking the backdrop dismisses the dialog.
+      // Clicks inside DialogContent never reach here — it is a sibling
+      // stacked above the overlay, not a child.
+      onClick={() => onOpenChange(false)}
       class={cn(
         "bg-foreground/25 animate-overlay-in fixed inset-0 z-50 backdrop-blur-[2px] dark:bg-black/50",
         className,
