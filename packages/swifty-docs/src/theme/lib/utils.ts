@@ -26,3 +26,19 @@ import { twMerge } from "tailwind-merge";
 export function cn(...inputs: ClassValue[]): string {
   return twMerge(clsx(inputs));
 }
+
+/**
+ * `location.hash` is percent-encoded by the browser (a CJK slug pushed as
+ * `#速记` reads back as `#%E9%80%9F%E8%AE%B0`), so comparing it against a
+ * raw slug string would never match for non-ASCII headings. Decode before
+ * comparing; fall back to the raw value for malformed sequences (e.g. a
+ * user-typed `#100%`), where decodeURIComponent would throw.
+ */
+export function decodedLocationHash(): string {
+  const raw = window.location.hash;
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
+}

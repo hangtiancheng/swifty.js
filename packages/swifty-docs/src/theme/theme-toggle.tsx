@@ -25,9 +25,10 @@ import { Button } from "./ui/button";
 import { ThemeToggleIcon } from "./logo";
 
 /**
- * localStorage key for the persisted theme. Consumers' no-FOUC inline
- * scripts (see app/index.html) must read the same key — import this
- * constant instead of retyping the literal.
+ * localStorage key for the persisted theme. Import this constant in bundled
+ * code instead of retyping the literal. No-FOUC inline scripts in HTML
+ * (see app/index.html) run before any bundle loads and cannot import it —
+ * they must hardcode "swifty-docs-theme" and keep it in sync manually.
  */
 export const THEME_STORAGE_KEY = "swifty-docs-theme";
 

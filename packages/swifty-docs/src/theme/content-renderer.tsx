@@ -24,7 +24,7 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import { render } from "preact";
 import { CheckIcon, CopyIcon } from "./icons";
 import type { PageHeading } from "./lib/content";
-import { cn } from "./lib/utils";
+import { cn, decodedLocationHash } from "./lib/utils";
 import { Toc } from "./toc";
 
 interface ContentRendererProps {
@@ -90,8 +90,9 @@ export function ContentRenderer({ html, headings }: ContentRendererProps) {
       if (!el) return;
       // pushState records a copyable deep link and a back-button entry
       // without triggering preact-iso routing or the browser's instant jump.
-      // Skip when the hash is already current to avoid duplicate entries.
-      if (location.hash !== href) {
+      // Skip when the hash is already current to avoid duplicate entries
+      // (decoded comparison — location.hash is percent-encoded for CJK slugs).
+      if (decodedLocationHash() !== href) {
         history.pushState(null, "", href);
       }
       el.scrollIntoView({ behavior: "smooth", block: "start" });

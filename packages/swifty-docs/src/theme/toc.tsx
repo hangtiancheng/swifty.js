@@ -24,7 +24,7 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import { ListIcon } from "./icons";
 import type { PageHeading } from "./lib/content";
 import { useScrollSpy } from "./lib/scroll-spy";
-import { cn } from "./lib/utils";
+import { cn, decodedLocationHash } from "./lib/utils";
 
 interface TocProps {
   headings: PageHeading[];
@@ -56,8 +56,9 @@ export function Toc({ headings, inline }: TocProps) {
     // pushState (instead of setting location.hash) records a copyable deep
     // link and a back-button entry without triggering preact-iso routing
     // or the browser's instant jump — the smooth scroll stays in control.
-    // Skip when the hash is already current to avoid duplicate entries.
-    if (location.hash !== `#${slug}`) {
+    // Skip when the hash is already current to avoid duplicate entries
+    // (decoded comparison — location.hash is percent-encoded for CJK slugs).
+    if (decodedLocationHash() !== `#${slug}`) {
       history.pushState(null, "", `#${slug}`);
     }
     el.scrollIntoView({ behavior: "smooth", block: "start" });

@@ -136,7 +136,7 @@ export const DialogContent = forwardRef<HTMLDivElement, DialogContentProps>(
         role="dialog"
         aria-modal="true"
         tabIndex={-1}
-        onKeyDown={onKeyDown as never}
+        onKeyDown={onKeyDown}
         class={cn(
           "border-border bg-card text-card-foreground shadow-foreground/10 animate-dialog-in fixed z-50 flex flex-col overflow-hidden rounded-xl border shadow-2xl outline-none",
           className,
