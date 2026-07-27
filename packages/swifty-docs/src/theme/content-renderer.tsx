@@ -52,7 +52,7 @@ export function ContentRenderer({ html, headings }: ContentRendererProps) {
     el.classList.add("animate-page-in");
 
     for (const holder of Array.from(
-      el.querySelectorAll<HTMLElement>("[data-swifty-toc]"),
+      el.querySelectorAll<HTMLElement>("[swifty-docs-toc]"),
     )) {
       render(<Toc headings={headings} inline />, holder);
       disposersRef.current.push(() => render(null, holder));

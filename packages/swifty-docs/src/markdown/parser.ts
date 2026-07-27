@@ -64,7 +64,7 @@ export function createParser(options?: MarkdownOptions): MarkdownIt {
 
     if (href.startsWith("/") || href.startsWith("#")) {
       // Internal link: intercept with swifty Router
-      tokens[idx].attrSet("data-swifty-nav", "true");
+      tokens[idx].attrSet("swifty-docs-nav", "true");
     } else {
       // External link: open in new tab
       tokens[idx].attrSet("target", "_blank");

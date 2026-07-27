@@ -54,5 +54,10 @@ export function codeBlockPlugin(md: MarkdownIt): void {
 }
 
 function fallbackBlock(code: string, lang: string): string {
-  return `<pre class="codeblock-plain"><code class="language-${escapeHtml(lang)}">${escapeHtml(code)}</code></pre>`;
+  return `
+  <pre class="codeblock-plain">
+    <code class="language-${escapeHtml(lang)}">
+      ${escapeHtml(code)}
+    </code>
+  </pre>`;
 }

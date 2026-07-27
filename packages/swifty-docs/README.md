@@ -323,11 +323,11 @@ All h1, h2, and h3 headings automatically receive:
 
 ### Internal Links
 
-Links starting with `/` or `#` are automatically tagged with `data-swifty-nav="true"` so the Preact `ContentRenderer` can intercept them for SPA navigation (anchor links smooth-scroll to the heading instead). External links receive `target="_blank"` and `rel="noopener noreferrer"`.
+Links starting with `/` or `#` are automatically tagged with `swifty-docs-nav="true"` so the Preact `ContentRenderer` can intercept them for SPA navigation (anchor links smooth-scroll to the heading instead). External links receive `target="_blank"` and `rel="noopener noreferrer"`.
 
 ### Table of Contents
 
-Insert `[[toc]]` anywhere in your markdown to render a table of contents inline. The `[[toc]]` marker is compiled to `<div data-swifty-toc></div>`, into which the `ContentRenderer` mounts an inline `Toc` component at runtime.
+Insert `[[toc]]` anywhere in your markdown to render a table of contents inline. The `[[toc]]` marker is compiled to `<div swifty-docs-toc></div>`, into which the `ContentRenderer` mounts an inline `Toc` component at runtime.
 
 ### Admonition Containers
 

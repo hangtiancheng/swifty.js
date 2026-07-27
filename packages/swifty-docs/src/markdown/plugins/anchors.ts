@@ -57,7 +57,7 @@ export function anchorPlugin(md: MarkdownIt, options?: AnchorOptions): void {
       // Inject permalink anchor for h1-h3
       if (addPermalink && level <= 3 && nextToken?.children) {
         const anchorToken = new state.Token("html_inline", "", 0);
-        anchorToken.content = ` <a class="header-anchor" href="#${slug}" aria-label="Link to this section">#</a>`;
+        anchorToken.content = `<a class="header-anchor" href="#${slug}" aria-label="Header anchor">#</a>`;
         nextToken.children.push(anchorToken);
       }
     }
