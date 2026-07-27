@@ -39,11 +39,14 @@ import type { FrontmatterResult } from "@/types";
 
 // The closing `---` must sit at the start of its own line — otherwise a
 // value containing `---` (version ranges, dashed titles) would terminate
-// the block early and corrupt both frontmatter and body. An empty block
-// (`---` immediately followed by `---`) is handled separately because the
-// main regex requires at least one line between the delimiters.
-const FRONTMATTER_REGEX = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/;
-const EMPTY_FRONTMATTER_REGEX = /^---\r?\n---(?:\r?\n|$)/;
+// the block early and corrupt both frontmatter and body. Trailing spaces
+// or tabs after the delimiter are tolerated ([^\S\r\n]* — gray-matter and
+// Jekyll accept them, and an invisible trailing space must not silently
+// disable frontmatter parsing, e.g. a `protected: true` flag). An empty
+// block (`---` immediately followed by `---`) is handled separately
+// because the main regex requires at least one line between delimiters.
+const FRONTMATTER_REGEX = /^---\r?\n([\s\S]*?)\r?\n---[^\S\r\n]*(?:\r?\n|$)/;
+const EMPTY_FRONTMATTER_REGEX = /^---\r?\n---[^\S\r\n]*(?:\r?\n|$)/;
 
 /**
  * Extract YAML frontmatter from a markdown source string.

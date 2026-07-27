@@ -71,15 +71,10 @@ export function swiftyDocsPlugin(
   options: SwiftyDocsVitePluginOptions,
 ): Plugin[] {
   const { config, debug = false } = options;
-  let resolvedRoot = "";
 
   const docsPlugin: Plugin = {
     name: "swifty-docs",
     enforce: "pre",
-
-    configResolved(resolved) {
-      resolvedRoot = resolved.root;
-    },
 
     resolveId(source: string, importer?: string) {
       const [cleanSource, query] = source.split("?");
@@ -118,10 +113,14 @@ export function swiftyDocsPlugin(
 
       const source = fs.readFileSync(filePath, "utf-8");
 
+      // Intentionally NOT passing Vite's resolved root as projectRoot:
+      // `config.docs` is resolved against process.cwd() by defineConfig()
+      // and the scanner, and Vite's root may differ (e.g. this package's
+      // own app/ root). compileMarkdown defaults to process.cwd() so both
+      // pipelines resolve the docs dir identically.
       return await compileMarkdown(source, {
         config,
         filePath,
-        projectRoot: resolvedRoot || undefined,
       });
     },
   };

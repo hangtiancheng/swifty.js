@@ -166,7 +166,7 @@ export function PasswordDialog({
         const plaintext = await decryptContent(payload, value);
         onUnlock(plaintext, value);
       } catch {
-        setError("Incorrect password. Please try again.");
+        setError("Incorrect password, please try again.");
         if (cardRef.current) shakeElement(cardRef.current);
         setChecking(false);
         inputRef.current?.select();

@@ -56,7 +56,10 @@ export function Toc({ headings, inline }: TocProps) {
     // pushState (instead of setting location.hash) records a copyable deep
     // link and a back-button entry without triggering preact-iso routing
     // or the browser's instant jump — the smooth scroll stays in control.
-    history.pushState(null, "", `#${slug}`);
+    // Skip when the hash is already current to avoid duplicate entries.
+    if (location.hash !== `#${slug}`) {
+      history.pushState(null, "", `#${slug}`);
+    }
     el.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
