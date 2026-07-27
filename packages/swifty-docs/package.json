@@ -1,6 +1,6 @@
 {
   "name": "@swifty.js/docs",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Preact + shadcn-style documentation site generator",
   "keywords": [
     "@swifty.js",
@@ -19,7 +19,7 @@
     "*.css"
   ],
   "engines": {
-    "node": ">=20.19.0"
+    "node": ">=20"
   },
   "main": "dist/index.cjs",
   "module": "dist/index.js",
