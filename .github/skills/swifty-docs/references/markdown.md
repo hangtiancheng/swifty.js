@@ -14,7 +14,7 @@ Implementation note: every plugin's render function returns an **HTML string** (
 ## 2. `[[toc]]` directive (`toc.ts`)
 
 - Inline rule registered **before** `emphasis` matching `/^\[\[toc\]\]/i`; the silent-probe phase returns true so emphasis doesn't eat the leading `[`.
-- Renders to `<div data-swifty-toc></div>`; at runtime `ContentRenderer` mounts an inline Preact `Toc` component into every placeholder.
+- Renders to `<div swifty-docs-toc></div>`; at runtime `ContentRenderer` mounts an inline Preact `Toc` component into every placeholder.
 
 ## 3. Admonition containers (`containers.ts`)
 
@@ -46,7 +46,7 @@ Overrides the `fence` renderer:
 
 ## Renderer pass (`renderer.ts` — `renderToSwiftyTemplate`)
 
-- Internal links (href starting `/` or `#`) get `data-swifty-nav="true"`; `ContentRenderer` intercepts clicks for SPA navigation (preact-iso route) and smooth-scrolls anchor links.
+- Internal links (href starting `/` or `#`) get `swifty-docs-nav="true"`; `ContentRenderer` intercepts clicks for SPA navigation (preact-iso route) and smooth-scrolls anchor links.
 - External links get `target="_blank" rel="noopener noreferrer"`.
 - Headings receive `scroll-mt-20` to offset the sticky navbar on anchor scroll.
 - Output is fully static HTML embedded as `contentHtml`; dynamic data (title, TOC headings) travels separately in `pageData`.

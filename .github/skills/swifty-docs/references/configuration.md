@@ -14,7 +14,7 @@ interface DocsConfig {
   sidebar?: Record<string, SidebarConfig>; // per-path-prefix sidebar
   markdown?: MarkdownOptions;
   highlight?: HighlightOptions; // Shiki; omit to disable highlighting
-  search?: SearchOptions; // default { provider: "local" }
+  search?: boolean; // enable the built-in MiniSearch palette. Default true
 }
 
 interface NavItem {
@@ -30,8 +30,6 @@ interface SidebarItem {
   link?: string; // optional for group headers
   collapsed?: boolean; // group starts collapsed. Default false
   items?: SidebarItem[];
-  isActive?: boolean; // set at runtime, not by the user
-  itemClass?: string; // set at runtime, not by the user
 }
 
 interface MarkdownOptions {
@@ -43,10 +41,6 @@ interface HighlightOptions {
   theme?: string; // Shiki theme. Default "github-dark"
   darkTheme?: string; // enables dual-theme --shiki-light/--shiki-dark tokens
   languages?: string[]; // grammars to load; unknown langs fall back to "text"
-}
-
-interface SearchOptions {
-  provider?: "local" | "docsearch" | "none"; // default "local"
 }
 ```
 
@@ -63,7 +57,7 @@ export default defineConfig({
   nav: [{ text: "Guide", link: "/swifty/guide/" }],
   sidebar: { "/swifty/guide/": "auto" },
   highlight: { theme: "github-light", darkTheme: "github-dark" },
-  search: { provider: "local" },
+  search: true,
 });
 ```
 
@@ -76,12 +70,11 @@ Identity function with a generation side effect (`src/define-config.ts`):
 3. For each sidebar prefix set to `"auto"`, runs `generateSidebar(routes, prefix)`; explicit arrays pass through unchanged.
 4. Renders `src/file-content.ejs` and writes `.swifty-docs/generated/index.js`.
 
-The generated module uses **relative** dynamic-import specifiers (portable across machines/CI) and exports:
+The generated module uses **relative** dynamic-import specifiers (portable across machines/CI), is byte-stable (no timestamp — unchanged content yields identical output), and exports:
 
 - `loadContent(path)` — `Promise<{ pageData, contentHtml } | null>`; dynamic import of the compiled `.md` module for a route.
-- `routes` — route-path map.
-- `docsConfig` — runtime config: `{ title, description, baseUrl, nav, sidebar }` (note: `docs` dir is stripped; `search` is NOT emitted into the runtime config object shown in `file-content.ejs` — verify there when debugging provider selection).
-- `getSearchIndex()` — lazily loads every non-virtual `.md` module on first call, filtered through `_searchablePaths` (virtual directory-index routes excluded to avoid duplicates), returns `SearchEntry[]`.
+- `docsConfig` — runtime config: `{ title, description, baseUrl, nav, sidebar, search? }` (`docs` dir is stripped; `search` is forwarded whenever set — including `false`, which must survive to disable the palette).
+- `getSearchIndex()` — lazily loads every non-virtual `.md` module on first call, filtered through `_searchablePaths` (virtual directory-index routes AND `protected: true` pages excluded), returns `SearchEntry[]`.
 
 Because generation runs at config-load time, adding or removing `.md` files requires reloading the Vite config (restart dev server).
 
@@ -90,9 +83,12 @@ Because generation runs at config-load time, adding or removing `.md` files requ
 `scanDocsDir(docsDir: string, baseUrl: string, options?: { excludeDrafts?: boolean }): DocsRoute[]`
 
 - Recursive scan; skips entries starting with `_` or `.`, plus `node_modules`, `__tests__`, `__fixtures__`, `.git`, `.vitepress`, `.swifty-docs`, `dist`.
+- Directory entries are codepoint-sorted before walking, so route and sidebar-group order is deterministic across platforms/filesystems/locales.
 - `index.md` maps to the directory route without trailing `/`.
 - Directories with no `index.md` get a **virtual index route** (`isDirectoryIndex: true`) pointing at the first page (by `sidebar_position`, then filename); virtual routes are excluded from the sidebar and search index.
-- `excludeDrafts` drops pages with `draft: true` frontmatter.
+- Route collisions (e.g. `guide.md` + `guide/index.md` both mapping to `/guide`) emit a `console.warn` (`"route collision: ..."`) — the last route wins in the generated loaders map.
+- `protected: true` frontmatter (YAML-parsed, so `True`/`yes` count) sets `isProtected` on the route, excluding it from the search index.
+- `excludeDrafts` drops pages with truthy `draft` frontmatter.
 
 ## Sidebar generation (generateSidebar)
 
@@ -104,15 +100,18 @@ Because generation runs at config-load time, adding or removing `.md` files requ
 
 ## Frontmatter
 
-YAML between `---` delimiters, parsed with js-yaml:
+YAML between `---` delimiters, parsed with js-yaml. The closing `---` must sit at line start (values containing `---` are safe); trailing spaces/tabs after it are tolerated; empty blocks (`---\n---`) work.
 
-| Field              | Type    | Effect                                              |
-| ------------------ | ------- | --------------------------------------------------- |
-| `title`            | string  | Page title (also navbar/search)                     |
-| `description`      | string  | Meta/search description                             |
-| `sidebar_position` | number  | Sort order (lower = higher)                         |
-| `sidebar_label`    | string  | Sidebar display override                            |
-| `draft`            | boolean | Excluded from production builds via `excludeDrafts` |
+| Field              | Type    | Effect                                                                             |
+| ------------------ | ------- | ---------------------------------------------------------------------------------- |
+| `title`            | string  | Page title (also navbar/search). Scalars are coerced (`title: 123` → `"123"`)      |
+| `description`      | string  | Meta/search description                                                            |
+| `sidebar_position` | number  | Sort order (lower = higher). Quoted numbers (`"3"`) are accepted                   |
+| `sidebar_label`    | string  | Sidebar display override                                                           |
+| `draft`            | boolean | Truthy value marks the page a draft; excluded via `excludeDrafts`                  |
+| `protected`        | boolean | Page is encrypted by `docsGuardPlugin` (requires `DOCS_PASSWORD`) and unsearchable |
+
+All coercion happens in the shared `buildPageData()` (`src/utils/page-data.ts`) — the scanner and compiler use the same helper, so sidebar labels and compiled page titles can never disagree.
 
 Title resolution chain: frontmatter `title` → first `# heading` in the body (headings inside fenced code blocks ignored) → filename-derived (`index.md` uses title-cased parent dir name; other files use the stem with dashes→spaces). Root `index.md` falls back to `"Home"`.
 
