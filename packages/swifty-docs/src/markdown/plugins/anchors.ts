@@ -27,8 +27,8 @@
  * anchor link for h1-h3 headings.
  */
 import type MarkdownIt from "markdown-it";
-import { createSlugger } from "@/utils/slugify";
-import { inlineText } from "@/utils/heading-extraction";
+import { createSlugger } from "../../utils/slugify";
+import { inlineText } from "../../utils/heading-extraction";
 import type { StateCore } from "markdown-it/index.js";
 
 export interface AnchorOptions {
@@ -57,7 +57,7 @@ export function anchorPlugin(md: MarkdownIt, options?: AnchorOptions): void {
       // Inject permalink anchor for h1-h3
       if (addPermalink && level <= 3 && nextToken?.children) {
         const anchorToken = new state.Token("html_inline", "", 0);
-        anchorToken.content = `<a class="header-anchor" href="#${slug}" aria-label="Header anchor">#</a>`;
+        anchorToken.content = `<a class="header-anchor" href="#${slug}" aria-label="Link to this section">#</a>`;
         nextToken.children.push(anchorToken);
       }
     }

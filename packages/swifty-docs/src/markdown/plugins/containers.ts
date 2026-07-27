@@ -32,7 +32,7 @@ import container from "markdown-it-container";
 import type { Token } from "markdown-it/index.js";
 import { h } from "preact";
 import { renderToString } from "preact-render-to-string";
-import { escapeHtml } from "@/utils/escape-html";
+import { escapeHtml } from "../../utils/escape-html";
 import {
   ChevronRightIcon,
   InfoIcon,

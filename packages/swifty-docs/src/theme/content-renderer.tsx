@@ -90,7 +90,10 @@ export function ContentRenderer({ html, headings }: ContentRendererProps) {
       if (!el) return;
       // pushState records a copyable deep link and a back-button entry
       // without triggering preact-iso routing or the browser's instant jump.
-      history.pushState(null, "", href);
+      // Skip when the hash is already current to avoid duplicate entries.
+      if (location.hash !== href) {
+        history.pushState(null, "", href);
+      }
       el.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   };

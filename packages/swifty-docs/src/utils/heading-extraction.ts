@@ -84,6 +84,7 @@ export function extractPageMeta(
   const tokens = md.parse(content, {});
   const slugger = createSlugger();
   let firstHeading: string | undefined;
+  let sawH1 = false;
   const headings: HeadingInfo[] = [];
   const excerptParts: string[] = [];
 
@@ -93,8 +94,12 @@ export function extractPageMeta(
     if (t.type === "heading_open") {
       const text = inlineText(tokens[i + 1]);
       const slug = slugger(text);
-      if (t.tag === "h1" && firstHeading === undefined && text) {
-        firstHeading = text;
+      // Only the FIRST h1 counts as the page-title candidate, even when
+      // its text is empty (e.g. an image-only heading) — matching the
+      // historical extractFirstHeading behavior of stopping at the first h1.
+      if (t.tag === "h1" && !sawH1) {
+        sawH1 = true;
+        firstHeading = text || undefined;
       }
       if ((t.tag === "h2" || t.tag === "h3") && text) {
         headings.push({ level: t.tag === "h2" ? 2 : 3, text, slug });

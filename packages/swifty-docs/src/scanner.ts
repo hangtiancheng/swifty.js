@@ -89,9 +89,10 @@ export function scanDocsDir(
       return; // directory doesn't exist or not readable
     }
 
-    // readdir order is filesystem-dependent; sort so route/group order is
-    // stable across platforms and machines.
-    entries.sort((a, b) => a.name.localeCompare(b.name));
+    // readdir order is filesystem-dependent; sort by codepoint so route
+    // and sidebar-group order is stable across platforms, machines, and
+    // locales (localeCompare varies with ICU data).
+    entries.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
 
     for (const entry of entries) {
       if (IGNORED_PREFIXES.some((p) => entry.name.startsWith(p))) continue;

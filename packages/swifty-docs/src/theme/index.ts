@@ -58,7 +58,7 @@ export { SearchDialog } from "./search-dialog";
 export { DocSearchWidget } from "./doc-search-widget";
 export { ContentRenderer } from "./content-renderer";
 export { PrevNext } from "./prev-next";
-export { ThemeToggle } from "./theme-toggle";
+export { ThemeToggle, THEME_STORAGE_KEY } from "./theme-toggle";
 export { Logo } from "./logo";
 
 // shadcn-style primitives

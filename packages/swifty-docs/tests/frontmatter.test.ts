@@ -118,4 +118,10 @@ body text
     expect(result.data["title"]).toBe("X");
     expect(result.content).toBe("");
   });
+
+  it("tolerates trailing spaces/tabs after the closing delimiter", () => {
+    const result = extractFrontmatter("---\nprotected: true\n--- \t\nbody\n");
+    expect(result.data["protected"]).toBe(true);
+    expect(result.content).toBe("body\n");
+  });
 });

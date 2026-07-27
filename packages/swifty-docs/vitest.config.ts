@@ -21,12 +21,13 @@
  */
 
 import { defineConfig } from "vitest/config";
-import { resolve } from "node:path";
+import { resolve, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 
 export default defineConfig({
   resolve: {
     alias: {
-      "@": resolve(import.meta.dirname, "src"),
+      "@": resolve(dirname(fileURLToPath(new URL(import.meta.url))), "src"),
     },
   },
   test: {

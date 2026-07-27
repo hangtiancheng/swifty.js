@@ -246,6 +246,20 @@ Content here.
     expect(result).not.toContain('"title": "npm install"');
   });
 
+  it("renders fallback code blocks as a single line (no <pre> whitespace pollution)", async () => {
+    const source = "```js\nconst a = 1;\n```\n";
+    const result = await compileMarkdown(source, {
+      config: baseConfig, // no highlight config → fallback path
+      filePath: "docs/test.md",
+    });
+
+    // <pre> preserves whitespace: the emitted markup must not contain
+    // template indentation or newlines around the code content.
+    expect(result).toContain(
+      String.raw`<pre class=\"codeblock-plain\"><code class=\"language-js\">const a = 1;`,
+    );
+  });
+
   it("deduplicates slugs for identical headings and keeps TOC in sync with anchor ids", async () => {
     const source = "# Title\n\n## 示例标题\n\ntext\n\n## 示例标题\n\ntext";
     const result = await compileMarkdown(source, {

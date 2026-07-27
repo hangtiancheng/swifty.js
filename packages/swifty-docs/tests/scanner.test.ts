@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { scanDocsDir } from "@/scanner";
 import fs from "node:fs";
 import path from "node:path";
@@ -542,6 +542,44 @@ describe("scanDocsDir", () => {
       for (const p of allPaths) {
         expect(p.endsWith("/")).toBe(false);
       }
+    } finally {
+      cleanup(dir);
+    }
+  });
+
+  it("warns on route collisions (guide.md vs guide/index.md)", () => {
+    const dir = createTempDocs({
+      "guide.md": "# Guide File\n",
+      "guide/index.md": "# Guide Dir\n",
+    });
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      const routes = scanDocsDir(dir, "/docs/");
+      const colliding = routes.filter((r) => r.path === "/docs/guide");
+      expect(colliding.length).toBe(2);
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining("route collision"),
+      );
+    } finally {
+      warnSpy.mockRestore();
+      cleanup(dir);
+    }
+  });
+
+  it("emits routes in deterministic (codepoint-sorted) order", () => {
+    const dir = createTempDocs({
+      "zebra.md": "# Z\n",
+      "alpha.md": "# A\n",
+      "mid.md": "# M\n",
+    });
+    try {
+      const routes = scanDocsDir(dir, "/docs/");
+      expect(routes.map((r) => r.path)).toEqual([
+        "/docs/alpha",
+        "/docs/mid",
+        "/docs/zebra",
+        "/docs", // virtual index appended after files
+      ]);
     } finally {
       cleanup(dir);
     }

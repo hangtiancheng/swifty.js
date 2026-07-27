@@ -141,6 +141,13 @@ function libConfig(): UserConfig {
   return {
     // Keep the docs-site PWA assets (public/) out of the npm package.
     publicDir: false,
+    resolve: {
+      alias: {
+        "@": resolve(PKG_DIR, "src"),
+        "@swifty-docs/generated": resolve(PKG_DIR, ".swifty-docs/generated"),
+        "@swifty.js/docs": resolve(PKG_DIR, "src"),
+      },
+    },
     build: {
       lib: {
         cssFileName: "swifty-docs",
@@ -253,7 +260,7 @@ function docsConfig(options?: { isDev?: boolean }): UserConfig {
     ],
     resolve: {
       alias: {
-        "@": resolve(dirname(fileURLToPath(new URL(import.meta.url))), "src"),
+        "@": resolve(PKG_DIR, "src"),
         "@swifty-docs/generated": resolve(PKG_DIR, ".swifty-docs/generated"),
         "@swifty.js/docs": resolve(PKG_DIR, "src"),
       },

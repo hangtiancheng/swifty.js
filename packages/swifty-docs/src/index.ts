@@ -70,7 +70,7 @@ export { SearchDialog } from "./theme/search-dialog";
 export { DocSearchWidget } from "./theme/doc-search-widget";
 export { ContentRenderer } from "./theme/content-renderer";
 export { PrevNext } from "./theme/prev-next";
-export { ThemeToggle } from "./theme/theme-toggle";
+export { ThemeToggle, THEME_STORAGE_KEY } from "./theme/theme-toggle";
 export { Logo } from "./theme/logo";
 export { Button, buttonVariants } from "./theme/ui/button";
 export { Input } from "./theme/ui/input";

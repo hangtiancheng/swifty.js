@@ -28,6 +28,7 @@
  * chains in one place prevents the two pipelines from drifting — a drift
  * here would make sidebar labels disagree with compiled page titles.
  */
+import { z } from "zod";
 import type { PageData } from "@/types";
 import { deriveTitleFromPath } from "./derive-title";
 import { extractPageMeta } from "./heading-extraction";
@@ -35,19 +36,22 @@ import { extractPageMeta } from "./heading-extraction";
 // Frontmatter values come from user-authored YAML, so a `title: 123` is a
 // number at runtime even though the field is typed string. Coerce scalars
 // instead of casting — an uncoerced number would later crash the search
-// index (`toLowerCase` on a number).
-function asString(value: unknown): string | undefined {
-  if (typeof value === "string") return value;
-  if (typeof value === "number" || typeof value === "boolean") {
-    return String(value);
-  }
-  return undefined;
-}
+// index (`toLowerCase` on a number). Only scalars coerce; objects/arrays
+// fail the parse and fall through to the fallback chain.
+const ScalarStringSchema = z
+  .union([z.string(), z.number(), z.boolean()])
+  .transform((v) => String(v));
 
-function asNumber(value: unknown): number | undefined {
-  return typeof value === "number" && Number.isFinite(value)
-    ? value
-    : undefined;
+// YAML authors sometimes quote positions (`sidebar_position: "3"`); the
+// numeric sort previously coerced these, so keep accepting numeric strings.
+const ScalarNumberSchema = z
+  .union([z.number(), z.string().trim().min(1)])
+  .transform((v) => Number(v))
+  .refine((n) => Number.isFinite(n));
+
+function parseWith<T>(schema: z.ZodType<T>, value: unknown): T | undefined {
+  const result = schema.safeParse(value);
+  return result.success ? result.data : undefined;
 }
 
 /**
@@ -63,12 +67,22 @@ export function buildPageData(
   const meta = extractPageMeta(content);
 
   return {
-    title: asString(frontmatter["title"]) || meta.firstHeading || derivedTitle,
-    description: asString(frontmatter["description"]) || derivedTitle,
+    title:
+      parseWith(ScalarStringSchema, frontmatter["title"]) ||
+      meta.firstHeading ||
+      derivedTitle,
+    description:
+      parseWith(ScalarStringSchema, frontmatter["description"]) || derivedTitle,
     excerpt: meta.excerpt,
-    sidebarPosition: asNumber(frontmatter["sidebar_position"]),
-    sidebarLabel: asString(frontmatter["sidebar_label"]) || undefined,
-    draft: frontmatter["draft"] === true || undefined,
+    sidebarPosition: parseWith(
+      ScalarNumberSchema,
+      frontmatter["sidebar_position"],
+    ),
+    sidebarLabel:
+      parseWith(ScalarStringSchema, frontmatter["sidebar_label"]) || undefined,
+    // Truthy check (not === true) to match the scanner's draft-exclusion
+    // rule: `draft: 1` or `draft: "yes"` counts as a draft in both places.
+    draft: frontmatter["draft"] ? true : undefined,
     headings: meta.headings,
     relativePath,
   };

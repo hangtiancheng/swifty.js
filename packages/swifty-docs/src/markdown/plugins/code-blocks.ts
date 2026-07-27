@@ -30,7 +30,7 @@
  * - Fall back to escaped plain text when no highlighter is configured
  */
 import type MarkdownIt from "markdown-it";
-import { escapeHtml } from "@/utils/escape-html";
+import { escapeHtml } from "../../utils/escape-html";
 
 export function codeBlockPlugin(md: MarkdownIt): void {
   md.renderer.rules.fence = (tokens, idx, mdOptions) => {

@@ -32,7 +32,7 @@
  * Subsequent calls to getHighlighter() return instantly.
  */
 import type { Highlighter, BundledLanguage } from "shiki";
-import { escapeHtml } from "@/utils/escape-html";
+import { escapeHtml } from "../utils/escape-html";
 
 const DEFAULT_LANGUAGES: BundledLanguage[] = [
   "bash",
