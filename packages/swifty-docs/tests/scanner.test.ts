@@ -567,17 +567,20 @@ describe("scanDocsDir", () => {
   });
 
   it("emits routes in deterministic (codepoint-sorted) order", () => {
+    // Names chosen so codepoint order ("B" < "a" < "m") differs from both
+    // locale collation and case-insensitive filesystem ordering ("a" < "B")
+    // — an accidentally-sorted readdir cannot make this test pass.
     const dir = createTempDocs({
-      "zebra.md": "# Z\n",
-      "alpha.md": "# A\n",
-      "mid.md": "# M\n",
+      "a-page.md": "# A\n",
+      "B-page.md": "# B\n",
+      "m-page.md": "# M\n",
     });
     try {
       const routes = scanDocsDir(dir, "/docs/");
       expect(routes.map((r) => r.path)).toEqual([
-        "/docs/alpha",
-        "/docs/mid",
-        "/docs/zebra",
+        "/docs/B-page",
+        "/docs/a-page",
+        "/docs/m-page",
         "/docs", // virtual index appended after files
       ]);
     } finally {

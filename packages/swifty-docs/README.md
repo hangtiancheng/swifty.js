@@ -90,7 +90,7 @@ export default defineConfig({
     darkTheme: "github-dark",
     languages: ["typescript", "javascript", "html", "css", "bash", "json"],
   },
-  search: { provider: "local" },
+  search: true,
 });
 ```
 
@@ -401,7 +401,7 @@ DocsLayout (root, mounted once)
 |   +-- Content column (prose, ContentRenderer + PrevNext)
 |   +-- TOC rail (224px, right, visible on xl+)
 +-- Mobile drawer (slide-in sidebar, below lg)
-+-- SearchDialog (portal dialog, local provider only)
++-- SearchDialog (portal dialog, when search is enabled)
 ```
 
 The layout stays mounted across all routes. On navigation the route path changes, an effect re-runs `loadContent(path)`, and only the content column re-renders; the sidebar and TOC update from the same state.
@@ -431,7 +431,7 @@ import { SearchIcon } from "@swifty.js/docs";
 
 ## Search System
 
-### Local Search (provider: "local")
+### Built-in Search
 
 The built-in search is powered by [MiniSearch](https://github.com/lucaong/minisearch) (the same engine used by VitePress). It provides a command palette (a portal-based Preact dialog) with:
 

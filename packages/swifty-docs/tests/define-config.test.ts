@@ -139,7 +139,6 @@ describe("defineConfig baseUrl prefixing", () => {
     const cfg = readGeneratedConfig(root);
     const auto = cfg.sidebar["/guide/"];
     expect(Array.isArray(auto)).toBe(true);
-    expect(auto.length).toBeGreaterThan(0);
     const links: string[] = [];
     const collect = (items: any[]) => {
       for (const item of items) {
@@ -148,10 +147,12 @@ describe("defineConfig baseUrl prefixing", () => {
       }
     };
     collect(auto);
-    expect(links.length).toBeGreaterThan(0);
-    for (const link of links) {
-      expect(link.startsWith("/my-site/guide")).toBe(true);
-    }
+    // Exact match — a prefix-only check would miss double-prefixing
+    // ("/my-site/guide/guide/intro") or missing pages.
+    expect(links.sort()).toEqual([
+      "/my-site/guide/intro",
+      "/my-site/guide/setup",
+    ]);
   });
 
   it("leaves links untouched when baseUrl is root", () => {

@@ -202,7 +202,18 @@ describe("docsGuardPlugin", () => {
       "secret.md",
       "---\nprotected: true\n---\n# Secret\n",
     );
-    const out = runTransform(compiledModule("<p>classified</p>"), filePath);
-    expect(out).toBeNull();
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      const out = runTransform(compiledModule("<p>classified</p>"), filePath);
+      expect(out).toBeNull();
+      // The warning is the whole point of this branch — shipping a
+      // protected page unencrypted must never be silent.
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining("UNENCRYPTED"),
+      );
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining(filePath));
+    } finally {
+      warnSpy.mockRestore();
+    }
   });
 });

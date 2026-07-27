@@ -23,7 +23,7 @@
 /**
  * Custom markdown-it plugin: [[toc]] directive.
  *
- * Replaces `[[toc]]` in markdown content with a `<div data-swifty-toc>`
+ * Replaces `[[toc]]` in markdown content with a `<div swifty-docs-toc>`
  * placeholder. At runtime the Preact ContentRenderer mounts an inline
  * Toc component into every placeholder.
  */
@@ -48,6 +48,6 @@ export function tocPlugin(md: MarkdownIt): void {
 
   // Render the [[toc]] placeholder as a mount point for the Preact Toc.
   md.renderer.rules["toc_placeholder"] = () => {
-    return "<div data-swifty-toc></div>";
+    return "<div swifty-docs-toc></div>";
   };
 }
