@@ -31,8 +31,10 @@ interface DialogContextValue {
   onOpenChange: (open: boolean) => void;
 }
 
+// Default closed: a DialogPortal used outside a <Dialog> must not render
+// unconditionally.
 const DialogContext = createContext<DialogContextValue>({
-  open: true,
+  open: false,
   onOpenChange: () => {},
 });
 
@@ -87,10 +89,40 @@ interface DialogContentProps {
 export const DialogContent = forwardRef<HTMLDivElement, DialogContentProps>(
   function DialogContent({ class: className, children }, ref) {
     const innerRef = useRef<HTMLDivElement | null>(null);
+    const returnFocusRef = useRef<HTMLElement | null>(null);
 
     useEffect(() => {
+      // Remember the invoking control so focus can be restored on close —
+      // otherwise keyboard users are dropped at the top of the document.
+      returnFocusRef.current =
+        document.activeElement instanceof HTMLElement
+          ? document.activeElement
+          : null;
       innerRef.current?.focus();
+      return () => returnFocusRef.current?.focus();
     }, []);
+
+    // Minimal focus trap: keep Tab cycling inside the dialog. aria-modal
+    // alone does not prevent keyboard focus from escaping to the page.
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== "Tab") return;
+      const root = innerRef.current;
+      if (!root) return;
+      const focusables = root.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      );
+      if (focusables.length === 0) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const active = document.activeElement;
+      if (e.shiftKey && (active === first || active === root)) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
 
     const setRef = (el: HTMLDivElement | null) => {
       innerRef.current = el;
@@ -104,6 +136,7 @@ export const DialogContent = forwardRef<HTMLDivElement, DialogContentProps>(
         role="dialog"
         aria-modal="true"
         tabIndex={-1}
+        onKeyDown={onKeyDown as never}
         class={cn(
           "border-border bg-card text-card-foreground shadow-foreground/10 animate-dialog-in fixed z-50 flex flex-col overflow-hidden rounded-xl border shadow-2xl outline-none",
           className,

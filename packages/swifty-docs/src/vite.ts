@@ -41,6 +41,7 @@ import { isAbsolute, resolve, dirname } from "node:path";
 import { z } from "zod";
 import type { DocsConfig } from "./types";
 import { compileMarkdown } from "./compile-markdown";
+import { extractFrontmatter } from "./markdown/frontmatter";
 import type { Plugin } from "vite";
 import preact from "@preact/preset-vite";
 import { createCipheriv, pbkdf2Sync, randomBytes } from "node:crypto";
@@ -70,10 +71,15 @@ export function swiftyDocsPlugin(
   options: SwiftyDocsVitePluginOptions,
 ): Plugin[] {
   const { config, debug = false } = options;
+  let resolvedRoot = "";
 
   const docsPlugin: Plugin = {
     name: "swifty-docs",
     enforce: "pre",
+
+    configResolved(resolved) {
+      resolvedRoot = resolved.root;
+    },
 
     resolveId(source: string, importer?: string) {
       const [cleanSource, query] = source.split("?");
@@ -115,7 +121,7 @@ export function swiftyDocsPlugin(
       return await compileMarkdown(source, {
         config,
         filePath,
-        debug,
+        projectRoot: resolvedRoot || undefined,
       });
     },
   };
@@ -155,8 +161,6 @@ export function swiftyDocsPlugin(
   return [docsPlugin, baseSyncPlugin, spaFallbackPlugin, ...preact()];
 }
 
-const FRONTMATTER_RE = /^---\r?\n([\s\S]*?)\r?\n---/;
-
 function isProtectedMarkdown(id: string): string | null {
   if (!id.includes(MD_SUFFIX)) return null;
   const filePath = id.split("?")[0].replace(/^\/@fs/, "");
@@ -166,9 +170,12 @@ function isProtectedMarkdown(id: string): string | null {
   } catch {
     return null;
   }
-  const fmMatch = raw.match(FRONTMATTER_RE);
-  if (!fmMatch || !/^protected:\s*true/m.test(fmMatch[1])) return null;
-  return filePath;
+  // Use the same YAML parse as the scanner so every `protected` spelling
+  // YAML treats as true (True, yes, on) is caught — a regex-only check
+  // would let such pages ship unencrypted while the scanner still marks
+  // them protected.
+  const { data } = extractFrontmatter(raw);
+  return data["protected"] === true ? filePath : null;
 }
 
 export function docsGuardPlugin(): Plugin {

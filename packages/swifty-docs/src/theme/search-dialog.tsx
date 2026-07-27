@@ -44,7 +44,14 @@ const MAX_RESULTS = 12;
 export function SearchDialog() {
   const docs = useDocs();
   const { route: navigate } = useLocation();
-  const engine = useRef(createSearchEngine(docs.getSearchIndex)).current;
+  // Lazy init: useRef(create()) would re-run createSearchEngine on every
+  // render (discarding all but the first result) and permanently capture
+  // the first-render getSearchIndex.
+  const engineRef = useRef<ReturnType<typeof createSearchEngine>>();
+  if (!engineRef.current) {
+    engineRef.current = createSearchEngine(docs.getSearchIndex);
+  }
+  const engine = engineRef.current;
 
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchHit[]>([]);
@@ -98,6 +105,9 @@ export function SearchDialog() {
           results.length > 0 ? (i - 1 + results.length) % results.length : 0,
         );
       } else if (e.key === "Enter") {
+        // Ignore the Enter that commits an IME composition (CJK input) —
+        // it should finalize the text, not navigate.
+        if (e.isComposing) return;
         const hit = results[activeIdx];
         if (hit) go(hit.link);
       }
@@ -197,6 +207,7 @@ export function SearchDialog() {
                     <button
                       ref={(el) => {
                         if (el) itemRefs.current.set(i, el);
+                        else itemRefs.current.delete(i);
                       }}
                       onMouseEnter={() => setActiveIdx(i)}
                       onClick={() => go(hit.link)}

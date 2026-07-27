@@ -85,4 +85,37 @@ Content.
     expect(result.data["sidebar_group"]).toBe("Guide");
     expect(result.data["sidebar_position"]).toBe(3);
   });
+
+  it("does not terminate the block on --- inside a value", () => {
+    const source = `---
+title: a---b
+version: 1.0---2.0
+---
+body text
+`;
+    const result = extractFrontmatter(source);
+    expect(result.data["title"]).toBe("a---b");
+    expect(result.data["version"]).toBe("1.0---2.0");
+    expect(result.content).toBe("body text\n");
+  });
+
+  it("handles an empty frontmatter block", () => {
+    const result = extractFrontmatter("---\n---\n# Heading\n");
+    expect(result.data).toEqual({});
+    expect(result.content).toBe("# Heading\n");
+  });
+
+  it("does not close the block on dashes inside a block scalar", () => {
+    const source = "---\ntitle: X\nnote: |\n  ----\n---\nbody\n";
+    const result = extractFrontmatter(source);
+    expect(result.data["title"]).toBe("X");
+    expect(result.data["note"]).toBe("----\n");
+    expect(result.content).toBe("body\n");
+  });
+
+  it("handles a closing delimiter with no trailing newline", () => {
+    const result = extractFrontmatter("---\ntitle: X\n---");
+    expect(result.data["title"]).toBe("X");
+    expect(result.content).toBe("");
+  });
 });

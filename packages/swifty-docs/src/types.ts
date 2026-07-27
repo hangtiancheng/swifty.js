@@ -89,10 +89,6 @@ export interface SidebarItem {
   collapsed?: boolean;
   /** Child items (for groups). */
   items?: SidebarItem[];
-  /** Whether this item matches the current route (set at runtime). */
-  isActive?: boolean;
-  /** Pre-computed CSS class string (set at runtime by sidebar view). */
-  itemClass?: string;
 }
 
 /** Markdown processing options. */
@@ -229,8 +225,6 @@ export interface CompileMarkdownOptions {
   config: DocsConfig;
   /** Absolute path to the .md file being compiled. */
   filePath: string;
-  /** Enable debug line markers. */
-  debug?: boolean;
   /** Project root for resolving relative `config.docs`. Defaults to process.cwd(). */
   projectRoot?: string;
 }

@@ -51,14 +51,23 @@ export function useScrollSpy(headings: PageHeading[], offset = 96): string {
       { rootMargin: "0px 0px -70% 0px", threshold: 0 },
     );
 
+    // The microtask defers observe() until content is in the DOM, but the
+    // effect can be cleaned up before it runs (fast route change) — an
+    // unguarded observe() would re-activate the disconnected observer and
+    // leak it. The flag makes cleanup final.
+    let cancelled = false;
     queueMicrotask(() => {
+      if (cancelled) return;
       for (const h of headings) {
         const el = document.getElementById(h.slug);
         if (el) observer.observe(el);
       }
     });
 
-    return () => observer.disconnect();
+    return () => {
+      cancelled = true;
+      observer.disconnect();
+    };
   }, [headings, offset]);
 
   return active;

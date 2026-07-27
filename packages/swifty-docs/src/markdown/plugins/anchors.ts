@@ -27,7 +27,8 @@
  * anchor link for h1-h3 headings.
  */
 import type MarkdownIt from "markdown-it";
-import { createSlugger } from "../../utils/slugify";
+import { createSlugger } from "@/utils/slugify";
+import { inlineText } from "@/utils/heading-extraction";
 import type { StateCore } from "markdown-it/index.js";
 
 export interface AnchorOptions {
@@ -47,11 +48,7 @@ export function anchorPlugin(md: MarkdownIt, options?: AnchorOptions): void {
 
       const level = parseInt(token.tag.slice(1), 10);
       const nextToken = state.tokens[i + 1];
-      const text =
-        nextToken?.children
-          ?.filter((t) => t.type === "text" || t.type === "code_inline")
-          .map((t) => t.content)
-          .join("") ?? "";
+      const text = inlineText(nextToken);
 
       const slug = slugger(text);
 

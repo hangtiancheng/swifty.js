@@ -32,6 +32,7 @@
  * Subsequent calls to getHighlighter() return instantly.
  */
 import type { Highlighter, BundledLanguage } from "shiki";
+import { escapeHtml } from "../utils/escape-html";
 
 const DEFAULT_LANGUAGES: BundledLanguage[] = [
   "bash",
@@ -86,13 +87,23 @@ const DEFAULT_LANGUAGES: BundledLanguage[] = [
 const cache = new Map<string, Highlighter>();
 const initPromises = new Map<string, Promise<Highlighter>>();
 
+// Single default used by both getHighlighter (loading) and highlightCode
+// (rendering). They must agree, or a config with only `darkTheme` set would
+// request a light theme that was never loaded and Shiki would throw —
+// silently disabling highlighting site-wide via the catch below.
+const DEFAULT_THEME = "github-dark";
+
+function resolveLanguages(languages: string[] | undefined): string[] {
+  return languages && languages.length > 0 ? languages : DEFAULT_LANGUAGES;
+}
+
 function cacheKey(
   theme: string | undefined,
   languages: string[] | undefined,
   darkTheme?: string,
 ): string {
-  const langs = (languages ?? []).slice().sort().join(",") || "default";
-  return `${theme ?? "github-dark"}+${darkTheme ?? ""}:${langs}`;
+  const langs = resolveLanguages(languages).slice().sort().join(",");
+  return `${theme ?? DEFAULT_THEME}+${darkTheme ?? ""}:${langs}`;
 }
 
 /**
@@ -113,27 +124,25 @@ export async function getHighlighter(
   if (existing) return existing;
 
   const promise = (async () => {
-    const { createHighlighter } = await import("shiki");
-    const themes = [theme ?? "github-dark"];
-    if (darkTheme && darkTheme !== themes[0]) themes.push(darkTheme);
-    const h = await createHighlighter({
-      themes,
-      langs: (languages as BundledLanguage[]) ?? DEFAULT_LANGUAGES,
-    });
-    cache.set(key, h);
-    initPromises.delete(key);
-    return h;
+    try {
+      const { createHighlighter } = await import("shiki");
+      const themes = [theme ?? DEFAULT_THEME];
+      if (darkTheme && darkTheme !== themes[0]) themes.push(darkTheme);
+      const h = await createHighlighter({
+        themes,
+        langs: resolveLanguages(languages) as BundledLanguage[],
+      });
+      cache.set(key, h);
+      return h;
+    } finally {
+      // Always drop the init promise: on success the instance lives in
+      // `cache`; on failure a retained rejected promise would make every
+      // future call fail forever, even after the cause is fixed.
+      initPromises.delete(key);
+    }
   })();
   initPromises.set(key, promise);
   return promise;
-}
-
-/**
- * Reset the highlighter cache. Useful for tests and config switches.
- */
-export function resetHighlighter(): void {
-  cache.clear();
-  initPromises.clear();
 }
 
 /**
@@ -162,7 +171,7 @@ export function highlightCode(
       return hl.codeToHtml(code, {
         lang: safeLang,
         themes: {
-          light: theme ?? "github-light",
+          light: theme ?? DEFAULT_THEME,
           dark: darkTheme,
         },
         defaultColor: false,
@@ -171,17 +180,9 @@ export function highlightCode(
 
     return hl.codeToHtml(code, {
       lang: safeLang,
-      theme: theme ?? "github-dark",
+      theme: theme ?? DEFAULT_THEME,
     });
   } catch {
     return `<pre class="shiki"><code>${escapeHtml(code)}</code></pre>`;
   }
-}
-
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
 }

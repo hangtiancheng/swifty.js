@@ -74,8 +74,8 @@ export function Navbar({ path, landing, onMenuClick }: NavbarProps) {
           class="ml-4 hidden items-center gap-0.5 md:flex"
           aria-label="Primary"
         >
-          {(docs.config.nav ?? []).map((item) => (
-            <NavMenuItem key={item.link} item={item} path={path} />
+          {(docs.config.nav ?? []).map((item, i) => (
+            <NavMenuItem key={`${i}:${item.link}`} item={item} path={path} />
           ))}
         </nav>
 

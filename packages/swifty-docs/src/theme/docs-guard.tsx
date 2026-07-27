@@ -299,6 +299,12 @@ export function createContentGuard<
     }, []);
 
     useEffect(() => {
+      if (ask !== null) {
+        console.warn(
+          "[@swifty.js/docs] Multiple <ContentGuard> instances mounted — " +
+            "only the most recent one will receive unlock requests.",
+        );
+      }
       ask = (payload: EncryptedPayload): Promise<string | null> => {
         // A newer request supersedes a pending one: deny the old request
         // instead of leaving its loadContent promise hanging.

@@ -114,6 +114,25 @@ describe("docsGuardPlugin", () => {
     expect(out!).not.toContain("classified");
   });
 
+  it("catches YAML truthy spellings like `protected: True` (no plaintext bypass)", () => {
+    const filePath = writeMd(
+      "yaml-true.md",
+      "---\nprotected: True\n---\n# Secret\n",
+    );
+    const out = runTransform(compiledModule("<p>classified</p>"), filePath);
+    expect(out).not.toBeNull();
+    expect(out!).not.toContain("classified");
+  });
+
+  it("does not encrypt when protected is a non-true value", () => {
+    const filePath = writeMd(
+      "not-protected.md",
+      '---\nprotected: "truest"\n---\n# Plain\n',
+    );
+    const out = runTransform(compiledModule("<p>public</p>"), filePath);
+    expect(out).toBeNull();
+  });
+
   it("scrubs excerpt/description/headings from pageData", () => {
     const filePath = writeMd(
       "secret.md",

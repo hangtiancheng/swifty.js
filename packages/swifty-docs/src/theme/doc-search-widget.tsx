@@ -32,6 +32,7 @@ export function DocSearchWidget() {
 
   useEffect(() => {
     let cancelled = false;
+    const host = container.current;
     void (async () => {
       const raw = docs.getSearchIndex ? await docs.getSearchIndex() : [];
       const parsed = z.array(SearchEntrySchema).safeParse(raw);
@@ -61,6 +62,9 @@ export function DocSearchWidget() {
     })();
     return () => {
       cancelled = true;
+      // docsearch() exposes no destroy API — clearing the container drops
+      // its button so a dep change or remount cannot double-render it.
+      host?.replaceChildren();
     };
   }, [docs.getSearchIndex]);
 

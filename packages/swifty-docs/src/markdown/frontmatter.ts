@@ -37,10 +37,13 @@
 import { load as yamlLoad } from "js-yaml";
 import type { FrontmatterResult } from "@/types";
 
-// The closing `---` may immediately follow the opening `---\n` for an
-// empty frontmatter block, so the separator before the closing `---` is
-// optional (\r?\n?). This also tolerates a missing trailing newline.
-const FRONTMATTER_REGEX = /^---\r?\n([\s\S]*?)\r?\n?---\r?\n?/;
+// The closing `---` must sit at the start of its own line — otherwise a
+// value containing `---` (version ranges, dashed titles) would terminate
+// the block early and corrupt both frontmatter and body. An empty block
+// (`---` immediately followed by `---`) is handled separately because the
+// main regex requires at least one line between the delimiters.
+const FRONTMATTER_REGEX = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/;
+const EMPTY_FRONTMATTER_REGEX = /^---\r?\n---(?:\r?\n|$)/;
 
 /**
  * Extract YAML frontmatter from a markdown source string.
@@ -49,6 +52,11 @@ const FRONTMATTER_REGEX = /^---\r?\n([\s\S]*?)\r?\n?---\r?\n?/;
  * returns an empty data object and the full content.
  */
 export function extractFrontmatter(source: string): FrontmatterResult {
+  const emptyMatch = source.match(EMPTY_FRONTMATTER_REGEX);
+  if (emptyMatch) {
+    return { data: {}, content: source.slice(emptyMatch[0].length) };
+  }
+
   const match = source.match(FRONTMATTER_REGEX);
 
   if (!match) {

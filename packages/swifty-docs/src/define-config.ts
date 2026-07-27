@@ -28,7 +28,7 @@
  * data via the `@swifty-docs/generated` alias.
  *
  * The generated file is a plain `.js` runtime module. Type declarations for
- * `@swifty-docs/generated` are provided by `src/shims.d.ts` (ambient module
+ * `@swifty-docs/generated` are provided by `src/client.d.ts` (ambient module
  * declaration), so IDE type-checking works without a generated `.d.ts` file.
  *
  * Usage:
@@ -177,11 +177,13 @@ function generateRoutesFile(config: DocsConfig, projectRoot: string): void {
     baseUrl: config.baseUrl,
     nav: prefixNavItems(config.baseUrl, config.nav || []),
     sidebar,
+    ...(config.search ? { search: config.search } : {}),
   };
 
-  // Render the runtime JS module from the EJS template.
+  // Render the runtime JS module from the EJS template. No timestamp is
+  // embedded so unchanged content yields byte-identical output (stable for
+  // caching and clean git status).
   const fileContent = ejs.render(fileContentTemplate, {
-    generatedAt: new Date().toISOString(),
     loaderEntries,
     searchablePathsJson: JSON.stringify(searchablePaths),
     docsConfigJson: JSON.stringify(runtimeConfig, null, 2),

@@ -20,11 +20,16 @@
  * SOFTWARE.
  */
 
-import { useState } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 import { Button } from "./ui/button";
 import { ThemeToggleIcon } from "./logo";
 
-const STORAGE_KEY = "swifty-docs-theme";
+/**
+ * localStorage key for the persisted theme. Consumers' no-FOUC inline
+ * scripts (see app/index.html) must read the same key — import this
+ * constant instead of retyping the literal.
+ */
+export const THEME_STORAGE_KEY = "swifty-docs-theme";
 
 export function ThemeToggle() {
   const [dark, setDark] = useState(
@@ -32,12 +37,24 @@ export function ThemeToggle() {
       document.documentElement.classList.contains("dark"),
   );
 
+  // The `.dark` class on <html> is the single source of truth. Observe it
+  // so multiple ThemeToggle instances (navbar + mobile drawer) and external
+  // scripts stay in sync instead of each holding a private copy.
+  useEffect(() => {
+    const root = document.documentElement;
+    const observer = new MutationObserver(() => {
+      setDark(root.classList.contains("dark"));
+    });
+    observer.observe(root, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
+
   const toggle = () => {
     const next = !dark;
     setDark(next);
     document.documentElement.classList.toggle("dark", next);
     try {
-      localStorage.setItem(STORAGE_KEY, next ? "dark" : "light");
+      localStorage.setItem(THEME_STORAGE_KEY, next ? "dark" : "light");
     } catch {
       // storage unavailable
     }

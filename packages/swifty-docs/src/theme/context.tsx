@@ -55,7 +55,10 @@ export interface DocsProviderProps {
 export function DocsProvider(props: DocsProviderProps) {
   const [searchOpen, setSearchOpen] = useState(false);
 
-  const value = useMemo<DocsContextValue>(() => {
+  // Validation depends only on the injected props — keep it out of the
+  // search-state memo so toggling the search dialog does not re-run Zod
+  // (and re-emit warnings) or rebuild loaders.
+  const validated = useMemo(() => {
     const configParse = DocsConfigSchema.safeParse(props.config);
     if (!configParse.success) {
       console.warn(
@@ -79,12 +82,20 @@ export function DocsProvider(props: DocsProviderProps) {
       config,
       loadContent: loadContentParse.success ? loadContentParse.data : null,
       getSearchIndex: searchIndexParse.success ? searchIndexParse.data : null,
-      searchProvider: config.search?.provider ?? "local",
+      searchProvider: (config.search?.provider ?? "local") as
+        "local" | "docsearch" | "none",
+    };
+  }, [props.config, props.loadContent, props.getSearchIndex]);
+
+  const value = useMemo<DocsContextValue>(
+    () => ({
+      ...validated,
       searchOpen,
       setSearchOpen,
       toggleSearch: () => setSearchOpen((v) => !v),
-    };
-  }, [props.config, props.loadContent, props.getSearchIndex, searchOpen]);
+    }),
+    [validated, searchOpen],
+  );
 
   return (
     <DocsContext.Provider value={value}>{props.children}</DocsContext.Provider>

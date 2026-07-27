@@ -223,4 +223,24 @@ describe("defineConfig baseUrl prefixing", () => {
     // The route/loader itself still exists — the page is reachable, just unsearchable.
     expect(generated).toContain('"/site/secret"');
   });
+
+  it("forwards the search config into the generated runtime config", () => {
+    const root = createTempProject({
+      "docs/intro.md": "# Intro\n",
+    });
+    dirs.push(root);
+
+    defineConfig(
+      {
+        docs: "docs",
+        baseUrl: "/",
+        title: "Test",
+        search: { provider: "docsearch" },
+      },
+      root,
+    );
+
+    const cfg = readGeneratedConfig(root);
+    expect(cfg.search).toEqual({ provider: "docsearch" });
+  });
 });

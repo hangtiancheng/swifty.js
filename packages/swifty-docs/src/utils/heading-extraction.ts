@@ -29,8 +29,9 @@
  * because fence/code_block tokens are never heading_open or inline tokens,
  * so heading-like or emphasis-like text inside code blocks is ignored.
  *
- * The same inlineText() helper is used here and (equivalently) in the
- * anchor plugin, so anchor slugs and TOC slugs stay consistent.
+ * Everything (first h1, TOC headings, excerpt) is collected in a SINGLE
+ * parse via extractPageMeta — this runs per file in both the scanner and
+ * the compiler, so avoiding repeated parses matters.
  */
 import MarkdownIt from "markdown-it";
 import type { Token } from "markdown-it/index.js";
@@ -47,8 +48,11 @@ const md = new MarkdownIt({ html: true, linkify: true });
  * `code_inline` content. Bold/italic/link markers are naturally stripped
  * because markdown-it emits them as separate open/close tokens wrapping
  * the text, not as part of the text content.
+ *
+ * Shared with the anchor plugin so rendered heading `id`s and extracted
+ * TOC `slug`s are guaranteed to derive from identical text.
  */
-function inlineText(token: Token | undefined): string {
+export function inlineText(token: Token | undefined): string {
   if (!token || !token.children) return "";
   return token.children
     .filter((t) => t.type === "text" || t.type === "code_inline")
@@ -56,71 +60,63 @@ function inlineText(token: Token | undefined): string {
     .join("");
 }
 
-/**
- * Extract the first h1 heading text from markdown content.
- *
- * Returns undefined when the document has no h1. Headings inside fenced
- * code blocks are not matched because code blocks produce code_block
- * tokens, not heading_open tokens.
- */
-export function extractFirstHeading(content: string): string | undefined {
-  const tokens = md.parse(content, {});
-  for (let i = 0; i < tokens.length; i++) {
-    const t = tokens[i];
-    if (t.type === "heading_open" && t.tag === "h1") {
-      const text = inlineText(tokens[i + 1]);
-      return text || undefined;
-    }
-  }
-  return undefined;
+/** Metadata extracted from a markdown body in a single parse. */
+export interface PageMeta {
+  /** Text of the first h1 heading, if any. */
+  firstHeading?: string;
+  /** h2/h3 headings with deduplicated slugs for TOC generation. */
+  headings: HeadingInfo[];
+  /** Plain-text excerpt of non-heading body content. */
+  excerpt: string;
 }
 
 /**
- * Extract h2/h3 headings from markdown content for TOC generation.
+ * Extract the first h1, the h2/h3 TOC headings, and a plain-text excerpt
+ * from markdown content in one markdown-it parse.
  *
  * Every heading level runs through the slugger (not just h2/h3) so the
  * dedup counters match the anchor plugin, which slugs all headings.
  */
-export function extractHeadings(content: string): HeadingInfo[] {
+export function extractPageMeta(
+  content: string,
+  excerptMaxLen = 200,
+): PageMeta {
   const tokens = md.parse(content, {});
-  const headings: HeadingInfo[] = [];
   const slugger = createSlugger();
-  for (let i = 0; i < tokens.length; i++) {
-    const t = tokens[i];
-    if (t.type !== "heading_open") continue;
-    const text = inlineText(tokens[i + 1]);
-    const slug = slugger(text);
-    if (t.tag !== "h2" && t.tag !== "h3") continue;
-    if (!text) continue;
-    headings.push({
-      level: t.tag === "h2" ? 2 : 3,
-      text,
-      slug,
-    });
-  }
-  return headings;
-}
+  let firstHeading: string | undefined;
+  const headings: HeadingInfo[] = [];
+  const excerptParts: string[] = [];
 
-/**
- * Extract a plain-text excerpt from markdown content for search indexing.
- *
- * Collects text from all inline tokens that are NOT part of a heading
- * (the inline token immediately following a heading_open is skipped).
- * Code blocks are naturally excluded — fence/code_block tokens have no
- * inline children. Whitespace is collapsed and the result is truncated.
- */
-export function extractExcerpt(content: string, maxLen = 200): string {
-  const tokens = md.parse(content, {});
-  const parts: string[] = [];
   for (let i = 0; i < tokens.length; i++) {
     const t = tokens[i];
-    if (t.type !== "inline") continue;
-    // Skip the inline token that carries a heading's text — excerpts should
-    // reflect body content, not section titles.
-    const prev = tokens[i - 1];
-    if (prev && prev.type === "heading_open") continue;
-    const text = inlineText(t);
-    if (text) parts.push(text);
+
+    if (t.type === "heading_open") {
+      const text = inlineText(tokens[i + 1]);
+      const slug = slugger(text);
+      if (t.tag === "h1" && firstHeading === undefined && text) {
+        firstHeading = text;
+      }
+      if ((t.tag === "h2" || t.tag === "h3") && text) {
+        headings.push({ level: t.tag === "h2" ? 2 : 3, text, slug });
+      }
+      continue;
+    }
+
+    if (t.type === "inline") {
+      // Skip the inline token that carries a heading's text — excerpts
+      // should reflect body content, not section titles.
+      const prev = tokens[i - 1];
+      if (prev && prev.type === "heading_open") continue;
+      const text = inlineText(t);
+      if (text) excerptParts.push(text);
+    }
   }
-  return parts.join(" ").replace(/\s+/g, " ").trim().slice(0, maxLen);
+
+  const excerpt = excerptParts
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, excerptMaxLen);
+
+  return { firstHeading, headings, excerpt };
 }

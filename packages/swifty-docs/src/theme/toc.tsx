@@ -51,9 +51,13 @@ export function Toc({ headings, inline }: TocProps) {
 
   const scrollTo = (slug: string) => (e: Event) => {
     e.preventDefault();
-    document
-      .getElementById(slug)
-      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    const el = document.getElementById(slug);
+    if (!el) return;
+    // pushState (instead of setting location.hash) records a copyable deep
+    // link and a back-button entry without triggering preact-iso routing
+    // or the browser's instant jump — the smooth scroll stays in control.
+    history.pushState(null, "", `#${slug}`);
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   if (headings.length === 0) return null;
@@ -88,6 +92,7 @@ export function Toc({ headings, inline }: TocProps) {
               <a
                 ref={(el) => {
                   if (el) linkRefs.current.set(h.slug, el);
+                  else linkRefs.current.delete(h.slug);
                 }}
                 href={`#${h.slug}`}
                 onClick={scrollTo(h.slug)}

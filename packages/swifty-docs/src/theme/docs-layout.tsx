@@ -20,7 +20,13 @@
  * SOFTWARE.
  */
 
-import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "preact/hooks";
 import { useLocation } from "preact-iso";
 import { ContentRenderer } from "./content-renderer";
 import { useDocs } from "./context";
@@ -115,8 +121,28 @@ export function DocsLayout() {
     }
   }, [content]);
 
+  const drawerRef = useRef<HTMLDivElement>(null);
+  const drawerReturnFocusRef = useRef<HTMLElement | null>(null);
+
   useEffect(() => {
-    document.body.style.overflow = sidebarOpen ? "hidden" : "";
+    if (!sidebarOpen) return;
+    document.body.style.overflow = "hidden";
+    drawerReturnFocusRef.current =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+    queueMicrotask(() => {
+      drawerRef.current?.querySelector<HTMLElement>("a, button")?.focus();
+    });
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSidebarOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+      drawerReturnFocusRef.current?.focus();
+    };
   }, [sidebarOpen]);
 
   const headings = useMemo(() => content?.pageData.headings ?? [], [content]);
@@ -185,8 +211,11 @@ export function DocsLayout() {
         </div>
       </div>
 
-      {/* Mobile navigation drawer */}
+      {/* Mobile navigation drawer. `inert` removes the closed drawer from
+          the tab order — it is only translated off-screen, so without it
+          keyboard focus could enter an aria-hidden subtree. */}
       <div
+        inert={sidebarOpen ? undefined : true}
         class={cn(
           "fixed inset-0 z-50 lg:hidden",
           !sidebarOpen && "pointer-events-none",
@@ -201,6 +230,7 @@ export function DocsLayout() {
           )}
         />
         <div
+          ref={drawerRef}
           role="dialog"
           aria-modal="true"
           aria-label="Navigation menu"
@@ -257,6 +287,7 @@ function PageSkeleton() {
 }
 
 function NotFound({ path, home }: { path: string; home: string }) {
+  const { route: navigate } = useLocation();
   return (
     <div class="animate-fade-in flex flex-col items-start gap-4 py-16">
       <span class="border-border bg-muted/40 text-muted-foreground grid size-12 place-items-center rounded-xl border">
@@ -272,9 +303,7 @@ function NotFound({ path, home }: { path: string; home: string }) {
         </code>
         . It may have moved, or the link may be out of date.
       </p>
-      <Button onClick={() => (window.location.href = home)}>
-        Back to the docs
-      </Button>
+      <Button onClick={() => navigate(home)}>Back to the docs</Button>
     </div>
   );
 }

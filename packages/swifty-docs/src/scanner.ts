@@ -39,12 +39,7 @@ import fs from "node:fs";
 import path from "node:path";
 import type { DocsRoute, PageData } from "./types";
 import { extractFrontmatter } from "./markdown/frontmatter";
-import { deriveTitleFromPath } from "./utils/derive-title";
-import {
-  extractExcerpt,
-  extractFirstHeading,
-  extractHeadings,
-} from "./utils/heading-extraction";
+import { buildPageData } from "./utils/page-data";
 import { getFirstRoute } from "./utils/route-sorting";
 
 const IGNORED_PREFIXES = ["_", "."];
@@ -94,6 +89,10 @@ export function scanDocsDir(
       return; // directory doesn't exist or not readable
     }
 
+    // readdir order is filesystem-dependent; sort so route/group order is
+    // stable across platforms and machines.
+    entries.sort((a, b) => a.name.localeCompare(b.name));
+
     for (const entry of entries) {
       if (IGNORED_PREFIXES.some((p) => entry.name.startsWith(p))) continue;
       if (IGNORED_DIRS.has(entry.name)) continue;
@@ -125,21 +124,11 @@ export function scanDocsDir(
       if (options?.excludeDrafts && frontmatter["draft"]) continue;
 
       const relativePath = path.relative(docsDir, fullPath);
-      const derivedTitle = deriveTitleFromPath(relativePath);
-
-      const pageData: PageData = {
-        title:
-          (frontmatter["title"] as string) ||
-          extractFirstHeading(content) ||
-          derivedTitle,
-        description: (frontmatter["description"] as string) || derivedTitle,
-        excerpt: extractExcerpt(content),
-        sidebarPosition: frontmatter["sidebar_position"] as number | undefined,
-        sidebarLabel: frontmatter["sidebar_label"] as string | undefined,
-        draft: frontmatter["draft"] as boolean | undefined,
-        headings: extractHeadings(content),
+      const pageData: PageData = buildPageData(
+        frontmatter,
+        content,
         relativePath,
-      };
+      );
 
       const route: DocsRoute = {
         path: fullRoutePath,
@@ -184,6 +173,21 @@ export function scanDocsDir(
     };
 
     routes.push(virtualRoute);
+  }
+
+  // Detect route collisions (e.g. guide.md + guide/index.md both map to
+  // "/guide"). The generated loaders object keys by path, so the last
+  // entry silently wins — warn instead of failing so builds keep working.
+  const seenPaths = new Map<string, string>();
+  for (const r of routes) {
+    const prev = seenPaths.get(r.path);
+    if (prev !== undefined && prev !== r.filePath) {
+      console.warn(
+        `[@swifty.js/docs] route collision: "${r.path}" is produced by both ` +
+          `${prev} and ${r.filePath} — the latter wins. Rename one of them.`,
+      );
+    }
+    seenPaths.set(r.path, r.filePath);
   }
 
   return routes;

@@ -28,6 +28,7 @@
  */
 import type { DocsRoute, SidebarItem } from "./types";
 import { sortDocsRoutes } from "./utils/route-sorting";
+import { humanizeName } from "./utils/derive-title";
 
 /**
  * Auto-generate sidebar items for routes under a given prefix.
@@ -90,7 +91,7 @@ export function generateSidebar(
     }));
 
     items.push({
-      text: formatGroupLabel(groupKey),
+      text: humanizeName(groupKey),
       collapsed: false,
       items: subItems,
     });
@@ -103,11 +104,4 @@ function normalizePrefix(prefix: string): string {
   // Strip trailing slashes so prefix matching works with non-trailing-slash
   // route paths. e.g. "/docs/get-started/" → "/docs/get-started"
   return prefix.replace(/\/+$/, "");
-}
-
-function formatGroupLabel(key: string): string {
-  return key
-    .replace(/-/g, " ")
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, (c) => c.toUpperCase());
 }

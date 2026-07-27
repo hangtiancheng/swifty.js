@@ -86,9 +86,12 @@ export function ContentRenderer({ html, headings }: ContentRendererProps) {
     // are intercepted globally by preact-iso's LocationProvider.
     if (href.startsWith("#")) {
       e.preventDefault();
-      document
-        .getElementById(href.slice(1))
-        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      const el = document.getElementById(href.slice(1));
+      if (!el) return;
+      // pushState records a copyable deep link and a back-button entry
+      // without triggering preact-iso routing or the browser's instant jump.
+      history.pushState(null, "", href);
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   };
 
@@ -99,12 +102,18 @@ export function ContentRenderer({ html, headings }: ContentRendererProps) {
 
 function CopyButton({ target }: { target: HTMLElement }) {
   const [copied, setCopied] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+
+  useEffect(() => {
+    return () => clearTimeout(timerRef.current);
+  }, []);
 
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(target.innerText);
       setCopied(true);
-      setTimeout(() => setCopied(false), 1600);
+      clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => setCopied(false), 1600);
     } catch {
       // clipboard unavailable
     }
