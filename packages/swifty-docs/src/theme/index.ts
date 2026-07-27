@@ -55,7 +55,6 @@ export { Navbar } from "./navbar";
 export { Sidebar } from "./sidebar";
 export { Toc } from "./toc";
 export { SearchDialog } from "./search-dialog";
-export { DocSearchWidget } from "./doc-search-widget";
 export { ContentRenderer } from "./content-renderer";
 export { PrevNext } from "./prev-next";
 export { ThemeToggle, THEME_STORAGE_KEY } from "./theme-toggle";
@@ -89,7 +88,6 @@ export {
 export { cn } from "./lib/utils";
 export { createSearchEngine, highlightSegments } from "./lib/search";
 export { useScrollSpy } from "./lib/scroll-spy";
-export { createLocalSearchClient } from "./docs-search-local";
 export {
   computePrevNext,
   normalizePath,

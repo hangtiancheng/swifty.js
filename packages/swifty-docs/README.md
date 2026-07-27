@@ -14,7 +14,7 @@ If Preact is to React, then `@swifty.js/docs` is to Docusaurus or VitePress -- a
 - Code-block chrome: language chip, hover border, and a copy-to-clipboard button on every fence
 - Admonition containers: `::: tip`, `::: warning`, `::: danger`, `::: details` rendered as themed callouts with inline SVG glyphs
 - Auto-generated sidebar: directory-structure-based navigation with `sidebarPosition` and `sidebarLabel` frontmatter overrides, collapsible groups, and active-item tracking
-- Three search providers: a MiniSearch-powered command palette (same engine as VitePress) with keyboard navigation, Algolia DocSearch UI backed by the local index (no account required), or disabled
+- Built-in search: a MiniSearch-powered command palette (same engine as VitePress) with keyboard navigation; disable with `search: false`
 - Table of contents: per-page heading outline with an IntersectionObserver scroll-spy and a springing active marker
 - Light/dark theme: shadcn-style semantic tokens, a no-FOUC inline bootstrap script, and `localStorage` persistence
 - Responsive three-column layout: sticky frosted navbar, left sidebar rail, prose column, right TOC rail, and a slide-in mobile drawer
@@ -216,17 +216,17 @@ Set `title` and `description` in frontmatter to control the page heading and sea
 
 The `DocsConfig` interface defines all configuration options:
 
-| Field         | Type                            | Default                 | Description                                     |
-| ------------- | ------------------------------- | ----------------------- | ----------------------------------------------- |
-| `docs`        | `string`                        | `"docs"`                | Docs source directory, relative to project root |
-| `baseUrl`     | `string`                        | `"/docs/"`              | Base URL prefix for all generated routes        |
-| `title`       | `string`                        | (required)              | Site title displayed in the navbar              |
-| `description` | `string`                        | `""`                    | Site description for meta tags                  |
-| `nav`         | `NavItem[]`                     | `[]`                    | Top navigation items                            |
-| `sidebar`     | `Record<string, SidebarConfig>` | `{}`                    | Sidebar config per path prefix                  |
-| `markdown`    | `MarkdownOptions`               | `{}`                    | Markdown processing options                     |
-| `highlight`   | `HighlightOptions`              | `undefined`             | Shiki code highlighting options                 |
-| `search`      | `SearchOptions`                 | `{ provider: "local" }` | Search provider configuration                   |
+| Field         | Type                            | Default     | Description                                     |
+| ------------- | ------------------------------- | ----------- | ----------------------------------------------- |
+| `docs`        | `string`                        | `"docs"`    | Docs source directory, relative to project root |
+| `baseUrl`     | `string`                        | `"/docs/"`  | Base URL prefix for all generated routes        |
+| `title`       | `string`                        | (required)  | Site title displayed in the navbar              |
+| `description` | `string`                        | `""`        | Site description for meta tags                  |
+| `nav`         | `NavItem[]`                     | `[]`        | Top navigation items                            |
+| `sidebar`     | `Record<string, SidebarConfig>` | `{}`        | Sidebar config per path prefix                  |
+| `markdown`    | `MarkdownOptions`               | `{}`        | Markdown processing options                     |
+| `highlight`   | `HighlightOptions`              | `undefined` | Shiki code highlighting options                 |
+| `search`      | `boolean`                       | `true`      | Enable the built-in search palette              |
 
 ### NavItem
 
@@ -270,13 +270,9 @@ Auto-generated sidebars group routes by subdirectory, sort by `sidebarPosition` 
 
 When `highlight` is configured, the Shiki highlighter is initialized as a lazy singleton on the first `.md` compilation. The WASM and TextMate grammars are loaded once and cached for all subsequent files. Languages not in the loaded list fall back to the `"text"` grammar.
 
-### SearchOptions
+### Search
 
-| Provider      | Description                                                                                |
-| ------------- | ------------------------------------------------------------------------------------------ |
-| `"local"`     | Built-in search modal with substring matching and weighted scoring                         |
-| `"docsearch"` | Algolia DocSearch UI widget backed by the local search index (no Algolia account required) |
-| `"none"`      | Disable search entirely                                                                    |
+`search` is a boolean (default `true`). When enabled, the built-in MiniSearch command palette is rendered; set `search: false` to remove the search trigger and dialog entirely.
 
 ## Frontmatter
 
@@ -386,8 +382,7 @@ The theme is a set of Preact components that consume the build-time `{ pageData,
 | `Sidebar`         | Left navigation tree with collapsible groups and active-item tracking              |
 | `Toc`             | Right heading outline with IntersectionObserver scroll-spy                         |
 | `ContentRenderer` | Injects `contentHtml` and wires SPA links, inline `[[toc]]`, copy buttons          |
-| `SearchDialog`    | MiniSearch command palette (local provider)                                        |
-| `DocSearchWidget` | Algolia DocSearch UI backed by the local index (docsearch provider)                |
+| `SearchDialog`    | MiniSearch command palette                                                         |
 | `PrevNext`        | Previous/next pager derived from sidebar order                                     |
 
 Reusable shadcn-style primitives (`Button`, `Input`, `Kbd`, `Dialog`) live under `theme/ui`; the dialog is a hand-rolled Preact portal with Escape handling and focus management.
@@ -399,7 +394,7 @@ DocsLayout (root, mounted once)
 +-- Navbar (fixed top, backdrop-blur on scroll)
 |   +-- Logo (gradient mark + display wordmark)
 |   +-- Nav items (horizontal, hidden below md)
-|   +-- Search trigger (palette button or DocSearch container)
+|   +-- Search trigger (palette button)
 |   +-- Theme toggle (light/dark)
 +-- Grid (max-w-[1440px], centered)
 |   +-- Sidebar rail (236px, left, visible on lg+)
@@ -447,19 +442,6 @@ The built-in search is powered by [MiniSearch](https://github.com/lucaong/minise
 - Keyboard navigation: arrow keys move the active row, Enter opens, Esc closes
 - Lazy index construction: the MiniSearch instance is built on first query from `getSearchIndex()` (which loads every page module once), then reused for subsequent searches
 - Open/close driven by state in the `DocsProvider` context, so the navbar trigger, the `⌘K` / `Ctrl+K` shortcut, and the `/` key all toggle the same palette without direct component references
-
-### DocSearch Integration (provider: "docsearch")
-
-The DocSearch provider renders Algolia's styled search button and modal UI, but queries the local search index instead of Algolia's hosted API. No Algolia account or credentials are required.
-
-Implementation: `createLocalSearchClient(index)` returns an Algolia-compatible search client with a `search(requests)` method. The client is injected into the DocSearch widget via `transformSearchClient`, replacing the default Algolia API call. The search client converts `SearchEntry[]` results into DocSearch's expected hit format with `hierarchy.lvl0` (page title), `hierarchy.lvl1` (first heading), `url`, `_highlightResult`, and `_snippetResult` fields.
-
-The DocSearch widget provides:
-
-- Styled search button in the navbar
-- Modal with keyboard shortcut (Ctrl+K / Cmd+K)
-- Recent searches (stored in localStorage)
-- Result highlighting
 
 ## Vite Plugin
 
@@ -542,7 +524,7 @@ Without `DOCS_PASSWORD` set, `docsGuardPlugin()` is a no-op and protected pages 
 | `@swifty.js/docs/compiler` | `compileMarkdown()` + `CompileMarkdownOptions` type                                                  |
 | `@swifty.js/docs/vite`     | `swiftyDocsPlugin()` Vite plugin + build-time utility re-exports                                     |
 | `@swifty.js/docs/runtime`  | `slugify()` (browser-safe, no build deps)                                                            |
-| `@swifty.js/docs/theme`    | Preact theme components + `createLocalSearchClient` + helpers                                        |
+| `@swifty.js/docs/theme`    | Preact theme components + helpers                                                                    |
 | `@swifty.js/docs/client`   | Types-only: ambient module declaration for `@swifty-docs/generated` (for `/// <reference types>`)    |
 
 The `/vite` sub-path re-exports build-time utilities (`scanDocsDir`, `generateSidebar`, `defineConfig`) so Node.js contexts (config files) don't pull in the browser-only theme code.
@@ -569,13 +551,11 @@ The documentation shell. Renders the navbar, sidebar, prose column (`ContentRend
 Navbar; // top bar
 Sidebar; // navigation tree
 Toc; // heading outline (also mounted inline for [[toc]])
-SearchDialog; // MiniSearch palette (local provider)
-DocSearchWidget; // Algolia DocSearch UI (docsearch provider)
+SearchDialog; // MiniSearch palette
 ContentRenderer; // injects contentHtml + wires links/copy buttons
 PrevNext; // pager
 ThemeToggle; // light/dark switch
 (Button, Input, Kbd, Dialog); // shadcn-style primitives
-createLocalSearchClient(index); // Algolia-compatible search client
 ```
 
 ### `scanDocsDir(docsDir: string, baseUrl: string, options?: { excludeDrafts?: boolean }): DocsRoute[]`
@@ -606,7 +586,6 @@ import type {
   SidebarItem,
   MarkdownOptions,
   HighlightOptions,
-  SearchOptions,
   PageData,
   HeadingInfo,
   DocsRoute,
@@ -645,8 +624,6 @@ Type declarations for `@swifty-docs/generated` are provided by the `@swifty.js/d
 
 **Runtime:**
 
-- `@docsearch/css` ^4.6.3 -- DocSearch widget styles (dynamic import, only for `"docsearch"` provider)
-- `@docsearch/js` ^4.6.3 -- DocSearch widget (dynamic import, only for `"docsearch"` provider)
 - `@tailwindcss/typography` ^0.5.20 -- `prose` class for markdown content
 - `class-variance-authority` ^0.7.0 -- variant-driven component classes
 - `clsx` ^2.1.0 -- conditional class composition

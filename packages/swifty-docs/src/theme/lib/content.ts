@@ -56,13 +56,8 @@ export const DocsConfigSchema = z.object({
   description: z.string().optional(),
   nav: z.array(NavItemSchema).optional(),
   sidebar: z.record(z.string(), SidebarConfigSchema).optional(),
-  search: z
-    .object({
-      provider: z
-        .union([z.literal("local"), z.literal("docsearch"), z.literal("none")])
-        .optional(),
-    })
-    .optional(),
+  /** Enable the built-in search palette. Default: true */
+  search: z.boolean().optional(),
 });
 export type RuntimeDocsConfig = z.infer<typeof DocsConfigSchema>;
 

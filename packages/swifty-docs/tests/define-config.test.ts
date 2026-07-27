@@ -224,7 +224,7 @@ describe("defineConfig baseUrl prefixing", () => {
     expect(generated).toContain('"/site/secret"');
   });
 
-  it("forwards the search config into the generated runtime config", () => {
+  it("forwards the search toggle into the generated runtime config", () => {
     const root = createTempProject({
       "docs/intro.md": "# Intro\n",
     });
@@ -235,12 +235,13 @@ describe("defineConfig baseUrl prefixing", () => {
         docs: "docs",
         baseUrl: "/",
         title: "Test",
-        search: { provider: "docsearch" },
+        search: false,
       },
       root,
     );
 
     const cfg = readGeneratedConfig(root);
-    expect(cfg.search).toEqual({ provider: "docsearch" });
+    // false must be forwarded — dropping it would re-enable the default.
+    expect(cfg.search).toBe(false);
   });
 });

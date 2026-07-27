@@ -26,7 +26,6 @@ import { ArrowUpRightIcon, MenuIcon, SearchIcon } from "./icons";
 import { cn } from "./lib/utils";
 import type { NavItem } from "@/types";
 import { Logo } from "./logo";
-import { DocSearchWidget } from "./doc-search-widget";
 import { ThemeToggle } from "./theme-toggle";
 import { Button } from "./ui/button";
 import { Kbd } from "./ui/kbd";
@@ -80,31 +79,27 @@ export function Navbar({ path, landing, onMenuClick }: NavbarProps) {
         </nav>
 
         <div class="ml-auto flex items-center gap-1.5">
-          {docs.searchProvider !== "none" ? (
-            docs.searchProvider === "local" ? (
-              <>
-                <button
-                  onClick={docs.toggleSearch}
-                  aria-label="Search documentation"
-                  class="group border-border/80 bg-muted/40 text-muted-foreground hover:border-primary/40 hover:bg-accent/60 focus-visible:ring-ring/50 hidden h-8 w-52 items-center gap-2 rounded-md border px-2.5 text-left text-xs transition-[border-color,background-color,width] duration-300 focus-visible:ring-2 focus-visible:outline-none sm:flex lg:w-60"
-                >
-                  <SearchIcon class="size-3.5 shrink-0 opacity-70 transition-transform duration-300 group-hover:scale-110" />
-                  <span class="flex-1 truncate">Search documentation…</span>
-                  <Kbd>⌘K</Kbd>
-                </button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  class="sm:hidden"
-                  onClick={docs.toggleSearch}
-                  aria-label="Search documentation"
-                >
-                  <SearchIcon class="size-4.5" />
-                </Button>
-              </>
-            ) : (
-              <DocSearchWidget />
-            )
+          {docs.searchEnabled ? (
+            <>
+              <button
+                onClick={docs.toggleSearch}
+                aria-label="Search documentation"
+                class="group border-border/80 bg-muted/40 text-muted-foreground hover:border-primary/40 hover:bg-accent/60 focus-visible:ring-ring/50 hidden h-8 w-52 items-center gap-2 rounded-md border px-2.5 text-left text-xs transition-[border-color,background-color,width] duration-300 focus-visible:ring-2 focus-visible:outline-none sm:flex lg:w-60"
+              >
+                <SearchIcon class="size-3.5 shrink-0 opacity-70 transition-transform duration-300 group-hover:scale-110" />
+                <span class="flex-1 truncate">Search documentation…</span>
+                <Kbd>⌘K</Kbd>
+              </button>
+              <Button
+                variant="ghost"
+                size="icon"
+                class="sm:hidden"
+                onClick={docs.toggleSearch}
+                aria-label="Search documentation"
+              >
+                <SearchIcon class="size-4.5" />
+              </Button>
+            </>
           ) : (
             <span class="hidden sm:block" />
           )}

@@ -177,7 +177,8 @@ function generateRoutesFile(config: DocsConfig, projectRoot: string): void {
     baseUrl: config.baseUrl,
     nav: prefixNavItems(config.baseUrl, config.nav || []),
     sidebar,
-    ...(config.search ? { search: config.search } : {}),
+    // Forward explicitly (false must survive — it disables search).
+    ...(config.search !== undefined ? { search: config.search } : {}),
   };
 
   // Render the runtime JS module from the EJS template. No timestamp is

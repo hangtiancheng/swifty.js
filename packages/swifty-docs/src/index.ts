@@ -42,7 +42,6 @@ export type {
   SidebarItem,
   MarkdownOptions,
   HighlightOptions,
-  SearchOptions,
   PageData,
   HeadingInfo,
   DocsRoute,
@@ -67,7 +66,6 @@ export { Navbar } from "./theme/navbar";
 export { Sidebar } from "./theme/sidebar";
 export { Toc } from "./theme/toc";
 export { SearchDialog } from "./theme/search-dialog";
-export { DocSearchWidget } from "./theme/doc-search-widget";
 export { ContentRenderer } from "./theme/content-renderer";
 export { PrevNext } from "./theme/prev-next";
 export { ThemeToggle, THEME_STORAGE_KEY } from "./theme/theme-toggle";
@@ -102,5 +100,4 @@ export {
   type LoadedContent,
   type PageHeading,
 } from "./theme/lib/content";
-export { createLocalSearchClient } from "./theme/docs-search-local";
 export { decryptContent, type EncryptedPayload } from "./utils/guard";

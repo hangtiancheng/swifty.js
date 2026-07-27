@@ -41,5 +41,5 @@ export default defineConfig({
     "/swifty/qa/": "auto",
   },
   highlight: { theme: "github-light", darkTheme: "github-dark" },
-  search: { provider: "local" },
+  search: true,
 });

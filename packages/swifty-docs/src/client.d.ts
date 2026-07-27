@@ -22,9 +22,6 @@
 
 /// <reference types="vite/client" />
 
-// Algolia DocSearch CSS (side-effect import from node_modules)
-declare module "@docsearch/css";
-
 declare module "@swifty-docs/generated" {
   import type { DocsConfig, PageData } from "@swifty.js/docs";
 

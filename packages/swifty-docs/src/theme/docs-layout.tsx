@@ -256,7 +256,7 @@ export function DocsLayout() {
         </div>
       </div>
 
-      {docs.searchProvider === "local" && <SearchDialog />}
+      {docs.searchEnabled && <SearchDialog />}
     </div>
   );
 }

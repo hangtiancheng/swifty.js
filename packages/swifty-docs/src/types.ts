@@ -62,8 +62,13 @@ export interface DocsConfig {
   /** Code syntax highlighting options (Shiki). */
   highlight?: HighlightOptions;
 
-  /** Search configuration. */
-  search?: SearchOptions;
+  /**
+   * Enable the built-in MiniSearch-powered search (command palette with
+   * prefix matching, fuzzy matching, field-weighted scoring, and result
+   * highlighting). Set to false to disable search entirely.
+   * Default: true
+   */
+  search?: boolean;
 }
 
 /** Navigation item in the top navbar. */
@@ -111,21 +116,6 @@ export interface HighlightOptions {
   darkTheme?: string;
   /** Languages to load. Default: common web languages. */
   languages?: string[];
-}
-
-/** Search configuration. */
-export interface SearchOptions {
-  /**
-   * Search provider.
-   * - "local": MiniSearch-powered modal with prefix matching, fuzzy matching,
-   *   field-weighted scoring, and result highlighting (same engine as VitePress).
-   * - "docsearch": Algolia DocSearch UI widget backed by the local search index
-   *   (no Algolia account required).
-   * - "none": disable search entirely.
-   *
-   * Default: "local"
-   */
-  provider?: "local" | "docsearch" | "none";
 }
 
 // ============================================================

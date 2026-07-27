@@ -37,7 +37,7 @@ interface DocsContextValue {
   config: RuntimeDocsConfig;
   loadContent: LoadContentFn | null;
   getSearchIndex: GetSearchIndexFn | null;
-  searchProvider: "local" | "docsearch" | "none";
+  searchEnabled: boolean;
   searchOpen: boolean;
   setSearchOpen: (open: boolean) => void;
   toggleSearch: () => void;
@@ -82,8 +82,7 @@ export function DocsProvider(props: DocsProviderProps) {
       config,
       loadContent: loadContentParse.success ? loadContentParse.data : null,
       getSearchIndex: searchIndexParse.success ? searchIndexParse.data : null,
-      searchProvider: (config.search?.provider ?? "local") as
-        "local" | "docsearch" | "none",
+      searchEnabled: config.search ?? true,
     };
   }, [props.config, props.loadContent, props.getSearchIndex]);
 
