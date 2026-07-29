@@ -25,5 +25,10 @@
     "lint-staged": "^17.0.8",
     "prettier-plugin-tailwindcss": "^0.8.0",
     "vitest": "^4.1.9"
+  },
+  "pnpm": {
+    "overrides": {
+      "@types/node": "^24.13.3"
+    }
   }
 }
