@@ -22,7 +22,7 @@
 
 import { useEffect, useRef, useState } from "preact/hooks";
 import { render } from "preact";
-import { CheckIcon, CopyIcon } from "./icons";
+import { CheckIcon, CopyIcon } from "lucide-preact";
 import type { PageHeading } from "./lib/content";
 import { cn, decodedLocationHash } from "./lib/utils";
 import { Toc } from "./toc";

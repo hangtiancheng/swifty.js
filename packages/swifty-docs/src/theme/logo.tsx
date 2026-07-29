@@ -20,8 +20,39 @@
  * SOFTWARE.
  */
 
-import { FeatherIcon, MoonIcon, SunIcon } from "./icons";
+import {
+  Clock1Icon,
+  Clock2Icon,
+  Clock3Icon,
+  Clock4Icon,
+  Clock5Icon,
+  Clock6Icon,
+  Clock7Icon,
+  Clock8Icon,
+  Clock9Icon,
+  Clock10Icon,
+  Clock11Icon,
+  Clock12Icon,
+  MoonIcon,
+  SunIcon,
+} from "lucide-preact";
 import { cn } from "./lib/utils";
+
+// Index = hour % 12, so 0 (and 12) maps to the 12 o'clock face.
+const CLOCK_ICONS = [
+  Clock12Icon,
+  Clock1Icon,
+  Clock2Icon,
+  Clock3Icon,
+  Clock4Icon,
+  Clock5Icon,
+  Clock6Icon,
+  Clock7Icon,
+  Clock8Icon,
+  Clock9Icon,
+  Clock10Icon,
+  Clock11Icon,
+];
 
 interface LogoProps {
   href: string;
@@ -30,6 +61,7 @@ interface LogoProps {
 }
 
 export function Logo({ href, title, class: className }: LogoProps) {
+  const ClockIcon = CLOCK_ICONS[new Date().getHours() % 12];
   return (
     <a
       href={href}
@@ -40,15 +72,10 @@ export function Logo({ href, title, class: className }: LogoProps) {
       aria-label={`${title} — home`}
     >
       <span class="from-primary to-primary/70 text-primary-foreground shadow-primary/30 grid size-8 place-items-center rounded-lg bg-linear-to-br shadow-sm transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:scale-105 group-hover:-rotate-6">
-        <FeatherIcon class="size-4.5" stroke-width={2.4} />
+        <ClockIcon class="size-4.5" stroke-width={2.4} />
       </span>
-      <span class="flex items-center gap-2">
-        <span class="font-display text-foreground text-lg font-semibold tracking-tight">
-          {title}
-        </span>
-        <span class="border-primary/25 bg-primary/8 text-primary hidden rounded border px-1.5 py-px font-mono text-[10px] font-medium tracking-widest sm:inline-block">
-          DOCS
-        </span>
+      <span class="font-display text-foreground text-lg font-semibold tracking-tight">
+        {title}
       </span>
     </a>
   );

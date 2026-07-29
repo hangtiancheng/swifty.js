@@ -23,7 +23,7 @@
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import { useLocation } from "preact-iso";
 import { useDocs } from "./context";
-import { CornerDownLeftIcon, FileTextIcon, SearchIcon } from "./icons";
+import { CornerDownLeftIcon, FileTextIcon, SearchIcon } from "lucide-preact";
 import {
   createSearchEngine,
   highlightSegments,

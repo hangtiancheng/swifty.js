@@ -22,7 +22,7 @@
 
 import { useEffect, useMemo, useState } from "preact/hooks";
 import { useDocs } from "./context";
-import { ChevronDownIcon, ChevronRightIcon } from "./icons";
+import { ChevronDownIcon, ChevronRightIcon } from "lucide-preact";
 import { cn } from "./lib/utils";
 import type { SidebarItem } from "@/types";
 
@@ -44,7 +44,21 @@ function containsLink(items: SidebarItem[], path: string): boolean {
   return false;
 }
 
-function formatPrefix(prefix: string): string {
+function formatPrefix(prefix: string, baseUrl = "/"): string {
+  // Sidebar keys carry the site baseUrl (e.g. "/my-site/guide/") — strip it
+  // so group titles reflect only the docs section, not the deploy path.
+  let p = prefix;
+  const base = baseUrl.replace(/\/+$/, "");
+  if (base && (p === base || p.startsWith(base + "/"))) {
+    p = p.slice(base.length);
+  }
+  const title = p
+    .replace(/^\//, "")
+    .replace(/\/$/, "")
+    .replace(/[-/]/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+  if (title) return title;
+  // Prefix equal to baseUrl (root section) — fall back to the raw prefix.
   return prefix
     .replace(/^\//, "")
     .replace(/\/$/, "")
@@ -63,10 +77,10 @@ export function Sidebar({ path, onNavigate, class: className }: SidebarProps) {
       )
       .map(([prefix, items]) => ({
         prefix,
-        title: formatPrefix(prefix),
+        title: formatPrefix(prefix, docs.config.baseUrl),
         items,
       }));
-  }, [docs.config.sidebar]);
+  }, [docs.config.sidebar, docs.config.baseUrl]);
 
   return (
     <nav class={cn("flex flex-col", className)} aria-label="Documentation">

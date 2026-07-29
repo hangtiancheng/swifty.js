@@ -30,7 +30,7 @@ import {
 import { useLocation } from "preact-iso";
 import { ContentRenderer } from "./content-renderer";
 import { useDocs } from "./context";
-import { CompassIcon, XIcon } from "./icons";
+import { CompassIcon, XIcon } from "lucide-preact";
 import {
   computePrevNext,
   LoadedContentSchema,

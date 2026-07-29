@@ -22,7 +22,7 @@
 
 import { useEffect, useState } from "preact/hooks";
 import { useDocs } from "./context";
-import { ArrowUpRightIcon, MenuIcon, SearchIcon } from "./icons";
+import { ArrowUpRightIcon, MenuIcon, SearchIcon } from "lucide-preact";
 import { cn } from "./lib/utils";
 import type { NavItem } from "@/types";
 import { Logo } from "./logo";

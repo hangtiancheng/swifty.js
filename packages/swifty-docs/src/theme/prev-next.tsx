@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-import { ArrowLeftIcon, ArrowRightIcon } from "./icons";
+import { ArrowLeftIcon, ArrowRightIcon } from "lucide-preact";
 import type { NavLink } from "./lib/content";
 
 interface PrevNextProps {

@@ -47,7 +47,7 @@ import type { FunctionComponent } from "preact";
 import { renderToString } from "preact-render-to-string";
 import { z } from "zod";
 import { decryptContent, type EncryptedPayload } from "../utils/guard";
-import { LockIcon, XIcon } from "./icons";
+import { LockIcon, XIcon } from "lucide-preact";
 import { PageHeadingSchema } from "./lib/content";
 import { cn } from "./lib/utils";
 import { Button } from "./ui/button";

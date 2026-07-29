@@ -21,7 +21,7 @@
  */
 
 import { useEffect, useRef, useState } from "preact/hooks";
-import { ListIcon } from "./icons";
+import { ListIcon } from "lucide-preact";
 import type { PageHeading } from "./lib/content";
 import { useScrollSpy } from "./lib/scroll-spy";
 import { cn, decodedLocationHash } from "./lib/utils";
