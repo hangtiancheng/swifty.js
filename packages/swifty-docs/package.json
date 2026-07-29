@@ -1,7 +1,7 @@
 {
   "name": "@swifty.js/docs",
   "version": "0.0.6",
-  "description": "Preact + shadcn-style documentation site generator",
+  "description": "A beautiful static site generator powered by Preact",
   "keywords": [
     "@swifty.js",
     "markdown",
@@ -86,7 +86,6 @@
     "./client.css": "./dist/client.css"
   },
   "scripts": {
-    "prepublishOnly": "pnpm build",
     "git:pull": "node ./pull.js",
     "build": "vite build --mode lib",
     "build:docs": "vite build --mode docs",
@@ -98,7 +97,16 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "pwa": "pnpm dlx @vite-pwa/assets-generator --preset minimal public/favicon.svg"
+    "pwa": "pnpm dlx @vite-pwa/assets-generator --preset minimal public/favicon.svg",
+    "prepublishOnly": "pnpm build",
+    "add:user": "npm adduser --registry=https://registry.npmjs.org/",
+    "publish:latest": "npm publish --access public --registry=https://registry.npmjs.org/",
+    "publish:alpha": "npm publish --access public --registry=https://registry.npmjs.org/ --tag alpha",
+    "publish:beta": "npm publish --access public --registry=https://registry.npmjs.org/ --tag beta",
+    "publish:rc": "npm publish --access public --registry=https://registry.npmjs.org/ --tag rc",
+    "publish:canary": "npm publish --access public --registry=https://registry.npmjs.org/ --tag canary",
+    "publish:nightly": "npm publish --access public --registry=https://registry.npmjs.org/ --tag nightly",
+    "publish:dev": "npm publish --access public --registry=https://registry.npmjs.org/ --tag dev"
   },
   "dependencies": {
     "@preact/preset-vite": "^2.10.0",
