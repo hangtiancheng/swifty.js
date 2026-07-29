@@ -455,7 +455,7 @@ describe("scanDocsDir", () => {
     const dir = createTempDocs({
       "index.md": "---\ntitle: Home\n---\n# Home\n",
       "api/index.md": "---\ntitle: API\n---\n# API\n",
-      "app/boot.ts": "// non-md file\n",
+      "app/main.ts": "// non-md file\n",
       "app/index.html": "<html></html>",
       "app/main.css": "body {}",
       "get-started/index.md":

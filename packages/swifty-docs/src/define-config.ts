@@ -24,7 +24,7 @@
  * Type-safe configuration helper with automatic route generation.
  *
  * Scans the docs directory, generates sidebar, and writes a runtime module
- * to `.swifty-docs/generated/` so that `boot.ts` can import routes and site
+ * to `.swifty-docs/generated/` so that `main.ts(x)` can import routes and site
  * data via the `@swifty-docs/generated` alias.
  *
  * The generated file is a plain `.js` runtime module. Type declarations for

@@ -20,7 +20,7 @@ If Preact is to React, then `@swifty.js/docs` is to Docusaurus or VitePress -- a
 - Responsive three-column layout: sticky frosted navbar, left sidebar rail, prose column, right TOC rail, and a slide-in mobile drawer
 - Accessible primitives: hand-rolled shadcn-style Preact components (portal dialog, focus management, ARIA)
 - Vite integration: a single plugin that bundles the markdown compiler and Preact JSX compilation
-- Zero-config boot: `defineConfig()` auto-generates routes, sidebars, and the lazy search index into `.swifty-docs/generated/`
+- Zero-config bootstrap: `defineConfig()` auto-generates routes, sidebars, and the lazy search index into `.swifty-docs/generated/`
 - Dual-format library build: ships ESM + CJS with full TypeScript declarations
 
 ## Architecture
@@ -122,9 +122,9 @@ export default defineConfig({
 });
 ```
 
-### 4. Boot
+### 4. JS Entry
 
-Create `app/boot.tsx`:
+Create `app/main.tsx`:
 
 ```tsx
 import { render } from "preact";
@@ -370,7 +370,7 @@ Every fence is wrapped in a `.codeblock` chrome container (language chip, hover 
 
 ## Theme System
 
-The theme is a set of Preact components that consume the build-time `{ pageData, contentHtml }` modules. You wire it up once with `<DocsProvider>` + `<DocsLayout>` (see [Boot](#4-boot)); there is no view registry or template compilation step.
+The theme is a set of Preact components that consume the build-time `{ pageData, contentHtml }` modules. You wire it up once with `<DocsProvider>` + `<DocsLayout>`; there is no view registry or template compilation step.
 
 ### Components
 
@@ -614,7 +614,7 @@ resolve: {
   },
 }
 
-// boot.ts
+// main.ts(x)
 import { routes, docsConfig, loadContent, getSearchIndex } from "@swifty-docs/generated";
 ```
 
