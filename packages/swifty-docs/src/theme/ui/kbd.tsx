@@ -21,7 +21,7 @@
  */
 
 import type { ComponentProps } from "preact";
-import { cn } from "../lib/utils";
+import { cn } from "@/theme/lib/utils";
 
 export function Kbd({ class: className, ...rest }: ComponentProps<"kbd">) {
   return (

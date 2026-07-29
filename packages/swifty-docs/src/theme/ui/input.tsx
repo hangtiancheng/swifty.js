@@ -22,7 +22,7 @@
 
 import type { ComponentProps } from "preact";
 import { forwardRef } from "preact/compat";
-import { cn } from "../lib/utils";
+import { cn } from "@/theme/lib/utils";
 
 // forwardRef is required: Preact 10 attaches a plain `ref` on a function
 // component to its internal instance, not the DOM node, so callers doing

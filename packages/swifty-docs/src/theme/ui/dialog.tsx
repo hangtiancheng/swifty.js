@@ -24,7 +24,7 @@ import type { ComponentChildren } from "preact";
 import { createContext } from "preact";
 import { useContext, useEffect, useRef } from "preact/hooks";
 import { createPortal, forwardRef } from "preact/compat";
-import { cn } from "../lib/utils";
+import { cn } from "@/theme/lib/utils";
 
 interface DialogContextValue {
   open: boolean;
