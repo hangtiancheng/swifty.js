@@ -24,10 +24,10 @@ pnpm add @swifty.js/docs preact preact-iso tailwindcss @tailwindcss/typography
 1. **`swifty-docs.config.ts`** — `import { defineConfig } from "@swifty.js/docs/vite"` and export a `DocsConfig` (`docs`, `baseUrl`, `title`, `nav`, `sidebar`, `highlight`, `search: boolean`).
 2. **`vite.config.ts`** — add `swiftyDocsPlugin({ config: docsConfig })` plus `@tailwindcss/vite`, and alias `"@swifty-docs/generated"` to `resolve(root, ".swifty-docs/generated")`. Gitignore `.swifty-docs/`.
 3. **CSS entry** — `@import "tailwindcss"; @import "@swifty.js/docs/client.css";` then `@source "@swifty.js/docs/theme.js";` so the precompiled theme's utility classes survive Tailwind's scan.
-4. **Boot** (`app/boot.tsx`) — render `<DocsProvider config={docsConfig} loadContent={loadContent} getSearchIndex={getSearchIndex}>` around `<LocationProvider><Router><Route path="/" component={DocsLayout} /><Route default component={DocsLayout} /></Router></LocationProvider>`. Add a no-FOUC inline script in `index.html` that toggles `.dark` from the `swifty-docs-theme` localStorage key (exported as `THEME_STORAGE_KEY`) before first paint.
+4. **JS entry** (`app/main.tsx`) — render `<DocsProvider config={docsConfig} loadContent={loadContent} getSearchIndex={getSearchIndex}>` around `<LocationProvider><Router><Route path="/" component={DocsLayout} /><Route default component={DocsLayout} /></Router></LocationProvider>`. Add a no-FOUC inline script in `index.html` that toggles `.dark` from the `swifty-docs-theme` localStorage key (exported as `THEME_STORAGE_KEY`) before first paint.
 5. **TypeScript** — `/// <reference types="@swifty.js/docs/client" />` in a shims file provides the ambient `@swifty-docs/generated` module declaration; add a `paths` mapping for IDE resolution.
 
-The package's own docs site (`swifty-docs.config.ts`, `app/boot.tsx`, `app/index.html`, `app/main.css` at the package root) is the canonical working example — mirror it when scaffolding a consumer.
+The package's own docs site (`swifty-docs.config.ts`, `app/main.tsx`, `app/index.html`, `app/main.css` at the package root) is the canonical working example — mirror it when scaffolding a consumer.
 
 ## Reference Files
 

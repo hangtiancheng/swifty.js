@@ -178,7 +178,7 @@ Honor this order—starting the picker before the server is fine, but never wire
 5. Serve traffic via `group.get/set/delete` or the gRPC service.
 6. Shutdown: `server.stop()` (revokes lease, graceful gRPC shutdown) → `await picker.close()` (ring timer, clients, watcher) → `destroyAllGroups()` (closes caches and their cleanup timers). Each step is independently idempotent.
 
-The reference assembly is `packages/cache/src/main.ts` (flags `-p`/`--port`, default `50051`; binds `0.0.0.0:{port}`, advertises `getLocalIP():{port}` falling back to `127.0.0.1`; group `"user"` with `2 << 10` bytes). The integration runner `packages/cache/bootstrap.js` reuses a reachable etcd on `127.0.0.1:2379` or forks a local one (`brew install etcd`, data dir `.etcd`), compiles the demo with `tsc` into `.dist/` (separate from Rollup's `dist/`), copies the `.proto` files alongside, boots three nodes (`:8001`–`:8003`), and smoke-tests each with **set-then-get**—pre-seeding the key on a node guarantees the read is a local hit and sidesteps cold-read peer deadlines.
+The reference assembly is `packages/cache/src/main.ts` (flags `-p`/`--port`, default `50051`; binds `0.0.0.0:{port}`, advertises `getLocalIP():{port}` falling back to `127.0.0.1`; group `"user"` with `2 << 10` bytes). The integration runner `packages/cache/bootstrap.js` reuses a reachable etcd on `127.0.0.1:2379` or forks a local one (`brew install etcd`, data dir `.etcd`), compiles the demo with `tsc` into `.dist/` (separate from Rollup's `dist/`), copies the `.proto` files alongside, bootstraps three nodes (`:8001`–`:8003`), and smoke-tests each with **set-then-get**—pre-seeding the key on a node guarantees the read is a local hit and sidesteps cold-read peer deadlines.
 
 ## Operational guidance
 

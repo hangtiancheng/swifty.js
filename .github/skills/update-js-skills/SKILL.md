@@ -39,7 +39,7 @@ theme|markdown|utils/`). Do not skip test files
    `.env.example`, and `rollup.config.mjs` / `tsconfig.json` where present.
    For swifty-docs additionally read `src/client.css` (the design-token and
    styling source of truth), `src/client.d.ts`, `src/file-content.ejs`, and
-   the package's own consumer example (`swifty-docs.config.ts`, `app/boot.tsx`,
+   the package's own consumer example (`swifty-docs.config.ts`, `app/main.tsx`,
    `app/index.html`, `app/main.css`).
 
 2. Read the package's `package.json` to capture the published name, module
@@ -110,7 +110,7 @@ The body must cover all of the following (adapt headings to fit the package):
 1. One-paragraph summary: what the package is, its runtime requirements,
    module format, and intended/unsuitable use cases.
 2. Architecture overview: directory tree or component diagram naming every
-   module and showing composition/data flow (middleware order, boot sequence,
+   module and showing composition/data flow (middleware order, bootstrap sequence,
    read/write paths; for swifty-docs, the three-phase
    configuration→compilation→runtime pipeline).
 3. Public API or configuration surface: every exported symbol or env var with
