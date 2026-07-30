@@ -1,3 +1,6 @@
 [submodule "preact"]
 	path = preact
 	url = git@github.com:preactjs/preact.git
+[submodule "lark.js"]
+	path = lark.js
+	url = git@github.com:tianchenghang/lark.js
