@@ -9,7 +9,7 @@ If Preact is to React, then `@swifty.js/docs` is to Docusaurus or VitePress -- a
 - File-based routing: recursively scans a `docs/` directory and generates SPA routes
 - Preact runtime: a single catch-all route keeps the layout mounted; only the content column swaps on navigation (`preact-iso`, history mode)
 - Markdown compilation pipeline: `markdown-it` with four custom plugins (anchors, TOC, containers, code blocks)
-- YAML frontmatter: metadata extraction via `js-yaml` for page titles, descriptions, sidebar positioning, and draft control
+- YAML frontmatter: metadata extraction via `js-yaml` for page titles, descriptions, and sidebar positioning
 - Code syntax highlighting: Shiki with lazy WASM initialization, singleton caching, and dual-theme output (light + dark tokens that switch with the color scheme, no rebuild)
 - Code-block chrome: language chip, hover border, and a copy-to-clipboard button on every fence
 - Admonition containers: `::: tip`, `::: warning`, `::: danger`, `::: details` rendered as themed callouts with inline SVG glyphs
@@ -284,17 +284,15 @@ title: Page Title
 description: Page description for SEO and search
 sidebar_position: 1
 sidebar_label: Custom Label
-draft: false
 ---
 ```
 
-| Field              | Type      | Description                                                                                                                                               |
-| ------------------ | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `title`            | `string`  | Page title. Falls back to first `# heading`, then filename-derived title                                                                                  |
-| `description`      | `string`  | Page description for meta tags and search index. Falls back to filename-derived title                                                                     |
-| `sidebar_position` | `number`  | Sort order in auto-generated sidebar (lower = higher). Uses all-or-nothing rule: if any page in a group lacks this field, all pages sort by filename only |
-| `sidebar_label`    | `string`  | Override sidebar display text                                                                                                                             |
-| `draft`            | `boolean` | When `true`, excluded from production builds via `excludeDrafts` option                                                                                   |
+| Field              | Type     | Description                                                                                                                                               |
+| ------------------ | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `title`            | `string` | Page title. Falls back to first `# heading`, then filename-derived title                                                                                  |
+| `description`      | `string` | Page description for meta tags and search index. Falls back to filename-derived title                                                                     |
+| `sidebar_position` | `number` | Sort order in auto-generated sidebar (lower = higher). Uses all-or-nothing rule: if any page in a group lacks this field, all pages sort by filename only |
+| `sidebar_label`    | `string` | Override sidebar display text                                                                                                                             |
 
 ### Title Resolution Chain
 
@@ -319,7 +317,7 @@ All h1, h2, and h3 headings automatically receive:
 
 ### Internal Links
 
-Links starting with `/` or `#` are automatically tagged with `swifty-docs-nav="true"` so the Preact `ContentRenderer` can intercept them for SPA navigation (anchor links smooth-scroll to the heading instead). External links receive `target="_blank"` and `rel="noopener noreferrer"`.
+Links starting with `/` or `#` render as plain anchors — same-origin clicks are intercepted globally by preact-iso's `LocationProvider` for SPA navigation (anchor links smooth-scroll to the heading instead). External links receive `target="_blank"` and `rel="noopener noreferrer"`.
 
 ### Table of Contents
 
@@ -558,7 +556,7 @@ ThemeToggle; // light/dark switch
 (Button, Input, Kbd, Dialog); // shadcn-style primitives
 ```
 
-### `scanDocsDir(docsDir: string, baseUrl: string, options?: { excludeDrafts?: boolean }): DocsRoute[]`
+### `scanDocsDir(docsDir: string, baseUrl: string): DocsRoute[]`
 
 Recursively scans a docs directory and returns route entries. Skips entries starting with `_` or `.`, plus `node_modules`, `__tests__`, `__fixtures__`, `.git`, `.vitepress`, `.swifty-docs`, and `dist`. `index.md` maps to the directory root without trailing `/`.
 

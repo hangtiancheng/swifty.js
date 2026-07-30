@@ -25,8 +25,8 @@
  *
  * The rendered HTML is embedded into the compiled page module as
  * `contentHtml` and injected into the article element by the Preact
- * ContentRenderer at runtime. Internal links use `swifty-docs-nav`
- * attributes (intercepted for SPA navigation), and code blocks are
+ * ContentRenderer at runtime. Internal-link clicks are intercepted
+ * globally by preact-iso's LocationProvider, and code blocks are
  * pre-rendered at build time.
  */
 import type MarkdownIt from "markdown-it";

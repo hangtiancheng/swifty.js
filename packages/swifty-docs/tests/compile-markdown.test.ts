@@ -188,14 +188,15 @@ Content here.
     expect(result).toContain("> number</span>");
   });
 
-  it("renders links with swifty-docs-nav for internal links", async () => {
+  it("renders internal links without target=_blank", async () => {
     const source = "[Guide](/guide/)";
     const result = await compileMarkdown(source, {
       config: baseConfig,
       filePath: "docs/test.md",
     });
 
-    expect(result).toContain("swifty-docs-nav");
+    expect(result).toContain('href=\\"/guide/\\"');
+    expect(result).not.toContain("_blank");
   });
 
   it("includes relative path in pageData", async () => {

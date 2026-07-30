@@ -51,8 +51,9 @@ export function createParser(options?: MarkdownOptions): MarkdownIt {
   md.use(containerPlugin, options?.containers);
   md.use(codeBlockPlugin);
 
-  // Override link rendering: internal links get @click for SPA navigation,
-  // external links open in a new tab.
+  // Override link rendering: external links open in a new tab; internal
+  // links are left untouched (preact-iso's LocationProvider intercepts
+  // same-origin clicks globally at runtime).
   const defaultLinkOpen =
     md.renderer.rules["link_open"] ||
     function (tokens, idx, opts, _env, self) {
@@ -62,10 +63,7 @@ export function createParser(options?: MarkdownOptions): MarkdownIt {
   md.renderer.rules["link_open"] = (tokens, idx, opts, env, self) => {
     const href = tokens[idx].attrGet("href") || "";
 
-    if (href.startsWith("/") || href.startsWith("#")) {
-      // Internal link: intercept with swifty Router
-      tokens[idx].attrSet("swifty-docs-nav", "true");
-    } else {
+    if (!href.startsWith("/") && !href.startsWith("#")) {
       // External link: open in new tab
       tokens[idx].attrSet("target", "_blank");
       tokens[idx].attrSet("rel", "noopener noreferrer");

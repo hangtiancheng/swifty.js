@@ -63,12 +63,12 @@ describe("createParser", () => {
     expect(html).toContain('href="#linked-heading"');
   });
 
-  it("marks internal links with swifty-docs-nav", () => {
+  it("leaves internal links untouched", () => {
     const md = createParser();
     const html = md.render("[Guide](/guide/)");
 
-    expect(html).toContain('swifty-docs-nav="true"');
     expect(html).toContain('href="/guide/"');
+    expect(html).not.toContain("target=");
   });
 
   it("marks external links with target=_blank", () => {

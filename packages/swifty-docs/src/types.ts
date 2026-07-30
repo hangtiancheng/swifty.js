@@ -134,8 +134,6 @@ export interface PageData {
   sidebarPosition?: number;
   /** Override sidebar label (from frontmatter sidebar_label). */
   sidebarLabel?: string;
-  /** If true, excluded from production builds. */
-  draft?: boolean;
   /** Extracted h2/h3 headings for TOC. */
   headings: HeadingInfo[];
   /** Path relative to the docs directory. */

@@ -58,18 +58,6 @@ Some content here.
     expect(result.content).toBe("");
   });
 
-  it("extracts draft flag", () => {
-    const source = `---
-title: Draft Page
-draft: true
----
-
-Draft content.
-`;
-    const result = extractFrontmatter(source);
-    expect(result.data["draft"]).toBe(true);
-  });
-
   it("extracts sidebar_label and sidebar_group", () => {
     const source = `---
 title: Config

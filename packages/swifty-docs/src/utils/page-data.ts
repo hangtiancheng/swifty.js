@@ -80,9 +80,6 @@ export function buildPageData(
     ),
     sidebarLabel:
       parseWith(ScalarStringSchema, frontmatter["sidebar_label"]) || undefined,
-    // Truthy check (not === true) to match the scanner's draft-exclusion
-    // rule: `draft: 1` or `draft: "yes"` counts as a draft in both places.
-    draft: frontmatter["draft"] ? true : undefined,
     headings: meta.headings,
     relativePath,
   };

@@ -33,7 +33,6 @@
  * - Other `.md` files map to their stem (e.g. "/docs/guide/config")
  * - Directories without `index.md` get a virtual index route that
  *   points to the first page (by sidebar_position or filename order).
- * - Files with `draft: true` in frontmatter are excluded when `excludeDrafts` is set
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -61,11 +60,7 @@ interface DirInfo {
 /**
  * Recursively scan a docs directory and return route entries.
  */
-export function scanDocsDir(
-  docsDir: string,
-  baseUrl: string,
-  options?: { excludeDrafts?: boolean },
-): DocsRoute[] {
+export function scanDocsDir(docsDir: string, baseUrl: string): DocsRoute[] {
   const routes: DocsRoute[] = [];
   const base = normalizeBase(baseUrl); // "/swifty-cli" or "/"
   const effectiveBase = base === "/" ? "" : base;
@@ -121,8 +116,6 @@ export function scanDocsDir(
       // Read and parse
       const raw = fs.readFileSync(fullPath, "utf-8");
       const { data: frontmatter, content } = extractFrontmatter(raw);
-
-      if (options?.excludeDrafts && frontmatter["draft"]) continue;
 
       const relativePath = path.relative(docsDir, fullPath);
       const pageData: PageData = buildPageData(

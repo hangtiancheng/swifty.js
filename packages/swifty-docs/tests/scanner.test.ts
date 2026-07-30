@@ -96,7 +96,7 @@ describe("scanDocsDir", () => {
   it("ignores files starting with _ or .", () => {
     const dir = createTempDocs({
       "index.md": "# Home\n",
-      "_draft.md": "# Draft\n",
+      "_notes.md": "# Notes\n",
       ".hidden.md": "# Hidden\n",
     });
 
@@ -205,24 +205,6 @@ describe("scanDocsDir", () => {
       const routes = scanDocsDir(dir, "/docs/");
       const testRoute = routes.find((r) => r.path === "/docs/test");
       expect(testRoute!.pageData.title).toBe("Real Title");
-    } finally {
-      cleanup(dir);
-    }
-  });
-
-  it("excludes drafts when excludeDrafts is true", () => {
-    const dir = createTempDocs({
-      "published.md": "# Published\n",
-      "draft.md": "---\ndraft: true\n---\n# Draft\n",
-    });
-
-    try {
-      const routes = scanDocsDir(dir, "/docs/", { excludeDrafts: true });
-      // 2 routes: published.md + virtual index /docs (root has no index.md)
-      expect(routes.length).toBe(2);
-      const published = routes.find((r) => r.path === "/docs/published");
-      expect(published).toBeDefined();
-      expect(published!.pageData.title).toBe("Published");
     } finally {
       cleanup(dir);
     }

@@ -39,13 +39,6 @@ describe("buildPageData", () => {
     expect(pd.sidebarPosition).toBeUndefined();
   });
 
-  it("normalizes any truthy draft to true", () => {
-    expect(buildPageData({ draft: 1 }, "", "x.md").draft).toBe(true);
-    expect(buildPageData({ draft: "yes" }, "", "x.md").draft).toBe(true);
-    expect(buildPageData({ draft: false }, "", "x.md").draft).toBeUndefined();
-    expect(buildPageData({}, "", "x.md").draft).toBeUndefined();
-  });
-
   it("falls back through first h1 then derived title", () => {
     expect(buildPageData({}, "# Real Title\n\nbody", "guide/x.md").title).toBe(
       "Real Title",
