@@ -81,15 +81,9 @@ export function Logo({ href, title, class: className }: LogoProps) {
   );
 }
 
-export function ThemeToggleIcon({
-  dark,
-  class: className,
-}: {
-  dark: boolean;
-  class?: string;
-}) {
+export function ThemeToggleIcon({ dark }: { dark: boolean }) {
   return (
-    <span class={cn("relative block size-4", className)} aria-hidden="true">
+    <span class="relative block size-4" aria-hidden="true">
       <MoonIcon
         class={cn(
           "absolute inset-0 size-4 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]",

@@ -27,7 +27,6 @@ export default defineConfig({
   docs: "docs",
   baseUrl: "/swifty/",
   title: "Swifty Docs",
-  description: "@swifty.js/docs -- Documentation site generator",
   nav: [
     { text: "基础", link: "/base/" },
     { text: "前端", link: "/frontend/" },

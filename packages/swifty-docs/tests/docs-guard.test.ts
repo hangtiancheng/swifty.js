@@ -89,7 +89,6 @@ describe("docsGuardPlugin", () => {
 
     expect(out).not.toBeNull();
     expect(out!).not.toContain("classified");
-    expect(out!).toContain("__protected");
 
     const payloadJson = out!.match(
       /export const contentHtml = ("(?:[^"\\]|\\.)*");/,

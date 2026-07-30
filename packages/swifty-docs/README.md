@@ -76,7 +76,6 @@ export default defineConfig({
   docs: "docs",
   baseUrl: "/docs/",
   title: "My Library",
-  description: "Documentation for My Library",
   nav: [
     { text: "Guide", link: "/docs/guide/" },
     { text: "API", link: "/docs/api/" },
@@ -221,7 +220,6 @@ The `DocsConfig` interface defines all configuration options:
 | `docs`        | `string`                        | `"docs"`    | Docs source directory, relative to project root |
 | `baseUrl`     | `string`                        | `"/docs/"`  | Base URL prefix for all generated routes        |
 | `title`       | `string`                        | (required)  | Site title displayed in the navbar              |
-| `description` | `string`                        | `""`        | Site description for meta tags                  |
 | `nav`         | `NavItem[]`                     | `[]`        | Top navigation items                            |
 | `sidebar`     | `Record<string, SidebarConfig>` | `{}`        | Sidebar config per path prefix                  |
 | `markdown`    | `MarkdownOptions`               | `{}`        | Markdown processing options                     |
@@ -234,7 +232,6 @@ The `DocsConfig` interface defines all configuration options:
 interface NavItem {
   text: string; // Display text
   link: string; // Link URL (internal or external)
-  items?: NavItem[]; // Nested dropdown items
 }
 ```
 
@@ -558,7 +555,7 @@ ThemeToggle; // light/dark switch
 
 ### `scanDocsDir(docsDir: string, baseUrl: string): DocsRoute[]`
 
-Recursively scans a docs directory and returns route entries. Skips entries starting with `_` or `.`, plus `node_modules`, `__tests__`, `__fixtures__`, `.git`, `.vitepress`, `.swifty-docs`, and `dist`. `index.md` maps to the directory root without trailing `/`.
+Recursively scans a docs directory and returns route entries. Skips entries starting with `_` or `.`, plus `node_modules` and `dist`. `index.md` maps to the directory root without trailing `/`.
 
 ### `generateSidebar(routes: DocsRoute[], prefix: string): SidebarItem[]`
 
@@ -587,7 +584,6 @@ import type {
   PageData,
   HeadingInfo,
   DocsRoute,
-  SearchEntry,
   FrontmatterResult,
   CompileMarkdownOptions,
 } from "@swifty.js/docs";
@@ -601,7 +597,7 @@ The generated module exports:
 
 - `loadContent(path)` -- dynamically imports the compiled `.md` module for a given route path, returns `{ pageData, contentHtml }` or `null`
 - `routes: Record<string, string>` -- maps every docs path to the layout view `"theme/docs-layout"`
-- `docsConfig` -- the runtime site configuration (title, description, lang, nav, sidebar)
+- `docsConfig` -- the runtime site configuration (title, baseUrl, nav, sidebar, search)
 - `getSearchIndex()` -- lazily builds the search index by loading all non-virtual `.md` modules on first call (filtering through `_searchablePaths` to exclude virtual index routes), returns `SearchEntry[]`
 
 ```ts

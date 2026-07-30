@@ -43,9 +43,6 @@ export interface DocsConfig {
   /** Site title displayed in the navbar. */
   title: string;
 
-  /** Site description for meta tags. */
-  description?: string;
-
   /** Top navigation items. */
   nav?: NavItem[];
 
@@ -77,8 +74,6 @@ export interface NavItem {
   text: string;
   /** Link URL (internal or external). */
   link: string;
-  /** Nested dropdown items. */
-  items?: NavItem[];
 }
 
 /** Sidebar config: "auto" for filesystem-based, or explicit items. */
@@ -173,22 +168,6 @@ export interface DocsRoute {
    * Protected pages are excluded from the search index.
    */
   isProtected?: boolean;
-}
-
-// ============================================================
-// Search types
-// ============================================================
-
-/** Search index entry for a single docs page. */
-export interface SearchEntry {
-  /** Page title. */
-  title: string;
-  /** Route link. */
-  link: string;
-  /** All heading texts on the page. */
-  headings: string[];
-  /** First ~200 chars of plain text content. */
-  excerpt: string;
 }
 
 // ============================================================

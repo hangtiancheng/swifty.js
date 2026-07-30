@@ -34,7 +34,6 @@ import type { NavItem, SidebarItem } from "@/types";
 const NavItemSchema: z.ZodType<NavItem> = z.object({
   text: z.string(),
   link: z.string(),
-  items: z.lazy(() => z.array(NavItemSchema)).optional(),
 });
 
 const SidebarItemSchema: z.ZodType<SidebarItem> = z.object({
@@ -53,7 +52,6 @@ export const DocsConfigSchema = z.object({
   docs: z.string().optional(),
   baseUrl: z.string(),
   title: z.string(),
-  description: z.string().optional(),
   nav: z.array(NavItemSchema).optional(),
   sidebar: z.record(z.string(), SidebarConfigSchema).optional(),
   /** Enable the built-in search palette. Default: true */

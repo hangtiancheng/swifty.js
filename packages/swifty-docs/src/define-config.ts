@@ -96,7 +96,6 @@ function prefixNavItems(baseUrl: string, items: NavItem[]): NavItem[] {
   return items.map((item) => ({
     ...item,
     link: joinBase(baseUrl, item.link),
-    ...(item.items ? { items: prefixNavItems(baseUrl, item.items) } : {}),
   }));
 }
 
@@ -173,7 +172,6 @@ function generateRoutesFile(config: DocsConfig, projectRoot: string): void {
   // first search) to keep this generated file small.
   const runtimeConfig: Omit<DocsConfig, "docs"> = {
     title: config.title,
-    description: config.description || "",
     baseUrl: config.baseUrl,
     nav: prefixNavItems(config.baseUrl, config.nav || []),
     sidebar,

@@ -42,15 +42,9 @@ import { buildPageData } from "./utils/page-data";
 import { getFirstRoute } from "./utils/route-sorting";
 
 const IGNORED_PREFIXES = ["_", "."];
-const IGNORED_DIRS = new Set([
-  "node_modules",
-  "__tests__",
-  "__fixtures__",
-  ".git",
-  ".vitepress",
-  ".swifty-docs",
-  "dist",
-]);
+// Dot- and underscore-prefixed names are already skipped by
+// IGNORED_PREFIXES, so only plain directory names belong here.
+const IGNORED_DIRS = new Set(["node_modules", "dist"]);
 
 interface DirInfo {
   hasIndex: boolean;
@@ -152,8 +146,8 @@ export function scanDocsDir(docsDir: string, baseUrl: string): DocsRoute[] {
     if (info.hasIndex) continue;
     if (info.children.length === 0) continue;
 
-    const firstRoute = getFirstRoute(info.children);
-    if (!firstRoute) continue;
+    // Non-empty children guarantee getFirstRoute returns a route.
+    const firstRoute = getFirstRoute(info.children)!;
 
     const routeSegment = prefix; // treated as index
     const computedPath = effectiveBase + routeSegment;

@@ -45,7 +45,6 @@ export type {
   PageData,
   HeadingInfo,
   DocsRoute,
-  SearchEntry,
   FrontmatterResult,
   CompileMarkdownOptions,
 } from "./types";

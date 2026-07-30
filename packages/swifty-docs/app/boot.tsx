@@ -49,7 +49,6 @@ function App() {
       >
         <LocationProvider>
           <Router>
-            <Route path="/" component={DocsLayout} />
             <Route default component={DocsLayout} />
           </Router>
         </LocationProvider>

@@ -260,7 +260,7 @@ export function docsGuardPlugin(): Plugin {
 
       let out = code.replace(
         htmlMatch[0],
-        `export const contentHtml = ${JSON.stringify(payload)};\nexport const __protected = true;`,
+        `export const contentHtml = ${JSON.stringify(payload)};`,
       );
 
       if (pd && pdMatch) {
