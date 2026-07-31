@@ -209,3 +209,4 @@ packages/swifty-docs/docs
 **/.mf/diagnostics
 
 **/.playwright-cli
+lark.js/

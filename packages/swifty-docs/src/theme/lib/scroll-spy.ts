@@ -24,49 +24,74 @@ import { useEffect, useState } from "preact/hooks";
 import type { PageHeading } from "./content";
 
 /**
- * IntersectionObserver scroll-spy over the heading elements of the current
- * page. The last heading whose top sits at or above `offset` (navbar
- * height + breathing room) is considered active.
+ * Scroll-spy over the heading elements of the current page. The last
+ * heading whose top sits at or above `offset` (navbar height + breathing
+ * room) is considered active; at the very bottom of the page the last
+ * heading wins, since trailing sections may be too short to ever reach
+ * the offset line.
+ *
+ * Recomputes on scroll/resize (rAF-throttled) rather than via
+ * IntersectionObserver: IO only fires when a heading crosses its
+ * rootMargin band edges, which rarely coincides with the `offset` line
+ * the active state is judged against — the highlight went stale between
+ * crossings.
  */
 export function useScrollSpy(headings: PageHeading[], offset = 96): string {
   const [active, setActive] = useState("");
 
   useEffect(() => {
     setActive("");
-    if (headings.length === 0 || typeof IntersectionObserver === "undefined") {
+    if (headings.length === 0 || typeof window === "undefined") {
       return;
     }
 
-    const observer = new IntersectionObserver(
-      () => {
-        let current = "";
+    let raf = 0;
+    const compute = () => {
+      raf = 0;
+      const doc = document.documentElement;
+      const atBottom =
+        window.innerHeight + window.scrollY >= doc.scrollHeight - 1;
+      let current = "";
+      if (atBottom) {
+        for (let i = headings.length - 1; i >= 0; i--) {
+          if (document.getElementById(headings[i].slug)) {
+            current = headings[i].slug;
+            break;
+          }
+        }
+      } else {
         for (const h of headings) {
           const el = document.getElementById(h.slug);
-          if (el && el.getBoundingClientRect().top <= offset) {
+          // +1 tolerates subpixel rounding after smooth scrollIntoView.
+          if (el && el.getBoundingClientRect().top <= offset + 1) {
             current = h.slug;
           }
         }
-        setActive(current);
-      },
-      { rootMargin: "0px 0px -70% 0px", threshold: 0 },
-    );
-
-    // The microtask defers observe() until content is in the DOM, but the
-    // effect can be cleaned up before it runs (fast route change) — an
-    // unguarded observe() would re-activate the disconnected observer and
-    // leak it. The flag makes cleanup final.
-    let cancelled = false;
-    queueMicrotask(() => {
-      if (cancelled) return;
-      for (const h of headings) {
-        const el = document.getElementById(h.slug);
-        if (el) observer.observe(el);
       }
-    });
+      setActive(current);
+    };
+    const schedule = () => {
+      if (!raf) raf = requestAnimationFrame(compute);
+    };
+
+    // First compute lands in the next frame, after the page content
+    // (rendered in the same commit) is in the DOM.
+    schedule();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    // Late layout shifts (images, fonts, lazy code blocks) move the
+    // headings without a scroll event — watch the document size too.
+    const ro =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(schedule)
+        : undefined;
+    ro?.observe(document.documentElement);
 
     return () => {
-      cancelled = true;
-      observer.disconnect();
+      if (raf) cancelAnimationFrame(raf);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      ro?.disconnect();
     };
   }, [headings, offset]);
 
