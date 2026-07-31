@@ -51,7 +51,13 @@ export function DocsLayout() {
   const { path: location, route: navigate } = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const landing = docs.config.nav?.[0]?.link ?? docs.config.baseUrl ?? "/";
+  // First internal nav link, falling back to baseUrl — external links
+  // (https?://) must never become the logo / 404 / root-redirect target.
+  const landing =
+    (docs.config.nav ?? []).find((item) => !/^https?:\/\//.test(item.link))
+      ?.link ??
+    docs.config.baseUrl ??
+    "/";
 
   const normalized = useMemo(() => normalizePath(location), [location]);
   const path = normalized.path;
@@ -97,7 +103,8 @@ export function DocsLayout() {
     if (loading || content !== null) return;
     const base = docs.config.baseUrl.replace(/\/+$/, "") || "/";
     if (path === base || path === "/") {
-      navigate(landing, true);
+      const target = landing.replace(/\/+$/, "") || "/";
+      if (target !== path) navigate(landing, true);
     }
   }, [loading, content, path, docs.config.baseUrl, landing, navigate]);
 

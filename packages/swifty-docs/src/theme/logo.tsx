@@ -71,10 +71,10 @@ export function Logo({ href, title, class: className }: LogoProps) {
       )}
       aria-label={`${title} — home`}
     >
-      <span class="from-primary to-primary/70 text-primary-foreground shadow-primary/30 grid size-8 place-items-center rounded-lg bg-linear-to-br shadow-sm transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:scale-105 group-hover:-rotate-6">
-        <ClockIcon class="size-4.5" stroke-width={2.4} />
+      <span class="text-primary grid size-7 place-items-center transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:rotate-12">
+        <ClockIcon class="size-5" />
       </span>
-      <span class="font-display text-foreground text-lg font-semibold tracking-tight">
+      <span class="font-display text-foreground text-[0.95rem] font-semibold tracking-tight">
         {title}
       </span>
     </a>
