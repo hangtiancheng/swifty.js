@@ -36,14 +36,10 @@ declare module "@swifty-docs/generated" {
     title: string;
     /** Route path. */
     link: string;
-    /** Page excerpt (fallback text for pages without contentHtml). */
-    excerpt?: string;
+    /** Page excerpt (index text for pages whose HTML yields no sections). */
+    excerpt: string;
     /** Compiled page HTML — split into per-section search docs at runtime. */
-    contentHtml?: string;
-    /** Legacy fields from older generated files. */
-    pageTitle?: string;
-    text?: string;
-    headings?: string[];
+    contentHtml: string;
   }
 
   export function getSearchIndex(): Promise<SearchEntry[]>;

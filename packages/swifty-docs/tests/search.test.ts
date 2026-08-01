@@ -54,7 +54,7 @@ describe("cjkTokenize", () => {
   });
 });
 
-describe("SearchEntrySchema compatibility", () => {
+describe("SearchEntrySchema (contentHtml required)", () => {
   it("accepts current entries carrying contentHtml", () => {
     const entry = {
       title: "Page",
@@ -65,14 +65,14 @@ describe("SearchEntrySchema compatibility", () => {
     expect(SearchEntrySchema.safeParse(entry).success).toBe(true);
   });
 
-  it("accepts legacy page-level entries (no contentHtml)", () => {
+  it("rejects legacy entries without contentHtml (fail fast, regenerate)", () => {
     const legacy = {
       title: "Page",
       link: "/p",
       headings: ["A", "B"],
       excerpt: "intro",
     };
-    expect(SearchEntrySchema.safeParse(legacy).success).toBe(true);
+    expect(SearchEntrySchema.safeParse(legacy).success).toBe(false);
   });
 });
 
@@ -84,7 +84,8 @@ describe("createSearchEngine (runtime section split)", () => {
       excerpt: "总体介绍",
       contentHtml:
         '<p>总体介绍</p><h2 id="install">安装步骤</h2><p>先安装依赖，然后配置分布式缓存组件</p>' +
-        '<h2 id="usage">使用</h2><pre><code>const uniqueCacheToken = 1;</code></pre>',
+        '<h2 id="usage">使用</h2><pre><code>const uniqueCacheToken = 1;</code></pre>' +
+        '<h3 id="advanced">进阶用法</h3><p>advanced body</p>',
     },
   ];
 
@@ -103,19 +104,38 @@ describe("createSearchEngine (runtime section split)", () => {
     expect(hits[0].link).toBe("/guide#usage");
   });
 
+  it("builds hierarchical crumbs from h2 ancestry for h3 sections", async () => {
+    const engine = createSearchEngine(async () => index);
+    const hits = await engine.search("advanced");
+    const h3 = hits.find((h) => h.link === "/guide#advanced");
+    expect(h3).toBeDefined();
+    expect(h3!.crumb).toBe("Guide › 使用");
+  });
+
   it("counts sections, not pages", async () => {
     const engine = createSearchEngine(async () => index);
     await engine.search("缓存");
-    expect(engine.size()).toBe(3); // intro + install + usage
+    expect(engine.size()).toBe(4); // intro + install + usage + advanced
   });
 
-  it("degrades legacy entries into searchable text", async () => {
-    const engine = createSearchEngine(async () => [
-      { title: "Old", link: "/old", headings: ["Legacy Heading"], excerpt: "" },
-    ]);
-    const hits = await engine.search("legacy");
+  it("invalidate() rebuilds from fresh index data (md hot update)", async () => {
+    let current = index;
+    const engine = createSearchEngine(async () => current);
+    expect((await engine.search("brandNewWord")).length).toBe(0);
+
+    current = [
+      {
+        title: "Guide",
+        link: "/guide",
+        excerpt: "",
+        contentHtml: '<h2 id="fresh">Fresh</h2><p>brandNewWord here</p>',
+      },
+    ];
+    // Without invalidate the stale index would keep missing the new word.
+    engine.invalidate();
+    const hits = await engine.search("brandNewWord");
     expect(hits.length).toBe(1);
-    expect(hits[0].link).toBe("/old");
+    expect(hits[0].link).toBe("/guide#fresh");
   });
 });
 
@@ -123,6 +143,7 @@ describe("capPerPage", () => {
   const hit = (link: string) => ({
     title: "t",
     pageTitle: "p",
+    crumb: "",
     link,
     text: "",
   });

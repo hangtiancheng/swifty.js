@@ -35,11 +35,13 @@ import {
   type GetSearchIndexFn,
   type RuntimeSearchEntry,
 } from "./content";
-import { splitContentSections } from "./split-sections";
+import { buildSectionDocs } from "./split-sections";
 
 export interface SearchHit {
   title: string;
   pageTitle: string;
+  /** Hierarchical context, e.g. "Page › H2" for an h3 section. */
+  crumb: string;
   link: string;
   text: string;
 }
@@ -48,6 +50,8 @@ export interface SearchEngine {
   search(query: string): Promise<SearchHit[]>;
   /** Total number of indexed sections (available after first build). */
   size(): number;
+  /** Drop the built index (md hot update) — next search rebuilds fresh. */
+  invalidate(): void;
 }
 
 const CJK_CHAR = /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/;
@@ -76,12 +80,16 @@ export function createSearchEngine(
   let mini: MiniSearch | null = null;
   let pending: Promise<MiniSearch | null> | null = null;
   let docCount = 0;
+  // Bumped by invalidate(); an in-flight build from an older generation is
+  // discarded instead of being cached as the (stale) index.
+  let generation = 0;
 
   function ensure(): Promise<MiniSearch | null> {
     if (mini) return Promise.resolve(mini);
     if (pending) return pending;
 
-    pending = (async () => {
+    const myGeneration = generation;
+    const build = (async () => {
       const fnParse = GetSearchIndexSchema.safeParse(getSearchIndex);
       if (!fnParse.success) {
         console.warn(
@@ -100,59 +108,16 @@ export function createSearchEngine(
       const index: RuntimeSearchEntry[] = indexParse.data;
       if (index.length === 0) return null;
 
-      // Expand pages into per-section docs at index-build time. Entries
-      // with contentHtml (current generation) split at h1-h3 boundaries so
-      // hits deep-link to /route#slug, with full text — code blocks
-      // included. Older generated files degrade gracefully.
-      interface SectionDoc {
-        id: number;
-        title: string;
-        pageTitle: string;
-        link: string;
-        text: string;
-      }
-      const docs: SectionDoc[] = [];
-      for (const entry of index) {
-        if (entry.contentHtml !== undefined) {
-          const sections = splitContentSections(entry.contentHtml);
-          if (sections.length === 0) {
-            docs.push({
-              id: docs.length,
-              title: entry.title,
-              pageTitle: entry.title,
-              link: entry.link,
-              text: entry.excerpt ?? "",
-            });
-            continue;
-          }
-          for (const s of sections) {
-            docs.push({
-              id: docs.length,
-              title: s.title || entry.title,
-              pageTitle: entry.title,
-              link: s.slug ? `${entry.link}#${s.slug}` : entry.link,
-              text: s.text,
-            });
-          }
-          continue;
-        }
-        // Interim generation (pre-split section entries) or legacy
-        // page-level entries.
-        docs.push({
-          id: docs.length,
-          title: entry.title,
-          pageTitle: entry.pageTitle ?? entry.title,
-          link: entry.link,
-          text:
-            entry.text ??
-            [entry.excerpt ?? "", ...(entry.headings ?? [])].join(" ").trim(),
-        });
-      }
+      // Section-level granularity: split each page's compiled HTML at
+      // h1-h3 boundaries so results deep-link to /route#slug (full text —
+      // code blocks included), with a hierarchical breadcrumb from the
+      // section's h1/h2 ancestry.
+      const docs = buildSectionDocs(index);
       if (docs.length === 0) return null;
 
       const m = new MiniSearch({
         fields: ["title", "pageTitle", "text"],
-        storeFields: ["title", "pageTitle", "link", "text"],
+        storeFields: ["title", "pageTitle", "crumb", "link", "text"],
         tokenize: cjkTokenize,
         searchOptions: {
           prefix: true,
@@ -161,12 +126,14 @@ export function createSearchEngine(
         },
       });
       m.addAll(docs);
+      if (myGeneration !== generation) return null; // superseded mid-build
       docCount = docs.length;
       mini = m;
       return m;
     })().finally(() => {
-      pending = null;
+      if (pending === build) pending = null;
     });
+    pending = build;
     return pending;
   }
 
@@ -183,11 +150,17 @@ export function createSearchEngine(
       return raw.map((r) => ({
         title: r.title || "",
         pageTitle: r.pageTitle || r.title || "",
+        crumb: r.crumb || "",
         link: r.link || "",
         text: r.text || "",
       }));
     },
     size: () => docCount,
+    invalidate: () => {
+      generation++;
+      mini = null;
+      pending = null;
+    },
   };
 }
 

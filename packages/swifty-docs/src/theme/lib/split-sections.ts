@@ -91,3 +91,88 @@ export function splitContentSections(contentHtml: string): ContentSection[] {
 
   return sections;
 }
+
+export interface SearchPageEntry {
+  title: string;
+  link: string;
+  excerpt: string;
+  contentHtml: string;
+}
+
+/** One h1-h3 section of a page — the unit the search index stores. */
+export interface SectionSearchDoc {
+  id: number;
+  /** Section heading text (page title for the intro section). */
+  title: string;
+  pageTitle: string;
+  /** Hierarchical context, e.g. "Page › H2" for an h3 section. */
+  crumb: string;
+  /** Deep link: "/path" for the intro, "/path#slug" for a heading. */
+  link: string;
+  text: string;
+}
+
+/**
+ * Expand page entries into per-section search docs with hierarchical
+ * breadcrumbs built from the h1/h2 ancestry of each section.
+ */
+export function buildSectionDocs(pages: SearchPageEntry[]): SectionSearchDoc[] {
+  const docs: SectionSearchDoc[] = [];
+
+  const pushDoc = (
+    doc: Omit<SectionSearchDoc, "id" | "crumb">,
+    ancestors: string[],
+  ): void => {
+    const crumb: string[] = [];
+    for (const part of ancestors) {
+      if (!part || part === doc.title) continue;
+      if (crumb[crumb.length - 1] === part) continue;
+      crumb.push(part);
+    }
+    docs.push({ ...doc, id: docs.length, crumb: crumb.join(" › ") });
+  };
+
+  for (const page of pages) {
+    const sections = splitContentSections(page.contentHtml);
+    if (sections.length === 0) {
+      pushDoc(
+        {
+          title: page.title,
+          pageTitle: page.title,
+          link: page.link,
+          text: page.excerpt,
+        },
+        [],
+      );
+      continue;
+    }
+
+    let h1 = "";
+    let h2 = "";
+    for (const section of sections) {
+      if (section.level === 1) {
+        h1 = section.title;
+        h2 = "";
+      } else if (section.level === 2) {
+        h2 = section.title;
+      }
+      const ancestors =
+        section.level === 3
+          ? [page.title, h1, h2]
+          : section.level === 2
+            ? [page.title, h1]
+            : [page.title];
+      pushDoc(
+        {
+          title: section.title || page.title,
+          pageTitle: page.title,
+          link: section.slug ? `${page.link}#${section.slug}` : page.link,
+          text: section.text,
+        },
+        ancestors,
+      );
+    }
+  }
+
+  return docs;
+}

@@ -67,10 +67,12 @@ export function SearchDialog() {
   const inputRef = useRef<HTMLInputElement>(null);
   const itemRefs = useRef(new Map<number, HTMLButtonElement>());
   const seqRef = useRef(0);
+  const queryRef = useRef("");
 
   const runSearch = useCallback(
     async (value: string) => {
       setQuery(value);
+      queryRef.current = value;
       if (!value.trim()) {
         seqRef.current++;
         setResults([]);
@@ -88,6 +90,18 @@ export function SearchDialog() {
     },
     [engine],
   );
+
+  // Md hot updates recompile page modules — the built MiniSearch index is
+  // stale from that moment. Invalidate and re-run any live query so open
+  // results reflect the fresh content (the generated module already resets
+  // its own _searchIndex cache).
+  useEffect(() => {
+    if (!docs.onContentUpdate) return;
+    return docs.onContentUpdate(() => {
+      engine.invalidate();
+      if (queryRef.current.trim()) void runSearch(queryRef.current);
+    });
+  }, [docs.onContentUpdate, engine, runSearch]);
 
   const go = useCallback(
     (link: string) => {
@@ -243,9 +257,9 @@ export function SearchDialog() {
                       <FileTextIcon class="mt-0.5 size-4 shrink-0 opacity-60" />
                       <span class="min-w-0 flex-1">
                         <span class="block truncate text-sm font-medium">
-                          {hit.pageTitle && hit.pageTitle !== hit.title && (
+                          {hit.crumb && (
                             <span class="text-muted-foreground font-normal">
-                              {hit.pageTitle}
+                              {hit.crumb}
                               {" › "}
                             </span>
                           )}

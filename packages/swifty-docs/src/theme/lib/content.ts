@@ -84,13 +84,8 @@ export const SearchEntrySchema = z.object({
   title: z.string(),
   link: z.string(),
   /** Compiled page HTML — split into per-section docs at runtime. */
-  contentHtml: z.string().optional(),
-  /** Interim section-entry fields (one generated-file generation). */
-  pageTitle: z.string().optional(),
-  text: z.string().optional(),
-  /** Legacy page-level fields — optional so old generated files validate. */
-  headings: z.array(z.string()).optional(),
-  excerpt: z.string().optional(),
+  contentHtml: z.string(),
+  excerpt: z.string(),
 });
 export type RuntimeSearchEntry = z.infer<typeof SearchEntrySchema>;
 export type GetSearchIndexFn = () => Promise<RuntimeSearchEntry[]>;
