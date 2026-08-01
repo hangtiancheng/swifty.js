@@ -35,17 +35,39 @@ import {
   type GetSearchIndexFn,
   type RuntimeSearchEntry,
 } from "./content";
+import { splitContentSections } from "./split-sections";
 
 export interface SearchHit {
   title: string;
+  pageTitle: string;
   link: string;
-  excerpt: string;
+  text: string;
 }
 
 export interface SearchEngine {
   search(query: string): Promise<SearchHit[]>;
-  /** Total number of indexed pages (available after first build). */
+  /** Total number of indexed sections (available after first build). */
   size(): number;
+}
+
+const CJK_CHAR = /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/;
+
+/**
+ * CJK-aware tokenizer (used for both indexing and querying). MiniSearch's
+ * default splitter treats a whole CJK sentence as one token, so Chinese
+ * text was only matchable by sentence-prefix. Word runs containing CJK are
+ * additionally split into single characters (plus the run itself).
+ */
+export function cjkTokenize(text: string): string[] {
+  const runs = text.match(/[\p{L}\p{N}]+/gu) ?? [];
+  const tokens: string[] = [];
+  for (const run of runs) {
+    tokens.push(run);
+    if (CJK_CHAR.test(run)) {
+      for (const ch of run) tokens.push(ch);
+    }
+  }
+  return tokens;
 }
 
 export function createSearchEngine(
@@ -78,17 +100,68 @@ export function createSearchEngine(
       const index: RuntimeSearchEntry[] = indexParse.data;
       if (index.length === 0) return null;
 
+      // Expand pages into per-section docs at index-build time. Entries
+      // with contentHtml (current generation) split at h1-h3 boundaries so
+      // hits deep-link to /route#slug, with full text — code blocks
+      // included. Older generated files degrade gracefully.
+      interface SectionDoc {
+        id: number;
+        title: string;
+        pageTitle: string;
+        link: string;
+        text: string;
+      }
+      const docs: SectionDoc[] = [];
+      for (const entry of index) {
+        if (entry.contentHtml !== undefined) {
+          const sections = splitContentSections(entry.contentHtml);
+          if (sections.length === 0) {
+            docs.push({
+              id: docs.length,
+              title: entry.title,
+              pageTitle: entry.title,
+              link: entry.link,
+              text: entry.excerpt ?? "",
+            });
+            continue;
+          }
+          for (const s of sections) {
+            docs.push({
+              id: docs.length,
+              title: s.title || entry.title,
+              pageTitle: entry.title,
+              link: s.slug ? `${entry.link}#${s.slug}` : entry.link,
+              text: s.text,
+            });
+          }
+          continue;
+        }
+        // Interim generation (pre-split section entries) or legacy
+        // page-level entries.
+        docs.push({
+          id: docs.length,
+          title: entry.title,
+          pageTitle: entry.pageTitle ?? entry.title,
+          link: entry.link,
+          text:
+            entry.text ??
+            [entry.excerpt ?? "", ...(entry.headings ?? [])].join(" ").trim(),
+        });
+      }
+      if (docs.length === 0) return null;
+
       const m = new MiniSearch({
-        fields: ["title", "headings", "excerpt"],
-        storeFields: ["title", "link", "headings", "excerpt"],
+        fields: ["title", "pageTitle", "text"],
+        storeFields: ["title", "pageTitle", "link", "text"],
+        tokenize: cjkTokenize,
         searchOptions: {
           prefix: true,
           fuzzy: 0.2,
-          boost: { title: 2, headings: 1.5 },
+          boost: { title: 2, pageTitle: 1.5 },
         },
       });
-      m.addAll(index.map((entry, i) => ({ ...entry, id: i })));
-      docCount = index.length;
+      m.addAll(docs);
+      docCount = docs.length;
       mini = m;
       return m;
     })().finally(() => {
@@ -101,7 +174,7 @@ export function createSearchEngine(
     async search(query: string): Promise<SearchHit[]> {
       const m = await ensure();
       if (!m) return [];
-      let raw: (SearchResult & Partial<RuntimeSearchEntry>)[] = [];
+      let raw: (SearchResult & Partial<SearchHit>)[] = [];
       try {
         raw = m.search(query);
       } catch {
@@ -109,8 +182,9 @@ export function createSearchEngine(
       }
       return raw.map((r) => ({
         title: r.title || "",
+        pageTitle: r.pageTitle || r.title || "",
         link: r.link || "",
-        excerpt: r.excerpt || "",
+        text: r.text || "",
       }));
     },
     size: () => docCount,
@@ -118,6 +192,51 @@ export function createSearchEngine(
 }
 
 export type HighlightSegment = { text: string; mark: boolean };
+
+/**
+ * Limit hits per page (link without the #hash) while preserving ranking
+ * order — one section-rich page must not flood the result list.
+ */
+export function capPerPage(hits: SearchHit[], max: number): SearchHit[] {
+  const perPage = new Map<string, number>();
+  const out: SearchHit[] = [];
+  for (const hit of hits) {
+    const page = hit.link.split("#")[0];
+    const n = perPage.get(page) ?? 0;
+    if (n >= max) continue;
+    perPage.set(page, n + 1);
+    out.push(hit);
+  }
+  return out;
+}
+
+/**
+ * Cut a display snippet from section text, centered on the earliest
+ * occurrence of any query term; falls back to the text head. Ellipses mark
+ * truncated edges. Pair with highlightSegments for term marking.
+ */
+export function makeSnippet(text: string, query: string, span = 90): string {
+  if (!text) return "";
+  const lower = text.toLowerCase();
+  const terms = query
+    .toLowerCase()
+    .split(/\s+/)
+    .filter((t) => t.length > 0);
+
+  let hitIdx = -1;
+  for (const t of terms) {
+    const idx = lower.indexOf(t);
+    if (idx >= 0 && (hitIdx < 0 || idx < hitIdx)) hitIdx = idx;
+  }
+
+  const start = hitIdx < 0 ? 0 : Math.max(0, hitIdx - 20);
+  const end = Math.min(text.length, start + span);
+  return (
+    (start > 0 ? "…" : "") +
+    text.slice(start, end) +
+    (end < text.length ? "…" : "")
+  );
+}
 
 /**
  * Split text into plain/marked segments for each query term occurrence.

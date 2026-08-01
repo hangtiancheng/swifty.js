@@ -25,10 +25,13 @@ import { useLocation } from "preact-iso";
 import { useDocs } from "./context";
 import { CornerDownLeftIcon, FileTextIcon, SearchIcon } from "lucide-preact";
 import {
+  capPerPage,
   createSearchEngine,
   highlightSegments,
+  makeSnippet,
   type SearchHit,
 } from "./lib/search";
+import { normalizePath } from "./lib/content";
 import { cn } from "./lib/utils";
 import {
   Dialog,
@@ -40,10 +43,12 @@ import {
 import { Kbd } from "./ui/kbd";
 
 const MAX_RESULTS = 12;
+// One section-rich page must not flood the list — cap hits per page first.
+const MAX_RESULTS_PER_PAGE = 3;
 
 export function SearchDialog() {
   const docs = useDocs();
-  const { route: navigate } = useLocation();
+  const { route: navigate, path: location } = useLocation();
   // Lazy init: useRef(create()) would re-run createSearchEngine on every
   // render (discarding all but the first result) and permanently capture
   // the first-render getSearchIndex.
@@ -76,7 +81,7 @@ export function SearchDialog() {
       const my = ++seqRef.current;
       const hits = await engine.search(value);
       if (my !== seqRef.current) return;
-      setResults(hits.slice(0, MAX_RESULTS));
+      setResults(capPerPage(hits, MAX_RESULTS_PER_PAGE).slice(0, MAX_RESULTS));
       setSearched(true);
       setActiveIdx(0);
       setIndexSize(engine.size());
@@ -87,9 +92,26 @@ export function SearchDialog() {
   const go = useCallback(
     (link: string) => {
       docs.setSearchOpen(false);
+      const hashIdx = link.indexOf("#");
+      if (hashIdx >= 0) {
+        const targetPath = link.slice(0, hashIdx);
+        const slug = link.slice(hashIdx + 1);
+        // Same page: navigate() would be a no-op for the router and the
+        // layout's hash effect only fires on path changes — scroll directly
+        // (mirrors ContentRenderer's in-page anchor handling).
+        if (normalizePath(location).path === targetPath) {
+          if (decodeURIComponent(window.location.hash) !== `#${slug}`) {
+            history.pushState(null, "", `#${slug}`);
+          }
+          document
+            .getElementById(slug)
+            ?.scrollIntoView({ behavior: "smooth", block: "start" });
+          return;
+        }
+      }
       navigate(link);
     },
-    [docs, navigate],
+    [docs, navigate, location],
   );
 
   const onKeyDown = useCallback(
@@ -191,8 +213,10 @@ export function SearchDialog() {
               <div class="text-muted-foreground px-3 py-10 text-center text-xs leading-relaxed">
                 <SearchIcon class="mx-auto mb-3 size-6 opacity-40" />
                 Search across{" "}
-                {indexSize > 0 ? `${indexSize} pages` : "the documentation"} —
-                titles, headings and body text.
+                {indexSize > 0
+                  ? `${indexSize} sections`
+                  : "the documentation"}{" "}
+                — titles, headings and body text.
               </div>
             ) : searched && results.length === 0 ? (
               <div class="text-muted-foreground px-3 py-10 text-center text-xs">
@@ -219,6 +243,12 @@ export function SearchDialog() {
                       <FileTextIcon class="mt-0.5 size-4 shrink-0 opacity-60" />
                       <span class="min-w-0 flex-1">
                         <span class="block truncate text-sm font-medium">
+                          {hit.pageTitle && hit.pageTitle !== hit.title && (
+                            <span class="text-muted-foreground font-normal">
+                              {hit.pageTitle}
+                              {" › "}
+                            </span>
+                          )}
                           {highlightSegments(hit.title, query).map((seg, si) =>
                             seg.mark ? (
                               <mark key={si}>{seg.text}</mark>
@@ -227,15 +257,17 @@ export function SearchDialog() {
                             ),
                           )}
                         </span>
-                        {hit.excerpt && (
+                        {hit.text && (
                           <span class="text-muted-foreground mt-0.5 block truncate text-xs">
-                            {highlightSegments(hit.excerpt, query).map(
-                              (seg, si) =>
-                                seg.mark ? (
-                                  <mark key={si}>{seg.text}</mark>
-                                ) : (
-                                  seg.text
-                                ),
+                            {highlightSegments(
+                              makeSnippet(hit.text, query),
+                              query,
+                            ).map((seg, si) =>
+                              seg.mark ? (
+                                <mark key={si}>{seg.text}</mark>
+                              ) : (
+                                seg.text
+                              ),
                             )}
                           </span>
                         )}

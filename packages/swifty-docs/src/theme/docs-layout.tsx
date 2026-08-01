@@ -37,7 +37,7 @@ import {
   normalizePath,
   type LoadedContent,
 } from "./lib/content";
-import { cn } from "./lib/utils";
+import { cn, decodedLocationHash } from "./lib/utils";
 import { Logo } from "./logo";
 import { Navbar } from "./navbar";
 import { PrevNext } from "./prev-next";
@@ -71,6 +71,10 @@ export function DocsLayout() {
 
   const [content, setContent] = useState<LoadedContent | null>(null);
   const [loading, setLoading] = useState(true);
+  // Path the current `content` belongs to — the load effect keeps the old
+  // page visible while the next one loads, so consumers that pair content
+  // with path (hash scrolling) must know when they line up.
+  const loadedPathRef = useRef<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -85,12 +89,14 @@ export function DocsLayout() {
       .then((result) => {
         if (cancelled) return;
         const parsed = LoadedContentSchema.safeParse(result);
+        loadedPathRef.current = path;
         setContent(parsed.success ? parsed.data : null);
         setLoading(false);
       })
       .catch((err) => {
         if (cancelled) return;
         console.warn("[@swifty.js/docs] Failed to load content for", path, err);
+        loadedPathRef.current = path;
         setContent(null);
         setLoading(false);
       });
@@ -106,8 +112,7 @@ export function DocsLayout() {
     let cancelled = false;
     const unsubscribe = docs.onContentUpdate((routes) => {
       if (!routes.includes(path)) return;
-      docs
-        .loadContent!(path)
+      docs.loadContent!(path)
         .then((result) => {
           if (cancelled) return;
           const parsed = LoadedContentSchema.safeParse(result);
@@ -145,9 +150,15 @@ export function DocsLayout() {
   const hashScrolledPathRef = useRef<string | null>(null);
   useEffect(() => {
     if (!content) return;
+    // Old page's content is still displayed while the new one loads — wait
+    // until they line up, or the ref would mark the new path as handled
+    // before its headings exist in the DOM.
+    if (loadedPathRef.current !== path) return;
     if (hashScrolledPathRef.current === path) return;
     hashScrolledPathRef.current = path;
-    const hash = window.location.hash.slice(1);
+    // location.hash is percent-encoded for CJK slugs — decode before
+    // matching rendered heading ids.
+    const hash = decodedLocationHash().slice(1);
     if (hash) {
       queueMicrotask(() =>
         document.getElementById(hash)?.scrollIntoView({ block: "start" }),

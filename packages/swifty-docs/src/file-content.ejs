@@ -30,9 +30,10 @@ export const docsConfig = <%- docsConfigJson %>;
 // index routes so the search index has no duplicate entries.
 const _searchablePaths = new Set(<%- searchablePathsJson %>);
 
-// Search index — lazily built on first search by loading all .md modules
-// and extracting pageData. This avoids serializing a large searchIndex
-// (every page's title + all headings + excerpt) into this generated file.
+// Search index — lazily built on first search by loading all .md modules.
+// One entry per page carrying the compiled contentHtml; the theme splits it
+// into per-section search documents at runtime (h1-h3 boundaries), so hits
+// deep-link to /route#slug without bloating compiled modules.
 let _searchIndex = null;
 export async function getSearchIndex() {
   if (_searchIndex) return _searchIndex;
@@ -48,8 +49,8 @@ export async function getSearchIndex() {
     return {
       title: pd.title || "",
       link,
-      headings: (pd.headings || []).map((h) => h.text || ""),
       excerpt: pd.excerpt || pd.description || "",
+      contentHtml: mod.contentHtml || "",
     };
   });
   return _searchIndex;

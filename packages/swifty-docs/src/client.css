@@ -461,7 +461,7 @@
 
 /* Render failure: fall back to the raw mermaid source. */
 .mermaid-error {
-  @apply border-border bg-code scrollbar-thin m-0 overflow-x-auto rounded-[12px] border p-[1.1rem] font-mono text-[0.9375rem] leading-[1.75];
+  @apply border-border bg-code m-0 scrollbar-thin overflow-x-auto rounded-[12px] border p-[1.1rem] font-mono text-[0.9375rem] leading-[1.75];
 }
 
 /* ------------------------------------------------------------------ */

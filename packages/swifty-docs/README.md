@@ -215,16 +215,16 @@ Set `title` and `description` in frontmatter to control the page heading and sea
 
 The `DocsConfig` interface defines all configuration options:
 
-| Field         | Type                            | Default     | Description                                     |
-| ------------- | ------------------------------- | ----------- | ----------------------------------------------- |
-| `docs`        | `string`                        | `"docs"`    | Docs source directory, relative to project root |
-| `baseUrl`     | `string`                        | `"/docs/"`  | Base URL prefix for all generated routes        |
-| `title`       | `string`                        | (required)  | Site title displayed in the navbar              |
-| `nav`         | `NavItem[]`                     | `[]`        | Top navigation items                            |
-| `sidebar`     | `Record<string, SidebarConfig>` | `{}`        | Sidebar config per path prefix                  |
-| `markdown`    | `MarkdownOptions`               | `{}`        | Markdown processing options                     |
-| `highlight`   | `HighlightOptions`              | `undefined` | Shiki code highlighting options                 |
-| `search`      | `boolean`                       | `true`      | Enable the built-in search palette              |
+| Field       | Type                            | Default     | Description                                     |
+| ----------- | ------------------------------- | ----------- | ----------------------------------------------- |
+| `docs`      | `string`                        | `"docs"`    | Docs source directory, relative to project root |
+| `baseUrl`   | `string`                        | `"/docs/"`  | Base URL prefix for all generated routes        |
+| `title`     | `string`                        | (required)  | Site title displayed in the navbar              |
+| `nav`       | `NavItem[]`                     | `[]`        | Top navigation items                            |
+| `sidebar`   | `Record<string, SidebarConfig>` | `{}`        | Sidebar config per path prefix                  |
+| `markdown`  | `MarkdownOptions`               | `{}`        | Markdown processing options                     |
+| `highlight` | `HighlightOptions`              | `undefined` | Shiki code highlighting options                 |
+| `search`    | `boolean`                       | `true`      | Enable the built-in search palette              |
 
 ### NavItem
 

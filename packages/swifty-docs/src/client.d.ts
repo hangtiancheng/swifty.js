@@ -32,10 +32,18 @@ declare module "@swifty-docs/generated" {
   export const docsConfig: DocsConfig;
 
   export interface SearchEntry {
+    /** Page title. */
     title: string;
+    /** Route path. */
     link: string;
-    headings: string[];
-    excerpt: string;
+    /** Page excerpt (fallback text for pages without contentHtml). */
+    excerpt?: string;
+    /** Compiled page HTML — split into per-section search docs at runtime. */
+    contentHtml?: string;
+    /** Legacy fields from older generated files. */
+    pageTitle?: string;
+    text?: string;
+    headings?: string[];
   }
 
   export function getSearchIndex(): Promise<SearchEntry[]>;
@@ -45,7 +53,5 @@ declare module "@swifty-docs/generated" {
    * route paths whose content changed. Returns an unsubscribe function.
    * No-op in production builds.
    */
-  export function onContentUpdate(
-    cb: (routes: string[]) => void,
-  ): () => void;
+  export function onContentUpdate(cb: (routes: string[]) => void): () => void;
 }
