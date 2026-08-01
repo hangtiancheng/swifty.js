@@ -45,12 +45,25 @@ describe("cjkTokenize", () => {
     expect(cjkTokenize("hello world 42")).toEqual(["hello", "world", "42"]);
   });
 
+  it("splits latin text on hyphens into word tokens", () => {
+    expect(cjkTokenize("Hello world-foo bar42")).toEqual([
+      "Hello",
+      "world",
+      "foo",
+      "bar42",
+    ]);
+  });
+
   it("handles mixed CJK/latin text", () => {
     const tokens = cjkTokenize("使用 MiniSearch 检索");
     expect(tokens).toContain("MiniSearch");
     expect(tokens).toContain("使");
     expect(tokens).toContain("检");
     expect(tokens).not.toContain("M"); // latin runs are not char-split
+  });
+
+  it("returns empty for punctuation-only input", () => {
+    expect(cjkTokenize("!?…—。")).toEqual([]);
   });
 });
 
@@ -180,5 +193,13 @@ describe("makeSnippet", () => {
   it("falls back to the text head when nothing matches", () => {
     const snippet = makeSnippet("short body text", "nomatch");
     expect(snippet).toBe("short body text");
+  });
+
+  it("omits ellipses when the whole text fits", () => {
+    expect(makeSnippet("short text", "short", 90)).toBe("short text");
+  });
+
+  it("returns empty string for empty text", () => {
+    expect(makeSnippet("", "x")).toBe("");
   });
 });

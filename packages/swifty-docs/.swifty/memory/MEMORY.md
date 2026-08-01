@@ -1,0 +1,5 @@
+- [agent-team-for-source-study](../../../../../../.swifty/memory/agent-team-for-source-study.md) — User opts into multi-agent teams for parallel source-code study/learning, distinct from solo exploration
+- [code-style-preferences](../../../../../../.swifty/memory/code-style-preferences.md) — User prefers detailed JSDoc type annotations and English comments in code
+- [go-runtime-study](../../../../../../.swifty/memory/go-runtime-study.md) — User is studying Go runtime internals (GMP scheduler) and values precise technical terminology
+- [no-subagent-exploration](../../../../../../.swifty/memory/no-subagent-exploration.md) — User prefers direct exploration without delegating to subagents when they ask to explore a project
+- [lark-docs-sibling-package](lark-docs-sibling-package.md) — lark-docs (lark-mvc) is the sibling package this one is kept in test-parity with; known systematic diffs listed

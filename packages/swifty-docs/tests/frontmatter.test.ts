@@ -58,6 +58,18 @@ Some content here.
     expect(result.content).toBe("");
   });
 
+  it("extracts boolean values", () => {
+    const source = `---
+title: Boolean Page
+hidden: true
+---
+
+Boolean content.
+`;
+    const result = extractFrontmatter(source);
+    expect(result.data["hidden"]).toBe(true);
+  });
+
   it("extracts sidebar_label and sidebar_group", () => {
     const source = `---
 title: Config

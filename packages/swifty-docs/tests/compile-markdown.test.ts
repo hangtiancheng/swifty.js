@@ -311,3 +311,32 @@ Content here.
     expect(result).toContain('"slug": "setup-2"');
   });
 });
+
+describe("mermaid fences", () => {
+  it("emits a client-render placeholder instead of a highlighted block", async () => {
+    const graph = 'flowchart TD\n  A["Start"] --> B{OK?}\n';
+    const source = "# Title\n\n```mermaid\n" + graph + "```\n";
+    const result = await compileMarkdown(source, {
+      config: highlightConfig,
+      filePath: "docs/test.md",
+    });
+
+    const html = JSON.parse(
+      result.match(/export const contentHtml = ("(?:[^"\\]|\\.)*");/)![1],
+    ) as string;
+    expect(html).toContain('class="mermaid-block"');
+    expect(html).toContain(`data-mermaid="${encodeURIComponent(graph)}"`);
+    // No code-block chrome for the mermaid fence.
+    expect(html).not.toContain("language-mermaid");
+  });
+
+  it("leaves other fences untouched", async () => {
+    const source = '# T\n\n```js\nconsole.log("x");\n```\n';
+    const result = await compileMarkdown(source, {
+      config: baseConfig,
+      filePath: "docs/test.md",
+    });
+    expect(result).toContain("language-js");
+    expect(result).not.toContain("mermaid-block");
+  });
+});
