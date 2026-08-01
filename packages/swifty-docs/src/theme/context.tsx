@@ -28,8 +28,10 @@ import {
   FALLBACK_CONFIG,
   GetSearchIndexSchema,
   LoadContentSchema,
+  OnContentUpdateSchema,
   type GetSearchIndexFn,
   type LoadContentFn,
+  type OnContentUpdateFn,
   type RuntimeDocsConfig,
 } from "./lib/content";
 
@@ -37,6 +39,7 @@ interface DocsContextValue {
   config: RuntimeDocsConfig;
   loadContent: LoadContentFn | null;
   getSearchIndex: GetSearchIndexFn | null;
+  onContentUpdate: OnContentUpdateFn | null;
   searchEnabled: boolean;
   searchOpen: boolean;
   setSearchOpen: (open: boolean) => void;
@@ -49,6 +52,8 @@ export interface DocsProviderProps {
   config: unknown;
   loadContent: unknown;
   getSearchIndex: unknown;
+  /** Optional dev-only md hot-reload subscription from @swifty-docs/generated. */
+  onContentUpdate?: unknown;
   children?: ComponentChildren;
 }
 
@@ -78,13 +83,27 @@ export function DocsProvider(props: DocsProviderProps) {
       props.getSearchIndex,
     );
 
+    // Optional (dev-only) — absence is the normal production case, so no
+    // warning is emitted when it is missing.
+    const onContentUpdateParse = OnContentUpdateSchema.safeParse(
+      props.onContentUpdate,
+    );
+
     return {
       config,
       loadContent: loadContentParse.success ? loadContentParse.data : null,
       getSearchIndex: searchIndexParse.success ? searchIndexParse.data : null,
+      onContentUpdate: onContentUpdateParse.success
+        ? onContentUpdateParse.data
+        : null,
       searchEnabled: config.search ?? true,
     };
-  }, [props.config, props.loadContent, props.getSearchIndex]);
+  }, [
+    props.config,
+    props.loadContent,
+    props.getSearchIndex,
+    props.onContentUpdate,
+  ]);
 
   const value = useMemo<DocsContextValue>(
     () => ({

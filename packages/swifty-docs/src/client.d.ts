@@ -39,4 +39,13 @@ declare module "@swifty-docs/generated" {
   }
 
   export function getSearchIndex(): Promise<SearchEntry[]>;
+
+  /**
+   * Subscribe to dev-mode markdown hot updates. The callback receives the
+   * route paths whose content changed. Returns an unsubscribe function.
+   * No-op in production builds.
+   */
+  export function onContentUpdate(
+    cb: (routes: string[]) => void,
+  ): () => void;
 }

@@ -77,6 +77,11 @@ export type PageHeading = z.infer<typeof PageHeadingSchema>;
 
 export type LoadContentFn = (path: string) => Promise<LoadedContent | null>;
 
+/** Dev-only md hot-reload subscription: cb receives changed route paths. */
+export type OnContentUpdateFn = (
+  cb: (routes: string[]) => void,
+) => () => void;
+
 export const SearchEntrySchema = z.object({
   title: z.string(),
   link: z.string(),
@@ -92,6 +97,9 @@ export const LoadContentSchema = z.custom<LoadContentFn>(
   (v) => typeof v === "function",
 );
 export const GetSearchIndexSchema = z.custom<GetSearchIndexFn>(
+  (v) => typeof v === "function",
+);
+export const OnContentUpdateSchema = z.custom<OnContentUpdateFn>(
   (v) => typeof v === "function",
 );
 

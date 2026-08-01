@@ -72,9 +72,33 @@ export function swiftyDocsPlugin(
 ): Plugin[] {
   const { config, debug = false } = options;
 
+  // The docs dir usually lives outside the Vite root (e.g. this package's
+  // app/ root), so the dev watcher must be told about it explicitly or md
+  // edits never fire HMR updates.
+  const docsAbsDir = isAbsolute(config.docs)
+    ? config.docs
+    : resolve(process.cwd(), config.docs);
+
   const docsPlugin: Plugin = {
     name: "swifty-docs",
     enforce: "pre",
+
+    configureServer(server) {
+      server.watcher.add(docsAbsDir);
+
+      // Routes/sidebar/search paths are generated once at config-load time
+      // (defineConfig side effect), so added/removed pages need a restart.
+      // A full reload at least surfaces the change instead of silence.
+      const onFileListChange = (file: string) => {
+        if (!file.endsWith(".md") || !file.startsWith(docsAbsDir)) return;
+        console.log(
+          `[@swifty.js/docs] ${file} added/removed — restart the dev server to regenerate routes and sidebar.`,
+        );
+        server.ws.send({ type: "full-reload" });
+      };
+      server.watcher.on("add", onFileListChange);
+      server.watcher.on("unlink", onFileListChange);
+    },
 
     resolveId(source: string, importer?: string) {
       const [cleanSource, query] = source.split("?");

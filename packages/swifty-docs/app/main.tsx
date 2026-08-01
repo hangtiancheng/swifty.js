@@ -28,6 +28,7 @@ import {
   docsConfig,
   loadContent,
   getSearchIndex,
+  onContentUpdate,
 } from "@swifty-docs/generated";
 
 // CSS
@@ -46,6 +47,7 @@ function App() {
         config={docsConfig}
         loadContent={guard.loadContent}
         getSearchIndex={getSearchIndex}
+        onContentUpdate={onContentUpdate}
       >
         <LocationProvider>
           <Router>

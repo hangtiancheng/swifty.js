@@ -30,11 +30,18 @@ import { Toc } from "./toc";
 interface ContentRendererProps {
   html: string;
   headings: PageHeading[];
+  /** Identity of the rendered page; when unchanged, the page-in animation is not replayed. */
+  pageKey?: string;
 }
 
-export function ContentRenderer({ html, headings }: ContentRendererProps) {
+export function ContentRenderer({
+  html,
+  headings,
+  pageKey,
+}: ContentRendererProps) {
   const articleRef = useRef<HTMLElement>(null);
   const disposersRef = useRef<Array<() => void>>([]);
+  const lastKeyRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     const el = articleRef.current;
@@ -47,9 +54,12 @@ export function ContentRenderer({ html, headings }: ContentRendererProps) {
     // contains runtime user input.
     el.innerHTML = html;
 
-    el.classList.remove("animate-page-in");
-    void el.offsetWidth;
-    el.classList.add("animate-page-in");
+    if (pageKey === undefined || lastKeyRef.current !== pageKey) {
+      lastKeyRef.current = pageKey;
+      el.classList.remove("animate-page-in");
+      void el.offsetWidth;
+      el.classList.add("animate-page-in");
+    }
 
     for (const holder of Array.from(
       el.querySelectorAll<HTMLElement>("[swifty-docs-toc]"),
@@ -68,7 +78,7 @@ export function ContentRenderer({ html, headings }: ContentRendererProps) {
       render(<CopyButton target={pre ?? block} />, holderEl);
       disposersRef.current.push(() => render(null, holderEl));
     }
-  }, [html, headings]);
+  }, [html, headings, pageKey]);
 
   useEffect(() => {
     return () => {

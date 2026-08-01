@@ -4,6 +4,9 @@ const loaders = {
 <%- loaderEntries %>
 };
 
+// route path -> fresh module pushed by HMR (dev only; always empty in prod)
+const _freshModules = Object.create(null);
+
 /**
  * Load a docs page's content module by route path.
  * Returns null for unknown paths so the layout can render a not-found state.
@@ -13,6 +16,8 @@ export async function loadContent(path) {
   // suffixes so "/docs/ch1/index.md" resolves the same as "/docs/ch1".
   let normalized = (path || "/").replace(/\/+$/, "") || "/";
   normalized = normalized.replace(/^(.*?)(?:\/index(?:\.md|\.html)?)\/?$/, (_m, p1) => p1 || "/");
+  const fresh = _freshModules[normalized];
+  if (fresh) return { pageData: fresh.pageData, contentHtml: fresh.contentHtml };
   const loader = loaders[normalized];
   if (!loader) return null;
   const mod = await loader();
@@ -34,7 +39,9 @@ export async function getSearchIndex() {
   const entries = Object.entries(loaders).filter(([k]) =>
     _searchablePaths.has(k),
   );
-  const mods = await Promise.all(entries.map(([, loader]) => loader()));
+  const mods = await Promise.all(
+    entries.map(([k, loader]) => _freshModules[k] || loader()),
+  );
   _searchIndex = mods.map((mod, i) => {
     const link = entries[i][0];
     const pd = mod.pageData || {};
@@ -46,4 +53,33 @@ export async function getSearchIndex() {
     };
   });
   return _searchIndex;
+}
+
+// Dev-only markdown hot reload. This module is the HMR accept boundary for
+// every .md page: on edit, Vite re-fetches the compiled md module (through
+// the full plugin pipeline, so docs-guard encryption still applies) and the
+// callback caches it and notifies subscribers with the affected route paths.
+const _updateSubscribers = new Set();
+
+/** Subscribe to md hot updates. Returns an unsubscribe function. */
+export function onContentUpdate(cb) {
+  _updateSubscribers.add(cb);
+  return () => _updateSubscribers.delete(cb);
+}
+
+if (import.meta.hot) {
+  const hotRoutes = <%- hotRoutesJson %>;
+  import.meta.hot.accept(<%- hotDepsJson %>, (mods) => {
+    const changed = [];
+    mods.forEach((mod, i) => {
+      if (!mod) return;
+      for (const route of hotRoutes[i]) {
+        _freshModules[route] = mod;
+        changed.push(route);
+      }
+    });
+    if (!changed.length) return;
+    _searchIndex = null;
+    for (const cb of _updateSubscribers) cb(changed);
+  });
 }

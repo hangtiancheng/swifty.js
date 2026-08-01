@@ -246,3 +246,57 @@ describe("defineConfig baseUrl prefixing", () => {
     expect(cfg.search).toBe(false);
   });
 });
+
+describe("defineConfig md hot-reload wiring", () => {
+  function readGenerated(projectRoot: string): string {
+    return fs.readFileSync(
+      path.join(projectRoot, ".swifty-docs/generated/index.js"),
+      "utf-8",
+    );
+  }
+
+  it("emits an import.meta.hot.accept boundary with md specifiers and onContentUpdate", () => {
+    const root = createTempProject({
+      "docs/intro.md": "# Intro\n",
+    });
+    dirs.push(root);
+
+    defineConfig({ docs: "docs", baseUrl: "/", title: "Test" }, root);
+
+    const generated = readGenerated(root);
+    expect(generated).toContain("export function onContentUpdate(");
+    // Vite lexes accept() deps textually — they must be an inline array of
+    // string literals matching the loader specifiers.
+    const match = generated.match(
+      /import\.meta\.hot\.accept\((\[[\s\S]*?\]), /,
+    );
+    expect(match).not.toBeNull();
+    const deps: string[] = JSON.parse(match![1]);
+    expect(deps).toEqual(["../../docs/intro.md"]);
+  });
+
+  it("dedupes specifiers shared by virtual directory-index routes", () => {
+    const root = createTempProject({
+      "docs/guide/intro.md": "# Intro\n",
+    });
+    dirs.push(root);
+
+    defineConfig({ docs: "docs", baseUrl: "/site/", title: "Test" }, root);
+
+    const generated = readGenerated(root);
+    const acceptMatch = generated.match(
+      /import\.meta\.hot\.accept\((\[[\s\S]*?\]), /,
+    );
+    expect(acceptMatch).not.toBeNull();
+    const deps: string[] = JSON.parse(acceptMatch![1]);
+    // intro.md backs both /site/guide/intro and the virtual /site/guide
+    // index route, but must appear only once in the accept deps.
+    expect(deps).toEqual(["../../docs/guide/intro.md"]);
+
+    const routesMatch = generated.match(/const hotRoutes = (\[[\s\S]*?\]);/);
+    expect(routesMatch).not.toBeNull();
+    const hotRoutes: string[][] = JSON.parse(routesMatch![1]);
+    expect(hotRoutes).toHaveLength(1);
+    expect(hotRoutes[0].sort()).toEqual(["/site/guide", "/site/guide/intro"]);
+  });
+});

@@ -99,6 +99,28 @@ export function DocsLayout() {
     };
   }, [path, docs.loadContent]);
 
+  // Dev-only md hot reload: refresh content in place (no loading flash, no
+  // scroll reset) when the currently viewed page's markdown is edited.
+  useEffect(() => {
+    if (!docs.onContentUpdate || !docs.loadContent) return;
+    let cancelled = false;
+    const unsubscribe = docs.onContentUpdate((routes) => {
+      if (!routes.includes(path)) return;
+      docs
+        .loadContent!(path)
+        .then((result) => {
+          if (cancelled) return;
+          const parsed = LoadedContentSchema.safeParse(result);
+          if (parsed.success) setContent(parsed.data);
+        })
+        .catch(() => {});
+    });
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
+  }, [path, docs.onContentUpdate, docs.loadContent]);
+
   useEffect(() => {
     if (loading || content !== null) return;
     const base = docs.config.baseUrl.replace(/\/+$/, "") || "/";
@@ -118,15 +140,20 @@ export function DocsLayout() {
     if (!window.location.hash) window.scrollTo({ top: 0 });
   }, [path]);
 
+  // Scroll to the URL hash on navigation only — content-level hot
+  // refreshes of the same page must not yank the reader back to the anchor.
+  const hashScrolledPathRef = useRef<string | null>(null);
   useEffect(() => {
     if (!content) return;
+    if (hashScrolledPathRef.current === path) return;
+    hashScrolledPathRef.current = path;
     const hash = window.location.hash.slice(1);
     if (hash) {
       queueMicrotask(() =>
         document.getElementById(hash)?.scrollIntoView({ block: "start" }),
       );
     }
-  }, [content]);
+  }, [content, path]);
 
   const drawerRef = useRef<HTMLDivElement>(null);
   const drawerReturnFocusRef = useRef<HTMLElement | null>(null);
@@ -215,6 +242,7 @@ export function DocsLayout() {
                 <ContentRenderer
                   html={content.contentHtml}
                   headings={headings}
+                  pageKey={path}
                 />
                 <PrevNext prev={pager.prev} next={pager.next} />
               </>

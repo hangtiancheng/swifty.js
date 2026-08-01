@@ -160,6 +160,21 @@ function generateRoutesFile(config: DocsConfig, projectRoot: string): void {
     })
     .join("\n");
 
+  // HMR accept deps: one entry per unique specifier (virtual directory-index
+  // routes share a filePath with a real route, so one specifier can map to
+  // several route paths). hotRoutes is index-aligned with the deps array.
+  const specToRoutes = new Map<string, string[]>();
+  for (const r of routes) {
+    const rel = relative(generatedDir, r.filePath).replace(/\\/g, "/");
+    const specifier = rel.startsWith(".") ? rel : "./" + rel;
+    const existing = specToRoutes.get(specifier);
+    if (existing) {
+      existing.push(r.path);
+    } else {
+      specToRoutes.set(specifier, [r.path]);
+    }
+  }
+
   // Canonical paths of real content routes (excluding virtual index routes
   // and password-protected pages, which must not enter the search index).
   // Used by getSearchIndex() to avoid duplicate/leaking search entries.
@@ -186,6 +201,8 @@ function generateRoutesFile(config: DocsConfig, projectRoot: string): void {
     loaderEntries,
     searchablePathsJson: JSON.stringify(searchablePaths),
     docsConfigJson: JSON.stringify(runtimeConfig, null, 2),
+    hotDepsJson: JSON.stringify([...specToRoutes.keys()]),
+    hotRoutesJson: JSON.stringify([...specToRoutes.values()]),
   });
 
   // Write generated module to .swifty-docs/generated/
