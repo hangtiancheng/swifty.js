@@ -38,6 +38,13 @@ export function codeBlockPlugin(md: MarkdownIt): void {
     const lang = token.info.trim().split(/\s+/)[0] || "";
     const code = token.content;
 
+    // Mermaid fences become diagram placeholders, not code blocks: the
+    // theme runtime (ContentRenderer) decodes data-mermaid and renders the
+    // SVG in the browser via a lazy-loaded mermaid import.
+    if (lang === "mermaid") {
+      return `<div class="mermaid-block" data-mermaid="${escapeHtml(encodeURIComponent(code))}"></div>\n`;
+    }
+
     let inner: string;
     if (mdOptions.highlight) {
       // Shiki produces a fully styled <pre class="shiki"> with either

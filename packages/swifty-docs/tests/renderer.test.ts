@@ -44,6 +44,21 @@ describe("renderToSwiftyTemplate", () => {
     expect(html).toContain("console.log");
   });
 
+  it("renders mermaid fences as diagram placeholders", () => {
+    const md = createParser();
+    const source = "graph TD;\n  A-->B;\n";
+    const tokens = md.parse("```mermaid\n" + source + "```", {});
+    const html = renderToSwiftyTemplate(tokens, md);
+
+    expect(html).toContain('class="mermaid-block"');
+    expect(html).not.toContain("codeblock");
+    const match = html.match(/data-mermaid="([^"]*)"/);
+    expect(match).not.toBeNull();
+    // The attribute is escapeHtml(encodeURIComponent(code)) — decoding must
+    // round-trip to the original source.
+    expect(decodeURIComponent(match![1])).toBe(source);
+  });
+
   it("renders lists", () => {
     const md = createParser();
     const tokens = md.parse("- item 1\n- item 2\n- item 3", {});

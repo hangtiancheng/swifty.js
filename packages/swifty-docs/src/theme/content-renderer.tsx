@@ -25,6 +25,7 @@ import { render } from "preact";
 import { CheckIcon, CopyIcon } from "lucide-preact";
 import type { PageHeading } from "./lib/content";
 import { cn, decodedLocationHash } from "./lib/utils";
+import { MermaidDiagram } from "./mermaid";
 import { Toc } from "./toc";
 
 interface ContentRendererProps {
@@ -65,6 +66,14 @@ export function ContentRenderer({
       el.querySelectorAll<HTMLElement>("[swifty-docs-toc]"),
     )) {
       render(<Toc headings={headings} inline />, holder);
+      disposersRef.current.push(() => render(null, holder));
+    }
+
+    for (const holder of Array.from(
+      el.querySelectorAll<HTMLElement>(".mermaid-block[data-mermaid]"),
+    )) {
+      const code = decodeURIComponent(holder.dataset["mermaid"] ?? "");
+      render(<MermaidDiagram code={code} />, holder);
       disposersRef.current.push(() => render(null, holder));
     }
 

@@ -188,6 +188,24 @@ Content here.
     expect(result).toContain("> number</span>");
   });
 
+  it("mermaid fences bypass Shiki and emit diagram placeholders", async () => {
+    const source =
+      "```mermaid\ngraph TD;\n  A-->B;\n```\n\n```typescript\nconst x = 1;\n```";
+    const result = await compileMarkdown(source, {
+      config: highlightConfig,
+      filePath: "docs/test.md",
+    });
+
+    // contentHtml is a JSON string literal, so quotes are escaped.
+    expect(result).toContain('class=\\"mermaid-block\\"');
+    expect(result).toContain("data-mermaid=");
+    // The mermaid source must not appear as highlighted code…
+    expect(result).not.toContain("graph TD");
+    // …while other fences still go through Shiki.
+    expect(result).toContain("shiki");
+    expect(result).toContain(">const</span>");
+  });
+
   it("renders internal links without target=_blank", async () => {
     const source = "[Guide](/guide/)";
     const result = await compileMarkdown(source, {
