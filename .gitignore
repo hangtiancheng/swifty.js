@@ -210,3 +210,4 @@ packages/swifty-docs/docs
 
 **/.playwright-cli
 lark.js/
+.larky

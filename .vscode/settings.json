@@ -70,6 +70,7 @@
     "POPCNT",
     "popcount",
     "preact",
+    "precached",
     "pttl",
     "pushpop",
     "reentrancy",
