@@ -1,12 +1,14 @@
 {
   "name": "@swifty.js/docs",
-  "version": "0.0.7",
-  "description": "A beautiful static site generator powered by Preact",
+  "version": "0.0.8",
+  "description": "A beautiful documentation site generator powered by Preact",
   "keywords": [
-    "@swifty.js",
-    "markdown",
+    "@lark.js",
     "documentation",
-    "docs"
+    "docs",
+    "hmr",
+    "markdown",
+    "mermaid"
   ],
   "license": "MIT",
   "author": "https://github.com/hangtiancheng",
