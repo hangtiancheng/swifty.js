@@ -21,26 +21,34 @@ Consumer CSS entry:
 
 ## Semantic token table (exact values from client.css)
 
-| Token                                    | Light                                                    | Dark                                               |
-| ---------------------------------------- | -------------------------------------------------------- | -------------------------------------------------- |
-| `--background`                           | `oklch(0.979 0.004 145)`                                 | `oklch(0.162 0.013 150)`                           |
-| `--foreground`                           | `oklch(0.243 0.022 152)`                                 | `oklch(0.912 0.008 150)`                           |
-| `--card` / `--card-foreground`           | `oklch(0.992 0.003 145)` / fg                            | `oklch(0.187 0.013 150)` / fg                      |
-| `--primary`                              | `oklch(0.507 0.09 155)`                                  | `oklch(0.723 0.098 155)`                           |
-| `--primary-foreground`                   | `oklch(0.984 0.008 150)`                                 | `oklch(0.16 0.02 150)`                             |
-| `--secondary` / `--secondary-foreground` | `oklch(0.94 0.014 150)`                                  | `oklch(0.232 0.015 150)`                           |
-| `--muted` / `--muted-foreground`         | `oklch(0.947 0.009 150)` / `oklch(0.472 0.022 152)`      | `oklch(0.232 0.015 150)` / `oklch(0.677 0.02 152)` |
-| `--accent` / `--accent-foreground`       | `oklch(0.922 0.028 155)`                                 | `oklch(0.268 0.032 155)`                           |
-| `--destructive`                          | `oklch(0.577 0.215 27)`                                  | `oklch(0.65 0.2 25)`                               |
-| `--border` / `--input`                   | `oklch(0.882 0.014 150)`                                 | `oklch(0.297 0.015 150)`                           |
-| `--ring`                                 | same as `--primary`                                      | same as `--primary`                                |
-| `--sidebar`                              | `oklch(0.966 0.006 145)`                                 | `oklch(0.148 0.012 150)`                           |
-| `--code`                                 | `oklch(0.971 0.005 150)`                                 | `oklch(0.191 0.013 150)`                           |
-| `--callout-warning`                      | `oklch(0.66 0.14 70)`                                    | `oklch(0.76 0.13 75)`                              |
-| `--callout-danger`                       | `oklch(0.577 0.215 27)`                                  | `oklch(0.68 0.19 25)`                              |
-| `--radius`                               | `0.625rem` (sm/md/lg/xl derived: −4px, −2px, base, +4px) | same                                               |
+| Token                                    | Light                                                 | Dark                                             |
+| ---------------------------------------- | ----------------------------------------------------- | ------------------------------------------------ |
+| `--background`                           | `oklch(1 0 0)` (pure white)                           | `oklch(0.145 0 0)` (near-black)                  |
+| `--foreground`                           | `oklch(0.145 0 0)` (near-black)                       | `oklch(0.95 0 0)` (off-white)                    |
+| `--primary`                              | `oklch(0.55 0.19 258)` (React blue)                   | `oklch(0.72 0.14 255)` (lighter React blue)      |
+| `--primary-foreground`                   | `oklch(1 0 0)`                                        | `oklch(0.145 0.02 260)`                          |
+| `--secondary` / `--secondary-foreground` | `oklch(0.965 0 0)` / `oklch(0.205 0 0)`               | `oklch(0.235 0 0)` / `oklch(0.92 0 0)`           |
+| `--muted` / `--muted-foreground`         | `oklch(0.96 0 0)` / `oklch(0.545 0 0)`                | `oklch(0.235 0 0)` / `oklch(0.7 0 0)`            |
+| `--accent` / `--accent-foreground`       | `oklch(0.955 0.02 255)` / `oklch(0.35 0.12 258)`      | `oklch(0.27 0.04 258)` / `oklch(0.85 0.08 255)`  |
+| `--destructive`                          | `oklch(0.58 0.21 27)`                                 | `oklch(0.65 0.2 25)`                             |
+| `--radius`                               | `0.5rem` (sm/md/lg/xl derived: −4px, −2px, base, +4px) | same                                             |
 
-The default palette is green-tinted (hue ~145–155).
+The palette is Vercel-style: zero-chroma black/white neutrals with a React-blue
+primary (hue ~255–258). There are **no** `--card`, `--card-foreground`,
+`--border`, `--input`, `--ring`, `--sidebar`, `--code`, `--callout-warning`, or
+`--callout-danger` tokens — those roles reuse the tokens above:
+
+- **Borders** → `--muted` (utilities `border-muted`, `border-muted/70`, …; the
+  base `*, ::before, ::after { border-color }` reset is `var(--muted)`).
+- **Focus rings** → `--primary` (`ring-primary`, global `:focus-visible`
+  outline is `color-mix(in oklab, var(--primary) 65%, transparent)`).
+- **Input borders** → `--muted`, with `--primary` on focus.
+- **Code surfaces** (`.codeblock`, `.mermaid-error`, prose `pre` bg, inline
+  code) → `--muted` (`bg-muted`).
+- **Card / drawer surfaces** (dialog, prev-next cards, mobile drawer) →
+  `--background` (`bg-background`).
+- **Callout accents** — tip and warning → `--primary`; danger →
+  `--destructive`; details → muted.
 
 ## Recipe: rebrand the palette
 
@@ -52,14 +60,13 @@ Override tokens **after** importing `client.css` — no component changes needed
 @source "@swifty.js/docs/theme.js";
 
 :root {
-  --primary: oklch(0.55 0.2 260); /* blue brand */
-  --ring: oklch(0.55 0.2 260);
-  --accent: oklch(0.93 0.03 260);
+  --primary: oklch(0.55 0.2 150); /* green brand */
+  --accent: oklch(0.93 0.03 150);
+  --accent-foreground: oklch(0.35 0.12 150);
   --radius: 0.375rem; /* sharper corners */
 }
 .dark {
-  --primary: oklch(0.72 0.15 260);
-  --ring: oklch(0.72 0.15 260);
+  --primary: oklch(0.72 0.15 150);
 }
 ```
 
@@ -67,7 +74,7 @@ Because `@theme inline` references `var(--token)`, redefined values propagate to
 
 ## Recipe: change fonts
 
-`@theme inline` defines `--font-display`, `--font-sans`, `--font-mono` (all default to a mono stack: `Geist Mono, Swifty, Maple Mono, Menlo, Cascadia Code, Sarasa Gothic SC, PingFang SC, Microsoft YaHei, monospace`). Fonts are **not** self-hosted by the package — load your own `@font-face`/fontsource and override:
+`@theme inline` defines `--font-display` and `--font-sans` (both default to a Geist-style sans stack: `Geist, Swifty, -apple-system, BlinkMacSystemFont, Segoe UI, PingFang SC, Microsoft YaHei, sans-serif`) and `--font-mono` (default `Geist Mono, Swifty, Maple Mono, Menlo, Cascadia Code, Sarasa Gothic SC, PingFang SC, Microsoft YaHei, monospace`). Fonts are **not** self-hosted by the package — load your own `@font-face`/fontsource and override:
 
 ```css
 @theme {
@@ -92,14 +99,14 @@ Because `@theme inline` references `var(--token)`, redefined values propagate to
 
 ## Component chrome classes (safe to restyle)
 
-| Class                                                           | Element                                                                                                                      |
-| --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `.codeblock`                                                    | fence wrapper (rounded border, `bg-code`, hover border tint via `--primary`)                                                 |
-| `.codeblock::after`                                             | language chip from `data-lang` attr                                                                                          |
-| `.codeblock-actions`, `.codeblock-copy`, `.codeblock-copy-done` | copy-button chrome (revealed on hover / `pointer-coarse`)                                                                    |
-| `.callout`, `.callout-title`                                    | admonition container + mono uppercase title row                                                                              |
-| `.callout-tip` / `-warning` / `-danger` / `-details`            | per-type accents (`--primary`, `--callout-warning`, `--callout-danger`, muted `<details>` with rotating chevron on `[open]`) |
-| `.header-anchor`                                                | heading `#` permalink                                                                                                        |
+| Class                                                           | Element                                                                                                                  |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `.codeblock`                                                    | fence wrapper (rounded border, `bg-muted`, hover border tint via `--primary`)                                            |
+| `.codeblock::after`                                             | language chip from `data-lang` attr                                                                                      |
+| `.codeblock-actions`, `.codeblock-copy`, `.codeblock-copy-done` | copy-button chrome (revealed on hover / `pointer-coarse`)                                                                |
+| `.callout`, `.callout-title`                                    | admonition container + mono uppercase title row                                                                          |
+| `.callout-tip` / `-warning` / `-danger` / `-details`            | per-type accents (tip and warning use `--primary`, danger uses `--destructive`, muted `<details>` with rotating chevron on `[open]`) |
+| `.header-anchor`                                                | heading `#` permalink                                                                                                    |
 
 Custom utilities defined with `@utility`: `docs-grid` (dot-grid hero background with bottom fade mask), `sidebar-scroll` (thin styled scrollbar), `skeleton` (loading shimmer).
 

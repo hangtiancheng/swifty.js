@@ -410,7 +410,7 @@ The layout stays mounted across all routes. On navigation the route path changes
 
 ### Design tokens and dark mode
 
-The theme uses shadcn-style semantic tokens (`--background`, `--foreground`, `--primary`, `--border`, ...) defined as `oklch` custom properties on `:root` and `.dark`, mapped into the Tailwind color scale via `@theme inline`. A small inline script in `index.html` applies the persisted (or system-preferred) scheme before first paint, so there is no flash of the wrong theme; the navbar toggle persists the choice to `localStorage`.
+The theme uses shadcn-style semantic tokens (`--background`, `--foreground`, `--primary`, `--muted`, ...) defined as `oklch` custom properties on `:root` and `.dark`, mapped into the Tailwind color scale via `@theme inline`. A small inline script in `index.html` applies the persisted (or system-preferred) scheme before first paint, so there is no flash of the wrong theme; the navbar toggle persists the choice to `localStorage`.
 
 Code blocks use Shiki's dual-theme output: each token carries `--shiki-light` / `--shiki-dark` variables with no inline color, and the stylesheet switches them under `.dark` -- so code follows the color scheme with no rebuild.
 

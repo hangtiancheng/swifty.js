@@ -191,7 +191,7 @@ export function PasswordDialog({
                 <XIcon size={15} />
               </button>
 
-              <div class="border-border bg-accent text-primary mb-5 flex size-12 items-center justify-center rounded-lg border">
+              <div class="border-muted bg-accent text-primary mb-5 flex size-12 items-center justify-center rounded-lg border">
                 <LockIcon size={24} strokeWidth={1.5} />
               </div>
 

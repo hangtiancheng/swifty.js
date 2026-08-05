@@ -66,7 +66,7 @@ export function Logo({ href, title, class: className }: LogoProps) {
     <a
       href={href}
       class={cn(
-        "group focus-visible:ring-ring/50 flex items-center gap-2.5 rounded-md focus-visible:ring-2 focus-visible:outline-none",
+        "group focus-visible:ring-primary/50 flex items-center gap-2.5 rounded-md focus-visible:ring-2 focus-visible:outline-none",
         className,
       )}
       aria-label={`${title} — home`}

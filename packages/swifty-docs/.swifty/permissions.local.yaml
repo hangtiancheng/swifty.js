@@ -1,8 +1,0 @@
-- rule: Bash(grep -n*)
-  effect: allow
-- rule: Bash(grep -rn*)
-  effect: allow
-- rule: Bash(sed -n*)
-  effect: allow
-- rule: Bash(cd /Users/hangtiancheng/github/swifty.js/packages/swifty-docs*)
-  effect: allow

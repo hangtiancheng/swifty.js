@@ -261,7 +261,7 @@ export function DocsLayout() {
               <NotFound path={path} home={landing} />
             )}
 
-            <footer class="border-border/70 text-muted-foreground mt-16 flex flex-wrap items-center justify-between gap-2 border-t pt-5 pb-10 text-xs">
+            <footer class="border-muted/70 text-muted-foreground mt-16 flex flex-wrap items-center justify-between gap-2 border-t pt-5 pb-10 text-xs">
               <span>
                 © {new Date().getFullYear()} {docs.config.title}
               </span>
@@ -303,11 +303,11 @@ export function DocsLayout() {
           aria-modal="true"
           aria-label="Navigation menu"
           class={cn(
-            "border-border bg-sidebar absolute inset-y-0 left-0 flex w-72 flex-col border-r shadow-xl transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
+            "border-muted bg-background absolute inset-y-0 left-0 flex w-72 flex-col border-r shadow-xl transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
             sidebarOpen ? "translate-x-0" : "-translate-x-full",
           )}
         >
-          <div class="border-border/70 flex h-14 shrink-0 items-center justify-between border-b px-4">
+          <div class="border-muted/70 flex h-14 shrink-0 items-center justify-between border-b px-4">
             <Logo href={landing} title={docs.config.title} />
             <Button
               variant="ghost"
@@ -358,7 +358,7 @@ function NotFound({ path, home }: { path: string; home: string }) {
   const { route: navigate } = useLocation();
   return (
     <div class="animate-fade-in flex flex-col items-start gap-4 py-16">
-      <span class="border-border bg-muted/40 text-muted-foreground grid size-12 place-items-center rounded-xl border">
+      <span class="border-muted bg-muted/40 text-muted-foreground grid size-12 place-items-center rounded-xl border">
         <CompassIcon class="size-6" />
       </span>
       <h1 class="font-display text-3xl font-semibold tracking-tight">

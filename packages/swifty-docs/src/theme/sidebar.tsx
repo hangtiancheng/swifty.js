@@ -120,7 +120,7 @@ function SidebarGroup({
       <button
         onClick={() => setCollapsed(!collapsed)}
         aria-expanded={!collapsed}
-        class="group text-muted-foreground hover:text-foreground focus-visible:ring-ring/50 flex w-full items-center justify-between rounded-md px-2 py-1.5 font-mono text-[11px] font-semibold tracking-[0.14em] uppercase transition-colors duration-200 focus-visible:ring-2 focus-visible:outline-none"
+        class="group text-muted-foreground hover:text-foreground focus-visible:ring-primary/50 flex w-full items-center justify-between rounded-md px-2 py-1.5 font-mono text-[11px] font-semibold tracking-[0.14em] uppercase transition-colors duration-200 focus-visible:ring-2 focus-visible:outline-none"
       >
         {title}
         <ChevronDownIcon
@@ -139,7 +139,7 @@ function SidebarGroup({
         )}
       >
         <div class="overflow-hidden">
-          <ul class="border-border/70 mt-1.5 ml-2 border-l pl-px">
+          <ul class="border-muted/70 mt-1.5 ml-2 border-l pl-px">
             {items.map((item, i) => (
               <SidebarNode
                 key={item.link ?? `${item.text}-${i}`}
@@ -185,7 +185,7 @@ function SidebarNode({
             "relative -ml-px block border-l-2 py-1.5 pr-2 pl-3.5 text-[13px] leading-snug transition-[color,background-color,border-color] duration-200",
             active
               ? "border-primary bg-primary/8 text-primary font-medium"
-              : "text-muted-foreground hover:border-border hover:bg-accent/50 hover:text-foreground border-transparent",
+              : "text-muted-foreground hover:border-muted hover:bg-accent/50 hover:text-foreground border-transparent",
           )}
         >
           {item.text}
@@ -223,7 +223,7 @@ function SidebarNode({
         )}
       >
         <div class="overflow-hidden">
-          <ul class="border-border/70 ml-3.5 border-l pl-px">
+          <ul class="border-muted/70 ml-3.5 border-l pl-px">
             {(item.items ?? []).map((child, i) => (
               <SidebarNode
                 key={child.link ?? `${child.text}-${i}`}

@@ -70,7 +70,7 @@ export function Toc({ headings, inline }: TocProps) {
     <div
       class={cn(
         inline &&
-          "not-prose border-border/80 bg-muted/30 my-6 rounded-xl border p-4",
+          "not-prose border-muted/80 bg-muted/30 my-6 rounded-xl border p-4",
       )}
     >
       <p class="text-muted-foreground flex items-center gap-1.5 font-mono text-[11px] font-semibold tracking-[0.14em] uppercase">
@@ -80,7 +80,7 @@ export function Toc({ headings, inline }: TocProps) {
       <div class="relative mt-3">
         <span
           aria-hidden="true"
-          class="bg-border/80 absolute inset-y-0 left-0 w-px"
+          class="bg-muted/80 absolute inset-y-0 left-0 w-px"
         />
         <span
           aria-hidden="true"

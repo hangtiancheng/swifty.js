@@ -196,7 +196,7 @@ export function SearchDialog() {
         <DialogContent class="top-[10vh] left-1/2 w-[calc(100vw-2rem)] max-w-xl -translate-x-1/2">
           <DialogAccessibleTitle>Search documentation</DialogAccessibleTitle>
 
-          <div class="border-border/80 flex items-center gap-2.5 border-b px-4">
+          <div class="border-muted/80 flex items-center gap-2.5 border-b px-4">
             <SearchIcon class="text-muted-foreground size-4 shrink-0" />
             <input
               ref={inputRef}
@@ -299,7 +299,7 @@ export function SearchDialog() {
             ) : null}
           </div>
 
-          <div class="border-border/80 bg-muted/30 text-muted-foreground flex items-center gap-3 border-t px-4 py-2.5 text-[11px]">
+          <div class="border-muted/80 bg-muted/30 text-muted-foreground flex items-center gap-3 border-t px-4 py-2.5 text-[11px]">
             <span class="flex items-center gap-1">
               <Kbd>↑</Kbd>
               <Kbd>↓</Kbd> navigate

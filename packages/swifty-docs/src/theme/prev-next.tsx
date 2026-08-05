@@ -33,13 +33,13 @@ export function PrevNext({ prev, next }: PrevNextProps) {
 
   return (
     <nav
-      class="border-border/70 mt-14 grid gap-3 border-t pt-6 sm:grid-cols-2"
+      class="border-muted/70 mt-14 grid gap-3 border-t pt-6 sm:grid-cols-2"
       aria-label="Page navigation"
     >
       {prev && (
         <a
           href={prev.link}
-          class="group border-border/80 bg-card/60 hover:border-primary/40 hover:bg-accent/40 flex items-center gap-3 rounded-xl border px-4 py-3 transition-[border-color,background-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:shadow-sm"
+          class="group border-muted/80 bg-background hover:border-primary/40 hover:bg-accent/40 flex items-center gap-3 rounded-xl border px-4 py-3 transition-[border-color,background-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:shadow-sm"
         >
           <ArrowLeftIcon class="text-muted-foreground group-hover:text-primary size-4 shrink-0 transition-[transform,color] duration-300 group-hover:-translate-x-0.5" />
           <span class="min-w-0">
@@ -55,7 +55,7 @@ export function PrevNext({ prev, next }: PrevNextProps) {
       {next && (
         <a
           href={next.link}
-          class="group border-border/80 bg-card/60 hover:border-primary/40 hover:bg-accent/40 flex flex-row-reverse items-center gap-3 rounded-xl border px-4 py-3 text-right transition-[border-color,background-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:shadow-sm sm:col-start-2"
+          class="group border-muted/80 bg-background hover:border-primary/40 hover:bg-accent/40 flex flex-row-reverse items-center gap-3 rounded-xl border px-4 py-3 text-right transition-[border-color,background-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:shadow-sm sm:col-start-2"
         >
           <ArrowRightIcon class="text-muted-foreground group-hover:text-primary size-4 shrink-0 transition-[transform,color] duration-300 group-hover:translate-x-0.5" />
           <span class="min-w-0">
