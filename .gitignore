@@ -211,3 +211,15 @@ packages/swifty-docs/docs
 **/.playwright-cli
 lark.js/
 .larky
+
+# Swifty tooling
+.swifty/
+**/.swifty/
+
+# Native addon cross-compilation
+*.node
+prebuilds/
+**/prebuilds/
+build-*/
+**/build-*/
+**/node-headers/

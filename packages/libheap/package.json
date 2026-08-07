@@ -20,7 +20,15 @@
     "bench": "vitest bench",
     "build": "node-gyp rebuild",
     "test": "vitest run",
-    "cmake": "cmake -S ./ -B ./build && cmake --build ./build"
+    "cmake": "cmake -S ./ -B ./build -G Ninja && cmake --build ./build",
+    "headers": "node scripts/cross-build.mjs --headers-only",
+    "cross": "node scripts/cross-build.mjs",
+    "cross:darwin-arm64": "node scripts/cross-build.mjs darwin arm64",
+    "cross:darwin-x64": "node scripts/cross-build.mjs darwin x64",
+    "cross:linux-arm64": "node scripts/cross-build.mjs linux arm64",
+    "cross:linux-x64": "node scripts/cross-build.mjs linux x64",
+    "cross:windows-arm64": "node scripts/cross-build.mjs windows arm64",
+    "cross:windows-x64": "node scripts/cross-build.mjs windows x64"
   },
   "dependencies": {
     "node-addon-api": "^8.8.0"

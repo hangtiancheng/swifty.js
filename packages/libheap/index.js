@@ -24,11 +24,23 @@ import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
 
+const candidates = [
+  `./prebuilds/${process.platform}-${process.arch}/heap.node`,
+  "./build/Release/heap.node",
+];
+
 let binding;
-try {
-  binding = require("./build/Release/heap.node");
-} catch (cause) {
-  throw new Error("@swifty.js/libheap: Native addon not found.", { cause });
+for (const candidate of candidates) {
+  try {
+    binding = require(candidate);
+    break;
+  } catch {}
+}
+
+if (!binding) {
+  throw new Error(
+    `@swifty.js/libheap: heap.node not found (searched: ${candidates.join(", ")})`,
+  );
 }
 
 export const { heapify, heappop, heappush, heappushpop, heapreplace, Heap } =
