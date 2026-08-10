@@ -241,21 +241,6 @@ importers:
         specifier: ^5.0.14
         version: 5.0.14(@types/react@19.2.18)(react@19.2.8)(use-sync-external-store@1.6.0(react@19.2.8))
 
-  packages/preact:
-    devDependencies:
-      '@rollup/plugin-terser':
-        specifier: ^1.0.0
-        version: 1.0.0(rollup@4.62.3)
-      prettier:
-        specifier: ^3.9.4
-        version: 3.9.6
-      rollup:
-        specifier: ^4.62.2
-        version: 4.62.3
-      rollup-plugin-esbuild:
-        specifier: ^6.2.1
-        version: 6.2.1(esbuild@0.28.1)(rollup@4.62.3)(supports-color@8.1.1)
-
   packages/promises-a-plus:
     devDependencies:
       '@eslint/js':
@@ -282,6 +267,21 @@ importers:
       typescript-eslint:
         specifier: ^8.62.1
         version: 8.65.0(eslint@10.8.0(jiti@2.7.0)(supports-color@1.2.0))(supports-color@1.2.0)(typescript@5.9.3)
+
+  packages/react:
+    devDependencies:
+      '@rollup/plugin-terser':
+        specifier: ^1.0.0
+        version: 1.0.0(rollup@4.62.3)
+      prettier:
+        specifier: ^3.9.4
+        version: 3.9.6
+      rollup:
+        specifier: ^4.62.2
+        version: 4.62.3
+      rollup-plugin-esbuild:
+        specifier: ^6.2.1
+        version: 6.2.1(esbuild@0.28.1)(rollup@4.62.3)(supports-color@8.1.1)
 
   packages/swifty-docs:
     dependencies:

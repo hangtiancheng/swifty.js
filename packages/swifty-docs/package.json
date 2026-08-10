@@ -1,6 +1,6 @@
 {
   "name": "@swifty.js/docs",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "A beautiful documentation site generator powered by React",
   "keywords": [
     "@lark.js",
