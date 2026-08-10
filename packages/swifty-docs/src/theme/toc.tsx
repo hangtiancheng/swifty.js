@@ -20,8 +20,8 @@
  * SOFTWARE.
  */
 
-import { useEffect, useRef, useState } from "preact/hooks";
-import { ListIcon } from "lucide-preact";
+import { useEffect, useRef, useState } from "react";
+import { ListIcon } from "lucide-react";
 import type { PageHeading } from "./lib/content";
 import { useScrollSpy } from "./lib/scroll-spy";
 import { cn, decodedLocationHash } from "./lib/utils";
@@ -49,13 +49,13 @@ export function Toc({ headings, inline }: TocProps) {
     }
   }, [active]);
 
-  const scrollTo = (slug: string) => (e: Event) => {
+  const scrollTo = (slug: string) => (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
     const el = document.getElementById(slug);
     if (!el) return;
     // pushState (instead of setting location.hash) records a copyable deep
-    // link and a back-button entry without triggering preact-iso routing
-    // or the browser's instant jump — the smooth scroll stays in control.
+    // link and a back-button entry without triggering the router or the
+    // browser's instant jump — the smooth scroll stays in control.
     // Skip when the hash is already current to avoid duplicate entries
     // (decoded comparison — location.hash is percent-encoded for CJK slugs).
     if (decodedLocationHash() !== `#${slug}`) {
@@ -68,31 +68,31 @@ export function Toc({ headings, inline }: TocProps) {
 
   return (
     <div
-      class={cn(
+      className={cn(
         inline &&
           "not-prose border-muted/80 bg-muted/30 my-6 rounded-xl border p-4",
       )}
     >
-      <p class="text-muted-foreground flex items-center gap-1.5 font-mono text-[11px] font-semibold tracking-[0.14em] uppercase">
-        <ListIcon class="size-3.5" />
+      <p className="text-muted-foreground flex items-center gap-1.5 font-mono text-[11px] font-semibold tracking-[0.14em] uppercase">
+        <ListIcon className="size-3.5" />
         On this page
       </p>
-      <div class="relative mt-3">
+      <div className="relative mt-3">
         <span
           aria-hidden="true"
-          class="bg-muted/80 absolute inset-y-0 left-0 w-px"
+          className="bg-muted/80 absolute inset-y-0 left-0 w-px"
         />
         <span
           aria-hidden="true"
-          class={cn(
+          className={cn(
             "bg-primary absolute left-0 w-px rounded-full transition-[top,height,opacity] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
             !marker.show && "opacity-0",
           )}
           style={{ top: `${marker.top}px`, height: `${marker.height}px` }}
         />
-        <ul class="space-y-px pl-3">
+        <ul className="space-y-px pl-3">
           {headings.map((h) => (
-            <li key={h.slug} class="relative">
+            <li key={h.slug} className="relative">
               <a
                 ref={(el) => {
                   if (el) linkRefs.current.set(h.slug, el);
@@ -100,7 +100,7 @@ export function Toc({ headings, inline }: TocProps) {
                 }}
                 href={`#${h.slug}`}
                 onClick={scrollTo(h.slug)}
-                class={cn(
+                className={cn(
                   "block py-1 text-xs leading-snug transition-colors duration-200",
                   h.level >= 3 && "pl-3",
                   active === h.slug

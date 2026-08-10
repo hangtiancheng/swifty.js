@@ -21,31 +21,28 @@
  */
 
 /**
- * Preact theme for @swifty.js/docs.
+ * React theme for @swifty.js/docs.
  *
- * The theme is a set of Preact components that render the build-time
+ * The theme is a set of React components that render the build-time
  * markdown output ({ pageData, contentHtml } modules). Wire it up in your
  * app entry:
  *
  * ```tsx
  * import { DocsProvider, DocsLayout } from "@swifty.js/docs";
  * import { docsConfig, loadContent, getSearchIndex } from "@swifty-docs/generated";
- * import { render } from "preact";
- * import { LocationProvider, Router, Route } from "preact-iso";
+ * import { createRoot } from "react-dom/client";
+ * import { LocationProvider } from "@swifty.js/docs/theme";
  *
- * render(
+ * createRoot(document.getElementById("app")!).render(
  *   <DocsProvider
  *     config={docsConfig}
  *     loadContent={loadContent}
  *     getSearchIndex={getSearchIndex}
  *   >
  *     <LocationProvider>
- *       <Router>
- *         <Route default component={DocsLayout} />
- *       </Router>
+ *       <DocsLayout />
  *     </LocationProvider>
  *   </DocsProvider>,
- *   document.getElementById("app")!,
  * );
  * ```
  */
@@ -88,6 +85,7 @@ export {
 export { cn } from "./lib/utils";
 export { createSearchEngine, highlightSegments } from "./lib/search";
 export { useScrollSpy } from "./lib/scroll-spy";
+export { LocationProvider, useLocation } from "./lib/router";
 export {
   computePrevNext,
   normalizePath,

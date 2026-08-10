@@ -23,7 +23,7 @@
 /**
  * @swifty.js/docs barrel exports.
  *
- * Main entry point — browser-safe exports only (Preact theme + types).
+ * Main entry point — browser-safe exports only (React theme + types).
  *
  * Build-time utilities (defineConfig, scanDocsDir, generateSidebar, etc.)
  * are available from sub-path exports:
@@ -56,11 +56,12 @@ export type {
 export { slugify, createSlugger } from "./runtime";
 
 // ============================================================
-// Preact theme
+// React theme
 // ============================================================
 
 export { DocsProvider, useDocs, type DocsProviderProps } from "./theme/context";
 export { DocsLayout } from "./theme/docs-layout";
+export { LocationProvider, useLocation } from "./theme/lib/router";
 export { Navbar } from "./theme/navbar";
 export { Sidebar } from "./theme/sidebar";
 export { Toc } from "./theme/toc";

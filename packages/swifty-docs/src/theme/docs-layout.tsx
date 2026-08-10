@@ -26,11 +26,11 @@ import {
   useMemo,
   useRef,
   useState,
-} from "preact/hooks";
-import { useLocation } from "preact-iso";
+} from "react";
+import { useLocation } from "./lib/router";
 import { ContentRenderer } from "./content-renderer";
 import { useDocs } from "./context";
-import { CompassIcon, XIcon } from "lucide-preact";
+import { CompassIcon, XIcon } from "lucide-react";
 import {
   computePrevNext,
   LoadedContentSchema,
@@ -221,10 +221,10 @@ export function DocsLayout() {
   const closeSidebar = useCallback(() => setSidebarOpen(false), []);
 
   return (
-    <div class="bg-background text-foreground min-h-screen font-sans antialiased">
+    <div className="bg-background text-foreground min-h-screen font-sans antialiased">
       <a
         href="#main-content"
-        class="bg-primary text-primary-foreground fixed -top-full left-4 z-100 rounded-md px-[0.9rem] py-2 text-[0.8rem] font-medium transition-[top] duration-200 ease-out focus:top-3"
+        className="bg-primary text-primary-foreground fixed -top-full left-4 z-100 rounded-md px-[0.9rem] py-2 text-[0.8rem] font-medium transition-[top] duration-200 ease-out focus:top-3"
       >
         Skip to content
       </a>
@@ -237,15 +237,15 @@ export function DocsLayout() {
         onMenuClick={() => setSidebarOpen(true)}
       />
 
-      <div class="mx-auto max-w-360 px-4 pt-14 lg:px-8">
-        <div class="grid grid-cols-1 gap-10 lg:grid-cols-[236px_minmax(0,1fr)] xl:grid-cols-[236px_minmax(0,1fr)_224px]">
-          <aside class="hidden lg:block">
-            <div class="sidebar-scroll sticky top-14 max-h-[calc(100vh-3.5rem)] overflow-y-auto py-8 pr-3">
+      <div className="mx-auto max-w-360 px-4 pt-14 lg:px-8">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[236px_minmax(0,1fr)] xl:grid-cols-[236px_minmax(0,1fr)_224px]">
+          <aside className="hidden lg:block">
+            <div className="sidebar-scroll sticky top-14 max-h-[calc(100vh-3.5rem)] overflow-y-auto py-8 pr-3">
               <Sidebar path={path} />
             </div>
           </aside>
 
-          <main id="main-content" class="min-w-0 scroll-mt-20 py-8 lg:py-10">
+          <main id="main-content" className="min-w-0 scroll-mt-20 py-8 lg:py-10">
             {loading ? (
               <PageSkeleton />
             ) : content ? (
@@ -261,18 +261,18 @@ export function DocsLayout() {
               <NotFound path={path} home={landing} />
             )}
 
-            <footer class="border-muted/70 text-muted-foreground mt-16 flex flex-wrap items-center justify-between gap-2 border-t pt-5 pb-10 text-xs">
+            <footer className="border-muted/70 text-muted-foreground mt-16 flex flex-wrap items-center justify-between gap-2 border-t pt-5 pb-10 text-xs">
               <span>
                 © {new Date().getFullYear()} {docs.config.title}
               </span>
-              <span class="font-mono">
-                Built with <span class="text-primary">@swifty.js/docs</span>
+              <span className="font-mono">
+                Built with <span className="text-primary">@swifty.js/docs</span>
               </span>
             </footer>
           </main>
 
-          <aside class="hidden xl:block">
-            <div class="sidebar-scroll sticky top-14 max-h-[calc(100vh-3.5rem)] overflow-y-auto py-10">
+          <aside className="hidden xl:block">
+            <div className="sidebar-scroll sticky top-14 max-h-[calc(100vh-3.5rem)] overflow-y-auto py-10">
               <Toc headings={headings} />
             </div>
           </aside>
@@ -284,7 +284,7 @@ export function DocsLayout() {
           keyboard focus could enter an aria-hidden subtree. */}
       <div
         inert={sidebarOpen ? undefined : true}
-        class={cn(
+        className={cn(
           "fixed inset-0 z-50 lg:hidden",
           !sidebarOpen && "pointer-events-none",
         )}
@@ -292,7 +292,7 @@ export function DocsLayout() {
       >
         <div
           onClick={closeSidebar}
-          class={cn(
+          className={cn(
             "bg-foreground/25 absolute inset-0 backdrop-blur-[2px] transition-opacity duration-300 dark:bg-black/50",
             sidebarOpen ? "opacity-100" : "opacity-0",
           )}
@@ -302,12 +302,12 @@ export function DocsLayout() {
           role="dialog"
           aria-modal="true"
           aria-label="Navigation menu"
-          class={cn(
+          className={cn(
             "border-muted bg-background absolute inset-y-0 left-0 flex w-72 flex-col border-r shadow-xl transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
             sidebarOpen ? "translate-x-0" : "-translate-x-full",
           )}
         >
-          <div class="border-muted/70 flex h-14 shrink-0 items-center justify-between border-b px-4">
+          <div className="border-muted/70 flex h-14 shrink-0 items-center justify-between border-b px-4">
             <Logo href={landing} title={docs.config.title} />
             <Button
               variant="ghost"
@@ -315,10 +315,10 @@ export function DocsLayout() {
               onClick={closeSidebar}
               aria-label="Close navigation menu"
             >
-              <XIcon class="size-4.5" />
+              <XIcon className="size-4.5" />
             </Button>
           </div>
-          <div class="sidebar-scroll min-h-0 flex-1 overflow-y-auto px-3 py-6">
+          <div className="sidebar-scroll min-h-0 flex-1 overflow-y-auto px-3 py-6">
             <Sidebar path={path} onNavigate={closeSidebar} />
           </div>
         </div>
@@ -331,25 +331,25 @@ export function DocsLayout() {
 
 function BackgroundLayers() {
   return (
-    <div aria-hidden="true" class="pointer-events-none fixed inset-0 -z-10">
-      <div class="absolute inset-0 bg-[radial-gradient(56rem_30rem_at_16%_-10%,color-mix(in_oklab,var(--primary)_10%,transparent),transparent_70%)]" />
-      <div class="absolute inset-0 bg-[radial-gradient(44rem_26rem_at_96%_-4%,color-mix(in_oklab,var(--primary)_6%,transparent),transparent_70%)]" />
-      <div class="via-primary/40 absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent to-transparent" />
-      <div class="docs-grid absolute inset-0 opacity-55 dark:opacity-30" />
+    <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10">
+      <div className="absolute inset-0 bg-[radial-gradient(56rem_30rem_at_16%_-10%,color-mix(in_oklab,var(--primary)_10%,transparent),transparent_70%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(44rem_26rem_at_96%_-4%,color-mix(in_oklab,var(--primary)_6%,transparent),transparent_70%)]" />
+      <div className="via-primary/40 absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent to-transparent" />
+      <div className="docs-grid absolute inset-0 opacity-55 dark:opacity-30" />
     </div>
   );
 }
 
 function PageSkeleton() {
   return (
-    <div class="animate-fade-in space-y-4" role="status">
-      <div class="skeleton h-9 w-2/5 rounded-lg" />
-      <div class="skeleton mt-6 h-4 w-full rounded-md" />
-      <div class="skeleton h-4 w-11/12 rounded-md" />
-      <div class="skeleton h-4 w-4/5 rounded-md" />
-      <div class="skeleton mt-8 h-44 w-full rounded-xl" />
-      <div class="skeleton mt-4 h-4 w-3/5 rounded-md" />
-      <span class="sr-only">Loading page…</span>
+    <div className="animate-fade-in space-y-4" role="status">
+      <div className="skeleton h-9 w-2/5 rounded-lg" />
+      <div className="skeleton mt-6 h-4 w-full rounded-md" />
+      <div className="skeleton h-4 w-11/12 rounded-md" />
+      <div className="skeleton h-4 w-4/5 rounded-md" />
+      <div className="skeleton mt-8 h-44 w-full rounded-xl" />
+      <div className="skeleton mt-4 h-4 w-3/5 rounded-md" />
+      <span className="sr-only">Loading page…</span>
     </div>
   );
 }
@@ -357,16 +357,16 @@ function PageSkeleton() {
 function NotFound({ path, home }: { path: string; home: string }) {
   const { route: navigate } = useLocation();
   return (
-    <div class="animate-fade-in flex flex-col items-start gap-4 py-16">
-      <span class="border-muted bg-muted/40 text-muted-foreground grid size-12 place-items-center rounded-xl border">
-        <CompassIcon class="size-6" />
+    <div className="animate-fade-in flex flex-col items-start gap-4 py-16">
+      <span className="border-muted bg-muted/40 text-muted-foreground grid size-12 place-items-center rounded-xl border">
+        <CompassIcon className="size-6" />
       </span>
-      <h1 class="font-display text-3xl font-semibold tracking-tight">
+      <h1 className="font-display text-3xl font-semibold tracking-tight">
         Page not found
       </h1>
-      <p class="text-muted-foreground max-w-md text-sm leading-relaxed">
+      <p className="text-muted-foreground max-w-md text-sm leading-relaxed">
         Nothing lives at{" "}
-        <code class="bg-muted text-foreground rounded px-1.5 py-0.5 font-mono text-xs">
+        <code className="bg-muted text-foreground rounded px-1.5 py-0.5 font-mono text-xs">
           {path}
         </code>
         . It may have moved, or the link may be out of date.

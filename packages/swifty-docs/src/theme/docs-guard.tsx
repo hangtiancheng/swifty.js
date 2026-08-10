@@ -42,12 +42,12 @@
  * );
  * ```
  */
-import { useCallback, useEffect, useRef, useState } from "preact/hooks";
-import type { FunctionComponent } from "preact";
-import { renderToString } from "preact-render-to-string";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { FC } from "react";
+import { renderToString } from "react-dom/server";
 import { z } from "zod";
 import { decryptContent, type EncryptedPayload } from "../utils/guard";
-import { LockIcon, XIcon } from "lucide-preact";
+import { LockIcon, XIcon } from "lucide-react";
 import { PageHeadingSchema } from "./lib/content";
 import { cn } from "./lib/utils";
 import { Button } from "./ui/button";
@@ -64,13 +64,13 @@ import {
 const SESSION_KEY = "docs-guard-pwd";
 
 const DENIED_HTML = renderToString(
-  <div class="flex min-h-[45vh] flex-col items-center justify-center gap-4 text-center">
-    <div class="text-foreground opacity-35 [&>svg]:size-13 [&>svg]:stroke-[1.2]">
+  <div className="flex min-h-[45vh] flex-col items-center justify-center gap-4 text-center">
+    <div className="text-foreground opacity-35 [&>svg]:size-13 [&>svg]:stroke-[1.2]">
       <LockIcon aria-hidden="true" />
     </div>
     <div>
-      <p class="mb-1.5 text-lg font-bold">Access Denied</p>
-      <p class="text-sm opacity-55">
+      <p className="mb-1.5 text-lg font-bold">Access Denied</p>
+      <p className="text-sm opacity-55">
         This page is password-protected. Enter the correct password to view its
         content.
       </p>
@@ -158,7 +158,7 @@ export function PasswordDialog({
   }, []);
 
   const handleSubmit = useCallback(
-    async (e: Event) => {
+    async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       if (!value.trim() || checking) return;
       setChecking(true);
@@ -178,27 +178,27 @@ export function PasswordDialog({
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogPortal>
-        <DialogOverlay class="z-999 backdrop-blur-[6px]" />
-        <div class="fixed inset-0 z-999 grid place-items-center p-4">
-          <DialogContent class="w-full max-w-sm p-8" ref={cardRef}>
-            <form onSubmit={handleSubmit} class="flex flex-col">
+        <DialogOverlay className="z-999 backdrop-blur-[6px]" />
+        <div className="fixed inset-0 z-999 grid place-items-center p-4">
+          <DialogContent className="w-full max-w-sm p-8" ref={cardRef}>
+            <form onSubmit={handleSubmit} className="flex flex-col">
               <button
                 type="button"
                 aria-label="Close"
                 onClick={onClose}
-                class="text-muted-foreground hover:bg-muted absolute top-3 right-3 flex size-7 items-center justify-center rounded-md opacity-60 transition-all duration-150 hover:opacity-100"
+                className="text-muted-foreground hover:bg-muted absolute top-3 right-3 flex size-7 items-center justify-center rounded-md opacity-60 transition-all duration-150 hover:opacity-100"
               >
                 <XIcon size={15} />
               </button>
 
-              <div class="border-muted bg-accent text-primary mb-5 flex size-12 items-center justify-center rounded-lg border">
+              <div className="border-muted bg-accent text-primary mb-5 flex size-12 items-center justify-center rounded-lg border">
                 <LockIcon size={24} strokeWidth={1.5} />
               </div>
 
-              <DialogTitle class="text-[1.05rem] font-bold tracking-tight">
+              <DialogTitle className="text-[1.05rem] font-bold tracking-tight">
                 Password Required
               </DialogTitle>
-              <DialogDescription class="text-muted-foreground mt-1 mb-5 text-[0.82rem]">
+              <DialogDescription className="text-muted-foreground mt-1 mb-5 text-[0.82rem]">
                 This page is protected. Enter the password to view its content.
               </DialogDescription>
 
@@ -211,14 +211,14 @@ export function PasswordDialog({
                   setError("");
                 }}
                 placeholder="Password"
-                class={cn(
+                className={cn(
                   "h-auto py-2.5",
                   error &&
                     "border-destructive focus-visible:border-destructive",
                 )}
               />
               {error && (
-                <p class="text-destructive mt-2 text-[0.78rem] font-medium">
+                <p className="text-destructive mt-2 text-[0.78rem] font-medium">
                   {error}
                 </p>
               )}
@@ -226,7 +226,7 @@ export function PasswordDialog({
               <Button
                 type="submit"
                 disabled={checking}
-                class="mt-5 w-full font-semibold"
+                className="mt-5 w-full font-semibold"
               >
                 {checking ? "Verifying..." : "Unlock"}
               </Button>
@@ -244,7 +244,7 @@ export interface ContentGuard<
   /** Drop-in replacement for the generated `loadContent`. */
   loadContent: (path: string) => Promise<T | null>;
   /** Mount once (outside `<DocsProvider>` is fine) to enable the dialog. */
-  ContentGuard: FunctionComponent;
+  ContentGuard: FC;
 }
 
 export function createContentGuard<

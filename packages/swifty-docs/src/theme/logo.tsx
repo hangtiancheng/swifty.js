@@ -35,7 +35,7 @@ import {
   Clock12Icon,
   MoonIcon,
   SunIcon,
-} from "lucide-preact";
+} from "lucide-react";
 import { cn } from "./lib/utils";
 
 // Index = hour % 12, so 0 (and 12) maps to the 12 o'clock face.
@@ -57,24 +57,24 @@ const CLOCK_ICONS = [
 interface LogoProps {
   href: string;
   title: string;
-  class?: string;
+  className?: string;
 }
 
-export function Logo({ href, title, class: className }: LogoProps) {
+export function Logo({ href, title, className }: LogoProps) {
   const ClockIcon = CLOCK_ICONS[new Date().getHours() % 12];
   return (
     <a
       href={href}
-      class={cn(
+      className={cn(
         "group focus-visible:ring-primary/50 flex items-center gap-2.5 rounded-md focus-visible:ring-2 focus-visible:outline-none",
         className,
       )}
       aria-label={`${title} — home`}
     >
-      <span class="text-primary grid size-7 place-items-center transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:rotate-12">
-        <ClockIcon class="size-5" />
+      <span className="text-primary grid size-7 place-items-center transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:rotate-12">
+        <ClockIcon className="size-5" />
       </span>
-      <span class="font-display text-foreground text-[0.95rem] font-semibold tracking-tight">
+      <span className="font-display text-foreground text-[0.95rem] font-semibold tracking-tight">
         {title}
       </span>
     </a>
@@ -83,9 +83,9 @@ export function Logo({ href, title, class: className }: LogoProps) {
 
 export function ThemeToggleIcon({ dark }: { dark: boolean }) {
   return (
-    <span class="relative block size-4" aria-hidden="true">
+    <span className="relative block size-4" aria-hidden="true">
       <MoonIcon
-        class={cn(
+        className={cn(
           "absolute inset-0 size-4 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]",
           dark
             ? "scale-100 rotate-0 opacity-100"
@@ -93,7 +93,7 @@ export function ThemeToggleIcon({ dark }: { dark: boolean }) {
         )}
       />
       <SunIcon
-        class={cn(
+        className={cn(
           "absolute inset-0 size-4 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]",
           dark
             ? "scale-50 rotate-90 opacity-0"

@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useState } from "react";
 import type { PageHeading } from "./content";
 
 /**

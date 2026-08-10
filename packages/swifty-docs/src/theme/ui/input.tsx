@@ -20,21 +20,18 @@
  * SOFTWARE.
  */
 
-import type { ComponentProps } from "preact";
-import { forwardRef } from "preact/compat";
+import type { ComponentProps } from "react";
+import { forwardRef } from "react";
 import { cn } from "@/theme/lib/utils";
 
-// forwardRef is required: Preact 10 attaches a plain `ref` on a function
-// component to its internal instance, not the DOM node, so callers doing
-// `ref.current.focus()` would crash.
 export const Input = forwardRef<
   HTMLInputElement,
   Omit<ComponentProps<"input">, "ref">
->(function Input({ class: className, ...rest }, ref) {
+>(function Input({ className, ...rest }, ref) {
   return (
     <input
       ref={ref}
-      class={cn(
+      className={cn(
         "border-muted placeholder:text-muted-foreground focus-visible:border-primary/60 focus-visible:ring-primary/30 flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-sm transition-colors duration-200 focus-visible:ring-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50",
         className,
       )}

@@ -25,7 +25,7 @@
  *
  * Dual-mode config:
  *   --mode lib   → Library build (5 entries, ESM+CJS+dts)
- *   --mode docs  → Documentation site (Preact app, Vite dev/build)
+ *   --mode docs  → Documentation site (React app, Vite dev/build)
  *
  * Vite 7 uses Rollup internally, so build.lib is Rollup-based.
  */
@@ -38,7 +38,7 @@ import {
 } from "vite";
 import dts from "vite-plugin-dts";
 import { resolve } from "node:path";
-import preact from "@preact/preset-vite";
+import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 // !!! For your project, it should be:
 // import { swiftyDocsPlugin, docsGuardPlugin } from "@swifty.js/docs/vite";
@@ -55,16 +55,16 @@ const PKG_DIR = import.meta.dirname;
 
 /**
  * All deps + peerDeps are externalized in lib mode (users install them).
- * Preact stays external too — consumers must share a single preact
+ * React stays external too — consumers must share a single react
  * runtime instance with the precompiled theme.
  */
 const EXTERNAL_IDS = [
   ...Object.keys(pkg.dependencies ?? {}),
   ...Object.keys(pkg.devDependencies ?? {}),
   ...Object.keys(pkg.peerDependencies ?? {}),
-  "preact",
-  "preact/hooks",
-  "preact/compat",
+  "react",
+  "react-dom",
+  "react/jsx-runtime",
 ];
 
 function isExternal(id: string): boolean {
@@ -126,7 +126,7 @@ function copyAssetsPlugin(): Rollup.Plugin {
 }
 
 function libConfig(): UserConfig {
-  // All Preact theme modules (the only code containing Tailwind utility
+  // All React theme modules (the only code containing Tailwind utility
   // classes) are forced into a single stable chunk so consumers can point
   // Tailwind at exactly one file: @source "@swifty.js/docs/theme-chunk.js".
   const themeChunk = (id: string): string | undefined =>
@@ -190,7 +190,7 @@ function libConfig(): UserConfig {
       sourcemap: false,
     },
     plugins: [
-      preact() as PluginOption,
+      react() as PluginOption,
       dts({
         tsconfigPath: "./tsconfig.build.json",
         outDirs: "dist",

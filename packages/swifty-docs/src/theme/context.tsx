@@ -20,9 +20,8 @@
  * SOFTWARE.
  */
 
-import { createContext } from "preact";
-import { useContext, useMemo, useState } from "preact/hooks";
-import type { ComponentChildren } from "preact";
+import { createContext, useContext, useMemo, useState } from "react";
+import type { ReactNode } from "react";
 import {
   DocsConfigSchema,
   FALLBACK_CONFIG,
@@ -54,7 +53,7 @@ export interface DocsProviderProps {
   getSearchIndex: unknown;
   /** Optional dev-only md hot-reload subscription from @swifty-docs/generated. */
   onContentUpdate?: unknown;
-  children?: ComponentChildren;
+  children?: ReactNode;
 }
 
 export function DocsProvider(props: DocsProviderProps) {

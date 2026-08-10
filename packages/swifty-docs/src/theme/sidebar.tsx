@@ -20,16 +20,16 @@
  * SOFTWARE.
  */
 
-import { useEffect, useMemo, useState } from "preact/hooks";
+import { useEffect, useMemo, useState } from "react";
 import { useDocs } from "./context";
-import { ChevronDownIcon, ChevronRightIcon } from "lucide-preact";
+import { ChevronDownIcon, ChevronRightIcon } from "lucide-react";
 import { cn } from "./lib/utils";
 import type { SidebarItem } from "@/types";
 
 interface SidebarProps {
   path: string;
   onNavigate?: () => void;
-  class?: string;
+  className?: string;
 }
 
 function stripSlash(p: string): string {
@@ -66,7 +66,7 @@ function formatPrefix(prefix: string, baseUrl = "/"): string {
     .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-export function Sidebar({ path, onNavigate, class: className }: SidebarProps) {
+export function Sidebar({ path, onNavigate, className }: SidebarProps) {
   const docs = useDocs();
 
   const groups = useMemo(() => {
@@ -83,7 +83,7 @@ export function Sidebar({ path, onNavigate, class: className }: SidebarProps) {
   }, [docs.config.sidebar, docs.config.baseUrl]);
 
   return (
-    <nav class={cn("flex flex-col", className)} aria-label="Documentation">
+    <nav className={cn("flex flex-col", className)} aria-label="Documentation">
       {groups.map((group) => (
         <SidebarGroup
           key={group.prefix}
@@ -116,30 +116,30 @@ function SidebarGroup({
   }, [containsActive]);
 
   return (
-    <div class="mb-6">
+    <div className="mb-6">
       <button
         onClick={() => setCollapsed(!collapsed)}
         aria-expanded={!collapsed}
-        class="group text-muted-foreground hover:text-foreground focus-visible:ring-primary/50 flex w-full items-center justify-between rounded-md px-2 py-1.5 font-mono text-[11px] font-semibold tracking-[0.14em] uppercase transition-colors duration-200 focus-visible:ring-2 focus-visible:outline-none"
+        className="group text-muted-foreground hover:text-foreground focus-visible:ring-primary/50 flex w-full items-center justify-between rounded-md px-2 py-1.5 font-mono text-[11px] font-semibold tracking-[0.14em] uppercase transition-colors duration-200 focus-visible:ring-2 focus-visible:outline-none"
       >
         {title}
         <ChevronDownIcon
-          class={cn(
+          className={cn(
             "size-3.5 opacity-60 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
             collapsed && "-rotate-90",
           )}
         />
       </button>
       <div
-        class={cn(
+        className={cn(
           "grid transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
           collapsed
             ? "grid-rows-[0fr] opacity-0"
             : "grid-rows-[1fr] opacity-100",
         )}
       >
-        <div class="overflow-hidden">
-          <ul class="border-muted/70 mt-1.5 ml-2 border-l pl-px">
+        <div className="overflow-hidden">
+          <ul className="border-muted/70 mt-1.5 ml-2 border-l pl-px">
             {items.map((item, i) => (
               <SidebarNode
                 key={item.link ?? `${item.text}-${i}`}
@@ -181,7 +181,7 @@ function SidebarNode({
           href={item.link ?? "#"}
           onClick={() => onNavigate?.()}
           aria-current={active ? "page" : undefined}
-          class={cn(
+          className={cn(
             "relative -ml-px block border-l-2 py-1.5 pr-2 pl-3.5 text-[13px] leading-snug transition-[color,background-color,border-color] duration-200",
             active
               ? "border-primary bg-primary/8 text-primary font-medium"
@@ -199,7 +199,7 @@ function SidebarNode({
       <button
         onClick={() => setCollapsed(!collapsed)}
         aria-expanded={!collapsed}
-        class={cn(
+        className={cn(
           "flex w-full items-center gap-1.5 rounded-md py-1.5 pr-2 pl-2.5 text-[13px] font-medium transition-colors duration-200",
           containsActive
             ? "text-foreground"
@@ -207,7 +207,7 @@ function SidebarNode({
         )}
       >
         <ChevronRightIcon
-          class={cn(
+          className={cn(
             "size-3.5 shrink-0 opacity-60 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
             !collapsed && "rotate-90",
           )}
@@ -215,15 +215,15 @@ function SidebarNode({
         {item.text}
       </button>
       <div
-        class={cn(
+        className={cn(
           "grid transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
           collapsed
             ? "grid-rows-[0fr] opacity-0"
             : "grid-rows-[1fr] opacity-100",
         )}
       >
-        <div class="overflow-hidden">
-          <ul class="border-muted/70 ml-3.5 border-l pl-px">
+        <div className="overflow-hidden">
+          <ul className="border-muted/70 ml-3.5 border-l pl-px">
             {(item.items ?? []).map((child, i) => (
               <SidebarNode
                 key={child.link ?? `${child.text}-${i}`}

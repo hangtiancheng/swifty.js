@@ -21,7 +21,7 @@
  */
 
 import { cva, type VariantProps } from "class-variance-authority";
-import type { ComponentProps } from "preact";
+import type { ComponentProps } from "react";
 import { cn } from "@/theme/lib/utils";
 
 export const buttonVariants = cva(
@@ -58,12 +58,12 @@ type ButtonProps = ComponentProps<"button"> &
 export function Button({
   variant,
   size,
-  class: className,
+  className,
   ...rest
 }: ButtonProps) {
   return (
     <button
-      class={cn(buttonVariants({ variant, size }), className)}
+      className={cn(buttonVariants({ variant, size }), className)}
       {...rest}
     />
   );

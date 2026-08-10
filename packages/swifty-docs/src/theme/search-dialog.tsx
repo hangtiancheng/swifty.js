@@ -20,10 +20,10 @@
  * SOFTWARE.
  */
 
-import { useCallback, useEffect, useRef, useState } from "preact/hooks";
-import { useLocation } from "preact-iso";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useLocation } from "./lib/router";
 import { useDocs } from "./context";
-import { CornerDownLeftIcon, FileTextIcon, SearchIcon } from "lucide-preact";
+import { CornerDownLeftIcon, FileTextIcon, SearchIcon } from "lucide-react";
 import {
   capPerPage,
   createSearchEngine,
@@ -52,7 +52,7 @@ export function SearchDialog() {
   // Lazy init: useRef(create()) would re-run createSearchEngine on every
   // render (discarding all but the first result) and permanently capture
   // the first-render getSearchIndex.
-  const engineRef = useRef<ReturnType<typeof createSearchEngine>>();
+  const engineRef = useRef<ReturnType<typeof createSearchEngine>>(undefined);
   if (!engineRef.current) {
     engineRef.current = createSearchEngine(docs.getSearchIndex);
   }
@@ -193,11 +193,11 @@ export function SearchDialog() {
     <Dialog open={docs.searchOpen} onOpenChange={docs.setSearchOpen}>
       <DialogPortal>
         <DialogOverlay />
-        <DialogContent class="top-[10vh] left-1/2 w-[calc(100vw-2rem)] max-w-xl -translate-x-1/2">
+        <DialogContent className="top-[10vh] left-1/2 w-[calc(100vw-2rem)] max-w-xl -translate-x-1/2">
           <DialogAccessibleTitle>Search documentation</DialogAccessibleTitle>
 
-          <div class="border-muted/80 flex items-center gap-2.5 border-b px-4">
-            <SearchIcon class="text-muted-foreground size-4 shrink-0" />
+          <div className="border-muted/80 flex items-center gap-2.5 border-b px-4">
+            <SearchIcon className="text-muted-foreground size-4 shrink-0" />
             <input
               ref={inputRef}
               value={query}
@@ -207,14 +207,14 @@ export function SearchDialog() {
               onKeyDown={onKeyDown as never}
               placeholder="Search documentation…"
               aria-label="Search documentation"
-              autocomplete="off"
-              spellcheck={false}
-              class="text-foreground placeholder:text-muted-foreground h-12 min-w-0 flex-1 bg-transparent text-sm outline-none"
+              autoComplete="off"
+              spellCheck={false}
+              className="text-foreground placeholder:text-muted-foreground h-12 min-w-0 flex-1 bg-transparent text-sm outline-none"
             />
             {query && (
               <button
                 onClick={() => void runSearch("")}
-                class="text-muted-foreground hover:bg-accent hover:text-foreground rounded px-1.5 py-0.5 text-[11px] transition-colors"
+                className="text-muted-foreground hover:bg-accent hover:text-foreground rounded px-1.5 py-0.5 text-[11px] transition-colors"
               >
                 Clear
               </button>
@@ -222,10 +222,10 @@ export function SearchDialog() {
             <Kbd>esc</Kbd>
           </div>
 
-          <div class="max-h-[46vh] min-h-32 overflow-y-auto overscroll-contain p-2">
+          <div className="max-h-[46vh] min-h-32 overflow-y-auto overscroll-contain p-2">
             {!query.trim() ? (
-              <div class="text-muted-foreground px-3 py-10 text-center text-xs leading-relaxed">
-                <SearchIcon class="mx-auto mb-3 size-6 opacity-40" />
+              <div className="text-muted-foreground px-3 py-10 text-center text-xs leading-relaxed">
+                <SearchIcon className="mx-auto mb-3 size-6 opacity-40" />
                 Search across{" "}
                 {indexSize > 0
                   ? `${indexSize} sections`
@@ -233,13 +233,13 @@ export function SearchDialog() {
                 — titles, headings and body text.
               </div>
             ) : searched && results.length === 0 ? (
-              <div class="text-muted-foreground px-3 py-10 text-center text-xs">
+              <div className="text-muted-foreground px-3 py-10 text-center text-xs">
                 No results for{" "}
-                <span class="text-foreground font-medium">"{query}"</span>
-                <p class="mt-1.5">Try a shorter or more general term.</p>
+                <span className="text-foreground font-medium">"{query}"</span>
+                <p className="mt-1.5">Try a shorter or more general term.</p>
               </div>
             ) : results.length > 0 ? (
-              <ul class="space-y-0.5">
+              <ul className="space-y-0.5">
                 {results.map((hit, i) => (
                   <li key={hit.link}>
                     <button
@@ -249,16 +249,16 @@ export function SearchDialog() {
                       }}
                       onMouseEnter={() => setActiveIdx(i)}
                       onClick={() => go(hit.link)}
-                      class={cn(
+                      className={cn(
                         "flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left transition-colors duration-150",
                         i === activeIdx && "bg-accent text-accent-foreground",
                       )}
                     >
-                      <FileTextIcon class="mt-0.5 size-4 shrink-0 opacity-60" />
-                      <span class="min-w-0 flex-1">
-                        <span class="block truncate text-sm font-medium">
+                      <FileTextIcon className="mt-0.5 size-4 shrink-0 opacity-60" />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-medium">
                           {hit.crumb && (
-                            <span class="text-muted-foreground font-normal">
+                            <span className="text-muted-foreground font-normal">
                               {hit.crumb}
                               {" › "}
                             </span>
@@ -272,7 +272,7 @@ export function SearchDialog() {
                           )}
                         </span>
                         {hit.text && (
-                          <span class="text-muted-foreground mt-0.5 block truncate text-xs">
+                          <span className="text-muted-foreground mt-0.5 block truncate text-xs">
                             {highlightSegments(
                               makeSnippet(hit.text, query),
                               query,
@@ -287,7 +287,7 @@ export function SearchDialog() {
                         )}
                       </span>
                       <CornerDownLeftIcon
-                        class={cn(
+                        className={cn(
                           "text-muted-foreground mt-1 size-3.5 shrink-0 transition-opacity duration-150",
                           i === activeIdx ? "opacity-70" : "opacity-0",
                         )}
@@ -299,18 +299,18 @@ export function SearchDialog() {
             ) : null}
           </div>
 
-          <div class="border-muted/80 bg-muted/30 text-muted-foreground flex items-center gap-3 border-t px-4 py-2.5 text-[11px]">
-            <span class="flex items-center gap-1">
+          <div className="border-muted/80 bg-muted/30 text-muted-foreground flex items-center gap-3 border-t px-4 py-2.5 text-[11px]">
+            <span className="flex items-center gap-1">
               <Kbd>↑</Kbd>
               <Kbd>↓</Kbd> navigate
             </span>
-            <span class="flex items-center gap-1">
+            <span className="flex items-center gap-1">
               <Kbd>↵</Kbd> open
             </span>
-            <span class="flex items-center gap-1">
+            <span className="flex items-center gap-1">
               <Kbd>esc</Kbd> close
             </span>
-            <span class="ml-auto font-mono tracking-wide opacity-70">
+            <span className="ml-auto font-mono tracking-wide opacity-70">
               miniSearch
             </span>
           </div>

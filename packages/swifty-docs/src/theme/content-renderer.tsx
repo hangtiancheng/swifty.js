@@ -20,9 +20,9 @@
  * SOFTWARE.
  */
 
-import { useEffect, useRef, useState } from "preact/hooks";
-import { render } from "preact";
-import { CheckIcon, CopyIcon } from "lucide-preact";
+import { useEffect, useRef, useState } from "react";
+import { createRoot } from "react-dom/client";
+import { CheckIcon, CopyIcon } from "lucide-react";
 import type { PageHeading } from "./lib/content";
 import { cn, decodedLocationHash } from "./lib/utils";
 import { MermaidDiagram } from "./mermaid";
@@ -65,16 +65,18 @@ export function ContentRenderer({
     for (const holder of Array.from(
       el.querySelectorAll<HTMLElement>("[swifty-docs-toc]"),
     )) {
-      render(<Toc headings={headings} inline />, holder);
-      disposersRef.current.push(() => render(null, holder));
+      const root = createRoot(holder);
+      root.render(<Toc headings={headings} inline />);
+      disposersRef.current.push(() => root.unmount());
     }
 
     for (const holder of Array.from(
       el.querySelectorAll<HTMLElement>(".mermaid-block[data-mermaid]"),
     )) {
       const code = decodeURIComponent(holder.dataset["mermaid"] ?? "");
-      render(<MermaidDiagram code={code} />, holder);
-      disposersRef.current.push(() => render(null, holder));
+      const root = createRoot(holder);
+      root.render(<MermaidDiagram code={code} />);
+      disposersRef.current.push(() => root.unmount());
     }
 
     for (const block of Array.from(
@@ -84,8 +86,9 @@ export function ContentRenderer({
       const holderEl = document.createElement("div");
       holderEl.className = "codeblock-actions";
       block.appendChild(holderEl);
-      render(<CopyButton target={pre ?? block} />, holderEl);
-      disposersRef.current.push(() => render(null, holderEl));
+      const root = createRoot(holderEl);
+      root.render(<CopyButton target={pre ?? block} />);
+      disposersRef.current.push(() => root.unmount());
     }
   }, [html, headings, pageKey]);
 
@@ -95,20 +98,20 @@ export function ContentRenderer({
     };
   }, []);
 
-  const onClick = (e: MouseEvent) => {
+  const onClick = (e: React.MouseEvent<HTMLElement>) => {
     const target = e.target;
     if (!(target instanceof HTMLElement)) return;
     const anchor = target.closest("a");
     if (!anchor) return;
     const href = anchor.getAttribute("href") ?? "";
     // In-page hash links get smooth scrolling; all other same-origin links
-    // are intercepted globally by preact-iso's LocationProvider.
+    // are intercepted globally by the LocationProvider's click handler.
     if (href.startsWith("#")) {
       e.preventDefault();
       const el = document.getElementById(href.slice(1));
       if (!el) return;
       // pushState records a copyable deep link and a back-button entry
-      // without triggering preact-iso routing or the browser's instant jump.
+      // without triggering the router or the browser's instant jump.
       // Skip when the hash is already current to avoid duplicate entries
       // (decoded comparison — location.hash is percent-encoded for CJK slugs).
       if (decodedLocationHash() !== href) {
@@ -119,13 +122,13 @@ export function ContentRenderer({
   };
 
   return (
-    <article ref={articleRef} onClick={onClick} class="prose max-w-none" />
+    <article ref={articleRef} onClick={onClick} className="prose max-w-none" />
   );
 }
 
 function CopyButton({ target }: { target: HTMLElement }) {
   const [copied, setCopied] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
     return () => clearTimeout(timerRef.current);
@@ -146,9 +149,9 @@ function CopyButton({ target }: { target: HTMLElement }) {
     <button
       onClick={() => void copy()}
       aria-label={copied ? "Copied" : "Copy code to clipboard"}
-      class={cn("codeblock-copy", copied && "codeblock-copy-done")}
+      className={cn("codeblock-copy", copied && "codeblock-copy-done")}
     >
-      {copied ? <CheckIcon class="size-3.5" /> : <CopyIcon class="size-3.5" />}
+      {copied ? <CheckIcon className="size-3.5" /> : <CopyIcon className="size-3.5" />}
     </button>
   );
 }

@@ -30,15 +30,15 @@
 import type MarkdownIt from "markdown-it";
 import container from "markdown-it-container";
 import type { Token } from "markdown-it/index.js";
-import { h } from "preact";
-import { renderToString } from "preact-render-to-string";
+import { createElement } from "react";
+import { renderToString } from "react-dom/server";
 import { escapeHtml } from "../../utils/escape-html";
 import {
   ChevronRightIcon,
   InfoIcon,
   OctagonAlertIcon,
   TriangleAlertIcon,
-} from "lucide-preact";
+} from "lucide-react";
 
 const CONTAINER_TYPES = ["tip", "warning", "danger", "details"] as const;
 
@@ -51,7 +51,7 @@ const ICONS: Record<string, string> = {
 };
 
 function decorative(icon: typeof InfoIcon): string {
-  return renderToString(h(icon, { "aria-hidden": "true" }));
+  return renderToString(createElement(icon, { "aria-hidden": "true" }));
 }
 
 export interface ContainerOptions {

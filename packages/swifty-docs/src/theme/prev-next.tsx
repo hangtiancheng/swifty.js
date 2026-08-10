@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-import { ArrowLeftIcon, ArrowRightIcon } from "lucide-preact";
+import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
 import type { NavLink } from "./lib/content";
 
 interface PrevNextProps {
@@ -33,20 +33,20 @@ export function PrevNext({ prev, next }: PrevNextProps) {
 
   return (
     <nav
-      class="border-muted/70 mt-14 grid gap-3 border-t pt-6 sm:grid-cols-2"
+      className="border-muted/70 mt-14 grid gap-3 border-t pt-6 sm:grid-cols-2"
       aria-label="Page navigation"
     >
       {prev && (
         <a
           href={prev.link}
-          class="group border-muted/80 bg-background hover:border-primary/40 hover:bg-accent/40 flex items-center gap-3 rounded-xl border px-4 py-3 transition-[border-color,background-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:shadow-sm"
+          className="group border-muted/80 bg-background hover:border-primary/40 hover:bg-accent/40 flex items-center gap-3 rounded-xl border px-4 py-3 transition-[border-color,background-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:shadow-sm"
         >
-          <ArrowLeftIcon class="text-muted-foreground group-hover:text-primary size-4 shrink-0 transition-[transform,color] duration-300 group-hover:-translate-x-0.5" />
-          <span class="min-w-0">
-            <span class="text-muted-foreground block font-mono text-[10px] font-medium tracking-[0.14em] uppercase">
+          <ArrowLeftIcon className="text-muted-foreground group-hover:text-primary size-4 shrink-0 transition-[transform,color] duration-300 group-hover:-translate-x-0.5" />
+          <span className="min-w-0">
+            <span className="text-muted-foreground block font-mono text-[10px] font-medium tracking-[0.14em] uppercase">
               Previous
             </span>
-            <span class="text-foreground block truncate text-sm font-medium">
+            <span className="text-foreground block truncate text-sm font-medium">
               {prev.text}
             </span>
           </span>
@@ -55,14 +55,14 @@ export function PrevNext({ prev, next }: PrevNextProps) {
       {next && (
         <a
           href={next.link}
-          class="group border-muted/80 bg-background hover:border-primary/40 hover:bg-accent/40 flex flex-row-reverse items-center gap-3 rounded-xl border px-4 py-3 text-right transition-[border-color,background-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:shadow-sm sm:col-start-2"
+          className="group border-muted/80 bg-background hover:border-primary/40 hover:bg-accent/40 flex flex-row-reverse items-center gap-3 rounded-xl border px-4 py-3 text-right transition-[border-color,background-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:shadow-sm sm:col-start-2"
         >
-          <ArrowRightIcon class="text-muted-foreground group-hover:text-primary size-4 shrink-0 transition-[transform,color] duration-300 group-hover:translate-x-0.5" />
-          <span class="min-w-0">
-            <span class="text-muted-foreground block font-mono text-[10px] font-medium tracking-[0.14em] uppercase">
+          <ArrowRightIcon className="text-muted-foreground group-hover:text-primary size-4 shrink-0 transition-[transform,color] duration-300 group-hover:translate-x-0.5" />
+          <span className="min-w-0">
+            <span className="text-muted-foreground block font-mono text-[10px] font-medium tracking-[0.14em] uppercase">
               Next
             </span>
-            <span class="text-foreground block truncate text-sm font-medium">
+            <span className="text-foreground block truncate text-sm font-medium">
               {next.text}
             </span>
           </span>

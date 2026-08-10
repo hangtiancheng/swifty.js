@@ -20,9 +20,9 @@
  * SOFTWARE.
  */
 
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useState } from "react";
 import { useDocs } from "./context";
-import { ArrowUpRightIcon, MenuIcon, SearchIcon } from "lucide-preact";
+import { ArrowUpRightIcon, MenuIcon, SearchIcon } from "lucide-react";
 import { cn } from "./lib/utils";
 import type { NavItem } from "@/types";
 import { Logo } from "./logo";
@@ -49,28 +49,28 @@ export function Navbar({ path, landing, onMenuClick }: NavbarProps) {
 
   return (
     <header
-      class={cn(
+      className={cn(
         "fixed inset-x-0 top-0 z-40 transition-[background-color,border-color,box-shadow,backdrop-filter] duration-300",
         scrolled
           ? "border-muted/80 bg-background/80 border-b shadow-[0_1px_12px_-6px_rgb(0_0_0/0.08)] backdrop-blur-xl"
           : "border-b border-transparent bg-transparent",
       )}
     >
-      <div class="mx-auto flex h-14 max-w-360 items-center gap-2 px-4 lg:px-8">
+      <div className="mx-auto flex h-14 max-w-360 items-center gap-2 px-4 lg:px-8">
         <Button
           variant="ghost"
           size="icon"
-          class="lg:hidden"
+          className="lg:hidden"
           onClick={onMenuClick}
           aria-label="Open navigation menu"
         >
-          <MenuIcon class="size-4.5" />
+          <MenuIcon className="size-4.5" />
         </Button>
 
         <Logo href={landing} title={docs.config.title} />
 
         <nav
-          class="ml-4 hidden items-center gap-0.5 md:flex"
+          className="ml-4 hidden items-center gap-0.5 md:flex"
           aria-label="Primary"
         >
           {(docs.config.nav ?? []).map((item, i) => (
@@ -78,30 +78,30 @@ export function Navbar({ path, landing, onMenuClick }: NavbarProps) {
           ))}
         </nav>
 
-        <div class="ml-auto flex items-center gap-1.5">
+        <div className="ml-auto flex items-center gap-1.5">
           {docs.searchEnabled ? (
             <>
               <button
                 onClick={docs.toggleSearch}
                 aria-label="Search documentation"
-                class="group border-muted/80 bg-muted/40 text-muted-foreground hover:border-primary/40 hover:bg-accent/60 focus-visible:ring-primary/50 hidden h-8 w-52 items-center gap-2 rounded-md border px-2.5 text-left text-xs transition-[border-color,background-color,width] duration-300 focus-visible:ring-2 focus-visible:outline-none sm:flex lg:w-60"
+                className="group border-muted/80 bg-muted/40 text-muted-foreground hover:border-primary/40 hover:bg-accent/60 focus-visible:ring-primary/50 hidden h-8 w-52 items-center gap-2 rounded-md border px-2.5 text-left text-xs transition-[border-color,background-color,width] duration-300 focus-visible:ring-2 focus-visible:outline-none sm:flex lg:w-60"
               >
-                <SearchIcon class="size-3.5 shrink-0 opacity-70 transition-transform duration-300 group-hover:scale-110" />
-                <span class="flex-1 truncate">Search documentation…</span>
+                <SearchIcon className="size-3.5 shrink-0 opacity-70 transition-transform duration-300 group-hover:scale-110" />
+                <span className="flex-1 truncate">Search documentation…</span>
                 <Kbd>⌘K</Kbd>
               </button>
               <Button
                 variant="ghost"
                 size="icon"
-                class="sm:hidden"
+                className="sm:hidden"
                 onClick={docs.toggleSearch}
                 aria-label="Search documentation"
               >
-                <SearchIcon class="size-4.5" />
+                <SearchIcon className="size-4.5" />
               </Button>
             </>
           ) : (
-            <span class="hidden sm:block" />
+            <span className="hidden sm:block" />
           )}
           <ThemeToggle />
         </div>
@@ -130,16 +130,16 @@ function NavMenuItem({ item, path }: { item: NavItem; path: string }) {
         href={item.link}
         target="_blank"
         rel="noopener noreferrer"
-        class={classes}
+        className={classes}
       >
         {item.text}
-        <ArrowUpRightIcon class="size-3 opacity-60" />
+        <ArrowUpRightIcon className="size-3 opacity-60" />
       </a>
     );
   }
 
   return (
-    <a href={item.link} class={classes}>
+    <a href={item.link} className={classes}>
       {item.text}
     </a>
   );

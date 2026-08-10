@@ -24,9 +24,9 @@
  * Custom markdown-it renderer that produces the theme's content HTML.
  *
  * The rendered HTML is embedded into the compiled page module as
- * `contentHtml` and injected into the article element by the Preact
+ * `contentHtml` and injected into the article element by the React
  * ContentRenderer at runtime. Internal-link clicks are intercepted
- * globally by preact-iso's LocationProvider, and code blocks are
+ * globally by the LocationProvider, and code blocks are
  * pre-rendered at build time.
  */
 import type MarkdownIt from "markdown-it";

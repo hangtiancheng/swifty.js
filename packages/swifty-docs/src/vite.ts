@@ -25,7 +25,7 @@
  *
  * Returns the plugin pair a docs site needs:
  * 1. swifty-docs — compiles .md files into { pageData, contentHtml } modules
- * 2. preact — compiles the Preact theme (and your own .tsx components)
+ * 2. react — compiles the React theme (and your own .tsx components)
  *
  * Usage:
  * ```ts
@@ -43,7 +43,7 @@ import type { DocsConfig } from "./types";
 import { compileMarkdown } from "./compile-markdown";
 import { extractFrontmatter } from "./markdown/frontmatter";
 import type { Plugin } from "vite";
-import preact from "@preact/preset-vite";
+import react from "@vitejs/plugin-react";
 import { createCipheriv, pbkdf2Sync, randomBytes } from "node:crypto";
 
 // Re-export build-time utilities for use in vite.config
@@ -65,7 +65,7 @@ const MD_SUFFIX = "?swifty-docs";
 /**
  * Create the Vite plugin array for a docs site:
  * 1. swifty-docs: compiles .md files to JS modules
- * 2. preact (@preact/preset-vite): compiles the Preact theme JSX
+ * 2. react (@vitejs/plugin-react): compiles the React theme JSX
  */
 export function swiftyDocsPlugin(
   options: SwiftyDocsVitePluginOptions,
@@ -181,7 +181,7 @@ export function swiftyDocsPlugin(
     },
   };
 
-  return [docsPlugin, baseSyncPlugin, spaFallbackPlugin, ...preact()];
+  return [docsPlugin, baseSyncPlugin, spaFallbackPlugin, ...react()];
 }
 
 function isProtectedMarkdown(id: string): string | null {

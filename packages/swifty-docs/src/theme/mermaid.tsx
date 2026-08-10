@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useState } from "react";
 
 type MermaidApi = typeof import("mermaid").default;
 
@@ -125,7 +125,7 @@ export function MermaidDiagram({ code }: MermaidDiagramProps) {
 
   if (error !== null) {
     return (
-      <pre class="mermaid-error">
+      <pre className="mermaid-error">
         <code>{`${error}\n\n${code}`}</code>
       </pre>
     );
@@ -134,6 +134,6 @@ export function MermaidDiagram({ code }: MermaidDiagramProps) {
   // Security: the SVG is mermaid's output over build-time first-party
   // markdown — same trust model as ContentRenderer's innerHTML.
   return (
-    <div class="mermaid-diagram" dangerouslySetInnerHTML={{ __html: svg }} />
+    <div className="mermaid-diagram" dangerouslySetInnerHTML={{ __html: svg }} />
   );
 }

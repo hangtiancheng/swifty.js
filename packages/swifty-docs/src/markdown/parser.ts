@@ -52,7 +52,7 @@ export function createParser(options?: MarkdownOptions): MarkdownIt {
   md.use(codeBlockPlugin);
 
   // Override link rendering: external links open in a new tab; internal
-  // links are left untouched (preact-iso's LocationProvider intercepts
+  // links are left untouched (the LocationProvider intercepts
   // same-origin clicks globally at runtime).
   const defaultLinkOpen =
     md.renderer.rules["link_open"] ||

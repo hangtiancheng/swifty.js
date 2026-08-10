@@ -20,10 +20,9 @@
  * SOFTWARE.
  */
 
-import type { ComponentChildren } from "preact";
-import { createContext } from "preact";
-import { useContext, useEffect, useRef } from "preact/hooks";
-import { createPortal, forwardRef } from "preact/compat";
+import type { ReactNode } from "react";
+import { createContext, forwardRef, useContext, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "@/theme/lib/utils";
 
 interface DialogContextValue {
@@ -41,7 +40,7 @@ const DialogContext = createContext<DialogContextValue>({
 interface DialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  children: ComponentChildren;
+  children: ReactNode;
 }
 
 export function Dialog({ open, onOpenChange, children }: DialogProps) {
@@ -61,13 +60,13 @@ export function Dialog({ open, onOpenChange, children }: DialogProps) {
   );
 }
 
-export function DialogPortal({ children }: { children: ComponentChildren }) {
+export function DialogPortal({ children }: { children: ReactNode }) {
   const { open } = useContext(DialogContext);
   if (!open) return null;
   return createPortal(<>{children}</>, document.body);
 }
 
-export function DialogOverlay({ class: className }: { class?: string }) {
+export function DialogOverlay({ className }: { className?: string }) {
   const { onOpenChange } = useContext(DialogContext);
   return (
     <div
@@ -76,7 +75,7 @@ export function DialogOverlay({ class: className }: { class?: string }) {
       // Clicks inside DialogContent never reach here — it is a sibling
       // stacked above the overlay, not a child.
       onClick={() => onOpenChange(false)}
-      class={cn(
+      className={cn(
         "bg-foreground/25 animate-overlay-in fixed inset-0 z-50 backdrop-blur-[2px] dark:bg-black/50",
         className,
       )}
@@ -85,15 +84,14 @@ export function DialogOverlay({ class: className }: { class?: string }) {
 }
 
 interface DialogContentProps {
-  class?: string;
-  children: ComponentChildren;
+  className?: string;
+  children: ReactNode;
 }
 
-// forwardRef is required: Preact 10 never puts `ref` into a function
-// component's props (destructuring it always yielded undefined), so the
-// forwarded ref used to silently point at the component instance.
+// forwardRef is required so callers can pass a ref to the underlying
+// DOM node (e.g. the password dialog card for the shake animation).
 export const DialogContent = forwardRef<HTMLDivElement, DialogContentProps>(
-  function DialogContent({ class: className, children }, ref) {
+  function DialogContent({ className, children }, ref) {
     const innerRef = useRef<HTMLDivElement | null>(null);
     const returnFocusRef = useRef<HTMLElement | null>(null);
 
@@ -110,7 +108,7 @@ export const DialogContent = forwardRef<HTMLDivElement, DialogContentProps>(
 
     // Minimal focus trap: keep Tab cycling inside the dialog. aria-modal
     // alone does not prevent keyboard focus from escaping to the page.
-    const onKeyDown = (e: KeyboardEvent) => {
+    const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
       if (e.key !== "Tab") return;
       const root = innerRef.current;
       if (!root) return;
@@ -143,7 +141,7 @@ export const DialogContent = forwardRef<HTMLDivElement, DialogContentProps>(
         aria-modal="true"
         tabIndex={-1}
         onKeyDown={onKeyDown}
-        class={cn(
+        className={cn(
           "border-muted bg-background text-foreground shadow-foreground/10 animate-dialog-in fixed z-50 flex flex-col overflow-hidden rounded-xl border shadow-2xl outline-none",
           className,
         )}
@@ -157,41 +155,41 @@ export const DialogContent = forwardRef<HTMLDivElement, DialogContentProps>(
 export function DialogAccessibleTitle({
   children,
 }: {
-  children: ComponentChildren;
+  children: ReactNode;
 }) {
-  return <h2 class="sr-only">{children}</h2>;
+  return <h2 className="sr-only">{children}</h2>;
 }
 
 export function DialogTitle({
   children,
-  class: className,
+  className,
 }: {
-  children: ComponentChildren;
-  class?: string;
+  children: ReactNode;
+  className?: string;
 }) {
-  return <h2 class={className}>{children}</h2>;
+  return <h2 className={className}>{children}</h2>;
 }
 
 export function DialogDescription({
   children,
-  class: className,
+  className,
 }: {
-  children: ComponentChildren;
-  class?: string;
+  children: ReactNode;
+  className?: string;
 }) {
-  return <p class={className}>{children}</p>;
+  return <p className={className}>{children}</p>;
 }
 
 export function DialogClose({
   children,
-  class: className,
+  className,
 }: {
-  children: ComponentChildren;
-  class?: string;
+  children: ReactNode;
+  className?: string;
 }) {
   const { onOpenChange } = useContext(DialogContext);
   return (
-    <button type="button" class={className} onClick={() => onOpenChange(false)}>
+    <button type="button" className={className} onClick={() => onOpenChange(false)}>
       {children}
     </button>
   );
@@ -199,14 +197,14 @@ export function DialogClose({
 
 export function DialogTrigger({
   children,
-  class: className,
+  className,
 }: {
-  children: ComponentChildren;
-  class?: string;
+  children: ReactNode;
+  className?: string;
 }) {
   const { onOpenChange } = useContext(DialogContext);
   return (
-    <button type="button" class={className} onClick={() => onOpenChange(true)}>
+    <button type="button" className={className} onClick={() => onOpenChange(true)}>
       {children}
     </button>
   );

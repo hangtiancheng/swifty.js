@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import { ThemeToggleIcon } from "./logo";
 
