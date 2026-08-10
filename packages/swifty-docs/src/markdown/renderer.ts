@@ -37,7 +37,7 @@ import type { Token } from "markdown-it/index.js";
  *
  * The output is static HTML — all content comes from the .md file at
  * build time. Dynamic data (page title, TOC headings, sidebar state)
- * flows through Preact state in the theme instead.
+ * flows through React state in the theme instead.
  */
 export function renderToSwiftyTemplate(
   tokens: Token[],

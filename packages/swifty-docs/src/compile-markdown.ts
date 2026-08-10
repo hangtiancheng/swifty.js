@@ -23,7 +23,7 @@
 /**
  * Markdown-to-page-module compiler.
  *
- * Transforms a .md source string into a JS module string that the Preact
+ * Transforms a .md source string into a JS module string that the React
  * theme consumes at runtime ({ pageData, contentHtml }).
  *
  * Pipeline:

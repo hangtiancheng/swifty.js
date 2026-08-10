@@ -1,13 +1,13 @@
 # @swifty.js/docs
 
-A documentation site generator with a Preact + shadcn-style theme.
+A documentation site generator with a React + shadcn-style theme.
 
-If Preact is to React, then `@swifty.js/docs` is to Docusaurus or VitePress -- an out-of-the-box documentation site experience: a `markdown-it` build pipeline that compiles your `.md` files, paired with a polished, accessible Preact theme (shadcn-style primitives on Tailwind CSS v4) that renders them at runtime.
+If React is to React, then `@swifty.js/docs` is to Docusaurus or VitePress -- an out-of-the-box documentation site experience: a `markdown-it` build pipeline that compiles your `.md` files, paired with a polished, accessible React theme (shadcn-style primitives on Tailwind CSS v4) that renders them at runtime.
 
 ## Features
 
 - File-based routing: recursively scans a `docs/` directory and generates SPA routes
-- Preact runtime: a single catch-all route keeps the layout mounted; only the content column swaps on navigation (`preact-iso`, history mode)
+- React runtime: a single catch-all route keeps the layout mounted; only the content column swaps on navigation (`react-iso`, history mode)
 - Markdown compilation pipeline: `markdown-it` with four custom plugins (anchors, TOC, containers, code blocks)
 - YAML frontmatter: metadata extraction via `js-yaml` for page titles, descriptions, and sidebar positioning
 - Code syntax highlighting: Shiki with lazy WASM initialization, singleton caching, and dual-theme output (light + dark tokens that switch with the color scheme, no rebuild)
@@ -18,8 +18,8 @@ If Preact is to React, then `@swifty.js/docs` is to Docusaurus or VitePress -- a
 - Table of contents: per-page heading outline with an IntersectionObserver scroll-spy and a springing active marker
 - Light/dark theme: shadcn-style semantic tokens, a no-FOUC inline bootstrap script, and `localStorage` persistence
 - Responsive three-column layout: sticky frosted navbar, left sidebar rail, prose column, right TOC rail, and a slide-in mobile drawer
-- Accessible primitives: hand-rolled shadcn-style Preact components (portal dialog, focus management, ARIA)
-- Vite integration: a single plugin that bundles the markdown compiler and Preact JSX compilation
+- Accessible primitives: hand-rolled shadcn-style React components (portal dialog, focus management, ARIA)
+- Vite integration: a single plugin that bundles the markdown compiler and React JSX compilation
 - Zero-config bootstrap: `defineConfig()` auto-generates routes, sidebars, and the lazy search index into `.swifty-docs/generated/`
 - Dual-format library build: ships ESM + CJS with full TypeScript declarations
 
@@ -31,7 +31,7 @@ If Preact is to React, then `@swifty.js/docs` is to Docusaurus or VitePress -- a
 
 **Phase 2 -- Compilation (Vite plugin).** Each `.md` import is intercepted by the Vite plugin (`swiftyDocsPlugin`) and compiled through `compileMarkdown()`. The pipeline extracts YAML frontmatter, initializes the Shiki highlighter on first call (async singleton), parses the markdown body with `markdown-it` plus four custom plugins, renders to HTML, builds page metadata, and emits a JS module that exports `pageData` and `contentHtml`.
 
-**Phase 3 -- Runtime (browser).** A Preact app mounts `<DocsProvider>` (which validates the generated config/loader at the boundary) around preact-iso's `<LocationProvider>` + `<Router>` with a catch-all route rendering `<DocsLayout>`. The layout stays mounted across navigation and loads each page's content through an effect over the route path. Theme components (`Navbar`, `Sidebar`, `Toc`, `SearchDialog`, `ContentRenderer`, `PrevNext`) render the documentation UI from hooks state; the build-time `contentHtml` is injected into the article element and wired up for SPA links, inline `[[toc]]` mounts, and code-block copy buttons. Search is lazily built on first query.
+**Phase 3 -- Runtime (browser).** A React app mounts `<DocsProvider>` (which validates the generated config/loader at the boundary) around react-iso's `<LocationProvider>` + `<Router>` with a catch-all route rendering `<DocsLayout>`. The layout stays mounted across navigation and loads each page's content through an effect over the route path. Theme components (`Navbar`, `Sidebar`, `Toc`, `SearchDialog`, `ContentRenderer`, `PrevNext`) render the documentation UI from hooks state; the build-time `contentHtml` is injected into the article element and wired up for SPA links, inline `[[toc]]` mounts, and code-block copy buttons. Search is lazily built on first query.
 
 ```
 swifty-docs.config.ts            Vite Plugin               Browser Runtime
@@ -53,10 +53,10 @@ swifty-docs.config.ts            Vite Plugin               Browser Runtime
 ### 1. Install
 
 ```bash
-pnpm add @swifty.js/docs preact preact-iso tailwindcss @tailwindcss/typography
+pnpm add @swifty.js/docs react react-iso tailwindcss @tailwindcss/typography
 ```
 
-`preact` is a **peer dependency**: the theme is precompiled against the Preact runtime, so your app and the theme must share a single `preact` instance (install it once at the app level). The theme ships its own stylesheet -- Tailwind CSS v4 with the Typography plugin and shadcn-style semantic tokens -- so your CSS entry only needs two imports:
+`react` is a **peer dependency**: the theme is precompiled against the React runtime, so your app and the theme must share a single `react` instance (install it once at the app level). The theme ships its own stylesheet -- Tailwind CSS v4 with the Typography plugin and shadcn-style semantic tokens -- so your CSS entry only needs two imports:
 
 ```css
 @import "tailwindcss";
@@ -109,7 +109,7 @@ const PKG_DIR = import.meta.dirname;
 export default defineConfig({
   root: resolve(PKG_DIR, "app"),
   plugins: [
-    // Returns [md-compiler, @preact/preset-vite] -- no separate Preact plugin needed.
+    // Returns [md-compiler, @react/preset-vite] -- no separate React plugin needed.
     swiftyDocsPlugin({ config: docsConfig }),
     tailwindcss(),
   ],
@@ -126,8 +126,8 @@ export default defineConfig({
 Create `app/main.tsx`:
 
 ```tsx
-import { render } from "preact";
-import { LocationProvider, Router, Route } from "preact-iso";
+import { render } from "react";
+import { LocationProvider, Router, Route } from "react-iso";
 import { DocsLayout, DocsProvider } from "@swifty.js/docs";
 
 // Auto-generated by defineConfig()
@@ -314,7 +314,7 @@ All h1, h2, and h3 headings automatically receive:
 
 ### Internal Links
 
-Links starting with `/` or `#` render as plain anchors — same-origin clicks are intercepted globally by preact-iso's `LocationProvider` for SPA navigation (anchor links smooth-scroll to the heading instead). External links receive `target="_blank"` and `rel="noopener noreferrer"`.
+Links starting with `/` or `#` render as plain anchors — same-origin clicks are intercepted globally by react-iso's `LocationProvider` for SPA navigation (anchor links smooth-scroll to the heading instead). External links receive `target="_blank"` and `rel="noopener noreferrer"`.
 
 ### Table of Contents
 
@@ -365,7 +365,7 @@ Every fence is wrapped in a `.codeblock` chrome container (language chip, hover 
 
 ## Theme System
 
-The theme is a set of Preact components that consume the build-time `{ pageData, contentHtml }` modules. You wire it up once with `<DocsProvider>` + `<DocsLayout>`; there is no view registry or template compilation step.
+The theme is a set of React components that consume the build-time `{ pageData, contentHtml }` modules. You wire it up once with `<DocsProvider>` + `<DocsLayout>`; there is no view registry or template compilation step.
 
 ### Components
 
@@ -380,7 +380,7 @@ The theme is a set of Preact components that consume the build-time `{ pageData,
 | `SearchDialog`    | MiniSearch command palette                                                         |
 | `PrevNext`        | Previous/next pager derived from sidebar order                                     |
 
-Reusable shadcn-style primitives (`Button`, `Input`, `Kbd`, `Dialog`) live under `theme/ui`; the dialog is a hand-rolled Preact portal with Escape handling and focus management.
+Reusable shadcn-style primitives (`Button`, `Input`, `Kbd`, `Dialog`) live under `theme/ui`; the dialog is a hand-rolled React portal with Escape handling and focus management.
 
 ### Layout Structure
 
@@ -416,7 +416,7 @@ Code blocks use Shiki's dual-theme output: each token carries `--shiki-light` / 
 
 ### Icons
 
-Icons are re-exported from [`lucide-preact`](https://lucide.dev) in `src/theme/icons.ts` (stroke style, `currentColor`), so they inherit color from their parent:
+Icons are re-exported from [`lucide-react`](https://lucide.dev) in `src/theme/icons.ts` (stroke style, `currentColor`), so they inherit color from their parent:
 
 ```tsx
 import { SearchIcon } from "@swifty.js/docs";
@@ -428,7 +428,7 @@ import { SearchIcon } from "@swifty.js/docs";
 
 ### Built-in Search
 
-The built-in search is powered by [MiniSearch](https://github.com/lucaong/minisearch) (the same engine used by VitePress). It provides a command palette (a portal-based Preact dialog) with:
+The built-in search is powered by [MiniSearch](https://github.com/lucaong/minisearch) (the same engine used by VitePress). It provides a command palette (a portal-based React dialog) with:
 
 - Prefix matching: typing "conf" matches "configuration"
 - Fuzzy matching: tolerates typos (fuzzy factor 0.2)
@@ -448,7 +448,7 @@ export default defineConfig({
 });
 ```
 
-The plugin returns a plugin array: the `swifty-docs` markdown compiler, `swifty-docs:base-sync`, `swifty-docs:spa-fallback`, and `@preact/preset-vite` (which compiles the theme's JSX). The compiler's `resolveId` hook runs in the `pre` enforcement phase and appends a `?swifty-docs` suffix to `.md` imports so Vite does not treat them as static assets. Its `load` hook reads the raw markdown, compiles it through `compileMarkdown()`, and returns the JS module string.
+The plugin returns a plugin array: the `swifty-docs` markdown compiler, `swifty-docs:base-sync`, `swifty-docs:spa-fallback`, and `@react/preset-vite` (which compiles the theme's JSX). The compiler's `resolveId` hook runs in the `pre` enforcement phase and appends a `?swifty-docs` suffix to `.md` imports so Vite does not treat them as static assets. Its `load` hook reads the raw markdown, compiles it through `compileMarkdown()`, and returns the JS module string.
 
 - **`swifty-docs:base-sync`** — sets Vite's `base` from `DocsConfig.baseUrl` when you haven't set one, so the base URL is declared once.
 - **`swifty-docs:spa-fallback`** — after a production build, copies `index.html` to `404.html` so static hosts (e.g. GitHub Pages) can serve deep links and page refreshes for the history-based router. A `public/404.html` of your own takes precedence.
@@ -513,14 +513,14 @@ Without `DOCS_PASSWORD` set, `docsGuardPlugin()` is a no-op and protected pages 
 
 ## Package Exports
 
-| Sub-path                   | Description                                                                                          |
-| -------------------------- | ---------------------------------------------------------------------------------------------------- |
-| `@swifty.js/docs`          | Main barrel: Preact theme components (`DocsProvider`, `DocsLayout`, ...), primitives, types, runtime |
-| `@swifty.js/docs/compiler` | `compileMarkdown()` + `CompileMarkdownOptions` type                                                  |
-| `@swifty.js/docs/vite`     | `swiftyDocsPlugin()` Vite plugin + build-time utility re-exports                                     |
-| `@swifty.js/docs/runtime`  | `slugify()` (browser-safe, no build deps)                                                            |
-| `@swifty.js/docs/theme`    | Preact theme components + helpers                                                                    |
-| `@swifty.js/docs/client`   | Types-only: ambient module declaration for `@swifty-docs/generated` (for `/// <reference types>`)    |
+| Sub-path                   | Description                                                                                         |
+| -------------------------- | --------------------------------------------------------------------------------------------------- |
+| `@swifty.js/docs`          | Main barrel: React theme components (`DocsProvider`, `DocsLayout`, ...), primitives, types, runtime |
+| `@swifty.js/docs/compiler` | `compileMarkdown()` + `CompileMarkdownOptions` type                                                 |
+| `@swifty.js/docs/vite`     | `swiftyDocsPlugin()` Vite plugin + build-time utility re-exports                                    |
+| `@swifty.js/docs/runtime`  | `slugify()` (browser-safe, no build deps)                                                           |
+| `@swifty.js/docs/theme`    | React theme components + helpers                                                                    |
+| `@swifty.js/docs/client`   | Types-only: ambient module declaration for `@swifty-docs/generated` (for `/// <reference types>`)   |
 
 The `/vite` sub-path re-exports build-time utilities (`scanDocsDir`, `generateSidebar`, `defineConfig`) so Node.js contexts (config files) don't pull in the browser-only theme code.
 
@@ -538,7 +538,7 @@ The context root. Props: `config` (the generated `docsConfig`), `loadContent` (t
 
 ### `DocsLayout()`
 
-The documentation shell. Renders the navbar, sidebar, prose column (`ContentRenderer` + `PrevNext`), TOC, search palette, and mobile drawer. Mount it on a catch-all route; it reads the current path from `preact-iso`'s `useLocation()` and loads content in an effect.
+The documentation shell. Renders the navbar, sidebar, prose column (`ContentRenderer` + `PrevNext`), TOC, search palette, and mobile drawer. Mount it on a catch-all route; it reads the current path from `react-iso`'s `useLocation()` and loads content in an effect.
 
 ### Other theme exports
 
@@ -623,22 +623,22 @@ Type declarations for `@swifty-docs/generated` are provided by the `@swifty.js/d
 - `clsx` ^2.1.0 -- conditional class composition
 - `ejs` ^3.1.10 -- template engine for generated module output
 - `js-yaml` ^5.2.0 -- YAML frontmatter parsing
-- `lucide-preact` ^1.25.0 -- icon components (re-exported from the theme)
+- `lucide-react` ^1.25.0 -- icon components (re-exported from the theme)
 - `lucide-static` ^1.25.0 -- inline SVG glyphs for admonition containers (build time)
 - `markdown-it` ^14.2.0 -- Markdown parser
 - `markdown-it-container` ^4.0.0 -- Admonition container syntax
 - `minisearch` ^7.2.0 -- Full-text search engine (same as VitePress)
-- `preact-iso` ^2.12.1 -- client-side routing (`LocationProvider`, `Router`, `useLocation`)
+- `react-iso` ^2.12.1 -- client-side routing (`LocationProvider`, `Router`, `useLocation`)
 - `shiki` ^4.3.0 -- Code syntax highlighting (dynamic import, lazy singleton)
 - `tailwind-merge` ^3.0.0 -- deduplicate conflicting Tailwind classes
 - `vite-plugin-pwa` ^1.3.0 -- PWA / service-worker generation
 - `zod` ^4.4.3 -- Runtime schema validation of the generated config/loader at the provider boundary
 
-`@preact/preset-vite` compiles the theme's JSX and is bundled into the Vite plugin returned by `swiftyDocsPlugin()`.
+`@react/preset-vite` compiles the theme's JSX and is bundled into the Vite plugin returned by `swiftyDocsPlugin()`.
 
 **Peer:**
 
-- `preact` ^10.20.0 -- UI runtime (shared single instance between app and theme)
+- `react` ^10.20.0 -- UI runtime (shared single instance between app and theme)
 - `tailwindcss` ^4.0.0 -- Utility-first CSS
 
 ## License

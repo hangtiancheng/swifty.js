@@ -35,7 +35,7 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Scan the Preact theme components for utility classes. */
+/* Scan the React theme components for utility classes. */
 @source "./theme";
 
 /* ------------------------------------------------------------------ */

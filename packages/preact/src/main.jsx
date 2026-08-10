@@ -20,25 +20,12 @@
  * SOFTWARE.
  */
 
-import { render, hydrate, unmountComponentAtNode } from "./internal";
+/** @jsx __react__.createElement */
+import __react__ from "./react.js";
+import __react_dom__ from "./react-dom.js";
 
-export function createRoot(container) {
-  return {
-    render: function (children) {
-      render(children, container);
-    },
-    unmount: function () {
-      unmountComponentAtNode(container);
-    },
-  };
-}
+import App from "./App.jsx";
 
-export function hydrateRoot(container, children) {
-  hydrate(children, container);
-  return createRoot(container);
-}
-
-export default {
-  createRoot,
-  hydrateRoot,
-};
+const container = document.querySelector("#root");
+const root = __react_dom__.createRoot(container);
+root.render(<App />);

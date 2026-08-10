@@ -213,7 +213,7 @@ export function makeSnippet(text: string, query: string, span = 90): string {
 
 /**
  * Split text into plain/marked segments for each query term occurrence.
- * Rendered as <mark> elements in Preact — no innerHTML involved.
+ * Rendered as <mark> elements in React — no innerHTML involved.
  */
 export function highlightSegments(
   text: string,

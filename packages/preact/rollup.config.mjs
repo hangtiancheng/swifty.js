@@ -45,7 +45,7 @@ const sanitize = (name) => name.replace(/\//g, "-");
 
 export default {
   input: {
-    preact: "src/index.js",
+    react: "src/index.js",
     hooks: "src/hooks/index.js",
     compat: "src/compat/internal/index.js",
     "jsx-runtime": "src/jsx-runtime/index.js",

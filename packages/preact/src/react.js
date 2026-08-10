@@ -353,11 +353,11 @@ function useEffect(callback, deps) {
 
 requestIdleCallback(workLoop);
 
-const React = {
+const __react__ = {
   render,
   createElement,
   useState,
   useEffect,
 };
 
-export default React;
+export default __react__;

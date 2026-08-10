@@ -22,7 +22,7 @@
 
 /**
  * Runtime contracts between the generated module (@swifty-docs/generated)
- * and the Preact theme.
+ * and the React theme.
  *
  * Values cross a module boundary that TypeScript cannot see through at
  * runtime (the generated file is plain JS), so every shape is validated

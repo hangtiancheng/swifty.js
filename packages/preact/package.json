@@ -1,18 +1,18 @@
 {
-  "name": "@swifty.js/preact",
+  "name": "@swifty.js/react",
   "version": "0.0.3",
-  "description": "Preact all in one",
+  "description": "React all in one",
   "keywords": [
     "all-in-one",
     "fork",
     "framework",
     "jsx",
     "light-weight",
-    "preact",
+    "react",
     "react",
     "virtual-dom"
   ],
-  "homepage": "https://github.com/hangtiancheng/swifty.js/tree/main/packages/preact#readme",
+  "homepage": "https://github.com/hangtiancheng/swifty.js/tree/main/packages/react#readme",
   "bugs": {
     "url": "https://github.com/hangtiancheng/swifty.js/issues"
   },
@@ -21,7 +21,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/hangtiancheng/swifty.js.git",
-    "directory": "packages/preact"
+    "directory": "packages/react"
   },
   "files": [
     "src/**/*.d.ts",
@@ -30,13 +30,13 @@
   ],
   "type": "module",
   "sideEffects": false,
-  "main": "dist/preact.mjs",
-  "module": "dist/preact.mjs",
+  "main": "dist/react.mjs",
+  "module": "dist/react.mjs",
   "types": "src/index.d.ts",
   "exports": {
     ".": {
       "types": "./src/index.d.ts",
-      "import": "./dist/preact.mjs"
+      "import": "./dist/react.mjs"
     },
     "./hooks": {
       "types": "./src/hooks/index.d.ts",

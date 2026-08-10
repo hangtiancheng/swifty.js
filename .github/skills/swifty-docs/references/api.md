@@ -23,7 +23,7 @@ Identity + generation side effect. See `references/configuration.md`.
 
 ### `swiftyDocsPlugin(options: { config: DocsConfig; debug?: boolean }): Plugin[]`
 
-Returns `[swifty-docs md-compiler, ...@preact/preset-vite]`. The compiler plugin: `enforce: "pre"`; `resolveId` rewrites any `.md` import (skipping `node_modules`) to `<abs-path>?swifty-docs` (handles `/@fs` prefixes); `load` matches the `swifty-docs` query flag and returns the compiled JS module string. `debug: true` logs resolveId/load activity.
+Returns `[swifty-docs md-compiler, ...@react/preset-vite]`. The compiler plugin: `enforce: "pre"`; `resolveId` rewrites any `.md` import (skipping `node_modules`) to `<abs-path>?swifty-docs` (handles `/@fs` prefixes); `load` matches the `swifty-docs` query flag and returns the compiled JS module string. `debug: true` logs resolveId/load activity.
 
 ### `compileMarkdown(source: string, options: CompileMarkdownOptions): Promise<string>`
 
@@ -57,19 +57,19 @@ Context value (via `useDocs()`): `{ config: RuntimeDocsConfig, loadContent, getS
 
 ### `DocsLayout()`
 
-The whole shell; takes no props. Reads path from preact-iso `useLocation()`, normalizes it (`normalizePath` — redirects `/index`, `/index.md`, `/index.html`, trailing slashes), loads content in `useEffect` with cancellation, renders Navbar / Sidebar rail / prose column (`ContentRenderer` + `PrevNext`) / Toc rail / mobile drawer / SearchDialog. Landing route falls back to `nav[0].link ?? baseUrl ?? "/"`.
+The whole shell; takes no props. Reads path from react-iso `useLocation()`, normalizes it (`normalizePath` — redirects `/index`, `/index.md`, `/index.html`, trailing slashes), loads content in `useEffect` with cancellation, renders Navbar / Sidebar rail / prose column (`ContentRenderer` + `PrevNext`) / Toc rail / mobile drawer / SearchDialog. Landing route falls back to `nav[0].link ?? baseUrl ?? "/"`.
 
 ### Other components (composable individually)
 
 `Navbar`, `Sidebar`, `Toc` (also mounted inline for `[[toc]]`), `SearchDialog` (MiniSearch palette, mounted only when `searchEnabled`), `ContentRenderer` (injects `contentHtml`, wires `swifty-docs-nav` links, `[[toc]]` mounts, copy buttons, hash pushState deep links), `PrevNext`, `ThemeToggle` (persists `swifty-docs-theme`; the key is exported as `THEME_STORAGE_KEY`; syncs across instances via a MutationObserver on `<html class>`), `Logo`. Password guard: `createContentGuard(loadContent)` returns `{ loadContent, ContentGuard }` — mount `<ContentGuard />` once; `PasswordDialog` and `decryptContent` are also exported.
 
-### Primitives (shadcn-style, hand-rolled Preact)
+### Primitives (shadcn-style, hand-rolled React)
 
 - `Button`, `buttonVariants` (cva-based)
 - `Input`, `Kbd`
-- From `/theme` only: `Dialog`, `DialogTrigger`, `DialogPortal` (preact/compat `createPortal` to `document.body`), `DialogOverlay`, `DialogContent` (role="dialog", autofocus), `DialogTitle`, `DialogDescription`, `DialogClose`. `Dialog` handles Escape via a document keydown listener; open state is controlled (`open` / `onOpenChange`).
+- From `/theme` only: `Dialog`, `DialogTrigger`, `DialogPortal` (react/compat `createPortal` to `document.body`), `DialogOverlay`, `DialogContent` (role="dialog", autofocus), `DialogTitle`, `DialogDescription`, `DialogClose`. `Dialog` handles Escape via a document keydown listener; open state is controlled (`open` / `onOpenChange`).
 
-Note: props use Preact's `class` attribute, not `className`.
+Note: props use React's `class` attribute, not `className`.
 
 ## Runtime API — hooks & utilities
 

@@ -20,13 +20,13 @@
  * SOFTWARE.
  */
 
-/** @jsx React.createElement */
-import React from "./react.js";
+/** @jsx __react__.createElement */
+import __react__ from "./react.js";
 
 function Demo() {
-  const [cnt, setCnt] = React.useState(1);
-  const [cnt2, setCnt2] = React.useState(2);
-  const [cnt3, setCnt3] = React.useState(3);
+  const [cnt, setCnt] = __react__.useState(1);
+  const [cnt2, setCnt2] = __react__.useState(2);
+  const [cnt3, setCnt3] = __react__.useState(3);
 
   const handleClick = () => {
     setCnt(cnt + 1);
@@ -41,28 +41,28 @@ function Demo() {
     setCnt3((cnt3) => cnt3);
   };
 
-  React.useEffect(() => {
+  __react__.useEffect(() => {
     console.log("onMounted");
     return () => {
       console.log("Cleanup");
     };
   }, []);
 
-  React.useEffect(() => {
+  __react__.useEffect(() => {
     console.log(`cnt: ${cnt}`);
     return () => {
       console.log("cnt Cleanup");
     };
   }, [cnt]);
 
-  React.useEffect(() => {
+  __react__.useEffect(() => {
     console.log(`cnt2: ${cnt2}`);
     return () => {
       console.log("cnt2 Cleanup");
     };
   }, [cnt2]);
 
-  React.useEffect(() => {
+  __react__.useEffect(() => {
     console.log(`cnt3: ${cnt3}`);
     return () => {
       console.log("cnt3 Cleanup");
