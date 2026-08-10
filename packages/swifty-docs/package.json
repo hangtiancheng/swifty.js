@@ -1,6 +1,6 @@
 {
   "name": "@swifty.js/docs",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "A beautiful documentation site generator powered by React",
   "keywords": [
     "@lark.js",
@@ -117,7 +117,7 @@
     "clsx": "^2.1.0",
     "ejs": "^3.1.10",
     "js-yaml": "^5.2.0",
-    "lucide-react": "^0.525.0",
+    "lucide-react": "^1.31.0",
     "markdown-it": "^14.2.0",
     "markdown-it-container": "^4.0.0",
     "mermaid": "^11.16.0",
