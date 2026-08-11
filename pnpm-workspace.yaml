@@ -23,17 +23,24 @@ packages:
   - packages/*
 
 catalog:
-  "@types/node": 24.13.1
+  "@types/node": 24.13.3,
+  "@lark.js/docs": '^0.0.16'
 
 allowBuilds:
   "@parcel/watcher": true
   "@swc/core": true
-  "@vscode/vsce-sign": true
   core-js: true
   core-js-pure: true
   esbuild: true
   keytar: true
   msw: true
   protobufjs: true
-  vue-demi: true
   es5-ext: true
+
+minimumReleaseAgeExclude:
+  - '@swifty.js/docs@0.0.11'
+  - '@lark.js/docs@0.0.16'
+
+overrides:
+  "@types/node": "^24.13.3"
+  "vite": "^7.3.6"
