@@ -33,6 +33,9 @@ importers:
       '@lark.js/docs':
         specifier: ^0.0.16
         version: 0.0.16(@tailwindcss/typography@0.5.20(tailwindcss@4.3.3))(tailwindcss@4.3.3)(vite@7.3.6(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.33.0)(terser@5.49.0)(yaml@2.9.0))
+      '@lark.js/mvc':
+        specifier: ^0.0.24
+        version: 0.0.24(vite@7.3.6(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.33.0)(terser@5.49.0)(yaml@2.9.0))
       '@rollup/plugin-alias':
         specifier: ^6.0.0
         version: 6.0.0(rollup@4.62.4)
@@ -1502,6 +1505,11 @@ packages:
 
   '@lark.js/mvc@0.0.23':
     resolution: {integrity: sha512-zaCB4Chj7UrNqe7U+O9lrwPu7HbSGXFYqIWBNEGyViutbs0hCSPmMuLTKJ48nccTHFBrHKHy/kV2LeDMJDm9xw==}
+    peerDependencies:
+      vite: ^7.3.6
+
+  '@lark.js/mvc@0.0.24':
+    resolution: {integrity: sha512-dWk6WtrfwqU3X2KKzrVCGz5DEueAIziE/AMYNq6oNwAluQ3K5IbhtIsRDRZd0TO4CSVo9N8/54e9aoquTRadog==}
     peerDependencies:
       vite: ^7.3.6
 
@@ -8165,6 +8173,13 @@ snapshots:
       - vite
 
   '@lark.js/mvc@0.0.23(vite@7.3.6(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.33.0)(terser@5.49.0)(yaml@2.9.0))':
+    dependencies:
+      '@babel/parser': 7.29.8
+      '@babel/types': 7.29.8
+      htmlparser2: 12.0.0
+      vite: 7.3.6(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.33.0)(terser@5.49.0)(yaml@2.9.0)
+
+  '@lark.js/mvc@0.0.24(vite@7.3.6(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.33.0)(terser@5.49.0)(yaml@2.9.0))':
     dependencies:
       '@babel/parser': 7.29.8
       '@babel/types': 7.29.8

@@ -14,34 +14,39 @@
   ],
   "type": "module",
   "sideEffects": false,
-  "main": "./dist/core/index.cjs",
-  "module": "./dist/core/index.js",
-  "types": "./dist/core/index.d.ts",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/core/index.d.ts",
-      "import": "./dist/core/index.js",
-      "require": "./dist/core/index.cjs"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     },
     "./vitepress": {
-      "types": "./dist/vitepress/index.d.ts",
-      "import": "./dist/vitepress/index.js",
-      "require": "./dist/vitepress/index.cjs"
+      "types": "./dist/vitepress.d.ts",
+      "import": "./dist/vitepress.js",
+      "require": "./dist/vitepress.cjs"
     },
     "./swifty-docs": {
-      "types": "./dist/docs/swifty.d.ts",
-      "import": "./dist/docs/swifty.js",
-      "require": "./dist/docs/swifty.cjs"
+      "types": "./dist/swifty-docs.d.ts",
+      "import": "./dist/swifty-docs.js",
+      "require": "./dist/swifty-docs.cjs"
     },
     "./lark-docs": {
-      "types": "./dist/docs/lark.d.ts",
-      "import": "./dist/docs/lark.js",
-      "require": "./dist/docs/lark.cjs"
+      "types": "./dist/lark-docs.d.ts",
+      "import": "./dist/lark-docs.js",
+      "require": "./dist/lark-docs.cjs"
+    },
+    "./lark-mvc": {
+      "types": "./dist/lark-mvc.d.ts",
+      "import": "./dist/lark-mvc.js",
+      "require": "./dist/lark-mvc.cjs"
     },
     "./rspress": {
-      "types": "./dist/rspress/index.d.ts",
-      "import": "./dist/rspress/index.js",
-      "require": "./dist/rspress/index.cjs"
+      "types": "./dist/rspress.d.ts",
+      "import": "./dist/rspress.js",
+      "require": "./dist/rspress.cjs"
     }
   },
   "publishConfig": {
@@ -56,6 +61,7 @@
   },
   "devDependencies": {
     "@lark.js/docs": "^0.0.16",
+    "@lark.js/mvc": "^0.0.24",
     "@rollup/plugin-alias": "^6.0.0",
     "@rollup/plugin-terser": "^1.0.0",
     "@rollup/plugin-typescript": "^12.3.0",
@@ -77,6 +83,7 @@
   },
   "peerDependencies": {
     "@lark.js/docs": ">=0.0.16",
+    "@lark.js/mvc": ">=0.0.24",
     "@rspress/core": ">=2.0.0",
     "@swifty.js/docs": ">=0.0.11",
     "react": ">=19.0.0",
@@ -90,7 +97,7 @@
     "react": {
       "optional": true
     },
-    "@lark.js/docs": {
+    "@lark.js/mvc": {
       "optional": true
     },
     "@swifty.js/docs": {

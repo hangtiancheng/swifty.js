@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { Router } from "@lark.js/docs";
-import { applyAntiCopy } from "@/docs/lark";
+import { Router } from "@lark.js/mvc";
+import { applyAntiCopy } from "@/lark-docs";
 
 function pushPath(path: string): void {
   window.history.pushState({}, "", path);

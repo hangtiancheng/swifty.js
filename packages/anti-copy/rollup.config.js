@@ -8,16 +8,17 @@ import { dts } from "rollup-plugin-dts";
 
 const srcDir = fileURLToPath(new URL("src", import.meta.url));
 
-/** @type {Record<string, string>} */
+/** @type {import("rollup").InputOption} */
 const input = {
-  "core/index": "src/core/index.ts",
-  "vitepress/index": "src/vitepress/index.ts",
-  "docs/swifty": "src/docs/swifty.ts",
-  "docs/lark": "src/docs/lark.ts",
-  "rspress/index": "src/rspress/index.ts",
+  index: "src/core/index.ts",
+  vitepress: "src/vitepress.ts",
+  "swifty-docs": "src/swifty-docs.ts",
+  // "lark-mvc": "src/lark-mvc.ts",
+  "lark-docs": "src/lark-docs.ts",
+  rspress: "src/rspress.ts",
 };
 
-/** @type {(RegExp | string)[]} */
+/** @type {import("rollup").ExternalOption} */
 const external = [/^react(\/|$)/, /^vue(\/|$)/, /^vitepress(\/|$)/, /^@rspress\//, /^@lark\.js\//];
 
 /** @type {import("rollup").RollupOptions[]} */
