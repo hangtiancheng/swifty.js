@@ -1,4 +1,4 @@
-import { Router } from "@lark.js/docs";
+import { Router } from "@lark.js/mvc";
 import { createAntiCopy, isBrowser, type AntiCopyInstance, type AntiCopyOptions } from "@/core";
 import { DOCS_DEFAULT_EXCLUDES, isPathExcluded } from "./common";
 

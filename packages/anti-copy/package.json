@@ -1,6 +1,6 @@
 {
   "name": "@swifty.js/anti-copy",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Copy-protection SDK for browsers",
   "license": "MIT",
   "author": "https://github.com/hangtiancheng",
@@ -60,7 +60,6 @@
     "prepublishOnly": "pnpm typecheck && pnpm test && pnpm build"
   },
   "devDependencies": {
-    "@lark.js/docs": "^0.0.16",
     "@lark.js/mvc": "^0.0.24",
     "@rollup/plugin-alias": "^6.0.0",
     "@rollup/plugin-terser": "^1.0.0",
@@ -82,11 +81,10 @@
     "vue": "^3.5.41"
   },
   "peerDependencies": {
-    "@lark.js/docs": ">=0.0.16",
     "@lark.js/mvc": ">=0.0.24",
     "@rspress/core": ">=2.0.0",
     "@swifty.js/docs": ">=0.0.11",
-    "react": ">=19.0.0",
+    "react": "^18.0.0 || ^19.0.0",
     "vitepress": ">=1.0.0",
     "vue": ">=3.0.0"
   },

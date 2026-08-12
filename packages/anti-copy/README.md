@@ -1,7 +1,7 @@
 # @swifty.js/anti-copy
 
 Framework-agnostic copy-protection SDK for browsers, with VitePress,
-Rspress and @swifty.js/docs integrations.
+Rspress, @swifty.js/docs, @lark.js/docs and @lark.js/mvc integrations.
 
 > **Disclaimer**: client-side copy protection is a _deterrent_, not a
 > security boundary. Content remains accessible via view-source, disabled
@@ -150,6 +150,34 @@ Framework.boot(config);
 - Opt out per route with `excludePaths` (full paths incl. `baseUrl`; string
   prefix or RegExp, trailing slashes normalized); the toggle stays in sync
   across SPA navigation via the router's `changed` event.
+- The returned handle exposes `instance` for manual control and `stop()` for
+  teardown.
+
+## @lark.js/mvc integration
+
+Protects every page of a plain @lark.js/mvc app. Call `applyAntiCopy()`
+once from the boot module — before or after `Framework.boot()`:
+
+```ts
+// src/boot.ts
+import { applyAntiCopy } from "@swifty.js/anti-copy/lark-mvc";
+
+applyAntiCopy({
+  mode: "replace",
+  excludePaths: ["/playground"],
+  excludeSelectors: ["pre code"],
+});
+
+Framework.boot(config);
+```
+
+- Site-wide by default; routes in `excludePaths` opt out. Paths are matched
+  against the resolved route path (`Router.parse().path`, e.g. `"/home"`),
+  so both history and hash (`#!`) modes work; the toggle stays in sync via
+  the router's `changed` event.
+- No frontmatter and no default exclude selectors (apps are not docs
+  sites) — pass `excludeSelectors` explicitly for regions such as code
+  blocks; editable controls always keep native behavior.
 - The returned handle exposes `instance` for manual control and `stop()` for
   teardown.
 
