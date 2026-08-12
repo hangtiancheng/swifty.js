@@ -74,7 +74,7 @@ Because `@theme inline` references `var(--token)`, redefined values propagate to
 
 ## Recipe: change fonts
 
-`@theme inline` defines `--font-display` and `--font-sans` (both default to a Geist-style sans stack: `Geist, Swifty, -apple-system, BlinkMacSystemFont, Segoe UI, PingFang SC, Microsoft YaHei, sans-serif`) and `--font-mono` (default `Geist Mono, Swifty, Maple Mono, Menlo, Cascadia Code, Sarasa Gothic SC, PingFang SC, Microsoft YaHei, monospace`). Fonts are **not** self-hosted by the package — load your own `@font-face`/fontsource and override:
+`@theme inline` defines `--font-display` and `--font-sans` (both default to a Geist-style sans stack: `Geist, Swifty, -apple-system, PingFang SC, Microsoft YaHei, sans-serif`) and `--font-mono` (default `Geist Mono, Swifty, Maple Mono, Menlo, Cascadia Code, Sarasa Gothic SC, PingFang SC, Microsoft YaHei, monospace`). Fonts are **not** self-hosted by the package — load your own `@font-face`/fontsource and override:
 
 ```css
 @theme {

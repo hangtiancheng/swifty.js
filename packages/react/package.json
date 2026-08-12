@@ -79,8 +79,8 @@
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^1.0.0",
-    "prettier": "^3.9.4",
-    "rollup": "^4.62.2",
+    "prettier": "^3.9.6",
+    "rollup": "^4.62.4",
     "rollup-plugin-esbuild": "^6.2.1"
   },
   "packageManager": "pnpm@10.10.0"
