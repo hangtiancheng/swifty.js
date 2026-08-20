@@ -75,6 +75,7 @@
     "pino",
     "POPCNT",
     "popcount",
+    "prebuilds",
     "precached",
     "protobufjs",
     "pttl",
