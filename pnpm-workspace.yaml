@@ -24,14 +24,14 @@ packages:
 
 catalog:
   "@types/node": 24.13.3,
-  "@lark.js/docs": '^0.0.16'
-  "@lark.js/mvc": '^0.0.24'
+  "@lark.js/docs": '^0.0.19'
+  "@lark.js/mvc": '^0.0.26'
 
 overrides:
   "@types/node": "^24.13.3"
   "vite": "^7.3.6"
-  "@lark.js/docs": '^0.0.16'
-  "@lark.js/mvc": '^0.0.24'
+  "@lark.js/docs": '^0.0.19'
+  "@lark.js/mvc": '^0.0.26'
 
 allowBuilds:
   "@parcel/watcher": true
@@ -47,3 +47,4 @@ allowBuilds:
 minimumReleaseAgeExclude:
   - '@swifty.js/docs@0.0.11'
   - '@lark.js/docs@0.0.16'
+  - '@lark.js/mvc@0.0.26'
