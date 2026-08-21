@@ -42,11 +42,6 @@
       "types": "./dist/lark-mvc.d.ts",
       "import": "./dist/lark-mvc.js",
       "require": "./dist/lark-mvc.cjs"
-    },
-    "./rspress": {
-      "types": "./dist/rspress.d.ts",
-      "import": "./dist/rspress.js",
-      "require": "./dist/rspress.cjs"
     }
   },
   "publishConfig": {
@@ -64,7 +59,6 @@
     "@rollup/plugin-alias": "^6.0.0",
     "@rollup/plugin-terser": "^1.0.0",
     "@rollup/plugin-typescript": "^12.3.0",
-    "@rspress/core": "^2.0.19",
     "@swifty.js/docs": "workspace:*",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
@@ -82,16 +76,12 @@
   },
   "peerDependencies": {
     "@lark.js/mvc": ">=0.0.26",
-    "@rspress/core": ">=2.0.0",
     "@swifty.js/docs": ">=0.0.11",
     "react": "^18.0.0 || ^19.0.0",
     "vitepress": ">=1.0.0",
     "vue": ">=3.0.0"
   },
   "peerDependenciesMeta": {
-    "@rspress/core": {
-      "optional": true
-    },
     "react": {
       "optional": true
     },

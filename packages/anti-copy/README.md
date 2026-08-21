@@ -1,7 +1,6 @@
 # @swifty.js/anti-copy
 
-Framework-agnostic copy-protection SDK for browsers, with VitePress,
-Rspress, @swifty.js/docs, @lark.js/docs and @lark.js/mvc integrations.
+Framework-agnostic copy-protection SDK for browsers, with VitePress, @swifty.js/docs, @lark.js/docs and @lark.js/mvc integrations.
 
 > **Disclaimer**: client-side copy protection is a _deterrent_, not a
 > security boundary. Content remains accessible via view-source, disabled
@@ -180,40 +179,6 @@ Framework.boot(config);
   blocks; editable controls always keep native behavior.
 - The returned handle exposes `instance` for manual control and `stop()` for
   teardown.
-
-## Rspress integration
-
-Create a small wrapper with a default export and register it through
-`globalUIComponents`:
-
-```tsx
-// theme/anti-copy.tsx
-import { AntiCopy } from "@swifty.js/anti-copy/rspress";
-
-export default function GlobalAntiCopy() {
-  return <AntiCopy mode="replace" devtools />;
-}
-```
-
-```ts
-// rspress.config.ts
-import { defineConfig } from "@rspress/core";
-import path from "node:path";
-
-export default defineConfig({
-  globalUIComponents: [path.join(import.meta.dirname, "theme/anti-copy.tsx")],
-});
-```
-
-> Do **not** pass options through the `globalUIComponents: [[path, props]]`
-> tuple form: Rspress serializes those props with `JSON.stringify`, silently
-> dropping functions such as `replaceText` and `onViolation`. Always use a
-> wrapper component as shown above.
-
-- Code blocks (`.rp-codeblock`), the search panel/button and editable
-  controls are exempt (`RSPRESS_DEFAULT_EXCLUDES`).
-- Opt out per page with frontmatter `copyable: true`; the toggle stays in
-  sync across client-side navigation via `useFrontmatter()`.
 
 ## Known limitations
 

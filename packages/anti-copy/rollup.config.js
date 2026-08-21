@@ -31,15 +31,12 @@ const input = {
   "swifty-docs": "src/swifty-docs.ts",
   "lark-mvc": "src/lark-mvc.ts",
   "lark-docs": "src/lark-docs.ts",
-  rspress: "src/rspress.ts",
 };
 
 /** @type {import("rollup").ExternalOption} */
 const external = [
   /^react(\/|$)/,
   /^vue(\/|$)/,
-  /^vitepress(\/|$)/,
-  /^@rspress\//,
   /^@lark\.js\//,
   /^@swifty\.js\//,
 ];
