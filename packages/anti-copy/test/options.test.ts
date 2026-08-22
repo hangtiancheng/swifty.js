@@ -24,6 +24,8 @@ describe("resolveOptions", () => {
     expect(resolveOptions({ devtools: true }).devtools).toEqual({
       intervalMs: 1000,
       threshold: 170,
+      freeze: true,
+      redirectUrl: "about:blank",
     });
   });
 
@@ -31,6 +33,8 @@ describe("resolveOptions", () => {
     expect(resolveOptions({ devtools: { threshold: 300 } }).devtools).toEqual({
       intervalMs: 1000,
       threshold: 300,
+      freeze: true,
+      redirectUrl: "about:blank",
     });
   });
 });

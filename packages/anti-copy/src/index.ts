@@ -1,10 +1,16 @@
-import { createClipboardFeature } from "./clipboard";
-import { createContextmenuFeature } from "./contextmenu";
-import { createDevtoolsFeature } from "./devtools";
-import { createKeyboardFeature } from "./keyboard";
-import { resolveOptions } from "./options";
-import { createPrintFeature } from "./print";
-import { createStyleFeature } from "./style";
+/**
+ * Framework-agnostic copy / print / DevTools protection for any browser
+ * project — React, Vue, plain HTML, ... The docs-site integrations
+ * (`./vitepress`, `./swifty-docs`, `./lark-docs`) build on this core and
+ * add frontmatter / route-config collection on top.
+ */
+import { createClipboardFeature } from "./core/clipboard";
+import { createContextmenuFeature } from "./core/contextmenu";
+import { createDevtoolsFeature } from "./core/devtools";
+import { createKeyboardFeature } from "./core/keyboard";
+import { resolveOptions } from "./core/options";
+import { createPrintFeature } from "./core/print";
+import { createStyleFeature } from "./core/style";
 import type {
   AntiCopyInstance,
   AntiCopyMode,
@@ -13,8 +19,8 @@ import type {
   Feature,
   ViolationEvent,
   ViolationType,
-} from "./types";
-import { isBrowser } from "./utils";
+} from "./core/types";
+import { isBrowser } from "./core/utils";
 
 export type {
   AntiCopyInstance,
@@ -24,8 +30,8 @@ export type {
   ViolationEvent,
   ViolationType,
 };
-export { DEFAULT_REPLACE_TEXT } from "./options";
-export { isBrowser } from "./utils";
+export { DEFAULT_REPLACE_TEXT } from "./core/options";
+export { isBrowser } from "./core/utils";
 
 const NOOP_INSTANCE: AntiCopyInstance = {
   enable() {

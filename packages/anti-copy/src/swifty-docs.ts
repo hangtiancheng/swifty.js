@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from "react";
 import { useLocation } from "@swifty.js/docs";
-import { createAntiCopy, type AntiCopyOptions } from "@/core";
+import { createAntiCopy, type AntiCopyOptions } from "@/index";
 import { DOCS_DEFAULT_EXCLUDES, isPathExcluded } from "./common";
 
 /**

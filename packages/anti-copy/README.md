@@ -1,6 +1,6 @@
 # @swifty.js/anti-copy
 
-Framework-agnostic copy-protection SDK for browsers, with VitePress, @swifty.js/docs, @lark.js/docs and @lark.js/mvc integrations.
+Framework-agnostic copy-protection SDK for browsers, with VitePress, @swifty.js/docs and @lark.js/docs integrations.
 
 > **Disclaimer**: client-side copy protection is a _deterrent_, not a
 > security boundary. Content remains accessible via view-source, disabled
@@ -20,12 +20,20 @@ Framework-agnostic copy-protection SDK for browsers, with VitePress, @swifty.js/
   `-webkit-touch-callout: none` for iOS long-press
 - `replace` mode: swaps clipboard payload (text + escaped HTML flavor) with a
   copyright notice instead of blocking
-- Heuristic DevTools-open detection (window size delta; deterrent only)
+- DevTools protection: detects open DevTools (window size delta + `debugger`
+  probe timing, which also catches undocked windows), stalls the page with an
+  anonymous `(function anonymous() { debugger })` probe loop while open, and
+  redirects to a blank page when the stall is neutralized (e.g. by a
+  userscript)
 - Region exemptions via CSS selectors, judged against the **whole selection**
   (a selection spanning excluded and protected content stays blocked);
   editable controls always keep native behavior, incl. inside open shadow roots
 
 ## Core usage (framework agnostic)
+
+The framework-agnostic core (`src/index.ts`, the package root export) has
+zero framework dependencies and integrates into any browser project — React,
+Vue, plain HTML, ...:
 
 ```ts
 import { createAntiCopy } from "@swifty.js/anti-copy";
@@ -57,7 +65,7 @@ inert no-op instance.
 | `contextmenu`      | `true`     | Disable right-click menu                                                           |
 | `selectStyle`      | mode-aware | `user-select: none` + `selectstart`; `true` in block mode, `false` in replace mode |
 | `print`            | `true`     | `@media print` hiding, `beforeprint` reporting, `Ctrl/Cmd+S/P` blocking            |
-| `devtools`         | `false`    | `true` or `{ intervalMs, threshold }`                                              |
+| `devtools`         | `false`    | `true` or `{ intervalMs, threshold, freeze, redirectUrl }`                         |
 | `onViolation`      | —          | Callback fired on every protection trigger                                         |
 | `target`           | `document` | Document to protect; injectable for tests and iframes                              |
 
@@ -66,6 +74,24 @@ Violation types: `copy`, `cut`, `drag`, `selection`, `keyboard`,
 
 `update(patch)` deep-merges the nested `devtools` object; other fields are
 replaced wholesale.
+
+### DevTools protection
+
+`devtools: true` enables the full protection chain:
+
+1. **Detection** — polls the window outer/inner size delta (docked DevTools)
+   and the elapsed time around an anonymous `(function anonymous() { debugger })`
+   probe, which only takes measurable time while a debugger is attached. The
+   probe also catches undocked DevTools windows the size heuristic cannot see.
+2. **Stall (`freeze: true` by default)** — once DevTools is detected, a tight
+   guard loop keeps running the probe, so execution pauses over and over and
+   the page is effectively frozen until DevTools is closed.
+3. **Blank-page redirect (`redirectUrl: "about:blank"` by default)** — if
+   DevTools stays open while the probe no longer pauses (the stall was
+   neutralized, e.g. by a userscript hooking `Function`, "never pause here" or
+   deactivated breakpoints), the page is redirected to the blank page after a
+   short grace window. Set `redirectUrl: false` to keep only the stall, or
+   `freeze: false` for report-only detection via `onViolation`.
 
 ## VitePress integration
 
@@ -152,41 +178,14 @@ Framework.boot(config);
 - The returned handle exposes `instance` for manual control and `stop()` for
   teardown.
 
-## @lark.js/mvc integration
-
-Protects every page of a plain @lark.js/mvc app. Call `applyAntiCopy()`
-once from the boot module — before or after `Framework.boot()`:
-
-```ts
-// src/boot.ts
-import { applyAntiCopy } from "@swifty.js/anti-copy/lark-mvc";
-
-applyAntiCopy({
-  mode: "replace",
-  excludePaths: ["/playground"],
-  excludeSelectors: ["pre code"],
-});
-
-Framework.boot(config);
-```
-
-- Site-wide by default; routes in `excludePaths` opt out. Paths are matched
-  against the resolved route path (`Router.parse().path`, e.g. `"/home"`),
-  so both history and hash (`#!`) modes work; the toggle stays in sync via
-  the router's `changed` event.
-- No frontmatter and no default exclude selectors (apps are not docs
-  sites) — pass `excludeSelectors` explicitly for regions such as code
-  blocks; editable controls always keep native behavior.
-- The returned handle exposes `instance` for manual control and `stop()` for
-  teardown.
-
 ## Known limitations
 
 By design (client-side JS cannot prevent these):
 
 - View-source, `curl`, reader mode, disabled JavaScript.
-- Undocked DevTools windows are undetectable; browser zoom may cause
-  devtools-detector false positives.
+- Undocked DevTools with deactivated breakpoints are indistinguishable from
+  closed DevTools; browser zoom may cause devtools-detector false positives —
+  with countermeasures enabled, a sustained false positive ends in a redirect.
 - Scripts registered on `window` before this plugin can pre-empt the
   capture-phase listeners.
 

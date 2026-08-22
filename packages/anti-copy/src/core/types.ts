@@ -27,7 +27,14 @@ export interface ViolationEvent {
   key?: string;
 }
 
-/** Configuration for the DevTools-open heuristic detector. */
+/**
+ * Configuration for the DevTools-open detector and its countermeasures.
+ *
+ * Detection combines the window outer/inner size delta heuristic (docked
+ * DevTools) with the elapsed time around a `debugger` probe — the
+ * statement only takes measurable time while a debugger is attached, which
+ * also catches undocked DevTools windows.
+ */
 export interface DevtoolsOptions {
   /** Polling interval in milliseconds. @default 1000 */
   intervalMs?: number;
@@ -36,6 +43,20 @@ export interface DevtoolsOptions {
    * treated as "DevTools docked". @default 170
    */
   threshold?: number;
+  /**
+   * Stall the page while DevTools is open by running the anonymous
+   * `debugger` probe in a tight loop — execution pauses over and over
+   * until DevTools is closed.
+   * @default true
+   */
+  freeze?: boolean;
+  /**
+   * Blank page navigated to when DevTools stays open while the debugger
+   * stall is neutralized (userscripts hooking `Function`, "never pause
+   * here", deactivated breakpoints). Requires `freeze`; `false` disables
+   * the fallback. @default "about:blank"
+   */
+  redirectUrl?: string | false;
 }
 
 export interface AntiCopyOptions {
@@ -66,11 +87,15 @@ export interface AntiCopyOptions {
   /** Hide content in print output and block Ctrl/Cmd+P / Ctrl/Cmd+S. @default true */
   print?: boolean;
   /**
-   * Enable the DevTools-open detector (window size delta heuristic).
+   * Enable the DevTools protection: detect open DevTools (size delta
+   * heuristic plus `debugger` probe timing), stall the page while open
+   * (`freeze`), and redirect to a blank page when the stall is neutralized
+   * (`redirectUrl`).
    *
-   * Limitations: undocked DevTools windows are undetectable, and browser
-   * zoom or unusual chrome may cause false positives. Treat this purely as
-   * a deterrent signal. @default false
+   * Limitations: undocked DevTools with deactivated breakpoints are
+   * undetectable, and browser zoom or unusual chrome can trip the size
+   * heuristic — with countermeasures enabled, a sustained false positive
+   * ends in a redirect. @default false
    */
   devtools?: boolean | DevtoolsOptions;
   /** Invoked every time a protection rule fires. */

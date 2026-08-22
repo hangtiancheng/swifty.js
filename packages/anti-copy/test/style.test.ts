@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createAntiCopy, type AntiCopyInstance } from "@/core";
+import { createAntiCopy, type AntiCopyInstance } from "@/index";
 
 let instance: AntiCopyInstance | null = null;
 let second: AntiCopyInstance | null = null;

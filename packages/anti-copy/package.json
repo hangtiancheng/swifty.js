@@ -37,11 +37,6 @@
       "types": "./dist/lark-docs.d.ts",
       "import": "./dist/lark-docs.js",
       "require": "./dist/lark-docs.cjs"
-    },
-    "./lark-mvc": {
-      "types": "./dist/lark-mvc.d.ts",
-      "import": "./dist/lark-mvc.js",
-      "require": "./dist/lark-mvc.cjs"
     }
   },
   "publishConfig": {

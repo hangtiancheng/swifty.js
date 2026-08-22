@@ -4,6 +4,18 @@ export const DEFAULT_REPLACE_TEXT = "Copying is not allowed on this page.";
 
 const DEFAULT_DEVTOOLS_INTERVAL_MS = 1000;
 const DEFAULT_DEVTOOLS_THRESHOLD = 170;
+const DEFAULT_DEVTOOLS_REDIRECT_URL = "about:blank";
+
+function resolveDevtools(options: AntiCopyOptions): ResolvedOptions["devtools"] {
+  if (!options.devtools) return false;
+  const config = options.devtools === true ? {} : options.devtools;
+  return {
+    intervalMs: config.intervalMs ?? DEFAULT_DEVTOOLS_INTERVAL_MS,
+    threshold: config.threshold ?? DEFAULT_DEVTOOLS_THRESHOLD,
+    freeze: config.freeze ?? true,
+    redirectUrl: config.redirectUrl ?? DEFAULT_DEVTOOLS_REDIRECT_URL,
+  };
+}
 
 /** Merge user options with defaults into a fully-populated config object. */
 export function resolveOptions(options: AntiCopyOptions = {}): ResolvedOptions {
@@ -18,18 +30,7 @@ export function resolveOptions(options: AntiCopyOptions = {}): ResolvedOptions {
     // so selection blocking defaults off there.
     selectStyle: options.selectStyle ?? options.mode !== "replace",
     print: options.print ?? true,
-    devtools:
-      options.devtools === true
-        ? {
-            intervalMs: DEFAULT_DEVTOOLS_INTERVAL_MS,
-            threshold: DEFAULT_DEVTOOLS_THRESHOLD,
-          }
-        : options.devtools
-          ? {
-              intervalMs: options.devtools.intervalMs ?? DEFAULT_DEVTOOLS_INTERVAL_MS,
-              threshold: options.devtools.threshold ?? DEFAULT_DEVTOOLS_THRESHOLD,
-            }
-          : false,
+    devtools: resolveDevtools(options),
     onViolation: options.onViolation,
     target: options.target ?? document,
   };

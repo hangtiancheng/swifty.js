@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createAntiCopy } from "@/core";
+import { createAntiCopy } from "@/index";
 
 afterEach(() => {
   vi.unstubAllGlobals();

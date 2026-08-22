@@ -26,20 +26,14 @@ function cleanDist() {
 
 /** @type {import("rollup").InputOption} */
 const input = {
-  index: "src/core/index.ts",
+  index: "src/index.ts",
   vitepress: "src/vitepress.ts",
   "swifty-docs": "src/swifty-docs.ts",
-  "lark-mvc": "src/lark-mvc.ts",
   "lark-docs": "src/lark-docs.ts",
 };
 
 /** @type {import("rollup").ExternalOption} */
-const external = [
-  /^react(\/|$)/,
-  /^vue(\/|$)/,
-  /^@lark\.js\//,
-  /^@swifty\.js\//,
-];
+const external = [/^react(\/|$)/, /^vue(\/|$)/, /^@lark\.js\//, /^@swifty\.js\//];
 
 /** @type {import("rollup").RollupOptions[]} */
 export default [
@@ -52,7 +46,9 @@ export default [
         entries: [{ find: "@", replacement: srcDir }],
       }),
       typescript({ tsconfig: "./tsconfig.build.json" }),
-      terser(),
+      // drop_debugger defaults to true and would strip the CSP fallback
+      // probe in src/core/devtools.ts out of the bundles.
+      terser({ compress: { drop_debugger: false } }),
     ],
     output: [
       {

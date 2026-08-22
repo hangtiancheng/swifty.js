@@ -1,6 +1,6 @@
 import type { EnhanceAppContext } from "vitepress";
 import { watch } from "vue";
-import { createAntiCopy, isBrowser, type AntiCopyInstance, type AntiCopyOptions } from "@/core";
+import { createAntiCopy, isBrowser, type AntiCopyInstance, type AntiCopyOptions } from "@/index";
 
 /**
  * Regions excluded from protection by default in a VitePress site:
