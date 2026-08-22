@@ -81,7 +81,7 @@ function createFakeWindow() {
 }
 
 function fakeTarget(view: FakeWindow): Document {
-  return { defaultView: view } as unknown as Document;
+  return { defaultView: view } as Document;
 }
 
 const REPORT_ONLY = {

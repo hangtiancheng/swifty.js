@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-import __react__, { useState } from "../diff/index.ts";
+import __react__, { useState } from "../lib/index.ts";
 import type { Labels } from "../schema/resume.ts";
 import avatarUrl from "../assets/avatar.jpeg";
 

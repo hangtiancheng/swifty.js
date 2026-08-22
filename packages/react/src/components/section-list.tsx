@@ -20,27 +20,30 @@
  * SOFTWARE.
  */
 
-import __react__ from "../diff/index.ts";
+import __react__ from "../lib/index.ts";
+import type { TitledItem } from "../schema/resume.ts";
 
-interface SectionEduProps {
-  header: string;
-  edu: string[][];
+interface SectionListProps {
+  title: string;
+  items: (string | TitledItem)[];
 }
 
-/** Education section: one grid row per school. */
-export default function SectionEdu({ header, edu }: SectionEduProps) {
+/** Generic list section for skills, works, projects, research. */
+export default function SectionList({ title, items }: SectionListProps) {
   return (
     <section className="rounded-lg border border-neutral-200 bg-white p-3">
-      <div className="text-sm font-semibold text-neutral-900">{header}</div>
+      <div className="text-sm font-semibold text-neutral-900">{title}</div>
       <div className="my-1 h-px bg-neutral-100"></div>
-      <ul className="mt-1.5 space-y-0.5 text-xs">
-        {edu.map((row, index) => (
-          <li key={String(index)} className="grid gap-1 md:grid-cols-3">
-            <div className="text-neutral-700">{row[0]}</div>
-            <div className="text-neutral-700">{row[1]}</div>
-            <div className="text-neutral-700">{row[2]}</div>
-          </li>
-        ))}
+      <ul className="mt-1.5 ml-4 list-disc space-y-0.5 text-xs text-neutral-700">
+        {items.map((item, index) =>
+          typeof item === "string" ? (
+            <li key={String(index)}>{item}</li>
+          ) : (
+            <li key={String(index)}>
+              <b>{item.title}</b>: {item.content}
+            </li>
+          ),
+        )}
       </ul>
     </section>
   );

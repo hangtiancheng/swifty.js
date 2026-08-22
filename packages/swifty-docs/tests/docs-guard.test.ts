@@ -64,7 +64,7 @@ function compiledModule(html: string, headings: unknown[] = []): string {
 
 function runTransform(code: string, filePath: string): string | null {
   const plugin = docsGuardPlugin();
-  const transform = plugin.transform as unknown as (
+  const transform = plugin.transform as (
     this: { warn: (msg: string) => void },
     code: string,
     id: string,

@@ -21,7 +21,13 @@
  */
 
 import type { ReactNode } from "react";
-import { createContext, forwardRef, useContext, useEffect, useRef } from "react";
+import {
+  createContext,
+  forwardRef,
+  useContext,
+  useEffect,
+  useRef,
+} from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/theme/lib/utils";
 
@@ -152,11 +158,7 @@ export const DialogContent = forwardRef<HTMLDivElement, DialogContentProps>(
   },
 );
 
-export function DialogAccessibleTitle({
-  children,
-}: {
-  children: ReactNode;
-}) {
+export function DialogAccessibleTitle({ children }: { children: ReactNode }) {
   return <h2 className="sr-only">{children}</h2>;
 }
 
@@ -189,7 +191,11 @@ export function DialogClose({
 }) {
   const { onOpenChange } = useContext(DialogContext);
   return (
-    <button type="button" className={className} onClick={() => onOpenChange(false)}>
+    <button
+      type="button"
+      className={className}
+      onClick={() => onOpenChange(false)}
+    >
       {children}
     </button>
   );
@@ -204,7 +210,11 @@ export function DialogTrigger({
 }) {
   const { onOpenChange } = useContext(DialogContext);
   return (
-    <button type="button" className={className} onClick={() => onOpenChange(true)}>
+    <button
+      type="button"
+      className={className}
+      onClick={() => onOpenChange(true)}
+    >
       {children}
     </button>
   );

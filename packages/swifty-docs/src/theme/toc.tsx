@@ -49,20 +49,21 @@ export function Toc({ headings, inline }: TocProps) {
     }
   }, [active]);
 
-  const scrollTo = (slug: string) => (e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault();
-    const el = document.getElementById(slug);
-    if (!el) return;
-    // pushState (instead of setting location.hash) records a copyable deep
-    // link and a back-button entry without triggering the router or the
-    // browser's instant jump — the smooth scroll stays in control.
-    // Skip when the hash is already current to avoid duplicate entries
-    // (decoded comparison — location.hash is percent-encoded for CJK slugs).
-    if (decodedLocationHash() !== `#${slug}`) {
-      history.pushState(null, "", `#${slug}`);
-    }
-    el.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
+  const scrollTo =
+    (slug: string) => (e: React.MouseEvent<HTMLAnchorElement>) => {
+      e.preventDefault();
+      const el = document.getElementById(slug);
+      if (!el) return;
+      // pushState (instead of setting location.hash) records a copyable deep
+      // link and a back-button entry without triggering the router or the
+      // browser's instant jump — the smooth scroll stays in control.
+      // Skip when the hash is already current to avoid duplicate entries
+      // (decoded comparison — location.hash is percent-encoded for CJK slugs).
+      if (decodedLocationHash() !== `#${slug}`) {
+        history.pushState(null, "", `#${slug}`);
+      }
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    };
 
   if (headings.length === 0) return null;
 

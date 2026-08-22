@@ -31,6 +31,7 @@ import {
   withExpiration,
   withPeers,
   withCacheOptions,
+  Getter,
 } from "./group.js";
 import { Peer, PeerPicker } from "./peers.js";
 
@@ -164,7 +165,9 @@ describe("Group validation and close", () => {
 
 describe("Group throws on nil getter", () => {
   it("throws when getter is null", () => {
-    expect(() => newGroup("nil-getter", 1024, null as any)).toThrow();
+    expect(() =>
+      newGroup("nil-getter", 1024, null as unknown as Getter),
+    ).toThrow();
   });
 });
 

@@ -134,6 +134,9 @@ export function MermaidDiagram({ code }: MermaidDiagramProps) {
   // Security: the SVG is mermaid's output over build-time first-party
   // markdown — same trust model as ContentRenderer's innerHTML.
   return (
-    <div className="mermaid-diagram" dangerouslySetInnerHTML={{ __html: svg }} />
+    <div
+      className="mermaid-diagram"
+      dangerouslySetInnerHTML={{ __html: svg }}
+    />
   );
 }

@@ -20,13 +20,7 @@
  * SOFTWARE.
  */
 
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "./lib/router";
 import { ContentRenderer } from "./content-renderer";
 import { useDocs } from "./context";
@@ -245,7 +239,10 @@ export function DocsLayout() {
             </div>
           </aside>
 
-          <main id="main-content" className="min-w-0 scroll-mt-20 py-8 lg:py-10">
+          <main
+            id="main-content"
+            className="min-w-0 scroll-mt-20 py-8 lg:py-10"
+          >
             {loading ? (
               <PageSkeleton />
             ) : content ? (

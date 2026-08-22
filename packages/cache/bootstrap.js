@@ -21,7 +21,6 @@
  * SOFTWARE.
  */
 
-
 // @ts-check
 /**
  * Local demo runner.

@@ -28,7 +28,7 @@ import type { Root } from "./hooks.ts";
 
 const roots = new WeakMap<Node, Root>();
 
-/** setState 只是把根标脏；同一轮微任务里的多次更新合并成一次重渲 */
+/** setState only marks the root dirty; multiple updates within the same microtask are batched into a single re-render */
 const dirtyRoots = new Set<Root>();
 let flushScheduled = false;
 
@@ -47,7 +47,7 @@ function scheduleFlush(): void {
   });
 }
 
-/** 首次调用是挂载，之后每次调用都与上一棵实例树做 diff；传 null 即卸载 */
+/** The first call mounts; every subsequent call diffs against the previous instance tree; passing null unmounts */
 export function render(element: Children, container: Node): void {
   let root = roots.get(container);
   if (root === undefined) {

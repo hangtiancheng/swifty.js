@@ -22,7 +22,7 @@
 
 import "./index.css";
 
-import __react__ from "./diff/index.ts";
+import __react__ from "./lib/index.ts";
 import App from "./App.tsx";
 
 const container = document.querySelector("#root");

@@ -20,10 +20,10 @@
  * SOFTWARE.
  */
 
-import __react__, { useMemo, useState } from "./diff/index.ts";
-import ResumeHeader from "./components/ResumeHeader.tsx";
-import SectionEdu from "./components/SectionEdu.tsx";
-import SectionList from "./components/SectionList.tsx";
+import __react__, { useMemo, useState } from "./lib/index.ts";
+import ResumeHeader from "./components/resume-header.tsx";
+import SectionEdu from "./components/section-edu.tsx";
+import SectionList from "./components/section-list.tsx";
 import { buildSections, resumeOf } from "./i18n/index.ts";
 import type { Lang } from "./i18n/index.ts";
 

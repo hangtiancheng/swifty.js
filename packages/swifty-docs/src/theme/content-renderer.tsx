@@ -151,7 +151,11 @@ function CopyButton({ target }: { target: HTMLElement }) {
       aria-label={copied ? "Copied" : "Copy code to clipboard"}
       className={cn("codeblock-copy", copied && "codeblock-copy-done")}
     >
-      {copied ? <CheckIcon className="size-3.5" /> : <CopyIcon className="size-3.5" />}
+      {copied ? (
+        <CheckIcon className="size-3.5" />
+      ) : (
+        <CopyIcon className="size-3.5" />
+      )}
     </button>
   );
 }

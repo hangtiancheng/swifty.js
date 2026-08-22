@@ -107,7 +107,7 @@ describe("isSelectionExcluded", () => {
             getRangeAt: () => ({ commonAncestorContainer: document.body }),
           }) as unknown as Selection,
       },
-    } as unknown as Document;
+    } as Document;
     expect(isSelectionExcluded(collapsed, [".skip"])).toBe(null);
     // Zero ranges.
     const empty = {
@@ -122,7 +122,7 @@ describe("isSelectionExcluded", () => {
             },
           }) as unknown as Selection,
       },
-    } as unknown as Document;
+    } as Document;
     expect(isSelectionExcluded(empty, [".skip"])).toBe(null);
   });
 
@@ -132,12 +132,12 @@ describe("isSelectionExcluded", () => {
       defaultView: {
         getSelection: () => stubSelection(document.getElementById("d")),
       },
-    } as unknown as Document;
+    } as Document;
     expect(isSelectionExcluded(doc, [".skip"])).toBe(true);
 
     const spanning = {
       defaultView: { getSelection: () => stubSelection(document.body) },
-    } as unknown as Document;
+    } as Document;
     expect(isSelectionExcluded(spanning, [".skip"])).toBe(false);
   });
 });

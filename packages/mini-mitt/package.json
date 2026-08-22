@@ -15,6 +15,5 @@
   "main": "src/index.ts",
   "publishConfig": {
     "main": "dist/index.js"
-  },
-  "packageManager": "pnpm@10.10.0"
+  }
 }

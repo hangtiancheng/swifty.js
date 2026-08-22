@@ -10,6 +10,5 @@
   "devDependencies": {
     "@swifty.js/vue-shared": "workspace:*",
     "@vitest/coverage-v8": "4.0.16"
-  },
-  "packageManager": "pnpm@10.10.0"
+  }
 }

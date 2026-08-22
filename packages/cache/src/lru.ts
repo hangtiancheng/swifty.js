@@ -48,7 +48,7 @@ class InternalCache {
     }
     this.m = new Array(cap);
     for (let i = 0; i < cap; i++) {
-      this.m[i] = { k: "", v: null as any, expireAt: 0 };
+      this.m[i] = { k: "", v: null as unknown as Value, expireAt: 0 };
     }
     this.hashMap = new Map();
     this.last = 0;
@@ -116,7 +116,8 @@ class InternalCache {
       const removed: Node = { k: node.k, v: node.v, expireAt: node.expireAt };
       this.hashMap.delete(key);
       node.k = "";
-      node.v = null as any;
+      // node.v = null;
+      Reflect.set(node, "v", null);
       node.expireAt = 0;
       this.adjust(idx, N, P);
       return [removed, 1, removed.expireAt];
@@ -135,7 +136,8 @@ class InternalCache {
     const removed: Node = { k: node.k, v: node.v, expireAt: node.expireAt };
     this.hashMap.delete(node.k);
     node.k = "";
-    node.v = null as any;
+    // node.v = null;
+    Reflect.set(node, "v", null);
     node.expireAt = 0;
     this.adjust(idx, N, P);
     return removed;

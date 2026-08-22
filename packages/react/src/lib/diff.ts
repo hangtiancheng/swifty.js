@@ -32,8 +32,9 @@ import {
 import type { Root } from "./hooks.ts";
 
 /**
- * 渲染一个根：diff 出新实例树并同步提交，然后统一执行 effect。
- * 不可中断 —— 一次调用从头走到尾。
+ * Render a root: diff a fresh instance tree, commit it synchronously, then
+ * flush effects in a single pass. Non-interruptible — a single call runs
+ * start to finish.
  */
 export function renderRoot(root: Root): void {
   setActiveRoot(root);
@@ -48,20 +49,25 @@ export function renderRoot(root: Root): void {
 }
 
 /**
- * 同层子节点 diff，React 的三条前提（把 O(n^3) 压到 O(n)）：
- *   1. 只比较同层，跨层级移动一律按「卸载 + 新建」处理；
- *   2. type 变了就认为整棵子树不可复用；
- *   3. key 用来在同层内标识「同一个节点」，没有 key 时退化成按下标比较。
+ * Same-level child diff, built on React's three assumptions (reducing O(n^3)
+ * to O(n)):
+ *   1. Only compare within the same level; any cross-level move is treated as
+ *      "unmount + create";
+ *   2. A changed type means the entire subtree is non-reusable;
+ *   3. A key identifies "the same node" within a level; without keys it falls
+ *      back to index-based comparison.
  *
- * 分两轮：第一轮从左到右按位比较，遇到第一个 key 失配就停；第二轮把剩下的
- * 旧节点塞进 key -> 下标 的 Map，按新列表顺序取用。两轮共用 lastPlacedIndex
- * 这条水位线判断复用的节点要不要移动位置。
+ * Two passes: the first compares positionally left to right and stops at the
+ * first key mismatch; the second indexes the remaining old nodes into a
+ * key -> index Map and consumes them in new-list order. Both passes share the
+ * lastPlacedIndex watermark to decide whether a reused node must be moved.
  *
- * @param parentDom   这些子节点所在的宿主父节点
- * @param oldChildren 上一次的子实例（带着 dom / hooks）
- * @param newChildren 归一化后的新描述符
- * @param anchor      这一段子节点右侧紧邻的宿主节点，null 表示排到末尾
- * @returns 新的子实例列表
+ * @param parentDom   The host parent that contains these children
+ * @param oldChildren The previous child instances (carrying dom / hooks)
+ * @param newChildren The normalized new descriptors
+ * @param anchor      The host node immediately to the right of this run of
+ *                    children, or null to append at the end
+ * @returns The new list of child instances
  */
 export function diffChildren(
   parentDom: Node,
@@ -69,19 +75,20 @@ export function diffChildren(
   newChildren: VNode[],
   anchor: Node | null,
 ): VNode[] {
-  /** 每个新节点匹配到的旧实例，null 表示要新建 */
+  /** The old instance each new node matched, or null if it must be created */
   const matched: (VNode | null)[] = new Array(newChildren.length).fill(null);
-  /** 复用之后是否还需要移动位置 */
+  /** Whether a reused node still needs to be moved into position */
   const moved: boolean[] = new Array(newChildren.length).fill(false);
-  /** 没能被复用、需要卸载的旧实例 */
+  /** Old instances that were not reused and must be unmounted */
   const removals: VNode[] = [];
 
-  // 已复用且保持原有相对顺序的旧节点里，最大的旧下标
+  // The largest old index among reused nodes that kept their relative order
   let lastPlacedIndex = 0;
   let index = 0;
 
-  // 第一轮：按位比较。尾部增删、纯 props 更新这类最常见的改动在这里走完，
-  // 不必建 Map。这一轮里新旧下标相等，复用到的节点都不用移动。
+  // Pass one: positional comparison. The most common changes — appends/truncations
+  // at the tail and pure props updates — finish here without building a Map.
+  // Old and new indices are equal in this pass, so reused nodes never move.
   for (; index < oldChildren.length && index < newChildren.length; index++) {
     const oldChild = oldChildren[index];
     const newChild = newChildren[index];
@@ -93,18 +100,18 @@ export function diffChildren(
       matched[index] = oldChild;
       lastPlacedIndex = index;
     } else {
-      // key 相同但 type 变了：复用不了，旧节点连同它的 DOM 一起丢掉
+      // Same key but changed type: not reusable, drop the old node along with its DOM
       removals.push(oldChild);
     }
   }
 
   if (index === newChildren.length) {
-    // 新列表先走完，旧列表剩下的都是多余的
+    // The new list ran out first; the leftover old nodes are all surplus
     for (let i = index; i < oldChildren.length; i++) {
       removals.push(oldChildren[i]);
     }
   } else {
-    // 第二轮：剩余旧节点按 key（无 key 用旧下标）建索引，按新列表顺序查找
+    // Pass two: index the remaining old nodes by key (old index when keyless), then look them up in new-list order
     const existing = new Map<string | number, number>();
     for (let i = index; i < oldChildren.length; i++) {
       existing.set(oldChildren[i].key ?? i, i);
@@ -116,7 +123,7 @@ export function diffChildren(
       const oldIndex = existing.get(mapKey);
 
       if (oldIndex === undefined) {
-        continue; // 全新节点，留给后面挂载
+        continue; // Brand-new node, left for mounting later
       }
       existing.delete(mapKey);
 
@@ -127,10 +134,10 @@ export function diffChildren(
       }
       matched[index] = oldChild;
       if (oldIndex < lastPlacedIndex) {
-        // 旧下标落在水位线后面：它跑到了某个「不动的」兄弟之后，必须移动
+        // Old index falls behind the watermark: it landed after a "stationary" sibling, so it must move
         moved[index] = true;
       } else {
-        // 留在原地，水位线抬到它的旧下标
+        // Stays in place; raise the watermark to its old index
         lastPlacedIndex = oldIndex;
       }
     }
@@ -140,14 +147,15 @@ export function diffChildren(
     }
   }
 
-  // 先卸载，避免待删除的节点混进插入位置的计算
+  // Unmount first, so nodes pending removal don't pollute insertion-position calculations
   for (const oldChild of removals) {
     unmount(oldChild);
   }
 
-  // 从右往左提交：轮到第 i 个时，它右边的兄弟都已在最终位置上，anchor 就是
-  // 右邻居的第一个宿主节点。这样不需要向上找锚点，也天然支持组件 / Fragment
-  // 一对多 DOM 的情况。
+  // Commit right to left: when we reach index i, all siblings to its right are
+  // already in their final position, so anchor is the first host node of the
+  // right neighbor. This avoids searching upward for an anchor and naturally
+  // supports the one-to-many DOM case of components / Fragments.
   const result: VNode[] = new Array(newChildren.length);
   for (let i = newChildren.length - 1; i >= 0; i--) {
     const desc = newChildren[i];
@@ -166,7 +174,7 @@ export function diffChildren(
   return result;
 }
 
-/** 由描述符生成实例；previous 非空时带走 dom / children / hooks */
+/** Build an instance from a descriptor; when previous is non-null, carry over dom / children / hooks */
 function instantiate(desc: VNode, previous: VNode | null): VNode {
   return {
     type: desc.type,
@@ -183,7 +191,7 @@ function instantiate(desc: VNode, previous: VNode | null): VNode {
   };
 }
 
-/** 挂载一棵新子树，把产生的宿主节点插到 anchor 之前 */
+/** Mount a new subtree, inserting the produced host nodes before anchor */
 export function mount(
   desc: VNode,
   parentDom: Node,
@@ -199,14 +207,14 @@ export function mount(
   if (typeof vnode.type === "string") {
     const dom = createDom(vnode);
     vnode.dom = dom;
-    // 子节点先塞进还没上树的父节点，整棵子树只触发一次真实挂载
+    // Children are inserted into the parent before it enters the tree, so the whole subtree triggers only one real mount
     vnode.children = toChildArray(vnode.props.children).map((child) =>
       mount(child, dom, null),
     );
     parentDom.insertBefore(dom, anchor);
     return vnode;
   }
-  // 函数组件 / Fragment 自己不产生 DOM，孩子直接挂到同一个宿主父节点上
+  // Function components / Fragments produce no DOM of their own; children mount directly onto the same host parent
   const rendered =
     typeof vnode.type === "function"
       ? renderComponent(vnode)
@@ -215,7 +223,7 @@ export function mount(
   return vnode;
 }
 
-/** 复用旧实例；调用方已保证 type 与 key 相同 */
+/** Reuse an old instance; the caller guarantees type and key are identical */
 function patch(
   oldVNode: VNode,
   desc: VNode,
@@ -233,7 +241,7 @@ function patch(
   if (typeof vnode.type === "string") {
     const dom = vnode.dom as Element;
     updateProps(dom, oldVNode.props, vnode.props);
-    // 子节点住在自己的 dom 里，右边没有别的东西，锚点是 null
+    // Children live inside their own dom with nothing to the right, so the anchor is null
     vnode.children = diffChildren(
       dom,
       oldVNode.children ?? [],
@@ -255,7 +263,7 @@ function patch(
   return vnode;
 }
 
-/** 卸载：先跑完子树里所有 effect cleanup，再摘掉最靠上的宿主节点 */
+/** Unmount: run every effect cleanup in the subtree first, then detach the topmost host node */
 export function unmount(vnode: VNode): void {
   teardownEffects(vnode);
   removeDoms(vnode);
@@ -272,8 +280,8 @@ function removeDoms(vnode: VNode): void {
 }
 
 /**
- * 移动一棵已挂载的子树：insertBefore 会把已在文档里的节点搬到新位置，
- * 所以「移动」和「插入」是同一个操作。
+ * Move an already-mounted subtree: insertBefore relocates nodes that are
+ * already in the document, so "move" and "insert" are the same operation.
  */
 function insert(vnode: VNode, parentDom: Node, anchor: Node | null): void {
   if (vnode.dom !== null) {
@@ -285,7 +293,7 @@ function insert(vnode: VNode, parentDom: Node, anchor: Node | null): void {
   }
 }
 
-/** 子树里第一个宿主节点，用作左邻居的插入锚点 */
+/** The first host node in a subtree, used as the insertion anchor for the left neighbor */
 function firstDom(vnode: VNode): Node | null {
   if (vnode.dom !== null) {
     return vnode.dom;

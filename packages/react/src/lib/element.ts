@@ -28,37 +28,33 @@ export interface Props {
   [name: string]: any;
 }
 
-/** 函数组件：没有类组件 */
+/** Function components only — no class components */
 export type ComponentType<P extends Props = Props> = (props: P) => Children;
 
 export type VNodeType = string | ComponentType | symbol;
 
-/** JSX 里允许出现的子节点形态 */
+/** The child node forms allowed in JSX */
 export type Children =
-  | VNode
-  | string
-  | number
-  | boolean
-  | null
-  | undefined
-  | Children[];
+  VNode | string | number | boolean | null | undefined | Children[];
 
 /**
- * type / key / props 是不可变的「描述符」，由 createElement 产出；
- * dom / children / hooks 是「实例」字段，由渲染器在挂载 / 更新时填充。
+ * type / key / props are the immutable "descriptor", produced by createElement;
+ * dom / children / hooks are "instance" fields, filled in by the renderer on
+ * mount / update.
  *
- * 描述符永远不会被渲染器改写（React 的元素不可变原则），每次 diff 都会
- * 产出新的实例对象，只有 hooks 数组跨渲染共享 —— 组件状态存在那里。
+ * The descriptor is never mutated by the renderer (React's element immutability
+ * principle); each diff produces fresh instance objects. Only the hooks array is
+ * shared across renders — that is where component state lives.
  */
 export interface VNode {
   readonly type: VNodeType;
   readonly key: string | null;
   readonly props: Props;
-  /** 宿主 DOM；函数组件与 Fragment 自身不产生 DOM，恒为 null */
+  /** Host DOM; function components and Fragments produce no DOM of their own, so this is always null */
   dom: Node | null;
-  /** 归一化后的子实例；函数组件放的是它的渲染结果 */
+  /** Normalized child instances; for function components this holds their render output */
   children: VNode[] | null;
-  /** 仅函数组件持有，跨渲染保持同一个数组引用 */
+  /** Owned by function components only; keeps the same array reference across renders */
   hooks: Hook[] | null;
 }
 
@@ -101,10 +97,12 @@ function createTextVNode(nodeValue: string | number): VNode {
 }
 
 /**
- * 归一化子节点：字符串/数字包装成文本 VNode，null / undefined / boolean 丢弃，
- * 嵌套数组拍平。归一化之后同层只有 VNode 一种形态，diff 里不必再分支判断。
+ * Normalize children: wrap strings/numbers into text VNodes, discard
+ * null / undefined / boolean, and flatten nested arrays. After normalization a
+ * level contains only VNodes, so the diff needs no further branching.
  *
- * 注意：拍平时不会改写 key，所以同层的多个数组之间 key 不能重复。
+ * Note: flattening does not rewrite keys, so keys must not collide across
+ * multiple arrays at the same level.
  */
 export function toChildArray(
   children: Children,

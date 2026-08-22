@@ -49,7 +49,7 @@ export function createDom(vNode: VNode): Node {
   return dom;
 }
 
-/** 增量更新 props：先删旧的，再按 Object.is 跳过没变的 */
+/** Incrementally update props: remove stale ones first, then skip unchanged ones via Object.is */
 export function updateProps(
   dom: Element,
   oldProps: Props,
@@ -103,7 +103,7 @@ function setProp(dom: Element, name: string, value: unknown): void {
     }
     return;
   }
-  // value / checked 这类受控属性只有写 property 才会反映到界面上
+  // Controlled properties like value / checked only reflect in the UI when written as properties
   if (name in dom) {
     (dom as any)[name] = value == null ? "" : value;
     return;

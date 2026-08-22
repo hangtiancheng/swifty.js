@@ -24,10 +24,11 @@ import { toChildArray } from "./element.ts";
 import type { Children, ComponentType, VNode } from "./element.ts";
 
 /**
- * 一个挂载点。setState 不做局部更新，而是把所在的根标脏、整树重渲一遍 ——
- * render（重新执行组件拿到新 VNode 树）与 reconcile（keyed diff）把真实的
- * DOM 操作收敛到变化的节点上，这正是 React 的核心分层；省掉的只是
- * 组件级剪枝与可中断调度。
+ * A mount point. setState performs no partial update; instead it marks the
+ * owning root dirty and re-renders the whole tree — render (re-running the
+ * component to get a new VNode tree) and reconcile (the keyed diff) converge the
+ * actual DOM operations onto the changed nodes. That is exactly React's core
+ * layering; all we omit is component-level pruning and interruptible scheduling.
  */
 export interface Root {
   container: Node;
@@ -44,9 +45,9 @@ export type DepList = readonly unknown[];
 interface StateHook {
   tag: "state";
   state: any;
-  /** 待应用的更新队列；跨渲染共享，晚到的 setState 也不会丢 */
+  /** Pending update queue; shared across renders, so late-arriving setStates are never lost */
   queue: SetStateAction<any>[];
-  /** 身份稳定，可以安全地放进 deps 或事件闭包 */
+  /** Identity-stable; safe to put into deps or event closures */
   setState: Dispatch<SetStateAction<any>>;
 }
 
@@ -55,7 +56,7 @@ interface EffectHook {
   create: EffectCallback;
   deps: DepList | null;
   cleanup: (() => void) | null;
-  /** 本次渲染 deps 是否变化，由 commit 后的 flushEffects 消费并复位 */
+  /** Whether deps changed this render; consumed and reset by flushEffects after commit */
   changed: boolean;
 }
 
@@ -67,9 +68,9 @@ interface MemoHook {
 
 export type Hook = StateHook | EffectHook | MemoHook;
 
-/** 正在渲染的根，setState 通过它找到要标脏的树 */
+/** The root currently rendering; setState uses it to find the tree to mark dirty */
 let activeRoot: Root | null = null;
-/** 正在渲染的组件的 hook 数组与游标；hook 靠调用顺序对上号（Rules of Hooks） */
+/** The hook array and cursor of the component currently rendering; hooks line up by call order (Rules of Hooks) */
 let currentHooks: Hook[] | null = null;
 let hookIndex = 0;
 
@@ -77,7 +78,7 @@ export function setActiveRoot(root: Root | null): void {
   activeRoot = root;
 }
 
-/** 执行函数组件。组件渲染是串行的（父先执行、children 随后 diff），无需栈 */
+/** Run a function component. Component rendering is serial (parent runs first, children are diffed next), so no stack is needed */
 export function renderComponent(vnode: VNode): VNode[] {
   currentHooks = vnode.hooks!;
   hookIndex = 0;
@@ -86,7 +87,7 @@ export function renderComponent(vnode: VNode): VNode[] {
   return toChildArray(rendered);
 }
 
-/** 返回 [槽位, 是否新建]。槽位对象跨渲染复用，这就是状态的家 */
+/** Returns [slot, isFresh]. The slot object is reused across renders — that is where state lives */
 function getSlot<H extends Hook>(create: () => H): [H, boolean] {
   if (currentHooks === null) {
     throw new Error("Hooks can only be called inside a function component.");
@@ -113,7 +114,7 @@ export function useState<S>(
           : initialState,
       queue: [],
       setState: (action) => {
-        // 队列为空时先急算一次，值没变就整个跳过（React 的 eager bailout）
+        // When the queue is empty, compute eagerly first; if the value is unchanged, skip entirely (React's eager bailout)
         if (created.queue.length === 0) {
           const eager =
             typeof action === "function"
@@ -185,9 +186,10 @@ function depsEqual(prev: DepList | null, next: DepList | null): boolean {
 }
 
 /**
- * commit 之后统一跑 effect：先把整棵树该清理的 cleanup 全部跑完，再跑
- * create，避免某个组件的 cleanup 读到别的 create 已经改过的状态。
- * 两趟都是子先父后（与 React 一致）。
+ * Run effects in a single pass after commit: first run every cleanup that needs
+ * to run across the whole tree, then run create, so one component's cleanup never
+ * reads state already mutated by another's create. Both passes run children
+ * before parents (consistent with React).
  */
 export function flushEffects(children: VNode[]): void {
   walk(children, (vnode) => {
@@ -209,7 +211,7 @@ export function flushEffects(children: VNode[]): void {
   });
 }
 
-/** 卸载一棵子树前，把里面所有组件的 effect cleanup 跑掉（子先父后） */
+/** Before unmounting a subtree, run every component's effect cleanup inside it (children before parents) */
 export function teardownEffects(vnode: VNode): void {
   walk(vnode.children, runCleanups);
   runCleanups(vnode);

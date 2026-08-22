@@ -28,12 +28,11 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@node-rs/xxhash": "^1.7.6"
+    "@node-rs/xxhash": "^1.7.7"
   },
   "devDependencies": {
     "@types/node": "^24.13.3",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.10"
-  },
-  "packageManager": "pnpm@10.30.3"
+    "vitest": "^4.1.11"
+  }
 }
