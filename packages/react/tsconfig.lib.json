@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "rewriteRelativeImportExtensions": true,
+    "rootDir": "src/diff",
+    "outDir": "dist/types"
+  },
+  "include": ["src/diff"],
+  "exclude": ["src/diff/diff.test.mts"]
+}

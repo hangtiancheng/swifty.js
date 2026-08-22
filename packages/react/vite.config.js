@@ -20,12 +20,132 @@
  * SOFTWARE.
  */
 
+import { resolve } from "node:path";
 import { defineConfig } from "vite";
+import tailwindcss from "@tailwindcss/vite";
+import { VitePWA } from "vite-plugin-pwa";
 
-export default defineConfig({
-  esbuild: {
-    jsx: "transform",
-    jsxFactory: "__react__.createElement",
-    jsxFragment: "__react__.Fragment",
-  },
+function fetchPriorityHints() {
+  return {
+    name: "fetch-priority-hints",
+    enforce: "post",
+    transformIndexHtml(html) {
+      return html
+        .replace(
+          /<link rel="stylesheet"/g,
+          '<link rel="stylesheet" fetchpriority="high"',
+        )
+        .replace(
+          /<script type="module" crossorigin/g,
+          '<script type="module" crossorigin fetchpriority="high"',
+        );
+    },
+  };
+}
+
+// Two build modes:
+//   `vite build --mode lib` bundles the mini react framework (src/diff)
+//   into dist/react.mjs; every other mode (dev/build/preview) targets the
+//   resume app, emitted to dist-app.
+// https://vite.dev/config/
+export default defineConfig(({ mode }) => {
+  if (mode === "lib") {
+    return {
+      publicDir: false,
+      build: {
+        lib: {
+          entry: resolve(import.meta.dirname, "src/diff/index.ts"),
+          formats: ["es"],
+          fileName: () => "react.mjs",
+        },
+        outDir: "dist",
+        emptyOutDir: true,
+      },
+    };
+  }
+
+  return {
+    esbuild: {
+      jsx: "transform",
+      jsxFactory: "__react__.createElement",
+      jsxFragment: "__react__.Fragment",
+    },
+    build: {
+      outDir: "dist-app",
+    },
+    plugins: [
+      tailwindcss(),
+      fetchPriorityHints(),
+      VitePWA({
+        registerType: "autoUpdate",
+        includeAssets: [
+          "favicon.svg",
+          "favicon.ico",
+          "apple-touch-icon-180x180.png",
+        ],
+        manifest: {
+          name: "resume",
+          short_name: "resume",
+          description: "resume",
+          theme_color: "#f05138",
+          background_color: "#f05138",
+          display: "standalone",
+          scope: "/",
+          start_url: "/",
+          icons: [
+            {
+              src: "pwa-64x64.png",
+              sizes: "64x64",
+              type: "image/png",
+            },
+            {
+              src: "pwa-192x192.png",
+              sizes: "192x192",
+              type: "image/png",
+            },
+            {
+              src: "pwa-512x512.png",
+              sizes: "512x512",
+              type: "image/png",
+            },
+            {
+              src: "maskable-icon-512x512.png",
+              sizes: "512x512",
+              type: "image/png",
+              purpose: "maskable",
+            },
+          ],
+        },
+        workbox: {
+          globPatterns: ["**/*.{js,css,html,svg,png,woff2}"],
+          runtimeCaching: [
+            {
+              urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+              handler: "CacheFirst",
+              options: {
+                cacheName: "google-fonts-cache",
+                expiration: {
+                  maxEntries: 10,
+                  maxAgeSeconds: 60 * 60 * 24 * 365,
+                },
+                cacheableResponse: { statuses: [0, 200] },
+              },
+            },
+            {
+              urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+              handler: "CacheFirst",
+              options: {
+                cacheName: "gstatic-fonts-cache",
+                expiration: {
+                  maxEntries: 10,
+                  maxAgeSeconds: 60 * 60 * 24 * 365,
+                },
+                cacheableResponse: { statuses: [0, 200] },
+              },
+            },
+          ],
+        },
+      }),
+    ],
+  };
 });

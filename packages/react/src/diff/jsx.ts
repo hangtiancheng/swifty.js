@@ -20,12 +20,18 @@
  * SOFTWARE.
  */
 
-/** @jsx __react__.createElement */
-import __react__ from "./react.js";
-import __react_dom__ from "./react-dom.js";
+import type { VNode } from "./element.ts";
 
-import App from "./App.jsx";
+declare global {
+  namespace JSX {
+    type Element = VNode;
+    interface ElementChildrenAttribute {
+      children: unknown;
+    }
+    interface IntrinsicElements {
+      [tag: string]: any;
+    }
+  }
+}
 
-const container = document.querySelector("#root");
-const root = __react_dom__.createRoot(container);
-root.render(<App />);
+export {};
