@@ -23,6 +23,7 @@
 import "./index.css";
 
 import __react__ from "./lib/index.ts";
+import { createAntiCopy } from "@swifty.js/anti-copy";
 import App from "./App.tsx";
 
 const container = document.querySelector("#root");
@@ -31,3 +32,8 @@ if (container === null) {
 }
 
 __react__.createRoot(container).render(<App />);
+
+// Framework-agnostic protection (standard DOM events only, so it works with
+// the mini react). DevTools countermeasures arm only in production — with
+// them enabled, developing with devtools open would freeze the page.
+createAntiCopy({ devtools: import.meta.env.PROD }).enable();
