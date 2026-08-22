@@ -72,7 +72,10 @@ export function createElement(
   if (config) {
     for (const name of Object.keys(config)) {
       if (name === "key") {
-        key = config.key == null ? null : String(config.key);
+        key =
+          config.key === null || config.key === undefined
+            ? null
+            : String(config.key);
         continue;
       }
       props[name] = config[name];
@@ -108,7 +111,11 @@ export function toChildArray(
   children: Children,
   target: VNode[] = [],
 ): VNode[] {
-  if (children == null || typeof children === "boolean") {
+  if (
+    children === null ||
+    children === undefined ||
+    typeof children === "boolean"
+  ) {
     return target;
   }
   if (Array.isArray(children)) {

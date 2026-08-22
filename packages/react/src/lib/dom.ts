@@ -96,7 +96,7 @@ export function updateProps(
 function setProp(dom: Element, name: string, value: unknown): void {
   const attribute = ATTRIBUTE_ALIAS[name];
   if (attribute !== undefined) {
-    if (value == null) {
+    if (value === null || value === undefined) {
       dom.removeAttribute(attribute);
     } else {
       dom.setAttribute(attribute, String(value));
@@ -105,11 +105,11 @@ function setProp(dom: Element, name: string, value: unknown): void {
   }
   // Controlled properties like value / checked only reflect in the UI when written as properties
   if (name in dom) {
-    // dom[name] = value == null ? "" : value;
-    Reflect.set(dom, "name", value == null ? "" : value);
+    // dom[name] = value === null || value === undefined ? "" : value;
+    Reflect.set(dom, name, value === null || value === undefined ? "" : value);
     return;
   }
-  if (value == null || value === false) {
+  if (value === null || value === undefined || value === false) {
     dom.removeAttribute(name);
     return;
   }
@@ -123,7 +123,7 @@ function applyStyle(
   prev: StyleValue,
   next: StyleValue,
 ): void {
-  if (next == null) {
+  if (next === null || next === undefined) {
     dom.style.cssText = "";
     return;
   }
@@ -138,7 +138,7 @@ function applyStyle(
     for (const name of Object.keys(prev)) {
       if (!(name in next)) {
         // dom.style[name] = "";
-        Reflect.set(dom.style, "name", "");
+        Reflect.set(dom.style, name, "");
       }
     }
   }
@@ -149,7 +149,7 @@ function applyStyle(
       prev[name] !== next[name]
     ) {
       // dom.style[name] = next[name];
-      Reflect.set(dom.style, "name", next[name]);
+      Reflect.set(dom.style, name, next[name]);
     }
   }
 }
