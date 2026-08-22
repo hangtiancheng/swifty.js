@@ -105,7 +105,8 @@ function setProp(dom: Element, name: string, value: unknown): void {
   }
   // Controlled properties like value / checked only reflect in the UI when written as properties
   if (name in dom) {
-    (dom as any)[name] = value == null ? "" : value;
+    // dom[name] = value == null ? "" : value;
+    Reflect.set(dom, "name", value == null ? "" : value);
     return;
   }
   if (value == null || value === false) {
@@ -136,7 +137,8 @@ function applyStyle(
   if (prev && typeof prev === "object") {
     for (const name of Object.keys(prev)) {
       if (!(name in next)) {
-        (dom.style as any)[name] = "";
+        // dom.style[name] = "";
+        Reflect.set(dom.style, "name", "");
       }
     }
   }
@@ -146,7 +148,8 @@ function applyStyle(
       prev === null ||
       prev[name] !== next[name]
     ) {
-      (dom.style as any)[name] = next[name];
+      // dom.style[name] = next[name];
+      Reflect.set(dom.style, "name", next[name]);
     }
   }
 }
