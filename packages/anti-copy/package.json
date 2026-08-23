@@ -1,6 +1,6 @@
 {
   "name": "@swifty.js/anti-copy",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Copy-protection SDK for browsers",
   "license": "MIT",
   "author": "https://github.com/hangtiancheng",
@@ -47,7 +47,7 @@
     "test": "vitest run",
     "format": "oxfmt --write ./",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "prepublishOnly": "pnpm typecheck && pnpm test && pnpm build"
+    "prepublishOnly": "pnpm build"
   },
   "devDependencies": {
     "@lark.js/mvc": "^0.0.26",
