@@ -1,109 +1,146 @@
 # API Reference
 
-All facts verified against `src/index.ts`, `src/theme/index.ts`, `src/vite.ts`, `src/theme/context.tsx`, `src/theme/lib/*`, and `src/client.d.ts`.
+Source of truth: `src/index.ts`, `src/theme/index.ts`, `src/vite.ts`, `src/compiler.ts`, `src/runtime.ts`, `src/theme/context.tsx`, `src/theme/docs-guard.tsx`, `src/theme/lib/*`, `src/utils/guard.ts`, `src/client.d.ts`, `package.json`.
 
-## Package export map (package.json `exports`)
+## Package export map (`package.json` `exports`)
 
-| Sub-path                   | Contents                                                                                               | Environment  |
-| -------------------------- | ------------------------------------------------------------------------------------------------------ | ------------ |
-| `@swifty.js/docs`          | Main barrel: theme components, primitives, types, `slugify`/`createSlugger`                            | Browser-safe |
-| `@swifty.js/docs/vite`     | `swiftyDocsPlugin()`, `docsGuardPlugin()`, re-exports `defineConfig`, `scanDocsDir`, `generateSidebar` | Node (build) |
-| `@swifty.js/docs/compiler` | `compileMarkdown()`, `CompileMarkdownOptions`                                                          | Node (build) |
-| `@swifty.js/docs/runtime`  | `slugify()`, `createSlugger()` (browser-safe, no build deps)                                           | Browser-safe |
-| `@swifty.js/docs/theme`    | Theme components + Dialog primitives + helpers                                                         | Browser      |
-| `@swifty.js/docs/client`   | Types-only: ambient `declare module "@swifty-docs/generated"`                                          | TS types     |
+Version `0.0.12`, `"type": "module"`, `engines.node >= 20`. Dual ESM+CJS with `.d.ts`. `main: dist/index.cjs`, `module: dist/index.js`, `types: dist/index.d.ts`. `sideEffects: ["*.css"]`.
 
-ESM + CJS dual build (`dist/index.js` / `dist/index.cjs`) with full `.d.ts`.
+| Subpath                    | ESM / CJS                         | Contents                                                                 |
+| -------------------------- | --------------------------------- | ------------------------------------------------------------------------ |
+| `@swifty.js/docs` (`.`)    | `dist/index.js` / `dist/index.cjs`| Browser-safe barrel: React theme, primitives, router, guard, utilities, all types, and `slugify`/`createSlugger`. |
+| `@swifty.js/docs/compiler` | `dist/compiler.js` / `.cjs`       | `compileMarkdown` + `CompileMarkdownOptions` type.                       |
+| `@swifty.js/docs/vite`     | `dist/vite.js` / `.cjs`           | `swiftyDocsPlugin`, `docsGuardPlugin`, `SwiftyDocsVitePluginOptions`, and re-exported build-time helpers `defineConfig`, `scanDocsDir`, `generateSidebar`, plus `DocsConfig`/`SidebarConfig` types. Node-only. |
+| `@swifty.js/docs/runtime`  | `dist/runtime.js` / `.cjs`        | `slugify`, `createSlugger` (browser-safe, no build deps).                |
+| `@swifty.js/docs/theme`    | `dist/theme.js` / `.cjs`          | The React theme (same components/hooks as the main barrel).              |
+| `@swifty.js/docs/client`   | types only (`dist/client.d.ts`)   | Ambient `declare module "@swifty-docs/generated"`. Use via `/// <reference types>`. No runtime code. |
+| `@swifty.js/docs/client.css` | `dist/client.css`               | The theme stylesheet.                                                    |
 
-## Build-time API
+Note the `.` and `/theme` entries deliberately exclude Node-only build code; config files should import `defineConfig`/`swiftyDocsPlugin` from `/vite`.
 
-### `defineConfig(config: DocsConfig, projectRoot?: string): DocsConfig`
+## Main barrel (`@swifty.js/docs`)
 
-Identity + generation side effect. See `references/configuration.md`.
+### Types (all from `src/types.ts`)
 
-### `swiftyDocsPlugin(options: { config: DocsConfig; debug?: boolean }): Plugin[]`
+`DocsConfig`, `NavItem`, `SidebarConfig`, `SidebarItem`, `MarkdownOptions`, `HighlightOptions`, `PageData`, `HeadingInfo`, `DocsRoute`, `FrontmatterResult`, `CompileMarkdownOptions` — documented in `references/configuration.md`.
 
-Returns `[swifty-docs md-compiler, ...@react/preset-vite]`. The compiler plugin: `enforce: "pre"`; `resolveId` rewrites any `.md` import (skipping `node_modules`) to `<abs-path>?swifty-docs` (handles `/@fs` prefixes); `load` matches the `swifty-docs` query flag and returns the compiled JS module string. `debug: true` logs resolveId/load activity.
+### Runtime utilities (from `src/runtime.ts` → `src/utils/slugify.ts`)
 
-### `compileMarkdown(source: string, options: CompileMarkdownOptions): Promise<string>`
+```ts
+function slugify(text: string): string
+function createSlugger(): (text: string) => string
+```
 
-`CompileMarkdownOptions = { config: DocsConfig; filePath: string; projectRoot?: string }`. Pipeline: frontmatter (js-yaml) → Shiki lazy singleton (`options.config.highlight`) → markdown-it parse with the 4 custom plugins → render HTML → build `PageData` via the shared `buildPageData()` (single parse, zod-coerced scalars) → emit `export const pageData = ...; export const contentHtml = ...;` module string. Do NOT pass Vite's resolved root as `projectRoot` — `config.docs` is resolved against `process.cwd()` by `defineConfig`/scanner, and both pipelines must agree.
+`slugify` — lowercase, replace non-`\p{L}\p{N}`/space/dash with `-`, collapse whitespace/dashes, trim, and prefix a leading digit with `_` (valid CSS selector). Preserves CJK/Cyrillic/etc. `createSlugger` — per-document factory that appends `-1`, `-2`, … to duplicate slugs (matches the anchor plugin so TOC links equal rendered ids).
 
-### `docsGuardPlugin(): Plugin`
-
-`enforce: "post"`. When `DOCS_PASSWORD` is set, encrypts `contentHtml` of pages whose frontmatter has `protected: true` (any YAML truthy spelling — detection uses `extractFrontmatter`, not a regex) with AES-256-GCM (PBKDF2 100k/SHA-256, per-page salt+iv), emits `__protected = true`, and scrubs `description`/`excerpt`/`headings` from `pageData` (headings are encrypted alongside the HTML so the Toc restores after unlock). Without `DOCS_PASSWORD` it only warns: `"... will be published UNENCRYPTED."`. Runtime counterpart: `createContentGuard(loadContent)` + `PasswordDialog` + `decryptContent(payload, password)`.
-
-### `scanDocsDir` / `generateSidebar` / `slugify` / `createSlugger`
-
-- `scanDocsDir(docsDir, baseUrl, options?: { excludeDrafts?: boolean }): DocsRoute[]` — deterministic codepoint-sorted walk; warns `"route collision: ..."` when two files map to the same path (e.g. `guide.md` + `guide/index.md`).
-- `generateSidebar(routes, prefix): SidebarItem[]`
-- `slugify(text): string` — lowercase, strip non-word chars (keep spaces/dashes), whitespace→dashes, collapse dashes, prefix leading digits with `_`. Browser-safe (`/runtime`).
-- `createSlugger(): (text) => string` — per-document dedup wrapper over `slugify`; duplicates get `-1`/`-2` suffixes. Used by both the anchor plugin and heading extraction so anchor `id`s and TOC slugs always agree.
-
-## Runtime API — components
-
-### `DocsProvider(props: DocsProviderProps)`
+### `DocsProvider` / `useDocs` (`src/theme/context.tsx`)
 
 ```ts
 interface DocsProviderProps {
-  config: unknown; // Zod-validated; fallback { title: "Documentation", baseUrl: "/" }
-  loadContent: unknown; // must be a function, else null + console.warn
-  getSearchIndex: unknown; // must be a function, else null + console.warn
-  children?: ComponentChildren;
+  config: unknown;         // the generated docsConfig
+  loadContent: unknown;    // the generated loadContent (or guard.loadContent)
+  getSearchIndex: unknown; // the generated getSearchIndex
+  onContentUpdate?: unknown; // optional dev-only md hot-reload subscription
+  children?: ReactNode;
 }
+function DocsProvider(props: DocsProviderProps): JSX.Element
+function useDocs(): DocsContextValue // throws "useDocs must be used inside a <DocsProvider>"
 ```
 
-Context value (via `useDocs()`): `{ config: RuntimeDocsConfig, loadContent, getSearchIndex, searchEnabled: boolean, searchOpen: boolean, setSearchOpen(open), toggleSearch() }`. `searchEnabled = config.search ?? true`. `useDocs()` throws outside a provider.
+Props are `unknown` and validated with Zod at the boundary (values cross the plain-JS generated-module boundary). `config` failing validation falls back to `FALLBACK_CONFIG` (`{ title: "Documentation", baseUrl: "/" }`) with a warning. `loadContent`/`getSearchIndex`/`onContentUpdate` are validated as functions (`typeof === "function"`); on failure they become `null`. The context exposes `{ config, loadContent, getSearchIndex, onContentUpdate, searchEnabled, searchOpen, setSearchOpen, toggleSearch }`. `searchEnabled = config.search ?? true`. Warnings:
+- `[@swifty.js/docs] docsConfig failed validation — using fallback.`
+- `[@swifty.js/docs] loadContent not injected — pages cannot be loaded.`
+(No warning when `onContentUpdate` is absent — that is the normal production case.)
 
-### `DocsLayout()`
+### `DocsLayout` (`src/theme/docs-layout.tsx`)
 
-The whole shell; takes no props. Reads path from react-iso `useLocation()`, normalizes it (`normalizePath` — redirects `/index`, `/index.md`, `/index.html`, trailing slashes), loads content in `useEffect` with cancellation, renders Navbar / Sidebar rail / prose column (`ContentRenderer` + `PrevNext`) / Toc rail / mobile drawer / SearchDialog. Landing route falls back to `nav[0].link ?? baseUrl ?? "/"`.
+`function DocsLayout(): JSX.Element` — the shell. Reads the path from `useLocation()`, normalizes it (`normalizePath`, redirecting `/x/index` → `/x`), loads content in an effect (validated by `LoadedContentSchema`; keeps the old page visible while the next loads), sets `document.title`, handles hash scrolling (decoded for CJK), redirects `/` or `baseUrl` to the first internal nav link (`landing`), and renders Navbar / sidebar rail (`236px`, `lg+`) / prose column (`ContentRenderer` + `PrevNext`) / TOC rail (`224px`, `xl+`) / a focus-trapped mobile drawer (`inert` when closed, Escape to close, body scroll lock, focus restore) / `SearchDialog` (only when `searchEnabled`). Also subscribes to `onContentUpdate` to refresh the current page in place (no loading flash) on md edits. Mount it under a `LocationProvider`.
 
-### Other components (composable individually)
-
-`Navbar`, `Sidebar`, `Toc` (also mounted inline for `[[toc]]`), `SearchDialog` (MiniSearch palette, mounted only when `searchEnabled`), `ContentRenderer` (injects `contentHtml`, wires `swifty-docs-nav` links, `[[toc]]` mounts, copy buttons, hash pushState deep links), `PrevNext`, `ThemeToggle` (persists `swifty-docs-theme`; the key is exported as `THEME_STORAGE_KEY`; syncs across instances via a MutationObserver on `<html class>`), `Logo`. Password guard: `createContentGuard(loadContent)` returns `{ loadContent, ContentGuard }` — mount `<ContentGuard />` once; `PasswordDialog` and `decryptContent` are also exported.
-
-### Primitives (shadcn-style, hand-rolled React)
-
-- `Button`, `buttonVariants` (cva-based)
-- `Input`, `Kbd`
-- From `/theme` only: `Dialog`, `DialogTrigger`, `DialogPortal` (react/compat `createPortal` to `document.body`), `DialogOverlay`, `DialogContent` (role="dialog", autofocus), `DialogTitle`, `DialogDescription`, `DialogClose`. `Dialog` handles Escape via a document keydown listener; open state is controlled (`open` / `onOpenChange`).
-
-Note: props use React's `class` attribute, not `className`.
-
-## Runtime API — hooks & utilities
-
-| Export               | Signature                                                                  | Notes                                                                                                                                                                                          |
-| -------------------- | -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `useScrollSpy`       | `(headings: PageHeading[], offset = 96): string`                           | IntersectionObserver-based; returns active slug; SSR-safe (no-op without IO)                                                                                                                   |
-| `computePrevNext`    | `(sidebar, currentPath): { prev: NavLink \| null; next: NavLink \| null }` | Flattens all sidebar links in order                                                                                                                                                            |
-| `normalizePath`      | `(raw: string): { path: string; redirect: string \| null }`                | Strips trailing slashes, resolves `/index(.md/.html)`                                                                                                                                          |
-| `cn`                 | `(...inputs: ClassValue[]): string`                                        | clsx + tailwind-merge                                                                                                                                                                          |
-| `createSearchEngine` | `(getSearchIndex \| null): SearchEngine`                                   | Lazy MiniSearch build (first query), memoized; `SearchEngine = { search(q): Promise<SearchHit[]>, size(): number }`. Fuzzy 0.2, prefix matching, boosts: title 2x / headings 1.5x / excerpt 1x |
-| `highlightSegments`  | `(text, query): { text: string; mark: boolean }[]`                         | For rendering real `<mark>` nodes — no innerHTML                                                                                                                                               |
-
-Types exported from the main barrel: `DocsConfig`, `NavItem`, `SidebarConfig`, `SidebarItem`, `MarkdownOptions`, `HighlightOptions`, `PageData`, `HeadingInfo`, `DocsRoute`, `SearchEntry`, `FrontmatterResult`, `CompileMarkdownOptions`, plus `LoadedContent`, `PageHeading`, `DocsProviderProps`, `ContentGuard`, `PasswordDialogProps`, `EncryptedPayload`. Value exports also include `THEME_STORAGE_KEY` (the `"swifty-docs-theme"` localStorage key), `createContentGuard`, `PasswordDialog`, and `decryptContent`.
-
-## `@swifty-docs/generated` contract (src/client.d.ts)
+### Router (`src/theme/lib/router.tsx`)
 
 ```ts
-declare module "@swifty-docs/generated" {
-  export function loadContent(
-    path: string,
-  ): Promise<{ pageData: PageData; contentHtml: string } | null>;
-  export const docsConfig: DocsConfig;
-  export interface SearchEntry {
-    title: string;
-    link: string;
-    headings: string[];
-    excerpt: string;
-  }
-  export function getSearchIndex(): Promise<SearchEntry[]>;
-}
+function LocationProvider({ children }): JSX.Element
+function useLocation(): { path: string; route: (path: string, replace?: boolean) => void }
+// useLocation throws "useLocation must be used inside a <LocationProvider>"
 ```
 
-Consumers get these types via `/// <reference types="@swifty.js/docs/client" />` (use `types`, not `path` — `types` walks package `exports` and pnpm symlinks). Wire the module itself with a Vite alias: `"@swifty-docs/generated": resolve(root, ".swifty-docs/generated")`, and mirror it in tsconfig `paths` for the IDE.
+The package's own history router (not react-iso). `LocationProvider` tracks `window.location.pathname`, listens to `popstate`, and globally intercepts same-origin left-clicks on `<a>` (ignoring modified clicks, `target="_blank"`, hash-only, and cross-origin) for SPA navigation; same-path hash clicks push state and smooth-scroll. `route(to, replace?)` push/replaces history and updates state.
 
-## Search
+### Theme components
 
-`search?: boolean` in `DocsConfig` (default `true`). When enabled, `SearchDialog` renders the built-in MiniSearch command palette. Keyboard: `⌘K`/`Ctrl+K` toggle, `/` opens (outside inputs); arrows/Enter/Esc inside (Enter ignores IME composition). Index built lazily on first query via `getSearchIndex()` — page-level entries `{ title, link, headings, excerpt }`, protected and virtual-index routes excluded. `search: false` unmounts the dialog, its keyboard listeners, and the navbar trigger entirely. There is no external/Algolia provider.
+- `Navbar({ path, landing, onMenuClick })` — sticky frosted top bar (backdrop-blur on scroll); logo, nav items (active underline, external → new tab with `ArrowUpRightIcon`), search trigger (full input `sm+`, icon button below; `⌘K` hint via `Kbd`), `ThemeToggle`.
+- `Sidebar({ path, onNavigate?, className? })` — renders only the array-valued sidebar groups; collapsible groups/nodes; auto-expands the group containing the active path; active item styled with `--primary`. Group titles strip `baseUrl`.
+- `Toc({ headings, inline? })` — heading outline with `useScrollSpy` and a spring-animated active marker; `inline` variant is boxed (`not-prose`) and is what `[[toc]]` mounts. Renders nothing when `headings` is empty.
+- `ContentRenderer({ html, headings, pageKey? })` — sets `article.innerHTML = html` (trusted first-party build output), replays the `animate-page-in` class on `pageKey` change, then mounts React roots into `[swifty-docs-toc]` (inline `Toc`), `.mermaid-block[data-mermaid]` (`MermaidDiagram`), and each `.codeblock` (a `CopyButton`); disposers unmount on re-render/unmount. Intercepts in-page `#hash` clicks for smooth scroll + `pushState`.
+- `PrevNext({ prev, next })` — previous/next pager cards; renders nothing when both are null.
+- `SearchDialog()` — MiniSearch command palette (portal `Dialog`). Lazy `createSearchEngine` (ref-initialized once), section-level results capped at `MAX_RESULTS = 12` and `MAX_RESULTS_PER_PAGE = 3`, keyboard nav (↑/↓ wrap, Enter opens — IME-composition-safe, Esc closes), `⌘K`/`Ctrl+K` toggles, `/` opens when not typing in a field. Re-runs on `onContentUpdate` (invalidates the engine). Highlights matches as real `<mark>` elements.
+- `MermaidDiagram({ code })` (`src/theme/mermaid.tsx`) — lazy singleton `import("mermaid")`, serialized renders (global `initialize` is shared state), per-`(theme, code)` SVG cache, re-renders on `.dark` toggle (`MutationObserver`), `securityLevel: "loose"`, `suppressErrorRendering: true`; render failure shows `.mermaid-error` with the raw source. Warn: `[@swifty.js/docs] mermaid render failed:`.
+- `ThemeToggle()` — light/dark button; toggles `.dark` on `<html>`, persists to `localStorage[THEME_STORAGE_KEY]`, observes the class so multiple instances stay in sync. `THEME_STORAGE_KEY = "swifty-docs-theme"`.
+- `Logo({ href, title, className? })` — gradient clock mark (icon = current hour) + wordmark. Also exports `ThemeToggleIcon({ dark })`.
+
+### shadcn-style primitives (`src/theme/ui/*`)
+
+- `Button` + `buttonVariants` (cva). Variants: `default`, `outline`, `ghost`, `secondary`. Sizes: `default` (`h-9 px-4 py-2`), `sm` (`h-8`), `lg` (`h-10`), `icon` (`size-9`). Defaults `variant: "default"`, `size: "default"`.
+- `Input` — `forwardRef<HTMLInputElement>`; themed text input.
+- `Kbd` — styled `<kbd>`.
+- Dialog family (`src/theme/ui/dialog.tsx`): `Dialog({ open, onOpenChange, children })` (Escape closes via document listener), `DialogPortal` (renders into `document.body` only when open), `DialogOverlay` (backdrop; click dismisses), `DialogContent` (forwardRef; `role="dialog"`, `aria-modal`, minimal Tab focus trap, focus restore on close), `DialogTitle`, `DialogDescription`, `DialogClose`, `DialogTrigger`, `DialogAccessibleTitle` (`sr-only` `<h2>`). Hand-rolled with `createPortal` from `react-dom` — no Radix.
+
+### Hooks & utilities
+
+- `cn(...inputs: ClassValue[]): string` (`src/theme/lib/utils.ts`) — `twMerge(clsx(...))`. (`decodedLocationHash()` is internal, not exported.)
+- `useScrollSpy(headings: PageHeading[], offset = 96): string` (`src/theme/lib/scroll-spy.ts`) — rAF-throttled scroll/resize/ResizeObserver spy; returns the active heading slug (last heading at/above `offset`; last heading when at page bottom).
+- `createSearchEngine(getSearchIndex: GetSearchIndexFn | null): SearchEngine` (`src/theme/lib/search.ts`) — `SearchEngine = { search(query): Promise<SearchHit[]>; size(): number; invalidate(): void }`. Builds a MiniSearch index lazily/once (generation-guarded): fields `["title","pageTitle","text"]`, store `["title","pageTitle","crumb","link","text"]`, `tokenize: cjkTokenize` (splits CJK runs into per-char tokens), `prefix: true`, `fuzzy: 0.2`, `boost: { title: 2, pageTitle: 1.5 }`. Splits each page's HTML into h1–h3 sections (`buildSectionDocs`/`splitContentSections`) so hits deep-link to `/route#slug` with a breadcrumb (`›`). Warns `getSearchIndex not injected` / `search index failed validation` and returns `[]`.
+- `highlightSegments(text, query): { text: string; mark: boolean }[]` — split into plain/marked segments (rendered as `<mark>`; no `innerHTML`). (`capPerPage`, `makeSnippet`, `cjkTokenize` exist in the module but are not re-exported from the barrel.)
+- `computePrevNext(sidebar, currentPath): { prev: NavLink | null; next: NavLink | null }` (`src/theme/lib/content.ts`) — flattens array-valued sidebar links in config order (trailing slashes ignored) and returns neighbors. `NavLink = { text, link }` (type not exported).
+- `normalizePath(raw): { path: string; redirect: string | null }` — strips trailing slashes and resolves `/index(.md|.html)?` to the clean directory path; sets `redirect` when a history-replacing rewrite is needed.
+
+Exported content types: `LoadContentFn`, `LoadedContent`, `PageHeading` (barrel); `theme` also exports `LoadedContent`, `PageHeading`. `RuntimeDocsConfig`, `SearchEntrySchema`, etc. are internal.
+
+### Password guard (`src/theme/docs-guard.tsx`, `src/utils/guard.ts`)
+
+```ts
+function createContentGuard<T extends { contentHtml: string; pageData?: { headings?: unknown } }>(
+  loadContent: (path: string) => Promise<T | null>,
+): ContentGuard<T>
+interface ContentGuard<T> { loadContent: (path: string) => Promise<T | null>; ContentGuard: FC; }
+
+function PasswordDialog(props: PasswordDialogProps): JSX.Element
+interface PasswordDialogProps {
+  payload: EncryptedPayload;
+  onUnlock: (plaintext: string, password: string) => void;
+  onClose: () => void;
+}
+
+async function decryptContent(payload: EncryptedPayload, password: string): Promise<string>
+interface EncryptedPayload { encrypted: string; authTag: string; salt: string; iv: string; }
+```
+
+`createContentGuard(loadContent)` wraps the generated loader: if a page's `contentHtml` parses as an `EncryptedPayload`, it tries a session-cached password (`sessionStorage["docs-guard-pwd"]`), else prompts via `<ContentGuard />` (mount once, may sit outside `<DocsProvider>`). On success it decrypts the `{ html, headings }` envelope, restores `contentHtml` and `pageData.headings`; on dismissal it returns a built-in "Access Denied" HTML block. Mounting multiple `<ContentGuard>` instances warns: `[@swifty.js/docs] Multiple <ContentGuard> instances mounted — only the most recent one will receive unlock requests.` `decryptContent` uses WebCrypto: PBKDF2 SHA-256, 100_000 iterations, AES-GCM 256.
+
+## `@swifty.js/docs/compiler`
+
+```ts
+async function compileMarkdown(source: string, options: CompileMarkdownOptions): Promise<string>
+interface CompileMarkdownOptions { config: DocsConfig; filePath: string; projectRoot?: string; }
+```
+
+Compiles a `.md` source string into a **JS module string** exporting `pageData` and `contentHtml`. `contentHtml` is emitted via `JSON.stringify` (safe escaping). Async because the first call lazy-loads the Shiki WASM + grammars; the highlighter is cached per theme+langs key (concurrent calls share the init promise; rejected inits are dropped so a fixed config can retry).
+
+## `@swifty.js/docs/vite`
+
+```ts
+function swiftyDocsPlugin(options: SwiftyDocsVitePluginOptions): Plugin[] // [swifty-docs, base-sync, spa-fallback, ...react()]
+function docsGuardPlugin(): Plugin                                        // enforce "post"
+interface SwiftyDocsVitePluginOptions { config: DocsConfig; debug?: boolean; }
+// re-exports: defineConfig, scanDocsDir, generateSidebar; types DocsConfig, SidebarConfig
+```
+
+Full plugin behavior, error/warning strings, and generation semantics are in `references/configuration.md`.
+
+## Lifecycle summary
+
+1. **Config load:** `defineConfig()` scans + generates `.swifty-docs/generated/index.js` (side effect, synchronous).
+2. **Build/dev:** `swiftyDocsPlugin` intercepts `.md` → `compileMarkdown` (async, Shiki lazy); `docsGuardPlugin` optionally encrypts protected pages; `@vitejs/plugin-react` compiles JSX; `base-sync` sets `base`; `spa-fallback` emits `404.html` on build.
+3. **Runtime mount:** `createRoot(...).render(<><guard.ContentGuard/><DocsProvider …><LocationProvider><DocsLayout/></LocationProvider></DocsProvider></>)`.
+4. **Navigation:** `LocationProvider` updates `path` → `DocsLayout` effect calls `loadContent(path)` → `ContentRenderer` injects HTML + mounts TOC/mermaid/copy roots. Search index and mermaid load lazily on first use.
+5. **Dev HMR:** editing a page fires `onContentUpdate` → in-place content refresh + search-index invalidation; adding/removing a page triggers a full reload with a "restart the dev server" log.
