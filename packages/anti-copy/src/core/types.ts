@@ -51,10 +51,11 @@ export interface DevtoolsOptions {
    */
   freeze?: boolean;
   /**
-   * Blank page navigated to when DevTools stays open while the debugger
-   * stall is neutralized (userscripts hooking `Function`, "never pause
-   * here", deactivated breakpoints). Requires `freeze`; `false` disables
-   * the fallback. @default "about:blank"
+   * Page navigated to when a confirmed debugger stall (the probe paused at
+   * least once) is neutralized ("deactivate breakpoints", "never pause
+   * here") while DevTools stays open. Never triggered by the size
+   * heuristic alone, so zoom false positives cannot evict the page.
+   * Requires `freeze`; `false` disables the fallback. @default "about:blank"
    */
   redirectUrl?: string | false;
 }
@@ -94,8 +95,8 @@ export interface AntiCopyOptions {
    *
    * Limitations: undocked DevTools with deactivated breakpoints are
    * undetectable, and browser zoom or unusual chrome can trip the size
-   * heuristic — with countermeasures enabled, a sustained false positive
-   * ends in a redirect. @default false
+   * heuristic — such false positives only fire `onViolation` and never
+   * trigger the freeze/redirect countermeasures. @default false
    */
   devtools?: boolean | DevtoolsOptions;
   /** Invoked every time a protection rule fires. */

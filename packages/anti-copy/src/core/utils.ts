@@ -59,7 +59,20 @@ export function isExcluded(target: EventTarget | null, selectors: string[]): boo
   return false;
 }
 
-const EDITABLE_TAGS = new Set(["INPUT", "TEXTAREA"]);
+// Input types without free-text entry: they carry no selectable text, so
+// exempting them would only punch needless holes into protection.
+const NON_TEXT_INPUT_TYPES = new Set([
+  "button",
+  "checkbox",
+  "color",
+  "file",
+  "hidden",
+  "image",
+  "radio",
+  "range",
+  "reset",
+  "submit",
+]);
 // The contenteditable attribute value is ASCII case-insensitive in HTML.
 const EDITABLE_VALUES = new Set(["", "true", "plaintext-only"]);
 
@@ -67,7 +80,14 @@ const EDITABLE_VALUES = new Set(["", "true", "plaintext-only"]);
 export function isEditable(target: EventTarget | null): boolean {
   let el = toElement(target);
   while (el) {
-    if (EDITABLE_TAGS.has(el.tagName)) return true;
+    if (el.tagName === "TEXTAREA") return true;
+    if (el.tagName === "INPUT") {
+      // The `type` property normalizes unknown values to "text"; a missing
+      // property (duck-typed foreign element) defaults to editable, the
+      // safe direction for preserving native behavior.
+      const type = (el as HTMLInputElement).type?.toLowerCase() ?? "text";
+      if (!NON_TEXT_INPUT_TYPES.has(type)) return true;
+    }
     const attr = el.getAttribute("contenteditable");
     if (attr !== null && EDITABLE_VALUES.has(attr.toLowerCase())) return true;
     el = el.parentElement ?? shadowHost(el);

@@ -97,6 +97,25 @@ describe("keyboard", () => {
     expect(fireKey({ key: "p", ctrlKey: true }, input).defaultPrevented).toBe(true);
   });
 
+  it("lets AltGr (Ctrl+Alt) combos through so European layouts can type", () => {
+    document.body.innerHTML = "<input id='i' />";
+    const onViolation = vi.fn();
+    instance = createAntiCopy({ selectStyle: false, onViolation });
+    instance.enable();
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const input = document.getElementById("i")!;
+    // Polish "ś" is AltGr+S, reported as ctrlKey+altKey on physical KeyS:
+    // typing, not the save shortcut — must work even inside inputs.
+    expect(
+      fireKey({ key: "ś", code: "KeyS", ctrlKey: true, altKey: true }, input).defaultPrevented,
+    ).toBe(false);
+    // Polish "ć" is AltGr+C: not a copy shortcut, no violation either.
+    expect(fireKey({ key: "ć", code: "KeyC", ctrlKey: true, altKey: true }).defaultPrevented).toBe(
+      false,
+    );
+    expect(onViolation).not.toHaveBeenCalled();
+  });
+
   it("does not block Ctrl+P/Ctrl+S when print protection is off", () => {
     instance = createAntiCopy({ selectStyle: false, print: false });
     instance.enable();

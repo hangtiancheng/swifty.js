@@ -9,10 +9,10 @@ const PAUSE_THRESHOLD_MS = 100;
 /** Cadence of the guard loop that keeps re-pausing the page while DevTools is open. */
 const GUARD_INTERVAL_MS = 20;
 /**
- * Guard ticks tolerated while DevTools is open per the size heuristic yet
- * the probe never pauses — the stall has been neutralized (userscript
- * hooking `Function`, "never pause here", deactivated breakpoints) —
- * before the page is evicted (~500ms at the guard cadence).
+ * Guard ticks tolerated when DevTools stays open per the size heuristic
+ * while the previously confirmed probe stall no longer pauses — the stall
+ * was neutralized in place ("deactivate breakpoints", "never pause here")
+ * — before the page is evicted (~500ms at the guard cadence).
  */
 const BYPASS_MAX_TICKS = 25;
 
@@ -40,16 +40,21 @@ function createProbe(): () => void {
  *    takes measurable time while a debugger is attached. The probe also
  *    catches undocked DevTools windows the size heuristic cannot see.
  *
- * 2. Countermeasures — while DevTools is open, a tight guard loop keeps
- *    running the probe so execution pauses over and over, stalling the
- *    page until DevTools is closed. If DevTools stays open while the probe
- *    stops pausing, the stall was neutralized (e.g. by a userscript) and
- *    the page is redirected to a blank page.
+ * 2. Countermeasures — once the probe confirms a pause, a tight guard loop
+ *    keeps re-running it so execution pauses over and over, stalling the
+ *    page until DevTools is closed. If DevTools stays open (per the size
+ *    heuristic) while the probe stops pausing, the stall was neutralized
+ *    in place ("deactivate breakpoints", "never pause here") and the page
+ *    is redirected to a blank page. Countermeasures require the probe to
+ *    have paused: size-only detections merely report via `onViolation`.
  *
  * Known limitations, by design:
  * - Browser zoom or unusual window chrome can trip the size heuristic;
- *   with countermeasures enabled, a sustained false positive ends in a
- *   redirect.
+ *   such false positives only fire `onViolation` reports — they can never
+ *   freeze or evict the page.
+ * - A debugger stall neutralized before it ever pauses (e.g. a userscript
+ *   hooking `Function` at load) is detected by size only and therefore
+ *   reported but never evicted.
  * - Disabled on coarse-pointer (touch) devices and very narrow windows.
  * - Undocked DevTools with breakpoints deactivated are indistinguishable
  *   from closed DevTools.
@@ -175,8 +180,11 @@ export function createDevtoolsFeature(options: ResolvedOptions): Feature {
       lastOpened = true;
       options.onViolation?.({ type: "devtools" });
     }
-    if (probe !== null) {
+    if (paused) {
       // Escalate to the guard loop so the probe keeps re-pausing the page.
+      // Escalation requires probe-confirmed evidence: a size-only detection
+      // (browser zoom, unusual window chrome) stays report-only and must
+      // never lead to the freeze/redirect countermeasures.
       stopLoops();
       bypassTicks = 0;
       guardTimer = setInterval(guardTick, GUARD_INTERVAL_MS);
@@ -195,6 +203,7 @@ export function createDevtoolsFeature(options: ResolvedOptions): Feature {
       stopLoops();
       lastOpened = false;
       bypassTicks = 0;
+      redirected = false;
     },
   };
 }

@@ -69,6 +69,12 @@ export function createKeyboardFeature(options: ResolvedOptions): Feature {
       return;
     }
 
+    // Windows AltGr reports ctrlKey+altKey; European layouts type characters
+    // like "ś" (AltGr+S) or "ć" (AltGr+C) with it. No copy/export shortcut
+    // involves Alt, so this is typing, not a shortcut — the macOS Cmd+Opt
+    // DevTools combos were already handled above.
+    if (event.altKey) return;
+
     if (!(event.ctrlKey || event.metaKey)) return;
     const copyKey = matchKey(event, COPY_KEYS);
     const isInsertCopy = event.ctrlKey && !event.shiftKey && event.key === "Insert";

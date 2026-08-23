@@ -75,6 +75,17 @@ describe("isEditable", () => {
     expect(isEditable(input)).toBe(true);
   });
 
+  it("exempts only text-entry input types", () => {
+    document.body.innerHTML =
+      "<input type='checkbox' id='cb' /><input type='button' id='b' />" +
+      "<input type='search' id='se' /><input type='bogus' id='bo' />";
+    expect(isEditable(document.getElementById("cb"))).toBe(false);
+    expect(isEditable(document.getElementById("b"))).toBe(false);
+    expect(isEditable(document.getElementById("se"))).toBe(true);
+    // Unknown types normalize to "text", the safe editable direction.
+    expect(isEditable(document.getElementById("bo"))).toBe(true);
+  });
+
   it("resolves text nodes directly under a shadow root to the host", () => {
     document.body.innerHTML = "<div class='skip' id='host'></div>";
     const root = document.getElementById("host")?.attachShadow({ mode: "open" });

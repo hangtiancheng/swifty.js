@@ -203,7 +203,7 @@ describe("devtools countermeasures", () => {
     expect(fake.hrefSets).toEqual([]);
   });
 
-  it("redirects to the blank page once when the stall is neutralized", () => {
+  it("redirects to the blank page once when a confirmed stall is neutralized", () => {
     const fake = createFakeWindow();
     const onViolation = vi.fn();
     instance = createAntiCopy({
@@ -214,19 +214,43 @@ describe("devtools countermeasures", () => {
     });
     instance.enable();
 
-    // Docked DevTools, but a userscript stripped the debugger statement:
-    // the probe runs yet never pauses.
+    // Docked DevTools with an attached debugger: the stall engages.
     fake.openDevtools();
+    fake.probePausesFor(500);
     vi.advanceTimersByTime(100);
     expect(onViolation).toHaveBeenCalledTimes(1);
+    expect(fake.hrefSets).toEqual([]);
 
-    // ~25 guard ticks without a pause → evicted to the blank page.
+    // "Deactivate breakpoints": DevTools stays docked while the probe
+    // stops pausing. ~25 guard ticks later the page is evicted.
+    fake.probePausesFor(0);
     vi.advanceTimersByTime(700);
     expect(fake.hrefSets).toEqual(["about:blank"]);
 
     // The redirect fires exactly once.
     vi.advanceTimersByTime(2000);
     expect(fake.hrefSets).toEqual(["about:blank"]);
+  });
+
+  it("stays report-only on a size-only detection (zoom false positive)", () => {
+    const fake = createFakeWindow();
+    const onViolation = vi.fn();
+    instance = createAntiCopy({
+      ...REPORT_ONLY,
+      devtools: { intervalMs: 100 },
+      onViolation,
+      target: fakeTarget(fake.view),
+    });
+    instance.enable();
+
+    // Browser zoom shrinks innerWidth past the threshold, but the probe
+    // never pauses — DevTools is not actually open. The page must neither
+    // enter the guard loop nor get evicted.
+    fake.openDevtools();
+    vi.advanceTimersByTime(3000);
+    expect(onViolation).toHaveBeenCalledTimes(1);
+    expect(onViolation).toHaveBeenCalledWith({ type: "devtools" });
+    expect(fake.hrefSets).toEqual([]);
   });
 
   it("honors a custom redirect target", () => {
@@ -238,7 +262,10 @@ describe("devtools countermeasures", () => {
     });
     instance.enable();
     fake.openDevtools();
-    vi.advanceTimersByTime(800);
+    fake.probePausesFor(500);
+    vi.advanceTimersByTime(100);
+    fake.probePausesFor(0);
+    vi.advanceTimersByTime(700);
     expect(fake.hrefSets).toEqual(["https://example.test/home"]);
   });
 
@@ -251,6 +278,9 @@ describe("devtools countermeasures", () => {
     });
     instance.enable();
     fake.openDevtools();
+    fake.probePausesFor(500);
+    vi.advanceTimersByTime(100);
+    fake.probePausesFor(0);
     vi.advanceTimersByTime(1000);
     expect(fake.hrefSets).toEqual([]);
   });
@@ -277,10 +307,38 @@ describe("devtools countermeasures", () => {
     });
     instance.enable();
     fake.openDevtools();
+    fake.probePausesFor(500);
     vi.advanceTimersByTime(100);
     instance.disable();
+    fake.probePausesFor(0);
     vi.advanceTimersByTime(2000);
     expect(fake.hrefSets).toEqual([]);
+  });
+
+  it("re-arms after disable then enable following a redirect", () => {
+    const fake = createFakeWindow();
+    instance = createAntiCopy({
+      ...REPORT_ONLY,
+      devtools: { intervalMs: 100 },
+      target: fakeTarget(fake.view),
+    });
+    instance.enable();
+    fake.openDevtools();
+    fake.probePausesFor(500);
+    vi.advanceTimersByTime(100);
+    fake.probePausesFor(0);
+    vi.advanceTimersByTime(700);
+    expect(fake.hrefSets).toEqual(["about:blank"]);
+
+    // The simulated navigation did not unload the page; a fresh
+    // disable → enable cycle must protect again instead of staying dead.
+    instance.disable();
+    instance.enable();
+    fake.probePausesFor(500);
+    vi.advanceTimersByTime(100);
+    fake.probePausesFor(0);
+    vi.advanceTimersByTime(700);
+    expect(fake.hrefSets).toEqual(["about:blank", "about:blank"]);
   });
 
   it("falls back to the own window when the top frame is cross-origin", () => {
@@ -297,7 +355,10 @@ describe("devtools countermeasures", () => {
     });
     instance.enable();
     fake.openDevtools();
-    vi.advanceTimersByTime(800);
+    fake.probePausesFor(500);
+    vi.advanceTimersByTime(100);
+    fake.probePausesFor(0);
+    vi.advanceTimersByTime(700);
     expect(fake.hrefSets).toEqual(["about:blank"]);
   });
 });
