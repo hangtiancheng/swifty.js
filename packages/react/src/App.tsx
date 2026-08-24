@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-import __react__, { useMemo, useState } from "./lib/index.ts";
+import __react__, { useMemo, useState } from "@lib/index.ts";
 import ResumeHeader from "./components/resume-header.tsx";
 import SectionEdu from "./components/section-edu.tsx";
 import SectionList from "./components/section-list.tsx";

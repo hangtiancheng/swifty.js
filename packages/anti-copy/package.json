@@ -1,6 +1,6 @@
 {
   "name": "@swifty.js/anti-copy",
-  "version": "0.0.4",
+  "version": "0.0.6",
   "description": "Copy-protection SDK for browsers",
   "license": "MIT",
   "author": "https://github.com/hangtiancheng",
@@ -32,11 +32,6 @@
       "types": "./dist/swifty-docs.d.ts",
       "import": "./dist/swifty-docs.js",
       "require": "./dist/swifty-docs.cjs"
-    },
-    "./lark-docs": {
-      "types": "./dist/lark-docs.d.ts",
-      "import": "./dist/lark-docs.js",
-      "require": "./dist/lark-docs.cjs"
     }
   },
   "publishConfig": {
@@ -50,7 +45,6 @@
     "prepublishOnly": "pnpm build"
   },
   "devDependencies": {
-    "@lark.js/mvc": "^0.0.26",
     "@rollup/plugin-alias": "^6.0.0",
     "@rollup/plugin-terser": "^1.0.0",
     "@rollup/plugin-typescript": "^12.3.0",
@@ -70,17 +64,13 @@
     "vue": "^3.5.41"
   },
   "peerDependencies": {
-    "@lark.js/mvc": ">=0.0.26",
-    "@swifty.js/docs": ">=0.0.11",
+    "@swifty.js/docs": ">=0.0.12",
     "react": "^18.0.0 || ^19.0.0",
     "vitepress": ">=1.0.0",
     "vue": ">=3.0.0"
   },
   "peerDependenciesMeta": {
     "react": {
-      "optional": true
-    },
-    "@lark.js/mvc": {
       "optional": true
     },
     "@swifty.js/docs": {

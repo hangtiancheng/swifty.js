@@ -1,6 +1,6 @@
 # @swifty.js/anti-copy
 
-Framework-agnostic copy-protection SDK for browsers, with VitePress, @swifty.js/docs and @lark.js/docs integrations.
+Framework-agnostic copy-protection SDK for browsers, with VitePress and @swifty.js/docs integrations.
 
 > **Disclaimer**: client-side copy protection is a _deterrent_, not a
 > security boundary. Content remains accessible via view-source, disabled
@@ -151,32 +151,6 @@ import { AntiCopy } from "@swifty.js/anti-copy/swifty-docs";
 - Opt out per route with `excludePaths` (string prefix or RegExp; trailing
   slashes are normalized on both sides); protection toggles automatically on
   client-side navigation.
-
-## @lark.js/docs integration
-
-Call `applyAntiCopy()` once from `app/boot.ts` (the lark-docs equivalent of
-VitePress's `enhanceApp`):
-
-```ts
-// app/boot.ts
-import { applyAntiCopy } from "@swifty.js/anti-copy/lark-docs";
-
-applyAntiCopy({
-  mode: "replace",
-  excludePaths: ["/docs/playground"],
-  devtools: true,
-});
-
-Framework.boot(config);
-```
-
-- Code blocks (`.codeblock`), dialogs (`[role="dialog"]`, incl. the search
-  palette) and editable controls are exempt (`LARK_DOCS_DEFAULT_EXCLUDES`).
-- Opt out per route with `excludePaths` (full paths incl. `baseUrl`; string
-  prefix or RegExp, trailing slashes normalized); the toggle stays in sync
-  across SPA navigation via the router's `changed` event.
-- The returned handle exposes `instance` for manual control and `stop()` for
-  teardown.
 
 ## Known limitations
 

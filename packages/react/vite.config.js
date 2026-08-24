@@ -54,12 +54,18 @@ export default defineConfig(({ mode }) => {
       publicDir: false,
       build: {
         lib: {
-          entry: resolve(import.meta.dirname, "src/diff/index.ts"),
+          entry: resolve(import.meta.dirname, "lib/index.ts"),
           formats: ["es"],
           fileName: () => "react.mjs",
         },
         outDir: "dist",
         emptyOutDir: true,
+      },
+      resolve: {
+        alias: {
+          "@": resolve(import.meta.dirname, "src"),
+          "@lib": resolve(import.meta.dirname, "lib"),
+        },
       },
     };
   }
@@ -72,6 +78,12 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       outDir: "dist-app",
+    },
+    resolve: {
+      alias: {
+        "@": resolve(import.meta.dirname, "src"),
+        "@lib": resolve(import.meta.dirname, "lib"),
+      },
     },
     plugins: [
       tailwindcss(),

@@ -5,9 +5,18 @@
     "declaration": true,
     "emitDeclarationOnly": true,
     "rewriteRelativeImportExtensions": true,
-    "rootDir": "src/diff",
-    "outDir": "dist/types"
+    "rootDir": "lib",
+    "outDir": "dist/types",
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ],
+      "@lib/*": [
+        "./lib/*"
+      ]
+    }
   },
-  "include": ["src/diff"],
-  "exclude": ["src/diff/diff.test.mts"]
+  "include": [
+    "lib"
+  ],
 }

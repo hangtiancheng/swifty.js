@@ -1,7 +1,7 @@
 /**
  * Framework-agnostic copy / print / DevTools protection for any browser
  * project — React, Vue, plain HTML, ... The docs-site integrations
- * (`./vitepress`, `./swifty-docs`, `./lark-docs`) build on this core and
+ * (`./vitepress`, `./swifty-docs`) build on this core and
  * add frontmatter / route-config collection on top.
  */
 import { createClipboardFeature } from "./core/clipboard";

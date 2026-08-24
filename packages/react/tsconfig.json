@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ESNext",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "module": "ESNext",
     "moduleDetection": "force",
     "moduleResolution": "bundler",
@@ -18,8 +22,18 @@
     "jsx": "react",
     "jsxFactory": "__react__.createElement",
     "jsxFragmentFactory": "__react__.Fragment",
-    "types": []
+    "types": [],
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ],
+      "@lib/*": [
+        "./lib/*"
+      ]
+    }
   },
-  "include": ["src"],
-  "exclude": ["src/diff/diff.test.mts"]
+  "include": [
+    "src",
+    "lib"
+  ],
 }

@@ -1,14 +1,13 @@
 {
   "name": "@swifty.js/react",
-  "version": "0.0.3",
-  "description": "Not react",
+  "version": "0.0.1",
+  "description": "react, previously @swifty.js/preact",
   "keywords": [
     "all-in-one",
     "fork",
     "framework",
     "jsx",
     "light-weight",
-    "react",
     "react",
     "virtual-dom"
   ],

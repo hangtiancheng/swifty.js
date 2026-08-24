@@ -19,29 +19,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
-import __react__ from "@lib/index.ts";
-
-interface SectionEduProps {
-  header: string;
-  edu: string[][];
+import type { VNode } from "./element.ts";
+declare global {
+    namespace JSX {
+        type Element = VNode;
+        interface ElementChildrenAttribute {
+            children: unknown;
+        }
+        interface IntrinsicElements {
+            [tag: string]: any;
+        }
+    }
 }
-
-/** Education section: one grid row per school. */
-export default function SectionEdu({ header, edu }: SectionEduProps) {
-  return (
-    <section className="rounded-lg border border-neutral-200 bg-white p-3">
-      <div className="text-sm font-semibold text-neutral-900">{header}</div>
-      <div className="my-1 h-px bg-neutral-100"></div>
-      <ul className="mt-1.5 space-y-0.5 text-xs">
-        {edu.map((row, index) => (
-          <li key={String(index)} className="grid gap-1 md:grid-cols-3">
-            <div className="text-neutral-700">{row[0]}</div>
-            <div className="text-neutral-700">{row[1]}</div>
-            <div className="text-neutral-700">{row[2]}</div>
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}
+export {};

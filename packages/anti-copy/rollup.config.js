@@ -28,8 +28,7 @@ function cleanDist() {
 const input = {
   index: "src/index.ts",
   vitepress: "src/vitepress.ts",
-  "swifty-docs": "src/swifty-docs.ts",
-  "lark-docs": "src/lark-docs.ts",
+  "swifty-docs": "src/swifty-docs.ts"
 };
 
 /** @type {import("rollup").ExternalOption} */

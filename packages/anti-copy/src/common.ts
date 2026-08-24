@@ -1,6 +1,5 @@
 /**
- * Regions excluded from protection by default in @swifty.js/docs and
- * @lark.js/docs sites: code blocks (`.codeblock` chrome incl. the copy
+ * Regions excluded from protection by default in @swifty.js/docs sites: code blocks (`.codeblock` chrome incl. the copy
  * button), dialogs such as the search palette, and editable controls.
  */
 export const DOCS_DEFAULT_EXCLUDES = [

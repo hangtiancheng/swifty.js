@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-import __react__ from "../lib/index.ts";
+import __react__ from "@lib/index.ts";
 import type { TitledItem } from "../schema/resume.ts";
 
 interface SectionListProps {

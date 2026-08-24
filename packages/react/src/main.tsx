@@ -22,7 +22,7 @@
 
 import "./index.css";
 
-import __react__ from "./lib/index.ts";
+import __react__ from "@lib/index.ts";
 import { createAntiCopy } from "@swifty.js/anti-copy";
 import App from "./App.tsx";
 
