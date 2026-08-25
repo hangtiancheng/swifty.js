@@ -5,9 +5,11 @@
   "description": "AI evaluate",
   "main": "dist/index.js",
   "scripts": {
-    "check": "biome check ./src",
+    "check": "biome check ./src --write",
     "typecheck": "tsc --noEmit",
     "build": "tsup",
+    "eval": "node dist/main.js",
+    "test": "vitest run",
     "format": "biome format ./src --write"
   },
   "keywords": [

@@ -167,8 +167,7 @@ cmake_install.cmake
 **/cmake_install.cmake
 CTestTestfile.cmake
 **/CTestTestfile.cmake
-Testing/
-**/Testing/
+
 compile_commands.json
 **/compile_commands.json
 
@@ -223,3 +222,4 @@ prebuilds/
 build-*/
 **/build-*/
 **/node-headers/
+packages/swifty-eval/config.yaml
