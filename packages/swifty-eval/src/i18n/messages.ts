@@ -38,13 +38,7 @@ export interface Messages {
   readonly chartDatasetLabel: (profile: string) => string;
   readonly recommendation: (label: string) => string;
   readonly dialogueTableHeaders: readonly [string, string, string, string];
-  readonly dimensionTableHeaders: readonly [
-    string,
-    string,
-    string,
-    string,
-    string,
-  ];
+  readonly dimensionTableHeaders: readonly [string, string, string, string, string];
   readonly dimensionLabels: Readonly<Record<DimensionKey, string>>;
   readonly terminationReasons: Readonly<Record<TerminationReason, string>>;
   readonly noModelTurnsReason: string;
@@ -61,10 +55,7 @@ export interface Messages {
   readonly charLimitReasonLabel: string;
   readonly forbiddenPhrasesReasonLabel: string;
   readonly toneReasonLabel: string;
-  readonly evaluationFailedReason: (
-    count: number,
-    firstError: string,
-  ) => string;
+  readonly evaluationFailedReason: (count: number, firstError: string) => string;
   readonly judgeFailuresNote: (count: number) => string;
   readonly evaluatorCrashedReason: (error: string) => string;
   /** Sample values substituted for the `${rider_name}` opening-line placeholder. */
@@ -135,8 +126,7 @@ export const ZH_MESSAGES: Messages = {
 
 export const EN_MESSAGES: Messages = {
   htmlLang: "en",
-  reportTitle:
-    "Task-Instruction-Following Evaluation Report for Dialogue Models",
+  reportTitle: "Task-Instruction-Following Evaluation Report for Dialogue Models",
   noData: "No evaluation data yet",
   generatedAtLabel: "Generated at",
   taskIdLabel: "Task ID",
@@ -162,13 +152,7 @@ export const EN_MESSAGES: Messages = {
   chartDatasetLabel: (profile) => `Score - ${profile}`,
   recommendation: (label) => `Recommend improving ${label}`,
   dialogueTableHeaders: ["Round", "Role", "Content", "Evaluation Notes"],
-  dimensionTableHeaders: [
-    "Dimension",
-    "Score",
-    "Weight",
-    "Weighted Score",
-    "Evidence",
-  ],
+  dimensionTableHeaders: ["Dimension", "Score", "Weight", "Weighted Score", "Evidence"],
   dimensionLabels: {
     flowCompletion: "Flow Completion",
     constraintCompliance: "Constraint Compliance",
