@@ -20,7 +20,7 @@ const llmSettingsSchema = z.object({
 	apiBase: z.string().min(1).optional(),
 	apiKey: z.string().optional(),
 	temperature: z.number().min(0).max(2).default(0.7),
-	maxTokens: z.number().int().positive().default(500),
+	maxTokens: z.number().int().positive().default(4096),
 });
 
 const weightSchema = z.number().min(0).max(1);

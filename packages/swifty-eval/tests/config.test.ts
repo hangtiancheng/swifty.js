@@ -43,7 +43,7 @@ describe("parseConfig", () => {
 		expect(config.llm).toEqual({
 			model: "test-model",
 			temperature: 0.7,
-			maxTokens: 500,
+			maxTokens: 4096,
 		});
 		expect(config.evaluation.evalCount).toBe(3);
 		expect(config.evaluation.maxWorkers).toBe(4);

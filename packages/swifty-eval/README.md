@@ -60,12 +60,12 @@ llm: # model under test + user simulator
   apiBase: "https://your-endpoint/v1"
   apiKey: ""
   temperature: 0.7
-  maxTokens: 500
+  maxTokens: 4096
 
 evaluatorLlm: # judge model (optional; falls back to `llm`)
   model: "..."
   temperature: 0.3
-  maxTokens: 1000
+  maxTokens: 4096
 
 evaluation:
   evalCount: 3 # judge calls per dimension (>= 3 trims extremes)

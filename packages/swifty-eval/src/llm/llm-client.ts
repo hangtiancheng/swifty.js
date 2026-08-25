@@ -25,7 +25,7 @@ export interface ChatParams {
 }
 
 const DEFAULT_TEMPERATURE = 0.7;
-const DEFAULT_MAX_TOKENS = 500;
+const DEFAULT_MAX_TOKENS = 4096;
 const DEFAULT_MAX_RETRIES = 5;
 const BACKOFF_BASE_MS = 1000;
 

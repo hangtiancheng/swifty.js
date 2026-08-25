@@ -4,7 +4,7 @@ llm:
   apiBase: "https://api.deepseek.com"
   apiKey: "<your-api-key>"
   temperature: 0.7
-  maxTokens: 500
+  maxTokens: 4096
 
 # Judge model used for scoring. Prefer a different model from the one under
 # test, with a low temperature for consistency. Falls back to `llm` if omitted.
@@ -13,7 +13,7 @@ evaluatorLlm:
   apiBase: "https://api.deepseek.com"
   apiKey: "<your-api-key>"
   temperature: 0.3
-  maxTokens: 1000
+  maxTokens: 4096
 
 evaluation:
   # Judge calls per dimension; with >= 3 the highest and lowest are trimmed.

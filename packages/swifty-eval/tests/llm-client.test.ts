@@ -68,7 +68,7 @@ describe("LLMClient.chat", () => {
 		await client.chat({ systemPrompt: "s", userMessage: "u" });
 		await client.chat({ systemPrompt: "s", userMessage: "u", maxTokens: 4096 });
 
-		expect(transport.requests[0]?.maxTokens).toBe(500);
+		expect(transport.requests[0]?.maxTokens).toBe(4096);
 		expect(transport.requests[1]?.maxTokens).toBe(4096);
 	});
 });
