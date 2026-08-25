@@ -1,5 +1,5 @@
 {
-  "name": "swifty-eval",
+  "name": "@swifty.js/eval",
   "version": "0.0.0",
   "private": true,
   "description": "AI evaluate",
@@ -12,7 +12,9 @@
   },
   "keywords": [
     "AI",
-    "evaluate"
+    "evaluate",
+    "swifty.js",
+    "swifty-eval"
   ],
   "author": "https://github.com/hangtiancheng",
   "license": "MIT",
