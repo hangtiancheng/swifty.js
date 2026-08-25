@@ -1,3 +1,4 @@
+import { getMessages } from "../i18n/index.js";
 import type { DialogueRecord } from "../models/dialogue.js";
 import type { DimensionEvaluation, DimensionKey } from "../models/evaluation.js";
 import type { TaskInstruction } from "../models/task.js";
@@ -32,7 +33,7 @@ export class EvaluatorRegistry {
         } catch (error) {
           return [
             evaluator.dimensionKey,
-            { score: 0, reasons: [`评估执行异常：${describeError(error)}`] },
+            { score: 0, reasons: [getMessages().evaluatorCrashedReason(describeError(error))] },
           ];
         }
       },

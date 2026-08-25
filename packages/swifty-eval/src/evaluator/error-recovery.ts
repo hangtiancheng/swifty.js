@@ -1,3 +1,4 @@
+import { getMessages } from "../i18n/index.js";
 import type { DialogueRecord } from "../models/dialogue.js";
 import type { TaskInstruction } from "../models/task.js";
 import { BaseEvaluator, type JudgeSample } from "./base-evaluator.js";
@@ -12,26 +13,29 @@ export class ErrorRecoveryEvaluator extends BaseEvaluator {
     task: TaskInstruction,
   ): Promise<JudgeSample> {
     if (task.flow.length === 0) {
-      return { score: 1, reason: "无流程要求，默认满分" };
+      return { score: 1, reason: getMessages().noFlowReason };
     }
 
-    const prompt = `请评估对话中数字人的错误恢复能力。
+    const prompt = `Evaluate the digital human's error recovery ability in the dialogue.
 
-规定流程：
+Required flow:
 ${formatFlow(task)}
 
-对话记录：
+Dialogue transcript:
 ${formatDialogue(record)}
 
-评估标准：
-- 用户偏离流程时，数字人是否能识别
-- 是否能有效引导用户回到正确流程
-- 引导方式是否自然不生硬
-- 如果用户没有偏离流程，给满分
+Evaluation criteria:
+- Can the digital human detect when the user deviates from the flow
+- Can it effectively guide the user back to the correct flow
+- Is the guidance natural rather than rigid
+- If the user never deviated from the flow, give a full score
 
-请以JSON格式返回：{"score": 0.0-1.0, "reason": "理由"}
-只返回JSON。`;
+Respond in JSON format: {"score": 0.0-1.0, "reason": "reason"}
+Return JSON only.`;
 
-    return this.requestJudgeVerdict("你是专业的对话错误恢复评估专家。", prompt);
+    return this.requestJudgeVerdict(
+      "You are an expert evaluator of dialogue error recovery.",
+      prompt,
+    );
   }
 }

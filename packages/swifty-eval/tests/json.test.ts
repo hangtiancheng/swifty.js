@@ -16,7 +16,7 @@ describe("extractJsonObject", () => {
   });
 
   it("recovers a JSON object surrounded by prose", () => {
-    const text = '评估结果如下：{"score": 1, "reason": "很好"}，请查收。';
+    const text = '评估结果如下: {"score": 1, "reason": "很好"}, 请查收';
     expect(extractJsonObject(text)).toEqual({ score: 1, reason: "很好" });
   });
 
@@ -25,6 +25,8 @@ describe("extractJsonObject", () => {
   });
 
   it("throws with a preview when no object can be recovered", () => {
-    expect(() => extractJsonObject("completely invalid")).toThrow(JsonExtractionError);
+    expect(() => extractJsonObject("completely invalid")).toThrow(
+      JsonExtractionError,
+    );
   });
 });

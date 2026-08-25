@@ -11,20 +11,20 @@ export class CoherenceEvaluator extends BaseEvaluator {
     record: DialogueRecord,
     _task: TaskInstruction,
   ): Promise<JudgeSample> {
-    const prompt = `请评估以下对话中数字人回复的多轮连贯性。
+    const prompt = `Evaluate the multi-turn coherence of the digital human's replies in the following dialogue.
 
-对话记录：
+Dialogue transcript:
 ${formatDialogue(record)}
 
-评估标准：
-- 上下文是否前后一致，无自相矛盾
-- 是否记住了之前对话中提到的信息
-- 回复之间是否有逻辑连贯性
-- 是否出现重复或遗忘之前内容的情况
+Evaluation criteria:
+- The context stays consistent throughout, without self-contradiction
+- Information mentioned earlier in the conversation is remembered
+- The replies are logically connected
+- Earlier content is neither repeated nor forgotten
 
-请以JSON格式返回：{"score": 0.0-1.0, "reason": "理由"}
-只返回JSON。`;
+Respond in JSON format: {"score": 0.0-1.0, "reason": "reason"}
+Return JSON only.`;
 
-    return this.requestJudgeVerdict("你是专业的对话连贯性评估专家。", prompt);
+    return this.requestJudgeVerdict("You are an expert evaluator of dialogue coherence.", prompt);
   }
 }

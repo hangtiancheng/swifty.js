@@ -38,3 +38,6 @@ evaluation:
 output:
   markdownPath: "output/evaluation_report.md"
   htmlPath: "output/evaluation_report.html"
+
+# Language for report copy and LLM output; "en" (default) or "zh".
+language: "en"

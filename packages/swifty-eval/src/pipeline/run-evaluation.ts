@@ -3,6 +3,7 @@ import { DialogueEngine } from "../engine/dialogue-engine.js";
 import { createDefaultEvaluators } from "../evaluator/dimensions.js";
 import { EvaluatorRegistry } from "../evaluator/registry.js";
 import { Scorer } from "../evaluator/scorer.js";
+import { configureI18n } from "../i18n/index.js";
 import { LLMClient } from "../llm/llm-client.js";
 import { DIMENSION_KEYS, type EvaluationResult } from "../models/evaluation.js";
 import { TaskParser } from "../parser/task-parser.js";
@@ -24,6 +25,8 @@ export interface RunEvaluationOptions {
 export async function runEvaluation(options: RunEvaluationOptions): Promise<EvaluationResult[]> {
   const { config } = options;
   const log = options.logger ?? ((message: string) => console.log(message));
+
+  configureI18n(config.language);
 
   const modelClient = LLMClient.fromSettings(config.llm);
   const evaluatorClient = LLMClient.fromSettings(config.evaluatorLlm);

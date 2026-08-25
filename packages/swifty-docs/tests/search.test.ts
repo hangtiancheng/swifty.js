@@ -96,7 +96,7 @@ describe("createSearchEngine (runtime section split)", () => {
       link: "/guide",
       excerpt: "总体介绍",
       contentHtml:
-        '<p>总体介绍</p><h2 id="install">安装步骤</h2><p>先安装依赖，然后配置分布式缓存组件</p>' +
+        '<p>总体介绍</p><h2 id="install">安装步骤</h2><p>先安装依赖, 然后配置分布式缓存组件</p>' +
         '<h2 id="usage">使用</h2><pre><code>const uniqueCacheToken = 1;</code></pre>' +
         '<h3 id="advanced">进阶用法</h3><p>advanced body</p>',
     },

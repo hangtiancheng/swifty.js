@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { load } from "js-yaml";
 import { z } from "zod";
+import type { Language } from "./i18n/index.js";
 import { DEFAULT_DIMENSION_WEIGHTS, type DimensionKey } from "./models/evaluation.js";
 import { describeError } from "./utils/errors.js";
 
@@ -57,6 +58,7 @@ const configSchema = z.object({
   evaluatorLlm: llmSettingsSchema.optional(),
   evaluation: evaluationSettingsSchema.prefault({}),
   output: outputSettingsSchema.prefault({}),
+  language: z.enum(["zh", "en"]).default("en"),
 });
 
 export interface LLMSettings {
@@ -86,6 +88,8 @@ export interface AppConfig {
   readonly evaluatorLlm: LLMSettings;
   readonly evaluation: EvaluationSettings;
   readonly output: OutputSettings;
+  /** Locale for report copy and LLM output language. */
+  readonly language: Language;
 }
 
 /** Parses and validates YAML configuration text. */
@@ -102,8 +106,8 @@ export function parseConfig(yamlText: string): AppConfig {
     throw new ConfigError(`Invalid configuration:\n${z.prettifyError(result.error)}`);
   }
 
-  const { llm, evaluatorLlm, evaluation, output } = result.data;
-  return { llm, evaluatorLlm: evaluatorLlm ?? llm, evaluation, output };
+  const { llm, evaluatorLlm, evaluation, output, language } = result.data;
+  return { llm, evaluatorLlm: evaluatorLlm ?? llm, evaluation, output, language };
 }
 
 /** Loads and validates the configuration file at `path`. */

@@ -11,20 +11,23 @@ export class IntentUnderstandingEvaluator extends BaseEvaluator {
     record: DialogueRecord,
     _task: TaskInstruction,
   ): Promise<JudgeSample> {
-    const prompt = `请评估对话中数字人对用户意图的理解准确率。
+    const prompt = `Evaluate how accurately the digital human understood the user's intent in the dialogue.
 
-对话记录：
+Dialogue transcript:
 ${formatDialogue(record)}
 
-评估标准：
-- 每轮是否正确理解了用户表达的意图
-- 回复是否针对用户的实际需求
-- 是否有答非所问的情况
-- 对模糊表达是否能合理推断意图
+Evaluation criteria:
+- Was the user's expressed intent correctly understood in every round
+- Were the replies targeted at the user's actual needs
+- Were there any answers that missed the question
+- Could ambiguous expressions be reasonably interpreted
 
-请以JSON格式返回：{"score": 0.0-1.0, "reason": "理由"}
-只返回JSON。`;
+Respond in JSON format: {"score": 0.0-1.0, "reason": "reason"}
+Return JSON only.`;
 
-    return this.requestJudgeVerdict("你是专业的对话意图理解评估专家。", prompt);
+    return this.requestJudgeVerdict(
+      "You are an expert evaluator of dialogue intent understanding.",
+      prompt,
+    );
   }
 }

@@ -21,6 +21,8 @@ This package is a TypeScript migration of the Python `ai-evaluate` project, with
 - **Bounded parallelism** — dimensions are evaluated concurrently with a configurable worker cap
 - **Explainable reports** — every dimension ships its judge rationales; HTML reports include one
   radar chart per persona
+- **Bilingual** — report copy and LLM output language switch between English and Chinese via the
+  `language` config field
 - **OpenAI-compatible** — works with any OpenAI-compatible endpoint
 
 ## Quick start
@@ -33,7 +35,7 @@ pnpm build
 node dist/main.js
 
 # Specific task file and personas
-node dist/main.js --task data/communicate.md --profiles 配合型用户 --profiles 对抗型用户
+node dist/main.js --task data/communicate.md --profiles "Cooperative User" --profiles "Adversarial User"
 ```
 
 Set the API key either in `config.yaml` (`apiKey`) or via the `OPENAI_API_KEY` environment
@@ -83,6 +85,8 @@ evaluation:
 output:
   markdownPath: "output/evaluation_report.md"
   htmlPath: "output/evaluation_report.html"
+
+language: "en" # report copy + LLM output language; "en" (default) or "zh"
 ```
 
 Reports are written with a timestamp suffix, e.g. `output/evaluation_report_20260825_161730.md`.
@@ -126,6 +130,7 @@ src/
 ├── main.ts                    # CLI entry
 ├── index.ts                   # public API
 ├── config.ts                  # zod-validated YAML configuration
+├── i18n/                      # zh/en message catalogs + global locale
 ├── models/                    # domain types (task, dialogue, evaluation)
 ├── llm/                       # ChatModel transport, OpenAI adapter, retrying client
 ├── parser/taskParser.ts       # LLM extraction -> zod-validated TaskInstruction

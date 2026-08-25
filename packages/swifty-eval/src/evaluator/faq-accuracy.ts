@@ -1,3 +1,4 @@
+import { getMessages } from "../i18n/index.js";
 import type { DialogueRecord } from "../models/dialogue.js";
 import type { TaskInstruction } from "../models/task.js";
 import { BaseEvaluator, type JudgeSample } from "./base-evaluator.js";
@@ -12,25 +13,28 @@ export class FaqAccuracyEvaluator extends BaseEvaluator {
     task: TaskInstruction,
   ): Promise<JudgeSample> {
     if (task.faq.length === 0) {
-      return { score: 1, reason: "无FAQ要求，默认满分" };
+      return { score: 1, reason: getMessages().noFaqReason };
     }
 
-    const prompt = `请评估对话中数字人对FAQ问题的回答准确度。
+    const prompt = `Evaluate the accuracy of the digital human's answers to FAQ questions in the dialogue.
 
-FAQ知识库：
+FAQ knowledge base:
 ${formatFaq(task)}
 
-对话记录：
+Dialogue transcript:
 ${formatDialogue(record)}
 
-评估标准：
-- 涉及FAQ的问题是否回答正确
-- 回答是否包含关键信息
-- 是否有错误或误导性信息
+Evaluation criteria:
+- Are FAQ-related questions answered correctly
+- Do the answers include the key information
+- Is there any incorrect or misleading information
 
-请以JSON格式返回：{"score": 0.0-1.0, "reason": "理由"}
-只返回JSON。`;
+Respond in JSON format: {"score": 0.0-1.0, "reason": "reason"}
+Return JSON only.`;
 
-    return this.requestJudgeVerdict("你是专业的问答准确度评估专家。", prompt);
+    return this.requestJudgeVerdict(
+      "You are an expert evaluator of question-answering accuracy.",
+      prompt,
+    );
   }
 }

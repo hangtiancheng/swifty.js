@@ -37,6 +37,14 @@ export {
 } from "./evaluator/dimensions.js";
 export { EvaluatorRegistry } from "./evaluator/registry.js";
 export { type CreateResultParams, Scorer } from "./evaluator/scorer.js";
+export {
+  configureI18n,
+  getLanguage,
+  getMessages,
+  type Language,
+  type Messages,
+  withOutputLanguageDirective,
+} from "./i18n/index.js";
 export type { ChatMessage, ChatModel, ChatRequest, ChatRole } from "./llm/chat-model.js";
 export { LLMEmptyResponseError, LLMError, LLMRateLimitError } from "./llm/errors.js";
 export { type ChatParams, LLMClient, type LLMClientOptions } from "./llm/llm-client.js";
@@ -51,7 +59,6 @@ export type {
 export {
   DEFAULT_DIMENSION_WEIGHTS,
   DIMENSION_KEYS,
-  DIMENSION_LABELS,
   type DimensionEvaluation,
   type DimensionKey,
   type EvaluationResult,
@@ -70,7 +77,6 @@ export {
   escapeMarkdownTableCell,
   formatDateTime,
   formatTimestamp,
-  TERMINATION_REASON_LABELS,
 } from "./report/common.js";
 export { HtmlGenerator, type HtmlGeneratorOptions } from "./report/html-generator.js";
 export {

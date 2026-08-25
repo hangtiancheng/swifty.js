@@ -22,40 +22,41 @@ export class TaskValidationError extends Error {
   }
 }
 
-const EXTRACTION_SYSTEM_PROMPT = "你是一个专业的文档结构化提取工具。只返回JSON，不要任何其他内容。";
+const EXTRACTION_SYSTEM_PROMPT =
+  "You are a professional document structuring extraction tool. Return JSON only, with no other content.";
 
 function buildExtractionPrompt(content: string): string {
-  return `请从以下任务指令文档中提取结构化信息，返回JSON格式。
+  return `Extract structured information from the following task instruction document and return it in JSON format.
 
-文档内容：
+Document content:
 ${content}
 
-请严格按以下JSON格式返回，不要返回其他内容：
+Return exactly the following JSON format and nothing else:
 {
-  "role": "角色描述",
-  "task": "任务描述",
-  "opening_line": "开场白",
+  "role": "role description",
+  "task": "task description",
+  "opening_line": "opening line",
   "flow": [
-    {"step_id": 1, "description": "步骤描述", "required": true},
+    {"step_id": 1, "description": "step description", "required": true},
     ...
   ],
   "faq": [
-    {"question": "问题", "answer": "答案"},
+    {"question": "question", "answer": "answer"},
     ...
   ],
   "constraints": {
-    "max_chars": null或数字,
-    "tone": "语气描述或null",
-    "forbidden_phrases": ["禁止词1", "禁止词2"]
+    "max_chars": null or a number,
+    "tone": "tone description or null",
+    "forbidden_phrases": ["forbidden phrase 1", "forbidden phrase 2"]
   }
 }
 
-注意：
-- flow中提取所有步骤，包括子步骤
-- faq如果文档中没有明确的FAQ/知识库部分，返回空数组
-- max_chars从约束中提取字数限制，如"最多15-20个字"取20
-- forbidden_phrases提取所有明确禁止使用的词语
-- 只返回JSON，不要其他内容`;
+Notes:
+- Extract every step in flow, including sub-steps
+- If the document has no explicit FAQ/knowledge base section, return an empty array for faq
+- Extract the character limit for max_chars from the constraints, e.g. for "at most 15-20 characters" use 20
+- Extract all explicitly forbidden phrases into forbidden_phrases
+- Return JSON only, nothing else`;
 }
 
 // Wire format produced by the extraction prompt (snake_case, nullable fields).

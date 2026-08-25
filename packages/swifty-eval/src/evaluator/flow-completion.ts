@@ -1,3 +1,4 @@
+import { getMessages } from "../i18n/index.js";
 import type { DialogueRecord } from "../models/dialogue.js";
 import type { TaskInstruction } from "../models/task.js";
 import { BaseEvaluator, type JudgeSample } from "./base-evaluator.js";
@@ -12,25 +13,28 @@ export class FlowCompletionEvaluator extends BaseEvaluator {
     task: TaskInstruction,
   ): Promise<JudgeSample> {
     if (task.flow.length === 0) {
-      return { score: 1, reason: "无流程要求，默认满分" };
+      return { score: 1, reason: getMessages().noFlowReason };
     }
 
-    const prompt = `请评估以下对话是否完成了规定的流程步骤。
+    const prompt = `Evaluate whether the following dialogue completed the required flow steps.
 
-规定流程：
+Required flow:
 ${formatFlowWithRequired(task)}
 
-对话记录：
+Dialogue transcript:
 ${formatDialogue(record)}
 
-评估标准：
-- 必须步骤是否都完成了
-- 步骤是否按正确顺序执行
-- 每个步骤的执行质量如何
+Evaluation criteria:
+- Were all required steps completed
+- Were the steps executed in the correct order
+- How well was each step executed
 
-请以JSON格式返回：{"score": 0.0-1.0, "reason": "理由"}
-只返回JSON。`;
+Respond in JSON format: {"score": 0.0-1.0, "reason": "reason"}
+Return JSON only.`;
 
-    return this.requestJudgeVerdict("你是专业的对话流程评估专家。", prompt);
+    return this.requestJudgeVerdict(
+      "You are an expert evaluator of dialogue flow completion.",
+      prompt,
+    );
   }
 }

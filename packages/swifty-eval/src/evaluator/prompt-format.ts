@@ -14,7 +14,9 @@ export function formatFlow(task: TaskInstruction): string {
 /** Renders flow steps with their required/optional marker. */
 export function formatFlowWithRequired(task: TaskInstruction): string {
   return task.flow
-    .map((step) => `${step.stepId}. ${step.description} (${step.required ? "必须" : "可选"})`)
+    .map(
+      (step) => `${step.stepId}. ${step.description} (${step.required ? "required" : "optional"})`,
+    )
     .join("\n");
 }
 

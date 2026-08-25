@@ -1,3 +1,4 @@
+import { getMessages } from "../i18n/index.js";
 import type { DialogueRecord, DialogueTurn } from "../models/dialogue.js";
 import type { TaskInstruction } from "../models/task.js";
 import { BaseEvaluator, type JudgeSample } from "./base-evaluator.js";
@@ -23,10 +24,11 @@ export function evaluateCharLimit(
   }
   const violations = turns.filter((turn) => turn.content.length > maxChars);
   const score = (turns.length - violations.length) / turns.length;
+  const m = getMessages();
   const reason =
     violations.length > 0
-      ? `${violations.length}/${turns.length}条超出${maxChars}字限制`
-      : "全部符合字数限制";
+      ? m.charLimitViolationReason(violations.length, turns.length, maxChars)
+      : m.charLimitOkReason;
   return { score, reason };
 }
 
@@ -51,8 +53,11 @@ export function evaluateForbiddenPhrases(
     }
   }
   const score = Math.max(0, 1 - violations / turns.length);
+  const m = getMessages();
   const reason =
-    foundPhrases.length > 0 ? `使用了禁止词: ${foundPhrases.join(", ")}` : "未使用禁止词";
+    foundPhrases.length > 0
+      ? m.forbiddenPhrasesUsedReason(foundPhrases.join(", "))
+      : m.forbiddenPhrasesOkReason;
   return { score, reason };
 }
 
@@ -69,7 +74,7 @@ export class ConstraintComplianceEvaluator extends BaseEvaluator {
   ): Promise<JudgeSample> {
     const turns = modelTurns(record);
     if (turns.length === 0) {
-      return { score: 1, reason: "无模型回复，默认满分" };
+      return { score: 1, reason: getMessages().noModelTurnsReason };
     }
 
     const charResult = evaluateCharLimit(turns, task.constraints.maxChars);
@@ -81,15 +86,16 @@ export class ConstraintComplianceEvaluator extends BaseEvaluator {
       forbiddenResult.score * FORBIDDEN_WEIGHT +
       toneResult.score * TONE_WEIGHT;
 
+    const m = getMessages();
     const reasons: string[] = [];
     if (charResult.reason !== "") {
-      reasons.push(`字数约束: ${charResult.reason}`);
+      reasons.push(`${m.charLimitReasonLabel}: ${charResult.reason}`);
     }
     if (forbiddenResult.reason !== "") {
-      reasons.push(`禁止词: ${forbiddenResult.reason}`);
+      reasons.push(`${m.forbiddenPhrasesReasonLabel}: ${forbiddenResult.reason}`);
     }
     if (toneResult.reason !== "") {
-      reasons.push(`语气风格: ${toneResult.reason}`);
+      reasons.push(`${m.toneReasonLabel}: ${toneResult.reason}`);
     }
 
     return { score, reason: reasons.join("; ") };
@@ -99,17 +105,17 @@ export class ConstraintComplianceEvaluator extends BaseEvaluator {
     turns: readonly DialogueTurn[],
     task: TaskInstruction,
   ): Promise<JudgeSample> {
-    const messages = turns.slice(0, TONE_SAMPLE_SIZE).map((turn) => `- ${turn.content}`);
-    const prompt = `请评估以下对话回复的语气风格是否符合要求。
+    const replies = turns.slice(0, TONE_SAMPLE_SIZE).map((turn) => `- ${turn.content}`);
+    const prompt = `Evaluate whether the tone of the following dialogue replies meets the requirements.
 
-要求的语气：${task.constraints.tone ?? "自然口语化"}
+Required tone: ${task.constraints.tone ?? "natural and conversational"}
 
-对话回复：
-${messages.join("\n")}
+Dialogue replies:
+${replies.join("\n")}
 
-请以JSON格式返回：{"score": 0.0-1.0, "reason": "理由"}
-只返回JSON。`;
+Respond in JSON format: {"score": 0.0-1.0, "reason": "reason"}
+Return JSON only.`;
 
-    return this.requestJudgeVerdict("你是专业的对话质量评估专家。", prompt);
+    return this.requestJudgeVerdict("You are an expert evaluator of dialogue quality.", prompt);
   }
 }

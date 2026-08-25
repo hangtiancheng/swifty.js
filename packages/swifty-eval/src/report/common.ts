@@ -1,12 +1,3 @@
-import type { TerminationReason } from "../models/dialogue.js";
-
-/** Chinese labels for termination reasons, used in generated reports. */
-export const TERMINATION_REASON_LABELS: Readonly<Record<TerminationReason, string>> = {
-  userRefused: "用户拒绝",
-  userEndedConversation: "用户结束对话",
-  maxRoundsReached: "达到最大轮次",
-};
-
 function pad(value: number): string {
   return String(value).padStart(2, "0");
 }

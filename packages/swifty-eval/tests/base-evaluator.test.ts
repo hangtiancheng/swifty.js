@@ -83,14 +83,16 @@ describe("BaseEvaluator.evaluate", () => {
     expect(evaluation.score).toBeCloseTo(0.7);
     expect(evaluation.reasons).toContain("r1");
     expect(evaluation.reasons).toContain("r3");
-    expect(evaluation.reasons.some((reason) => reason.includes("1 次评估调用失败"))).toBe(true);
+    expect(evaluation.reasons.some((reason) => reason.includes("1 judge call(s) failed"))).toBe(
+      true,
+    );
   });
 
   it("returns a zero score when every judge call fails", async () => {
     const { client } = createFakeClient(["bad", "bad", "bad"]);
     const evaluation = await new StubEvaluator(client, 3).evaluate(record, task);
     expect(evaluation.score).toBe(0);
-    expect(evaluation.reasons[0]).toContain("评估失败");
+    expect(evaluation.reasons[0]).toContain("Evaluation failed");
   });
 
   it("rejects a non-positive evalCount", () => {

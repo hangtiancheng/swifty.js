@@ -34,6 +34,7 @@ evaluation:
 output:
   markdownPath: "reports/report.md"
   htmlPath: "reports/report.html"
+language: "zh"
 `;
 
 describe("parseConfig", () => {
@@ -51,6 +52,7 @@ describe("parseConfig", () => {
     expect(config.evaluation.weights).toEqual(DEFAULT_DIMENSION_WEIGHTS);
     expect(config.output.markdownPath).toBe("output/evaluation_report.md");
     expect(config.output.htmlPath).toBe("output/evaluation_report.html");
+    expect(config.language).toBe("en");
   });
 
   it("falls back to the model-under-test settings when evaluatorLlm is omitted", () => {
@@ -67,6 +69,11 @@ describe("parseConfig", () => {
     expect(config.evaluation.evalCount).toBe(5);
     expect(config.evaluation.minDialogueRounds).toBe(2);
     expect(config.output.markdownPath).toBe("reports/report.md");
+    expect(config.language).toBe("zh");
+  });
+
+  it("rejects an unsupported language", () => {
+    expect(() => parseConfig('llm:\n  model: "m"\nlanguage: "fr"')).toThrow(ConfigError);
   });
 
   it("rejects weights that do not sum to 1.0", () => {

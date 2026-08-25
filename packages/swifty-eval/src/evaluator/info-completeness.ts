@@ -11,28 +11,31 @@ export class InfoCompletenessEvaluator extends BaseEvaluator {
     record: DialogueRecord,
     task: TaskInstruction,
   ): Promise<JudgeSample> {
-    const flowDescription = task.flow.length > 0 ? formatFlow(task) : "无";
-    const faqDescription = task.faq.length > 0 ? formatFaq(task) : "无";
+    const flowDescription = task.flow.length > 0 ? formatFlow(task) : "None";
+    const faqDescription = task.faq.length > 0 ? formatFaq(task) : "None";
 
-    const prompt = `请评估对话中数字人是否完整传达了所有关键信息。
+    const prompt = `Evaluate whether the digital human fully conveyed all key information in the dialogue.
 
-任务流程：
+Task flow:
 ${flowDescription}
 
-FAQ知识：
+FAQ knowledge:
 ${faqDescription}
 
-对话记录：
+Dialogue transcript:
 ${formatDialogue(record)}
 
-评估标准：
-- 该传达的关键信息是否都传达到位
-- 是否有遗漏重要内容
-- 信息传达是否清晰准确
+Evaluation criteria:
+- Was every key piece of information that should be conveyed actually conveyed
+- Was any important content missing
+- Was the information conveyed clearly and accurately
 
-请以JSON格式返回：{"score": 0.0-1.0, "reason": "理由"}
-只返回JSON。`;
+Respond in JSON format: {"score": 0.0-1.0, "reason": "reason"}
+Return JSON only.`;
 
-    return this.requestJudgeVerdict("你是专业的信息完整度评估专家。", prompt);
+    return this.requestJudgeVerdict(
+      "You are an expert evaluator of information completeness.",
+      prompt,
+    );
   }
 }

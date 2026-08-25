@@ -14,18 +14,6 @@ export const DIMENSION_KEYS = [
 
 export type DimensionKey = (typeof DIMENSION_KEYS)[number];
 
-/** Human-readable dimension labels used in generated reports. */
-export const DIMENSION_LABELS: Readonly<Record<DimensionKey, string>> = {
-  flowCompletion: "流程完成度",
-  constraintCompliance: "约束遵守度",
-  faqAccuracy: "FAQ准确度",
-  naturalness: "对话自然度",
-  intentUnderstanding: "意图理解准确率",
-  errorRecovery: "错误恢复能力",
-  coherence: "多轮连贯性",
-  infoCompleteness: "信息完整度",
-};
-
 export const DEFAULT_DIMENSION_WEIGHTS: Readonly<Record<DimensionKey, number>> = {
   flowCompletion: 0.3,
   constraintCompliance: 0.2,

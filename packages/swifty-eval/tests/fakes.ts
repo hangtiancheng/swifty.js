@@ -1,6 +1,10 @@
 import type { ChatModel, ChatRequest } from "@/llm/chat-model.js";
 import { LLMClient } from "@/llm/llm-client.js";
-import type { DialogueRecord, DialogueRole, UserProfile } from "@/models/dialogue.js";
+import type {
+  DialogueRecord,
+  DialogueRole,
+  UserProfile,
+} from "@/models/dialogue.js";
 import type { TaskInstruction } from "@/models/task.js";
 
 export type FakeResponse = string | Error | ((request: ChatRequest) => string);
@@ -19,7 +23,9 @@ export class FakeChatModel implements ChatModel {
     const next = this.script.shift();
     if (next === undefined) {
       return Promise.reject(
-        new Error(`FakeChatModel script exhausted after ${this.requests.length} requests`),
+        new Error(
+          `FakeChatModel script exhausted after ${this.requests.length} requests`,
+        ),
       );
     }
     if (next instanceof Error) {
@@ -40,7 +46,9 @@ export interface FakeClientHarness {
 }
 
 /** Creates an `LLMClient` backed by a scripted transport and a no-op sleep. */
-export function createFakeClient(script: readonly FakeResponse[]): FakeClientHarness {
+export function createFakeClient(
+  script: readonly FakeResponse[],
+): FakeClientHarness {
   const transport = new FakeChatModel(script);
   const sleeps: number[] = [];
   const client = new LLMClient({
@@ -61,17 +69,19 @@ export function makeProfile(overrides: Partial<UserProfile> = {}): UserProfile {
     traits: ["test"],
     refusalProbability: 0.05,
     questionProbability: 0.2,
-    systemPrompt: "你是一个测试用户。",
+    systemPrompt: "你是一个测试用户",
     ...overrides,
   };
 }
 
-export function makeTask(overrides: Partial<TaskInstruction> = {}): TaskInstruction {
+export function makeTask(
+  overrides: Partial<TaskInstruction> = {},
+): TaskInstruction {
   return {
     taskId: "test-task",
     role: "测试站长",
     task: "通知骑手合同生效",
-    openingLine: "你好，请问是${rider_name}吗？",
+    openingLine: "你好, 请问是 ${rider_name} 吗?",
     flow: [
       { stepId: 1, description: "告知合同生效", required: true },
       { stepId: 2, description: "提醒注意安全", required: false },

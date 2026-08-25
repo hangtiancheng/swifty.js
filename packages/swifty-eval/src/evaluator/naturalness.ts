@@ -1,3 +1,4 @@
+import { getMessages } from "../i18n/index.js";
 import type { DialogueRecord } from "../models/dialogue.js";
 import type { TaskInstruction } from "../models/task.js";
 import { BaseEvaluator, type JudgeSample } from "./base-evaluator.js";
@@ -12,23 +13,23 @@ export class NaturalnessEvaluator extends BaseEvaluator {
     _task: TaskInstruction,
   ): Promise<JudgeSample> {
     if (modelTurns(record).length === 0) {
-      return { score: 1, reason: "无模型回复，默认满分" };
+      return { score: 1, reason: getMessages().noModelTurnsReason };
     }
 
-    const prompt = `请评估以下对话中数字人回复的自然度。
+    const prompt = `Evaluate the naturalness of the digital human's replies in the following dialogue.
 
-对话记录：
+Dialogue transcript:
 ${formatDialogue(record)}
 
-评估标准：
-- 回复是否像真人对话，而非机械模板
-- 用词是否自然流畅
-- 是否有不自然的重复或套话
-- 语句是否通顺连贯
+Evaluation criteria:
+- Do the replies read like a real human conversation rather than mechanical templates
+- Is the wording natural and fluent
+- Is there unnatural repetition or boilerplate
+- Are the sentences smooth and coherent
 
-请以JSON格式返回：{"score": 0.0-1.0, "reason": "理由"}
-只返回JSON。`;
+Respond in JSON format: {"score": 0.0-1.0, "reason": "reason"}
+Return JSON only.`;
 
-    return this.requestJudgeVerdict("你是专业的对话自然度评估专家。", prompt);
+    return this.requestJudgeVerdict("You are an expert evaluator of dialogue naturalness.", prompt);
   }
 }

@@ -17,35 +17,45 @@ describe("evaluateCharLimit", () => {
   it("scores the share of replies within the limit", () => {
     const result = evaluateCharLimit([shortTurn, longTurn], 30);
     expect(result.score).toBe(0.5);
-    expect(result.reason).toBe("1/2条超出30字限制");
+    expect(result.reason).toBe("1/2 replies exceed the 30-character limit");
   });
 
   it("passes trivially without a limit", () => {
-    expect(evaluateCharLimit([shortTurn], undefined)).toEqual({ score: 1, reason: "" });
+    expect(evaluateCharLimit([shortTurn], undefined)).toEqual({
+      score: 1,
+      reason: "",
+    });
   });
 
   it("reports full compliance", () => {
-    expect(evaluateCharLimit([shortTurn], 30).reason).toBe("全部符合字数限制");
+    expect(evaluateCharLimit([shortTurn], 30).reason).toBe(
+      "All replies within the character limit",
+    );
   });
 });
 
 describe("evaluateForbiddenPhrases", () => {
   it("penalizes each reply containing a forbidden phrase", () => {
     const turns = [
-      { roundNumber: 1, role: "model", content: "你好，好的" } as const,
+      { roundNumber: 1, role: "model", content: "你好, 好的" } as const,
       { roundNumber: 2, role: "model", content: "继续" } as const,
     ];
     const result = evaluateForbiddenPhrases(turns, ["好的", "哈哈"]);
     expect(result.score).toBe(0.5);
-    expect(result.reason).toBe("使用了禁止词: 好的");
+    expect(result.reason).toBe("Forbidden phrases used: 好的");
   });
 
   it("passes trivially without forbidden phrases", () => {
-    expect(evaluateForbiddenPhrases([shortTurn], [])).toEqual({ score: 1, reason: "" });
+    expect(evaluateForbiddenPhrases([shortTurn], [])).toEqual({
+      score: 1,
+      reason: "",
+    });
   });
 
   it("never scores below zero", () => {
-    const turns = [{ roundNumber: 1, role: "model", content: "好的，哈哈，嘿嘿" } as const];
+    const turns = [
+      { roundNumber: 1, role: "model", content: "好的, 哈哈, 嘿嘿" } as const,
+    ];
     const result = evaluateForbiddenPhrases(turns, ["好的", "哈哈", "嘿嘿"]);
     expect(result.score).toBe(0);
   });
@@ -53,13 +63,18 @@ describe("evaluateForbiddenPhrases", () => {
 
 describe("ConstraintComplianceEvaluator", () => {
   it("combines rule scores and the LLM tone score with fixed weights", async () => {
-    const { client } = createFakeClient(['{"score": 0.5, "reason": "tone-ok"}']);
+    const { client } = createFakeClient([
+      '{"score": 0.5, "reason": "tone-ok"}',
+    ]);
     const evaluator = new ConstraintComplianceEvaluator(client, 1);
 
     const record = makeRecord([
       ["model", "短消息"],
       ["user", "嗯"],
-      ["model", "这是一条很长很长很长很长很长很长很长很长的消息超过了三十个字限制"],
+      [
+        "model",
+        "这是一条很长很长很长很长很长很长很长很长的消息超过了三十个字限制",
+      ],
     ]);
     const task = makeTask({
       constraints: { maxChars: 30, tone: "自然", forbiddenPhrases: [] },
@@ -68,23 +83,32 @@ describe("ConstraintComplianceEvaluator", () => {
     const evaluation = await evaluator.evaluate(record, task);
     // char 0.5 * 0.4 + forbidden 1 * 0.3 + tone 0.5 * 0.3 = 0.65
     expect(evaluation.score).toBeCloseTo(0.65);
-    expect(evaluation.reasons[0]).toContain("字数约束: 1/2条超出30字限制");
-    expect(evaluation.reasons[0]).toContain("语气风格: tone-ok");
+    expect(evaluation.reasons[0]).toContain(
+      "Character limit: 1/2 replies exceed the 30-character limit",
+    );
+    expect(evaluation.reasons[0]).toContain("Tone: tone-ok");
   });
 
   it("returns a full score without any model turns and skips the LLM", async () => {
     const { client, transport } = createFakeClient([]);
     const evaluator = new ConstraintComplianceEvaluator(client, 1);
 
-    const evaluation = await evaluator.evaluate(makeRecord([["user", "喂？"]]), makeTask());
+    const evaluation = await evaluator.evaluate(
+      makeRecord([["user", "喂?"]]),
+      makeTask(),
+    );
 
     expect(evaluation.score).toBe(1);
-    expect(evaluation.reasons).toEqual(["无模型回复，默认满分"]);
+    expect(evaluation.reasons).toEqual([
+      "No model replies; full score by default",
+    ]);
     expect(transport.requests).toHaveLength(0);
   });
 
   it("only sends the first three model replies to the tone judge", async () => {
-    const { client, transport } = createFakeClient(['{"score": 1, "reason": "ok"}']);
+    const { client, transport } = createFakeClient([
+      '{"score": 1, "reason": "ok"}',
+    ]);
     const evaluator = new ConstraintComplianceEvaluator(client, 1);
 
     const record = makeRecord([

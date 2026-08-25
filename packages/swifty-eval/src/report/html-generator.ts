@@ -1,6 +1,7 @@
+import { getMessages } from "../i18n/index.js";
 import type { DialogueRecord } from "../models/dialogue.js";
 import type { EvaluationResult, EvaluationScore } from "../models/evaluation.js";
-import { escapeHtml, formatDateTime, TERMINATION_REASON_LABELS } from "./common.js";
+import { escapeHtml, formatDateTime } from "./common.js";
 
 export interface HtmlGeneratorOptions {
   /** Injectable clock for deterministic report headers. */
@@ -75,10 +76,11 @@ function dialogueRows(record: DialogueRecord): string {
 }
 
 function resultSection(result: EvaluationResult, index: number): string {
+  const m = getMessages();
   const record = result.dialogueRecord;
   const chartId = `radarChart${index}`;
   return `            <div class="score-card">
-                <h2>${escapeHtml(result.userProfileName)} — 综合评分</h2>
+                <h2>${escapeHtml(m.overallScoreHeading(result.userProfileName))}</h2>
                 <span class="total-score">${result.totalScore.toFixed(1)}</span>
                 <span class="score-unit">/ 100</span>
                 <div class="chart-container">
@@ -86,25 +88,18 @@ function resultSection(result: EvaluationResult, index: number): string {
                 </div>
                 <table>
                     <tr>
-                        <th>维度</th>
-                        <th>得分</th>
-                        <th>权重</th>
-                        <th>加权得分</th>
-                        <th>评估依据</th>
+                        ${m.dimensionTableHeaders.map((header) => `<th>${header}</th>`).join("")}
                     </tr>
 ${dimensionRows(result.dimensionScores)}
                 </table>
             </div>
 
             <div class="dialogue">
-                <h3>对话 ${index + 1}: ${escapeHtml(result.userProfileName)}</h3>
-                <p>结束原因: ${TERMINATION_REASON_LABELS[record.terminationReason]}</p>
+                <h3>${escapeHtml(m.dialogueHeading(index + 1, result.userProfileName))}</h3>
+                <p>${m.terminationReasonLabel}: ${m.terminationReasons[record.terminationReason]}</p>
                 <table>
                     <tr>
-                        <th>轮次</th>
-                        <th>角色</th>
-                        <th>内容</th>
-                        <th>评估备注</th>
+                        ${m.dialogueTableHeaders.map((header) => `<th>${header}</th>`).join("")}
                     </tr>
 ${dialogueRows(record)}
                 </table>
@@ -112,6 +107,7 @@ ${dialogueRows(record)}
 }
 
 function chartScript(result: EvaluationResult, index: number): string {
+  const m = getMessages();
   const labels = result.dimensionScores.map((score) => score.label);
   const data = result.dimensionScores.map((score) => Number((score.rawScore * 100).toFixed(1)));
   const chartId = `radarChart${index}`;
@@ -120,7 +116,7 @@ function chartScript(result: EvaluationResult, index: number): string {
             data: {
                 labels: ${JSON.stringify(labels)},
                 datasets: [{
-                    label: ${JSON.stringify(`得分 - ${result.userProfileName}`)},
+                    label: ${JSON.stringify(m.chartDatasetLabel(result.userProfileName))},
                     data: ${JSON.stringify(data)},
                     backgroundColor: 'rgba(102, 126, 234, 0.2)',
                     borderColor: 'rgba(102, 126, 234, 1)',
@@ -146,6 +142,7 @@ export class HtmlGenerator {
       return this.generateEmpty();
     }
 
+    const m = getMessages();
     const taskId = results[0]?.taskId ?? "";
     const averageScore =
       results.reduce((sum, result) => sum + result.totalScore, 0) / results.length;
@@ -159,7 +156,7 @@ export class HtmlGenerator {
     const recommendationsHtml =
       allRecommendations.size > 0
         ? `            <div class="recommendations">
-                <h3>改进建议</h3>
+                <h3>${m.recommendationsSection}</h3>
                 <ul>${[...allRecommendations]
                   .sort()
                   .map((item) => `<li>${escapeHtml(item)}</li>`)
@@ -171,20 +168,20 @@ export class HtmlGenerator {
     const scripts = results.map((result, index) => chartScript(result, index)).join("\n");
 
     return `<!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="${m.htmlLang}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>对话模型任务指令遵循评估报告</title>
+    <title>${m.reportTitle}</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.min.js" integrity="sha384-XcdcwHqIPULERb2yDEM4R0XaQKU3YnDsrTmjACBZyfdVVqjh6xQ4/DCMd7XLcA6Y" crossorigin="anonymous"></script>
     <style>${PAGE_STYLE}    </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>对话模型任务指令遵循评估报告</h1>
+            <h1>${m.reportTitle}</h1>
             <div class="meta">
-                生成时间: ${formatDateTime(this.now())} | 任务ID: ${escapeHtml(taskId)} | 评估对话数: ${results.length} | 平均得分: ${averageScore.toFixed(1)}/100
+                ${m.generatedAtLabel}: ${formatDateTime(this.now())} | ${m.taskIdLabel}: ${escapeHtml(taskId)} | ${m.dialoguesCountLabel}: ${results.length} | ${m.averageScoreLabel}: ${averageScore.toFixed(1)}/100
             </div>
         </div>
 
@@ -203,14 +200,15 @@ ${scripts}
   }
 
   private generateEmpty(): string {
+    const m = getMessages();
     return `<!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="${m.htmlLang}">
 <head>
     <meta charset="UTF-8">
-    <title>对话模型任务指令遵循评估报告</title>
+    <title>${m.reportTitle}</title>
 </head>
 <body>
-    <h1>暂无评估数据</h1>
+    <h1>${m.noData}</h1>
 </body>
 </html>`;
   }

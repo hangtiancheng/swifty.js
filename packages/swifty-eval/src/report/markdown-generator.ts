@@ -1,6 +1,7 @@
+import { getMessages } from "../i18n/index.js";
 import type { DialogueRecord } from "../models/dialogue.js";
 import type { EvaluationResult } from "../models/evaluation.js";
-import { escapeMarkdownTableCell, formatDateTime, TERMINATION_REASON_LABELS } from "./common.js";
+import { escapeMarkdownTableCell, formatDateTime } from "./common.js";
 
 export interface MarkdownGeneratorOptions {
   /** Injectable clock for deterministic report headers. */
@@ -8,7 +9,8 @@ export interface MarkdownGeneratorOptions {
 }
 
 function dialogueTableLines(record: DialogueRecord): string[] {
-  const lines = ["| 轮次 | 角色 | 内容 | 评估备注 |", "|------|------|------|----------|"];
+  const m = getMessages();
+  const lines = [`| ${m.dialogueTableHeaders.join(" | ")} |`, "|------|------|------|----------|"];
   let roundNumber = 0;
   for (const turn of record.turns) {
     if (turn.role === "model") {
@@ -34,18 +36,19 @@ export class MarkdownGenerator {
 
   /** Generates a report for a single evaluation result. */
   generate(result: EvaluationResult): string {
+    const m = getMessages();
     const lines: string[] = [];
     const record = result.dialogueRecord;
 
-    lines.push("# 对话模型任务指令遵循评估报告", "");
-    lines.push(`**生成时间:** ${formatDateTime(this.now())}`);
-    lines.push(`**任务ID:** ${result.taskId}`);
-    lines.push(`**用户画像:** ${result.userProfileName}`, "");
+    lines.push(`# ${m.reportTitle}`, "");
+    lines.push(`**${m.generatedAtLabel}:** ${formatDateTime(this.now())}`);
+    lines.push(`**${m.taskIdLabel}:** ${result.taskId}`);
+    lines.push(`**${m.userProfileLabel}:** ${result.userProfileName}`, "");
 
-    lines.push("## 1. 综合评分", "");
-    lines.push(`**总分:** ${result.totalScore.toFixed(1)}/100`, "");
+    lines.push(`## 1. ${m.overallScoreSection}`, "");
+    lines.push(`**${m.totalScoreLabel}:** ${result.totalScore.toFixed(1)}/100`, "");
 
-    lines.push("### 各维度得分", "");
+    lines.push(`### ${m.dimensionScoresHeading}`, "");
     for (const score of result.dimensionScores) {
       const weighted = score.rawScore * score.weight * 100;
       lines.push(
@@ -55,12 +58,12 @@ export class MarkdownGenerator {
     }
     lines.push("");
 
-    lines.push("## 2. 维度详细评分", "");
+    lines.push(`## 2. ${m.dimensionDetailsSection}`, "");
     for (const score of result.dimensionScores) {
       lines.push(`### ${score.label}`, "");
-      lines.push(`**得分:** ${(score.rawScore * 100).toFixed(1)}%`, "");
+      lines.push(`**${m.scoreLabel}:** ${(score.rawScore * 100).toFixed(1)}%`, "");
       if (score.evidence.length > 0) {
-        lines.push("**评估依据:**", "");
+        lines.push(`**${m.evidenceLabel}:**`, "");
         for (const evidence of score.evidence) {
           lines.push(`- ${evidence}`);
         }
@@ -68,13 +71,18 @@ export class MarkdownGenerator {
       }
     }
 
-    lines.push("## 3. 完整对话记录", "");
-    lines.push(`**对话轮数:** ${record.turns.filter((turn) => turn.role === "model").length}`);
-    lines.push(`**结束原因:** ${TERMINATION_REASON_LABELS[record.terminationReason]}`, "");
+    lines.push(`## 3. ${m.dialogueTranscriptSection}`, "");
+    lines.push(
+      `**${m.dialogueRoundsLabel}:** ${record.turns.filter((turn) => turn.role === "model").length}`,
+    );
+    lines.push(
+      `**${m.terminationReasonLabel}:** ${m.terminationReasons[record.terminationReason]}`,
+      "",
+    );
     lines.push(...dialogueTableLines(record), "");
 
     if (result.recommendations.length > 0) {
-      lines.push("## 4. 改进建议", "");
+      lines.push(`## 4. ${m.recommendationsSection}`, "");
       for (const recommendation of result.recommendations) {
         lines.push(`- ${recommendation}`);
       }
@@ -86,14 +94,18 @@ export class MarkdownGenerator {
 
   /** Generates a combined report covering every evaluated profile. */
   generateBatch(results: readonly EvaluationResult[]): string {
+    const m = getMessages();
     const lines: string[] = [];
 
-    lines.push("# 对话模型任务指令遵循评估报告", "");
-    lines.push(`**生成时间:** ${formatDateTime(this.now())}`);
-    lines.push(`**评估对话数:** ${results.length}`, "");
+    lines.push(`# ${m.reportTitle}`, "");
+    lines.push(`**${m.generatedAtLabel}:** ${formatDateTime(this.now())}`);
+    lines.push(`**${m.dialoguesCountLabel}:** ${results.length}`, "");
 
-    lines.push("## 1. 评估概览", "");
-    lines.push("| 用户画像 | 总分 | 流程完成度 | 约束遵守度 | FAQ准确度 |");
+    lines.push(`## 1. ${m.evaluationOverviewSection}`, "");
+    lines.push(
+      `| ${m.userProfileLabel} | ${m.totalScoreLabel} | ${m.dimensionLabels.flowCompletion} | ` +
+        `${m.dimensionLabels.constraintCompliance} | ${m.dimensionLabels.faqAccuracy} |`,
+    );
     lines.push("|----------|------|------------|------------|-----------|");
     for (const result of results) {
       const byKey = new Map(
@@ -112,9 +124,9 @@ export class MarkdownGenerator {
       results.length > 0
         ? results.reduce((sum, result) => sum + result.totalScore, 0) / results.length
         : 0;
-    lines.push(`**平均得分:** ${averageScore.toFixed(1)}/100`, "");
+    lines.push(`**${m.averageScoreLabel}:** ${averageScore.toFixed(1)}/100`, "");
 
-    lines.push("## 2. 维度评分与评估依据", "");
+    lines.push(`## 2. ${m.dimensionEvidenceSection}`, "");
     for (const result of results) {
       if (results.length > 1) {
         lines.push(`### ${result.userProfileName}`, "");
@@ -122,8 +134,12 @@ export class MarkdownGenerator {
       for (const score of result.dimensionScores) {
         const weighted = score.rawScore * score.weight * 100;
         lines.push(
-          `#### ${score.label}（${(score.rawScore * 100).toFixed(1)}%，加权 ` +
-            `${weighted.toFixed(1)}/${(score.weight * 100).toFixed(0)}）`,
+          `#### ${m.dimensionHeading(
+            score.label,
+            (score.rawScore * 100).toFixed(1),
+            weighted.toFixed(1),
+            (score.weight * 100).toFixed(0),
+          )}`,
           "",
         );
         if (score.evidence.length > 0) {
@@ -135,12 +151,15 @@ export class MarkdownGenerator {
       }
     }
 
-    lines.push("## 3. 完整对话记录", "");
+    lines.push(`## 3. ${m.dialogueTranscriptSection}`, "");
     results.forEach((result, index) => {
       const record = result.dialogueRecord;
-      lines.push(`### 对话${index + 1}：${result.userProfileName}`, "");
-      lines.push(`**总分:** ${result.totalScore.toFixed(1)}/100`);
-      lines.push(`**结束原因:** ${TERMINATION_REASON_LABELS[record.terminationReason]}`, "");
+      lines.push(`### ${m.dialogueHeading(index + 1, result.userProfileName)}`, "");
+      lines.push(`**${m.totalScoreLabel}:** ${result.totalScore.toFixed(1)}/100`);
+      lines.push(
+        `**${m.terminationReasonLabel}:** ${m.terminationReasons[record.terminationReason]}`,
+        "",
+      );
       lines.push(...dialogueTableLines(record), "", "---", "");
     });
 
@@ -151,7 +170,7 @@ export class MarkdownGenerator {
       }
     }
     if (allRecommendations.size > 0) {
-      lines.push("## 4. 改进建议", "");
+      lines.push(`## 4. ${m.recommendationsSection}`, "");
       for (const recommendation of [...allRecommendations].sort()) {
         lines.push(`- ${recommendation}`);
       }

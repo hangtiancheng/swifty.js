@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { getMessages, withOutputLanguageDirective } from "../i18n/index.js";
 import type { LLMClient } from "../llm/llm-client.js";
 import type { DialogueRecord } from "../models/dialogue.js";
 import type { DimensionEvaluation, DimensionKey } from "../models/evaluation.js";
@@ -76,7 +77,7 @@ export abstract class BaseEvaluator {
       return {
         score: 0,
         reasons: [
-          `评估失败：${this.evalCount} 次评估调用均未返回有效结果（${failures[0] ?? "未知错误"}）`,
+          getMessages().evaluationFailedReason(this.evalCount, failures[0] ?? "unknown error"),
         ],
       };
     }
@@ -85,7 +86,7 @@ export abstract class BaseEvaluator {
     const score = kept.reduce((sum, sample) => sum + sample.score, 0) / kept.length;
     const reasons = kept.map((sample) => sample.reason);
     if (failures.length > 0) {
-      reasons.push(`注：${failures.length} 次评估调用失败，未计入平均`);
+      reasons.push(getMessages().judgeFailuresNote(failures.length));
     }
     return { score, reasons };
   }
@@ -104,7 +105,10 @@ export abstract class BaseEvaluator {
     systemPrompt: string,
     userMessage: string,
   ): Promise<JudgeSample> {
-    const response = await this.llmClient.chat({ systemPrompt, userMessage });
+    const response = await this.llmClient.chat({
+      systemPrompt: withOutputLanguageDirective(systemPrompt),
+      userMessage,
+    });
     const verdict = judgeVerdictSchema.parse(extractJsonObject(response));
     return { score: clamp01(verdict.score), reason: verdict.reason ?? "" };
   }

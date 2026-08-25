@@ -7,9 +7,9 @@ describe("buildSimulatorSystemPrompt", () => {
     const prompt = buildSimulatorSystemPrompt(
       makeProfile({ refusalProbability: 0.05, questionProbability: 0.2 }),
     );
-    expect(prompt).toContain("你是一个测试用户。");
-    expect(prompt).toContain("5% 的倾向拒绝或推脱请求");
-    expect(prompt).toContain("20% 的倾向主动追问细节");
+    expect(prompt).toContain("你是一个测试用户");
+    expect(prompt).toContain("5% tendency to refuse or deflect requests");
+    expect(prompt).toContain("20% tendency to proactively ask for details");
   });
 });
 
@@ -21,7 +21,7 @@ describe("UserSimulator.generateResponse", () => {
     await simulator.generateResponse("你好", "背景说明");
 
     const messages = transport.requests[0]?.messages ?? [];
-    expect(messages.at(-1)?.content).toBe("[上下文: 背景说明]\n\n你好");
+    expect(messages.at(-1)?.content).toBe("[Context: 背景说明]\n\n你好");
   });
 
   it("passes the accumulated history on subsequent calls", async () => {

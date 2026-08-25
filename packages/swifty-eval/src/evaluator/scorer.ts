@@ -1,8 +1,8 @@
+import { getMessages } from "../i18n/index.js";
 import type { DialogueRecord } from "../models/dialogue.js";
 import {
   DEFAULT_DIMENSION_WEIGHTS,
   DIMENSION_KEYS,
-  DIMENSION_LABELS,
   type DimensionEvaluation,
   type DimensionKey,
   type EvaluationResult,
@@ -40,7 +40,7 @@ export class Scorer {
       }
       scores.push({
         dimensionKey: key,
-        label: DIMENSION_LABELS[key],
+        label: getMessages().dimensionLabels[key],
         rawScore: evaluation.score,
         weight: this.weights[key],
         evidence: evaluation.reasons,
@@ -55,11 +55,12 @@ export class Scorer {
   }
 
   createResult(params: CreateResultParams): EvaluationResult {
+    const m = getMessages();
     const dimensionScores = this.aggregate(params.evaluations);
     const totalScore = this.calculateTotal(dimensionScores);
     const recommendations = dimensionScores
       .filter((score) => score.rawScore < RECOMMENDATION_THRESHOLD)
-      .map((score) => `建议提升${score.label}表现`);
+      .map((score) => m.recommendation(score.label));
 
     return {
       taskId: params.taskId,

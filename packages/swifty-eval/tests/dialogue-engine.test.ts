@@ -1,36 +1,55 @@
 import { describe, expect, it } from "vitest";
 import { UserSimulator } from "@/simulator/user-simulator.js";
 import { createFakeClient, makeProfile, makeTask } from "./fakes.js";
-import { DialogueEngine, parseHangupSignal, resolvePlaceholders } from "@/engine/dialogue-engine.js";
+import {
+  DialogueEngine,
+  parseHangupSignal,
+  resolvePlaceholders,
+} from "@/engine/dialogue-engine.js";
 
 function makeSimulator(script: readonly string[]) {
   const harness = createFakeClient(script);
-  const simulator = new UserSimulator({ profile: makeProfile(), llmClient: harness.client });
+  const simulator = new UserSimulator({
+    profile: makeProfile(),
+    llmClient: harness.client,
+  });
   return { simulator, transport: harness.transport };
 }
 
 describe("resolvePlaceholders", () => {
   it("replaces known placeholders and keeps unknown ones", () => {
-    const resolved = resolvePlaceholders("你好 ${rider_name}，参考 ${unknown}", {
-      rider_name: "小王",
-    });
-    expect(resolved).toBe("你好 小王，参考 ${unknown}");
+    const resolved = resolvePlaceholders(
+      "你好 ${rider_name}, 参考 ${unknown}",
+      {
+        rider_name: "小王",
+      },
+    );
+    expect(resolved).toBe("你好 小王, 参考 ${unknown}");
   });
 });
 
 describe("parseHangupSignal", () => {
   it("strips the marker and reports the hangup", () => {
-    expect(parseHangupSignal("别打了[HANGUP]")).toEqual({ content: "别打了", hangup: true });
+    expect(parseHangupSignal("别打了[HANGUP]")).toEqual({
+      content: "别打了",
+      hangup: true,
+    });
   });
 
   it("returns the message untouched without a marker", () => {
-    expect(parseHangupSignal("好的")).toEqual({ content: "好的", hangup: false });
+    expect(parseHangupSignal("好的")).toEqual({
+      content: "好的",
+      hangup: false,
+    });
   });
 });
 
 describe("DialogueEngine.runDialogue", () => {
   it("opens with the resolved opening line and passes context only on round one", async () => {
-    const { simulator, transport: simulatorTransport } = makeSimulator(["好", "嗯"]);
+    const { simulator, transport: simulatorTransport } = makeSimulator([
+      "好",
+      "嗯",
+    ]);
     const model = createFakeClient(["第二句"]);
     const judge = createFakeClient(["no", "no"]);
     const engine = new DialogueEngine({
@@ -49,10 +68,12 @@ describe("DialogueEngine.runDialogue", () => {
     expect(record.turns[0]).toEqual({
       roundNumber: 1,
       role: "model",
-      content: "你好，请问是小王吗？",
+      content: "你好, 请问是 Alex 吗?",
     });
     const firstMessages = simulatorTransport.requests[0]?.messages ?? [];
-    expect(firstMessages.at(-1)?.content).toContain("[上下文: 你正在接到测试站长的电话。");
+    expect(firstMessages.at(-1)?.content).toContain(
+      "[Context: You are receiving a call from 测试站长.",
+    );
     const secondMessages = simulatorTransport.requests[1]?.messages ?? [];
     expect(secondMessages.at(-1)?.content).toBe("第二句");
   });
@@ -61,7 +82,10 @@ describe("DialogueEngine.runDialogue", () => {
     const { simulator } = makeSimulator(["好", "嗯"]);
     const model = createFakeClient(["第二句"]);
     const judge = createFakeClient(["no", "no"]);
-    const engine = new DialogueEngine({ task: makeTask(), refusalJudge: judge.client });
+    const engine = new DialogueEngine({
+      task: makeTask(),
+      refusalJudge: judge.client,
+    });
 
     const record = await engine.runDialogue({
       userSimulator: simulator,
@@ -81,7 +105,10 @@ describe("DialogueEngine.runDialogue", () => {
     const { simulator } = makeSimulator(["别再打了[HANGUP]"]);
     const model = createFakeClient([]);
     const judge = createFakeClient([]);
-    const engine = new DialogueEngine({ task: makeTask(), refusalJudge: judge.client });
+    const engine = new DialogueEngine({
+      task: makeTask(),
+      refusalJudge: judge.client,
+    });
 
     const record = await engine.runDialogue({
       userSimulator: simulator,
@@ -102,7 +129,10 @@ describe("DialogueEngine.runDialogue", () => {
     const { simulator } = makeSimulator(["我不需要"]);
     const model = createFakeClient([]);
     const judge = createFakeClient(["yes"]);
-    const engine = new DialogueEngine({ task: makeTask(), refusalJudge: judge.client });
+    const engine = new DialogueEngine({
+      task: makeTask(),
+      refusalJudge: judge.client,
+    });
 
     const record = await engine.runDialogue({
       userSimulator: simulator,
@@ -116,10 +146,33 @@ describe("DialogueEngine.runDialogue", () => {
   });
 
   it("detects termination keywords after minRounds", async () => {
-    const { simulator } = makeSimulator(["好，再见"]);
+    const { simulator } = makeSimulator(["好, 再见"]);
     const model = createFakeClient([]);
     const judge = createFakeClient(["no"]);
-    const engine = new DialogueEngine({ task: makeTask(), refusalJudge: judge.client });
+    const engine = new DialogueEngine({
+      task: makeTask(),
+      refusalJudge: judge.client,
+    });
+
+    const record = await engine.runDialogue({
+      userSimulator: simulator,
+      modelClient: model.client,
+      maxRounds: 10,
+      minRounds: 0,
+    });
+
+    expect(record.terminationReason).toBe("userEndedConversation");
+    expect(record.turns).toHaveLength(2);
+  });
+
+  it("detects English termination keywords after minRounds", async () => {
+    const { simulator } = makeSimulator(["no thanks, bye"]);
+    const model = createFakeClient([]);
+    const judge = createFakeClient(["no"]);
+    const engine = new DialogueEngine({
+      task: makeTask(),
+      refusalJudge: judge.client,
+    });
 
     const record = await engine.runDialogue({
       userSimulator: simulator,
@@ -136,7 +189,10 @@ describe("DialogueEngine.runDialogue", () => {
     const { simulator } = makeSimulator(["不用了再见", "好"]);
     const model = createFakeClient(["继续说明"]);
     const judge = createFakeClient(["no"]);
-    const engine = new DialogueEngine({ task: makeTask(), refusalJudge: judge.client });
+    const engine = new DialogueEngine({
+      task: makeTask(),
+      refusalJudge: judge.client,
+    });
 
     const record = await engine.runDialogue({
       userSimulator: simulator,
@@ -170,13 +226,13 @@ describe("DialogueEngine.runDialogue", () => {
 
     const request = model.transport.requests[0];
     const systemPrompt = request?.messages[0]?.content ?? "";
-    expect(systemPrompt).toContain(`你是${task.role}。`);
+    expect(systemPrompt).toContain(`You are ${task.role}.`);
     expect(systemPrompt).toContain("1. 告知合同生效");
-    expect(systemPrompt).toContain("每次回复控制在30字以内");
-    expect(systemPrompt).toContain("禁止使用：好的");
+    expect(systemPrompt).toContain("Keep each reply within 30 characters");
+    expect(systemPrompt).toContain("Do not use: 好的");
     expect(request?.messages).toEqual([
       { role: "system", content: systemPrompt },
-      { role: "assistant", content: "你好，请问是小王吗？" },
+      { role: "assistant", content: "你好, 请问是 Alex 吗?" },
       { role: "user", content: "好" },
     ]);
   });

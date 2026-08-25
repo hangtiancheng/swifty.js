@@ -29,7 +29,7 @@ describe("Scorer", () => {
       "constraintCompliance",
       "faqAccuracy",
     ]);
-    expect(scores[0]?.label).toBe("流程完成度");
+    expect(scores[0]?.label).toBe("Flow Completion");
     expect(scores[0]?.evidence).toEqual(["flowCompletion reason"]);
   });
 
@@ -58,7 +58,7 @@ describe("Scorer", () => {
       ]),
       dialogueRecord: record,
     });
-    expect(result.recommendations).toEqual(["建议提升流程完成度表现"]);
+    expect(result.recommendations).toEqual(["Recommend improving Flow Completion"]);
   });
 
   it("honors custom weights", () => {

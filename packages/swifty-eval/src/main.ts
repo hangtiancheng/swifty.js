@@ -3,6 +3,7 @@ import "dotenv/config";
 import { access } from "node:fs/promises";
 import { parseArgs } from "node:util";
 import { loadConfig } from "./config.js";
+import { configureI18n } from "./i18n/index.js";
 import { DIMENSION_KEYS } from "./models/evaluation.js";
 import { generateReports } from "./pipeline/generate-reports.js";
 import { runEvaluation } from "./pipeline/run-evaluation.js";
@@ -43,6 +44,7 @@ async function main(): Promise<void> {
   }
 
   const config = await loadConfig(values.config);
+  configureI18n(config.language);
 
   console.log("Starting evaluation...");
   console.log(`Task file: ${values.task}`);
@@ -50,6 +52,7 @@ async function main(): Promise<void> {
   console.log(`Evaluator model: ${config.evaluatorLlm.model}`);
   console.log(`Eval count: ${config.evaluation.evalCount}`);
   console.log(`Dimensions: ${DIMENSION_KEYS.length}`);
+  console.log(`Language: ${config.language}`);
   if (values.profiles !== undefined && values.profiles.length > 0) {
     console.log(`Profiles: ${values.profiles.join(", ")}`);
   }

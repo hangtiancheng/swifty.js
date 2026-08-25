@@ -1,3 +1,4 @@
+import { getMessages, withOutputLanguageDirective } from "../i18n/index.js";
 import type { ChatMessage } from "../llm/chat-model.js";
 import type { LLMClient } from "../llm/llm-client.js";
 import type { DialogueRecord, DialogueTurn, TerminationReason } from "../models/dialogue.js";
@@ -5,13 +6,22 @@ import type { TaskInstruction } from "../models/task.js";
 import type { UserSimulator } from "../simulator/user-simulator.js";
 import { DialogueStateMachine } from "./state-machine.js";
 
-const SAMPLE_RIDER_NAMES = ["小王", "小李", "小张", "小刘", "师傅"] as const;
-const TERMINATION_KEYWORDS = ["再见", "挂断", "结束", "拜拜"] as const;
+const TERMINATION_KEYWORDS = [
+  "再见",
+  "挂断",
+  "结束",
+  "拜拜",
+  "bye",
+  "goodbye",
+  "hang up",
+  "see you",
+] as const;
 const HANGUP_SIGNAL = "[HANGUP]";
 const DEFAULT_MAX_ROUNDS = 30;
 const DEFAULT_MIN_ROUNDS = 4;
 
-const REFUSAL_JUDGE_PROMPT = "判断用户是否在明确拒绝继续对话或要求挂断电话。只回复yes或no。";
+const REFUSAL_JUDGE_PROMPT =
+  "Determine whether the user is clearly refusing to continue the conversation or asking to hang up the phone. Reply with only yes or no.";
 
 /** Replaces `${name}` placeholders with the provided values; unknown names are kept. */
 export function resolvePlaceholders(
@@ -82,7 +92,7 @@ export class DialogueEngine {
     this.stateMachine.transition("identityCheck");
 
     let modelMessage = resolvePlaceholders(this.task.openingLine, this.placeholderValues());
-    const taskContext = `你正在接到${this.task.role}的电话。背景：${this.task.task}`;
+    const taskContext = `You are receiving a call from ${this.task.role}. Background: ${this.task.task}`;
 
     for (let round = 1; round <= maxRounds; round += 1) {
       if (round > 1) {
@@ -125,9 +135,10 @@ export class DialogueEngine {
 
   private placeholderValues(): Record<string, string> {
     const random = this.options.random ?? Math.random;
-    const index = Math.floor(random() * SAMPLE_RIDER_NAMES.length);
+    const names = getMessages().sampleRiderNames;
+    const index = Math.floor(random() * names.length);
     return {
-      rider_name: SAMPLE_RIDER_NAMES[index] ?? SAMPLE_RIDER_NAMES[0],
+      rider_name: names[index] ?? names[0] ?? "",
       ...this.options.placeholders,
     };
   }
@@ -136,7 +147,7 @@ export class DialogueEngine {
     try {
       const verdict = await judge.chat({
         systemPrompt: REFUSAL_JUDGE_PROMPT,
-        userMessage: `用户说：${userResponse}`,
+        userMessage: `The user says: ${userResponse}`,
       });
       return verdict.trim().toLowerCase().startsWith("yes");
     } catch {
@@ -154,31 +165,31 @@ export class DialogueEngine {
 
     const faqDescription =
       this.task.faq.length > 0
-        ? `\n知识库：\n${this.task.faq.map((item) => `- ${item.question}：${item.answer}`).join("\n")}`
+        ? `\nKnowledge base:\n${this.task.faq.map((item) => `- ${item.question}: ${item.answer}`).join("\n")}`
         : "";
 
     const constraints: string[] = [];
     if (this.task.constraints.maxChars !== undefined) {
-      constraints.push(`每次回复控制在${this.task.constraints.maxChars}字以内`);
+      constraints.push(`Keep each reply within ${this.task.constraints.maxChars} characters`);
     }
     if (this.task.constraints.tone !== undefined) {
-      constraints.push(`语气要求：${this.task.constraints.tone}`);
+      constraints.push(`Tone requirement: ${this.task.constraints.tone}`);
     }
     if (this.task.constraints.forbiddenPhrases.length > 0) {
-      constraints.push(`禁止使用：${this.task.constraints.forbiddenPhrases.join("、")}`);
+      constraints.push(`Do not use: ${this.task.constraints.forbiddenPhrases.join(", ")}`);
     }
-    constraints.push("保持自然口语化，像打电话一样");
-    constraints.push("避免重复回复；如需重申换种方式表达");
+    constraints.push("Speak naturally, as if on a phone call");
+    constraints.push("Avoid repeating replies; rephrase when restating");
 
-    const systemPrompt = `你是${this.task.role}。
-任务：${this.task.task}
+    const systemPrompt = withOutputLanguageDirective(`You are ${this.task.role}.
+Task: ${this.task.task}
 
-对话流程（请按顺序完成）：
+Dialogue flow (complete in order):
 ${flowDescription}
 ${faqDescription}
 
-约束：
-${constraints.map((constraint) => `- ${constraint}`).join("\n")}`;
+Constraints:
+${constraints.map((constraint) => `- ${constraint}`).join("\n")}`);
 
     // The last turn is the user's latest reply; everything before it is history.
     const latestTurn = turns.at(-1);

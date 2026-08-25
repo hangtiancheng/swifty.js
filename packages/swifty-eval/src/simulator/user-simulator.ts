@@ -1,3 +1,4 @@
+import { withOutputLanguageDirective } from "../i18n/index.js";
 import type { ChatMessage } from "../llm/chat-model.js";
 import type { LLMClient } from "../llm/llm-client.js";
 import type { UserProfile } from "../models/dialogue.js";
@@ -12,8 +13,8 @@ const DEFAULT_MAX_HISTORY_ROUNDS = 10;
 export function buildSimulatorSystemPrompt(profile: UserProfile): string {
   const refusalPercent = Math.round(profile.refusalProbability * 100);
   const questionPercent = Math.round(profile.questionProbability * 100);
-  return `${profile.systemPrompt}
-行为倾向参考：你大约有 ${refusalPercent}% 的倾向拒绝或推脱请求，${questionPercent}% 的倾向主动追问细节，请让整体表现大致符合这一倾向。`;
+  return withOutputLanguageDirective(`${profile.systemPrompt}
+Behavioral tendency reference: you have roughly a ${refusalPercent}% tendency to refuse or deflect requests and a ${questionPercent}% tendency to proactively ask for details; keep your overall performance roughly aligned with these tendencies.`);
 }
 
 export interface UserSimulatorOptions {
@@ -43,7 +44,7 @@ export class UserSimulator {
     const userMessage =
       additionalContext === undefined
         ? modelMessage
-        : `[上下文: ${additionalContext}]\n\n${modelMessage}`;
+        : `[Context: ${additionalContext}]\n\n${modelMessage}`;
 
     const response = await this.llmClient.chat({
       systemPrompt: this.systemPrompt,
