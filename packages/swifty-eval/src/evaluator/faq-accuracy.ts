@@ -6,17 +6,17 @@ import { formatDialogue, formatFaq } from "./prompt-format.js";
 
 /** Judges the factual accuracy of FAQ-related answers. */
 export class FaqAccuracyEvaluator extends BaseEvaluator {
-  readonly dimensionKey = "faqAccuracy";
+	readonly dimensionKey = "faqAccuracy";
 
-  protected async evaluateOnce(
-    record: DialogueRecord,
-    task: TaskInstruction,
-  ): Promise<JudgeSample> {
-    if (task.faq.length === 0) {
-      return { score: 1, reason: getMessages().noFaqReason };
-    }
+	protected async evaluateOnce(
+		record: DialogueRecord,
+		task: TaskInstruction,
+	): Promise<JudgeSample> {
+		if (task.faq.length === 0) {
+			return { score: 1, reason: getMessages().noFaqReason };
+		}
 
-    const prompt = `Evaluate the accuracy of the digital human's answers to FAQ questions in the dialogue.
+		const prompt = `Evaluate the accuracy of the digital human's answers to FAQ questions in the dialogue.
 
 FAQ knowledge base:
 ${formatFaq(task)}
@@ -32,9 +32,9 @@ Evaluation criteria:
 Respond in JSON format: {"score": 0.0-1.0, "reason": "reason"}
 Return JSON only.`;
 
-    return this.requestJudgeVerdict(
-      "You are an expert evaluator of question-answering accuracy.",
-      prompt,
-    );
-  }
+		return this.requestJudgeVerdict(
+			"You are an expert evaluator of question-answering accuracy.",
+			prompt,
+		);
+	}
 }

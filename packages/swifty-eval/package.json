@@ -1,38 +1,38 @@
 {
-  "name": "@swifty.js/eval",
-  "version": "0.0.0",
-  "private": true,
-  "description": "AI evaluate",
-  "main": "dist/index.js",
-  "scripts": {
-    "check": "biome check ./src --write",
-    "typecheck": "tsc --noEmit",
-    "build": "tsup",
-    "eval": "node dist/main.js",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "format": "biome format ./src --write"
-  },
-  "keywords": [
-    "AI",
-    "evaluate",
-    "swifty.js",
-    "swifty-eval"
-  ],
-  "author": "https://github.com/hangtiancheng",
-  "license": "MIT",
-  "type": "module",
-  "dependencies": {
-    "dotenv": "^17.4.2",
-    "js-yaml": "^5.3.0",
-    "openai": "^7.5.0",
-    "zod": "^4.4.3"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "^2.5.10",
-    "@types/node": "^24.13.3",
-    "tsup": "^8.5.1",
-    "typescript": "^6.0.3",
-    "vitest": "^4.1.11"
-  }
+	"name": "@swifty.js/eval",
+	"version": "0.0.0",
+	"private": true,
+	"description": "AI evaluate",
+	"main": "dist/index.js",
+	"scripts": {
+		"check": "biome check ./ --write",
+		"typecheck": "tsc --noEmit",
+		"build": "tsup",
+		"eval": "node dist/main.js",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"format": "biome format ./ --write"
+	},
+	"keywords": [
+		"AI",
+		"evaluate",
+		"swifty.js",
+		"swifty-eval"
+	],
+	"author": "https://github.com/hangtiancheng",
+	"license": "MIT",
+	"type": "module",
+	"dependencies": {
+		"dotenv": "^17.4.2",
+		"js-yaml": "^5.3.0",
+		"openai": "^7.5.0",
+		"zod": "^4.4.3"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.5.10",
+		"@types/node": "^24.13.3",
+		"tsup": "^8.5.1",
+		"typescript": "^6.0.3",
+		"vitest": "^4.1.11"
+	}
 }

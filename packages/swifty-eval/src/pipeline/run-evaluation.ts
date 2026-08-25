@@ -11,69 +11,73 @@ import { selectProfiles } from "../simulator/profiles.js";
 import { UserSimulator } from "../simulator/user-simulator.js";
 
 export interface RunEvaluationOptions {
-  readonly taskFile: string;
-  readonly config: AppConfig;
-  /** Profile names to evaluate; defaults to all built-in profiles. */
-  readonly profileNames?: readonly string[];
-  readonly logger?: (message: string) => void;
+	readonly taskFile: string;
+	readonly config: AppConfig;
+	/** Profile names to evaluate; defaults to all built-in profiles. */
+	readonly profileNames?: readonly string[];
+	readonly logger?: (message: string) => void;
 }
 
 /**
  * Runs the complete pipeline: parse the task, simulate one dialogue per
  * profile, judge every dimension, and aggregate weighted results.
  */
-export async function runEvaluation(options: RunEvaluationOptions): Promise<EvaluationResult[]> {
-  const { config } = options;
-  const log = options.logger ?? ((message: string) => console.log(message));
+export async function runEvaluation(
+	options: RunEvaluationOptions,
+): Promise<EvaluationResult[]> {
+	const { config } = options;
+	const log = options.logger ?? ((message: string) => console.log(message));
 
-  configureI18n(config.language);
+	configureI18n(config.language);
 
-  const modelClient = LLMClient.fromSettings(config.llm);
-  const evaluatorClient = LLMClient.fromSettings(config.evaluatorLlm);
+	const modelClient = LLMClient.fromSettings(config.llm);
+	const evaluatorClient = LLMClient.fromSettings(config.evaluatorLlm);
 
-  const parser = new TaskParser(modelClient);
-  const task = await parser.parseFromFile(options.taskFile);
+	const parser = new TaskParser(modelClient);
+	const task = await parser.parseFromFile(options.taskFile);
 
-  const profiles = selectProfiles(options.profileNames);
-  if (profiles.length === 0) {
-    throw new Error(`No user profiles matched: ${(options.profileNames ?? []).join(", ")}`);
-  }
+	const profiles = selectProfiles(options.profileNames);
+	if (profiles.length === 0) {
+		throw new Error(
+			`No user profiles matched: ${(options.profileNames ?? []).join(", ")}`,
+		);
+	}
 
-  const registry = new EvaluatorRegistry(
-    createDefaultEvaluators(evaluatorClient, config.evaluation.evalCount),
-    config.evaluation.maxWorkers,
-  );
-  const scorer = new Scorer(config.evaluation.weights);
+	const registry = new EvaluatorRegistry(
+		createDefaultEvaluators(evaluatorClient, config.evaluation.evalCount),
+		config.evaluation.maxWorkers,
+	);
+	const scorer = new Scorer(config.evaluation.weights);
 
-  const results: EvaluationResult[] = [];
-  for (const profile of profiles) {
-    log(`Running dialogue with ${profile.name}...`);
+	const results: EvaluationResult[] = [];
+	for (const profile of profiles) {
+		log(`Running dialogue with ${profile.name}...`);
 
-    const simulator = new UserSimulator({ profile, llmClient: modelClient });
-    const engine = new DialogueEngine({ task, refusalJudge: evaluatorClient });
+		const simulator = new UserSimulator({ profile, llmClient: modelClient });
+		const engine = new DialogueEngine({ task, refusalJudge: evaluatorClient });
 
-    const record = await engine.runDialogue({
-      userSimulator: simulator,
-      modelClient,
-      maxRounds: config.evaluation.maxDialogueRounds,
-      minRounds: config.evaluation.minDialogueRounds,
-    });
+		const record = await engine.runDialogue({
+			userSimulator: simulator,
+			modelClient,
+			maxRounds: config.evaluation.maxDialogueRounds,
+			minRounds: config.evaluation.minDialogueRounds,
+		});
 
-    log(
-      `  Evaluating (${config.evaluation.evalCount} rounds x ${DIMENSION_KEYS.length} dimensions)...`,
-    );
-    const evaluations = await registry.evaluateAll(record, task);
+		log(
+			`  Evaluating (${config.evaluation.evalCount} rounds x ${DIMENSION_KEYS.length} dimensions)...`,
+		);
+		const evaluations = await registry.evaluateAll(record, task);
 
-    const result = scorer.createResult({
-      taskId: task.taskId,
-      userProfileName: profile.name,
-      evaluations,
-      dialogueRecord: record,
-    });
-    results.push(result);
+		const result = scorer.createResult({
+			taskId: task.taskId,
+			userProfileName: profile.name,
+			evaluations,
+			dialogueRecord: record,
+		});
+		results.push(result);
 
-    log(`  Score: ${result.totalScore.toFixed(1)}`);
-  }
+		log(`  Score: ${result.totalScore.toFixed(1)}`);
+	}
 
-  return results;
+	return results;
 }

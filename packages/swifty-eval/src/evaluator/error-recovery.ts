@@ -6,17 +6,17 @@ import { formatDialogue, formatFlow } from "./prompt-format.js";
 
 /** Judges whether the model steers deviating users back to the flow. */
 export class ErrorRecoveryEvaluator extends BaseEvaluator {
-  readonly dimensionKey = "errorRecovery";
+	readonly dimensionKey = "errorRecovery";
 
-  protected async evaluateOnce(
-    record: DialogueRecord,
-    task: TaskInstruction,
-  ): Promise<JudgeSample> {
-    if (task.flow.length === 0) {
-      return { score: 1, reason: getMessages().noFlowReason };
-    }
+	protected async evaluateOnce(
+		record: DialogueRecord,
+		task: TaskInstruction,
+	): Promise<JudgeSample> {
+		if (task.flow.length === 0) {
+			return { score: 1, reason: getMessages().noFlowReason };
+		}
 
-    const prompt = `Evaluate the digital human's error recovery ability in the dialogue.
+		const prompt = `Evaluate the digital human's error recovery ability in the dialogue.
 
 Required flow:
 ${formatFlow(task)}
@@ -33,9 +33,9 @@ Evaluation criteria:
 Respond in JSON format: {"score": 0.0-1.0, "reason": "reason"}
 Return JSON only.`;
 
-    return this.requestJudgeVerdict(
-      "You are an expert evaluator of dialogue error recovery.",
-      prompt,
-    );
-  }
+		return this.requestJudgeVerdict(
+			"You are an expert evaluator of dialogue error recovery.",
+			prompt,
+		);
+	}
 }

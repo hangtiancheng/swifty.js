@@ -5,13 +5,13 @@ import { formatDialogue } from "./prompt-format.js";
 
 /** Judges multi-round consistency: no contradictions or forgotten context. */
 export class CoherenceEvaluator extends BaseEvaluator {
-  readonly dimensionKey = "coherence";
+	readonly dimensionKey = "coherence";
 
-  protected async evaluateOnce(
-    record: DialogueRecord,
-    _task: TaskInstruction,
-  ): Promise<JudgeSample> {
-    const prompt = `Evaluate the multi-turn coherence of the digital human's replies in the following dialogue.
+	protected async evaluateOnce(
+		record: DialogueRecord,
+		_task: TaskInstruction,
+	): Promise<JudgeSample> {
+		const prompt = `Evaluate the multi-turn coherence of the digital human's replies in the following dialogue.
 
 Dialogue transcript:
 ${formatDialogue(record)}
@@ -25,6 +25,9 @@ Evaluation criteria:
 Respond in JSON format: {"score": 0.0-1.0, "reason": "reason"}
 Return JSON only.`;
 
-    return this.requestJudgeVerdict("You are an expert evaluator of dialogue coherence.", prompt);
-  }
+		return this.requestJudgeVerdict(
+			"You are an expert evaluator of dialogue coherence.",
+			prompt,
+		);
+	}
 }

@@ -5,13 +5,13 @@ import { formatDialogue } from "./prompt-format.js";
 
 /** Judges how accurately the model understood user intent each round. */
 export class IntentUnderstandingEvaluator extends BaseEvaluator {
-  readonly dimensionKey = "intentUnderstanding";
+	readonly dimensionKey = "intentUnderstanding";
 
-  protected async evaluateOnce(
-    record: DialogueRecord,
-    _task: TaskInstruction,
-  ): Promise<JudgeSample> {
-    const prompt = `Evaluate how accurately the digital human understood the user's intent in the dialogue.
+	protected async evaluateOnce(
+		record: DialogueRecord,
+		_task: TaskInstruction,
+	): Promise<JudgeSample> {
+		const prompt = `Evaluate how accurately the digital human understood the user's intent in the dialogue.
 
 Dialogue transcript:
 ${formatDialogue(record)}
@@ -25,9 +25,9 @@ Evaluation criteria:
 Respond in JSON format: {"score": 0.0-1.0, "reason": "reason"}
 Return JSON only.`;
 
-    return this.requestJudgeVerdict(
-      "You are an expert evaluator of dialogue intent understanding.",
-      prompt,
-    );
-  }
+		return this.requestJudgeVerdict(
+			"You are an expert evaluator of dialogue intent understanding.",
+			prompt,
+		);
+	}
 }

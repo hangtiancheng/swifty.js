@@ -5,16 +5,16 @@ import { formatDialogue, formatFaq, formatFlow } from "./prompt-format.js";
 
 /** Judges whether every key piece of information was conveyed. */
 export class InfoCompletenessEvaluator extends BaseEvaluator {
-  readonly dimensionKey = "infoCompleteness";
+	readonly dimensionKey = "infoCompleteness";
 
-  protected async evaluateOnce(
-    record: DialogueRecord,
-    task: TaskInstruction,
-  ): Promise<JudgeSample> {
-    const flowDescription = task.flow.length > 0 ? formatFlow(task) : "None";
-    const faqDescription = task.faq.length > 0 ? formatFaq(task) : "None";
+	protected async evaluateOnce(
+		record: DialogueRecord,
+		task: TaskInstruction,
+	): Promise<JudgeSample> {
+		const flowDescription = task.flow.length > 0 ? formatFlow(task) : "None";
+		const faqDescription = task.faq.length > 0 ? formatFaq(task) : "None";
 
-    const prompt = `Evaluate whether the digital human fully conveyed all key information in the dialogue.
+		const prompt = `Evaluate whether the digital human fully conveyed all key information in the dialogue.
 
 Task flow:
 ${flowDescription}
@@ -33,9 +33,9 @@ Evaluation criteria:
 Respond in JSON format: {"score": 0.0-1.0, "reason": "reason"}
 Return JSON only.`;
 
-    return this.requestJudgeVerdict(
-      "You are an expert evaluator of information completeness.",
-      prompt,
-    );
-  }
+		return this.requestJudgeVerdict(
+			"You are an expert evaluator of information completeness.",
+			prompt,
+		);
+	}
 }

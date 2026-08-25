@@ -1,11 +1,14 @@
 import { getMessages } from "../i18n/index.js";
 import type { DialogueRecord } from "../models/dialogue.js";
-import type { EvaluationResult, EvaluationScore } from "../models/evaluation.js";
+import type {
+	EvaluationResult,
+	EvaluationScore,
+} from "../models/evaluation.js";
 import { escapeHtml, formatDateTime } from "./common.js";
 
 export interface HtmlGeneratorOptions {
-  /** Injectable clock for deterministic report headers. */
-  readonly now?: () => Date;
+	/** Injectable clock for deterministic report headers. */
+	readonly now?: () => Date;
 }
 
 const PAGE_STYLE = `
@@ -36,50 +39,50 @@ const PAGE_STYLE = `
 `;
 
 function dimensionRows(scores: readonly EvaluationScore[]): string {
-  return scores
-    .map((score) => {
-      const weighted = score.rawScore * score.weight * 100;
-      const evidence =
-        score.evidence.length > 0
-          ? score.evidence.map((item) => escapeHtml(item)).join("<br>")
-          : "-";
-      return `                    <tr>
+	return scores
+		.map((score) => {
+			const weighted = score.rawScore * score.weight * 100;
+			const evidence =
+				score.evidence.length > 0
+					? score.evidence.map((item) => escapeHtml(item)).join("<br>")
+					: "-";
+			return `                    <tr>
                         <td>${escapeHtml(score.label)}</td>
                         <td>${(score.rawScore * 100).toFixed(1)}%</td>
                         <td>${(score.weight * 100).toFixed(0)}%</td>
                         <td>${weighted.toFixed(1)}</td>
                         <td style="font-size: 12px; color: #666;">${evidence}</td>
                     </tr>`;
-    })
-    .join("\n");
+		})
+		.join("\n");
 }
 
 function dialogueRows(record: DialogueRecord): string {
-  let roundNumber = 0;
-  return record.turns
-    .map((turn) => {
-      if (turn.role === "model") {
-        roundNumber += 1;
-      }
-      const note =
-        turn.evaluationNotes !== undefined && turn.evaluationNotes !== ""
-          ? `<span class="warning">${escapeHtml(turn.evaluationNotes)}</span>`
-          : "-";
-      return `                        <tr>
+	let roundNumber = 0;
+	return record.turns
+		.map((turn) => {
+			if (turn.role === "model") {
+				roundNumber += 1;
+			}
+			const note =
+				turn.evaluationNotes !== undefined && turn.evaluationNotes !== ""
+					? `<span class="warning">${escapeHtml(turn.evaluationNotes)}</span>`
+					: "-";
+			return `                        <tr>
                             <td>${roundNumber}</td>
                             <td class="${turn.role}">${turn.role}</td>
                             <td>${escapeHtml(turn.content)}</td>
                             <td>${note}</td>
                         </tr>`;
-    })
-    .join("\n");
+		})
+		.join("\n");
 }
 
 function resultSection(result: EvaluationResult, index: number): string {
-  const m = getMessages();
-  const record = result.dialogueRecord;
-  const chartId = `radarChart${index}`;
-  return `            <div class="score-card">
+	const m = getMessages();
+	const record = result.dialogueRecord;
+	const chartId = `radarChart${index}`;
+	return `            <div class="score-card">
                 <h2>${escapeHtml(m.overallScoreHeading(result.userProfileName))}</h2>
                 <span class="total-score">${result.totalScore.toFixed(1)}</span>
                 <span class="score-unit">/ 100</span>
@@ -107,11 +110,13 @@ ${dialogueRows(record)}
 }
 
 function chartScript(result: EvaluationResult, index: number): string {
-  const m = getMessages();
-  const labels = result.dimensionScores.map((score) => score.label);
-  const data = result.dimensionScores.map((score) => Number((score.rawScore * 100).toFixed(1)));
-  const chartId = `radarChart${index}`;
-  return `        new Chart(document.getElementById(${JSON.stringify(chartId)}).getContext('2d'), {
+	const m = getMessages();
+	const labels = result.dimensionScores.map((score) => score.label);
+	const data = result.dimensionScores.map((score) =>
+		Number((score.rawScore * 100).toFixed(1)),
+	);
+	const chartId = `radarChart${index}`;
+	return `        new Chart(document.getElementById(${JSON.stringify(chartId)}).getContext('2d'), {
             type: 'radar',
             data: {
                 labels: ${JSON.stringify(labels)},
@@ -130,44 +135,49 @@ function chartScript(result: EvaluationResult, index: number): string {
 
 /** Generates a self-contained HTML report with one radar chart per dialogue. */
 export class HtmlGenerator {
-  private readonly now: () => Date;
+	private readonly now: () => Date;
 
-  constructor(options: HtmlGeneratorOptions = {}) {
-    this.now = options.now ?? (() => new Date());
-  }
+	constructor(options: HtmlGeneratorOptions = {}) {
+		this.now = options.now ?? (() => new Date());
+	}
 
-  /** Generates an HTML report covering every evaluated profile. */
-  generateBatch(results: readonly EvaluationResult[]): string {
-    if (results.length === 0) {
-      return this.generateEmpty();
-    }
+	/** Generates an HTML report covering every evaluated profile. */
+	generateBatch(results: readonly EvaluationResult[]): string {
+		if (results.length === 0) {
+			return this.generateEmpty();
+		}
 
-    const m = getMessages();
-    const taskId = results[0]?.taskId ?? "";
-    const averageScore =
-      results.reduce((sum, result) => sum + result.totalScore, 0) / results.length;
+		const m = getMessages();
+		const taskId = results[0]?.taskId ?? "";
+		const averageScore =
+			results.reduce((sum, result) => sum + result.totalScore, 0) /
+			results.length;
 
-    const allRecommendations = new Set<string>();
-    for (const result of results) {
-      for (const recommendation of result.recommendations) {
-        allRecommendations.add(recommendation);
-      }
-    }
-    const recommendationsHtml =
-      allRecommendations.size > 0
-        ? `            <div class="recommendations">
+		const allRecommendations = new Set<string>();
+		for (const result of results) {
+			for (const recommendation of result.recommendations) {
+				allRecommendations.add(recommendation);
+			}
+		}
+		const recommendationsHtml =
+			allRecommendations.size > 0
+				? `            <div class="recommendations">
                 <h3>${m.recommendationsSection}</h3>
                 <ul>${[...allRecommendations]
-                  .sort()
-                  .map((item) => `<li>${escapeHtml(item)}</li>`)
-                  .join("\n")}</ul>
+									.sort()
+									.map((item) => `<li>${escapeHtml(item)}</li>`)
+									.join("\n")}</ul>
             </div>`
-        : "";
+				: "";
 
-    const sections = results.map((result, index) => resultSection(result, index)).join("\n\n");
-    const scripts = results.map((result, index) => chartScript(result, index)).join("\n");
+		const sections = results
+			.map((result, index) => resultSection(result, index))
+			.join("\n\n");
+		const scripts = results
+			.map((result, index) => chartScript(result, index))
+			.join("\n");
 
-    return `<!DOCTYPE html>
+		return `<!DOCTYPE html>
 <html lang="${m.htmlLang}">
 <head>
     <meta charset="UTF-8">
@@ -197,11 +207,11 @@ ${scripts}
     </script>
 </body>
 </html>`;
-  }
+	}
 
-  private generateEmpty(): string {
-    const m = getMessages();
-    return `<!DOCTYPE html>
+	private generateEmpty(): string {
+		const m = getMessages();
+		return `<!DOCTYPE html>
 <html lang="${m.htmlLang}">
 <head>
     <meta charset="UTF-8">
@@ -211,5 +221,5 @@ ${scripts}
     <h1>${m.noData}</h1>
 </body>
 </html>`;
-  }
+	}
 }

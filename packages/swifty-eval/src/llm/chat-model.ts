@@ -1,15 +1,15 @@
 export type ChatRole = "system" | "user" | "assistant";
 
 export interface ChatMessage {
-  readonly role: ChatRole;
-  readonly content: string;
+	readonly role: ChatRole;
+	readonly content: string;
 }
 
 export interface ChatRequest {
-  readonly model: string;
-  readonly messages: readonly ChatMessage[];
-  readonly temperature: number;
-  readonly maxTokens: number;
+	readonly model: string;
+	readonly messages: readonly ChatMessage[];
+	readonly temperature: number;
+	readonly maxTokens: number;
 }
 
 /**
@@ -18,5 +18,5 @@ export interface ChatRequest {
  * (rate limiting, empty responses).
  */
 export interface ChatModel {
-  complete(request: ChatRequest): Promise<string>;
+	complete(request: ChatRequest): Promise<string>;
 }

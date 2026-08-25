@@ -23,62 +23,63 @@ Options:
 `;
 
 async function main(): Promise<void> {
-  const { values } = parseArgs({
-    options: {
-      task: { type: "string", default: "data/communicate.md" },
-      config: { type: "string", default: "config.yaml" },
-      profiles: { type: "string", multiple: true },
-      help: { type: "boolean", short: "h", default: false },
-    },
-  });
+	const { values } = parseArgs({
+		options: {
+			task: { type: "string", default: "data/communicate.md" },
+			config: { type: "string", default: "config.yaml" },
+			profiles: { type: "string", multiple: true },
+			help: { type: "boolean", short: "h", default: false },
+		},
+	});
 
-  if (values.help) {
-    console.log(USAGE);
-    return;
-  }
+	if (values.help) {
+		console.log(USAGE);
+		return;
+	}
 
-  try {
-    await access(values.task);
-  } catch {
-    throw new Error(`Task file not found: ${values.task}`);
-  }
+	try {
+		await access(values.task);
+	} catch {
+		throw new Error(`Task file not found: ${values.task}`);
+	}
 
-  const config = await loadConfig(values.config);
-  configureI18n(config.language);
+	const config = await loadConfig(values.config);
+	configureI18n(config.language);
 
-  console.log("Starting evaluation...");
-  console.log(`Task file: ${values.task}`);
-  console.log(`Model: ${config.llm.model}`);
-  console.log(`Evaluator model: ${config.evaluatorLlm.model}`);
-  console.log(`Eval count: ${config.evaluation.evalCount}`);
-  console.log(`Dimensions: ${DIMENSION_KEYS.length}`);
-  console.log(`Language: ${config.language}`);
-  if (values.profiles !== undefined && values.profiles.length > 0) {
-    console.log(`Profiles: ${values.profiles.join(", ")}`);
-  }
-  console.log("");
+	console.log("Starting evaluation...");
+	console.log(`Task file: ${values.task}`);
+	console.log(`Model: ${config.llm.model}`);
+	console.log(`Evaluator model: ${config.evaluatorLlm.model}`);
+	console.log(`Eval count: ${config.evaluation.evalCount}`);
+	console.log(`Dimensions: ${DIMENSION_KEYS.length}`);
+	console.log(`Language: ${config.language}`);
+	if (values.profiles !== undefined && values.profiles.length > 0) {
+		console.log(`Profiles: ${values.profiles.join(", ")}`);
+	}
+	console.log("");
 
-  const results = await runEvaluation({
-    taskFile: values.task,
-    config,
-    profileNames: values.profiles,
-  });
+	const results = await runEvaluation({
+		taskFile: values.task,
+		config,
+		profileNames: values.profiles,
+	});
 
-  const paths = await generateReports(results, config.output);
-  console.log("\nReports generated:");
-  console.log(`  Markdown: ${paths.markdownPath}`);
-  console.log(`  HTML: ${paths.htmlPath}`);
+	const paths = await generateReports(results, config.output);
+	console.log("\nReports generated:");
+	console.log(`  Markdown: ${paths.markdownPath}`);
+	console.log(`  HTML: ${paths.htmlPath}`);
 
-  const averageScore =
-    results.length > 0
-      ? results.reduce((sum, result) => sum + result.totalScore, 0) / results.length
-      : 0;
-  console.log("\nEvaluation complete!");
-  console.log(`Total dialogues: ${results.length}`);
-  console.log(`Average score: ${averageScore.toFixed(1)}/100`);
+	const averageScore =
+		results.length > 0
+			? results.reduce((sum, result) => sum + result.totalScore, 0) /
+				results.length
+			: 0;
+	console.log("\nEvaluation complete!");
+	console.log(`Total dialogues: ${results.length}`);
+	console.log(`Average score: ${averageScore.toFixed(1)}/100`);
 }
 
 main().catch((error: unknown) => {
-  console.error(`Error: ${describeError(error)}`);
-  process.exitCode = 1;
+	console.error(`Error: ${describeError(error)}`);
+	process.exitCode = 1;
 });
