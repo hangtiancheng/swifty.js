@@ -23,6 +23,11 @@ const llmSettingsSchema = z.object({
 	maxTokens: z.number().int().positive().default(4096),
 });
 
+// The judge defaults to a low temperature for consistent scoring.
+const evaluatorLlmSettingsSchema = llmSettingsSchema.extend({
+	temperature: z.number().min(0).max(2).default(0.3),
+});
+
 const weightSchema = z.number().min(0).max(1);
 
 const weightsSchema = z
@@ -59,7 +64,7 @@ const outputSettingsSchema = z.object({
 
 const configSchema = z.object({
 	llm: llmSettingsSchema,
-	evaluatorLlm: llmSettingsSchema.optional(),
+	evaluatorLlm: evaluatorLlmSettingsSchema.optional(),
 	evaluation: evaluationSettingsSchema.prefault({}),
 	output: outputSettingsSchema.prefault({}),
 	language: z.enum(["zh", "en"]).default("en"),

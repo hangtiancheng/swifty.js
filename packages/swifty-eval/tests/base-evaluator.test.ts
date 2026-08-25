@@ -84,6 +84,28 @@ describe("BaseEvaluator.evaluate", () => {
 		expect(evaluation.score).toBeCloseTo(0.9);
 	});
 
+	it("coerces a quoted numeric score string", async () => {
+		const { client } = createFakeClient([
+			'{"score": "0.85", "reason": "quoted"}',
+		]);
+		const evaluation = await new StubEvaluator(client, 1).evaluate(
+			record,
+			task,
+		);
+		expect(evaluation.score).toBeCloseTo(0.85);
+		expect(evaluation.reasons).toEqual(["quoted"]);
+	});
+
+	it("treats a non-numeric score string as a failed sample", async () => {
+		const { client } = createFakeClient(['{"score": "high", "reason": "bad"}']);
+		const evaluation = await new StubEvaluator(client, 1).evaluate(
+			record,
+			task,
+		);
+		expect(evaluation.score).toBe(0);
+		expect(evaluation.reasons[0]).toContain("Evaluation failed");
+	});
+
 	it("clamps out-of-range scores into [0, 1]", async () => {
 		const { client } = createFakeClient(['{"score": 1.5, "reason": "over"}']);
 		const evaluation = await new StubEvaluator(client, 1).evaluate(

@@ -53,7 +53,8 @@ export function parseHangupSignal(message: string): {
 }
 
 function containsTerminationKeyword(message: string): boolean {
-	return TERMINATION_KEYWORDS.some((keyword) => message.includes(keyword));
+	const normalized = message.toLowerCase();
+	return TERMINATION_KEYWORDS.some((keyword) => normalized.includes(keyword));
 }
 
 export interface DialogueEngineOptions {

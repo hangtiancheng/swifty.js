@@ -165,8 +165,8 @@ describe("DialogueEngine.runDialogue", () => {
 		expect(record.turns).toHaveLength(2);
 	});
 
-	it("detects English termination keywords after minRounds", async () => {
-		const { simulator } = makeSimulator(["no thanks, bye"]);
+	it("detects English termination keywords case-insensitively after minRounds", async () => {
+		const { simulator } = makeSimulator(["No thanks. Goodbye!"]);
 		const model = createFakeClient([]);
 		const judge = createFakeClient(["no"]);
 		const engine = new DialogueEngine({

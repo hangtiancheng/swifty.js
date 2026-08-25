@@ -60,6 +60,18 @@ describe("parseConfig", () => {
 		expect(config.evaluatorLlm).toEqual(config.llm);
 	});
 
+	it("defaults a partial evaluatorLlm to a low judge temperature", () => {
+		const config = parseConfig(
+			'llm:\n  model: "m"\nevaluatorLlm:\n  model: "judge"',
+		);
+		expect(config.evaluatorLlm).toEqual({
+			model: "judge",
+			temperature: 0.3,
+			maxTokens: 4096,
+		});
+		expect(config.llm.temperature).toBe(0.7);
+	});
+
 	it("parses a full configuration", () => {
 		const config = parseConfig(FULL_CONFIG);
 		expect(config.llm.model).toBe("model-a");

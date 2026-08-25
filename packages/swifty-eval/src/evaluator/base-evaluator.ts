@@ -11,7 +11,11 @@ import { describeError } from "../utils/errors.js";
 import { extractJsonObject } from "../utils/json.js";
 
 const judgeVerdictSchema = z.object({
-	score: z.number(),
+	// Some judge models quote the score ("0.9"); coerce numeric strings.
+	score: z.union([
+		z.number(),
+		z.string().trim().min(1).pipe(z.coerce.number()),
+	]),
 	reason: z.string().optional(),
 });
 
