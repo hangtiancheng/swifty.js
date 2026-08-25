@@ -129,6 +129,24 @@ describe("HtmlGenerator", () => {
 		expect(html).not.toContain('<script>alert("x")</script>');
 	});
 
+	it("keeps the chart data script context safe for hostile profile names", () => {
+		const generator = new HtmlGenerator({ now });
+		const html = generator.generateBatch([
+			makeResult("</script><script>alert(1)</script>", "你好"),
+		]);
+		expect(html).not.toContain("</script><script>alert(1)");
+		expect(html).toContain("\\u003c/script>\\u003cscript>");
+	});
+
+	it("renders the transcript as a collapsible call log with speaker labels", () => {
+		const generator = new HtmlGenerator({ now });
+		const html = generator.generateBatch([makeResult("配合型用户", "你好")]);
+		expect(html).toContain("<details");
+		expect(html).toContain("模型 · R1");
+		expect(html).toContain("用户 · R1");
+		expect(html).toContain("低于 70 分的维度将触发改进建议");
+	});
+
 	it("renders a placeholder page for empty results", () => {
 		const html = new HtmlGenerator({ now }).generateBatch([]);
 		expect(html).toContain("暂无评估数据");

@@ -1,4 +1,4 @@
-import type { TerminationReason } from "../models/dialogue.js";
+import type { DialogueRole, TerminationReason } from "../models/dialogue.js";
 import type { DimensionKey } from "../models/evaluation.js";
 
 /**
@@ -47,6 +47,10 @@ export interface Messages {
 	];
 	readonly dimensionLabels: Readonly<Record<DimensionKey, string>>;
 	readonly terminationReasons: Readonly<Record<TerminationReason, string>>;
+	/** Speaker names shown in the HTML transcript. */
+	readonly roleLabels: Readonly<Record<DialogueRole, string>>;
+	/** Legend for the 70-point tick on dimension gauges. */
+	readonly thresholdLegend: string;
 	readonly noModelTurnsReason: string;
 	readonly noFlowReason: string;
 	readonly noFaqReason: string;
@@ -115,6 +119,8 @@ export const ZH_MESSAGES: Messages = {
 		userEndedConversation: "用户结束对话",
 		maxRoundsReached: "达到最大轮次",
 	},
+	roleLabels: { model: "模型", user: "用户" },
+	thresholdLegend: "低于 70 分的维度将触发改进建议",
 	noModelTurnsReason: "无模型回复, 默认满分",
 	noFlowReason: "无流程要求, 默认满分",
 	noFaqReason: "无 FAQ 要求, 默认满分",
@@ -184,6 +190,8 @@ export const EN_MESSAGES: Messages = {
 		userEndedConversation: "User ended the conversation",
 		maxRoundsReached: "Maximum rounds reached",
 	},
+	roleLabels: { model: "Model", user: "User" },
+	thresholdLegend: "Dimensions below 70 trigger recommendations",
 	noModelTurnsReason: "No model replies; full score by default",
 	noFlowReason: "No flow requirements; full score by default",
 	noFaqReason: "No FAQ requirements; full score by default",
