@@ -222,4 +222,4 @@ prebuilds/
 build-*/
 **/build-*/
 **/node-headers/
-packages/swifty-eval/config.yaml
+packages/token-berserker/config.yaml
