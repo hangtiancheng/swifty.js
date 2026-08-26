@@ -1,6 +1,6 @@
 {
   "name": "@swifty.js/docs",
-  "version": "0.0.1",
+  "version": "0.0.13",
   "description": "Password-protected private pages for VitePress — mark a page with `private: true` frontmatter and it ships AES-256-GCM encrypted. Lit + Tailwind UI, no Vue components.",
   "keywords": [
     "encryption",
