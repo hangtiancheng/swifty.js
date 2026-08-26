@@ -1,0 +1,43 @@
+# Model under test (also drives the user simulator).
+llm:
+  model: "deepseek-v4-flash"
+  apiBase: "https://api.deepseek.com"
+  apiKey: "<your-api-key>"
+  temperature: 0.7
+  maxTokens: 4096
+
+# Judge model used for scoring. Prefer a different model from the one under
+# test, with a low temperature for consistency. Falls back to `llm` if omitted.
+evaluatorLlm:
+  model: "deepseek-v4-flash"
+  apiBase: "https://api.deepseek.com"
+  apiKey: "<your-api-key>"
+  temperature: 0.3
+  maxTokens: 4096
+
+evaluation:
+  # Judge calls per dimension; with >= 3 the highest and lowest are trimmed.
+  evalCount: 3
+  # Number of dimensions evaluated concurrently.
+  maxWorkers: 2
+  # Hard cap on dialogue rounds.
+  maxDialogueRounds: 30
+  # Refusal/termination detection only activates after this many rounds.
+  minDialogueRounds: 4
+  # Dimension weights; must sum to 1.0.
+  weights:
+    flowCompletion: 0.30
+    constraintCompliance: 0.20
+    faqAccuracy: 0.15
+    naturalness: 0.07
+    intentUnderstanding: 0.07
+    errorRecovery: 0.07
+    coherence: 0.07
+    infoCompleteness: 0.07
+
+output:
+  markdownPath: "output/evaluation_report.md"
+  htmlPath: "output/evaluation_report.html"
+
+# Language for report copy and LLM output; "en" (default) or "zh".
+language: "en"
