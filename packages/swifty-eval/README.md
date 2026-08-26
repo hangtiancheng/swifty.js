@@ -91,32 +91,32 @@ language: "en" # report copy + LLM output language; "en" (default) or "zh"
 
 Reports are written with a timestamp suffix, e.g. `output/evaluation_report_20260825_161730.md`.
 
-## Task instruction format
+### Task instruction format
 
 Task files are Markdown documents structured by an LLM extraction step:
 
 ```markdown
-# Role
+## Role
 
 ...
 
-# Task
+## Task
 
 ...
 
-# Opening Line
+## Opening Line
 
 ...supports ${placeholder} variables...
 
-# Call Flow
+## Call Flow
 
 1. ...
 
-# Knowledge Points (FAQ)
+## Knowledge Points (FAQ)
 
 - ...
 
-# Constraints
+## Constraints
 
 - ...
 ```
