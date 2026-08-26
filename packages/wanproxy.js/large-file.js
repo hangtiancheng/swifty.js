@@ -24,7 +24,7 @@
 import { spawnSync } from "node:child_process";
 import { cwd, exit } from "node:process";
 
-const projectRoot = "/Users/bytedance/wanproxy-all/wanproxy-js";
+const projectRoot = import.meta.dirname;
 
 async function main() {
 	if (!shouldSkipBuild(process.argv.slice(2), process.env)) {
