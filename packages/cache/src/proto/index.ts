@@ -40,10 +40,14 @@ const swiftyDef = protoLoader.loadSync(
   join(__dirname, "swifty.proto"),
   LOADER_OPTIONS,
 );
-export const proto = grpc.loadPackageDefinition(swiftyDef);
+export const proto = grpc.loadPackageDefinition(swiftyDef) as unknown as {
+  pb: { SwiftyCache: grpc.ServiceClientConstructor };
+};
 
 const healthDef = protoLoader.loadSync(
   join(__dirname, "health.proto"),
   LOADER_OPTIONS,
 );
-export const healthProto = grpc.loadPackageDefinition(healthDef);
+export const healthProto = grpc.loadPackageDefinition(healthDef) as unknown as {
+  grpc: { health: { v1: { Health: grpc.ServiceClientConstructor } } };
+};
