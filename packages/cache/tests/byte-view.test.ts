@@ -21,7 +21,7 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { ByteView, cloneBytes } from "./byte-view.js";
+import { ByteView, cloneBytes } from "../src/byte-view.js";
 
 describe("ByteView", () => {
   it("returns correct length", () => {

@@ -21,7 +21,7 @@
  */
 
 import { describe, it, expect, afterEach } from "vitest";
-import { ConHashMap, withConHashConfig } from "./consistent-hash.js";
+import { ConHashMap, withConHashConfig } from "../src/consistent-hash.js";
 
 describe("ConHashMap", () => {
   let m: ConHashMap;

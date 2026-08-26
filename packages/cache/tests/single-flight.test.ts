@@ -21,7 +21,7 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { SingleFlightGroup } from "./single-flight.js";
+import { SingleFlightGroup } from "../src/single-flight.js";
 
 describe("SingleFlightGroup", () => {
   it("returns value from fn", async () => {

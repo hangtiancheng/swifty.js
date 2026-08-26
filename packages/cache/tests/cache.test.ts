@@ -21,8 +21,8 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { Cache } from "./cache.js";
-import { ByteView } from "./byte-view.js";
+import { Cache } from "../src/cache.js";
+import { ByteView } from "../src/byte-view.js";
 
 describe("Cache", () => {
   it("returns miss on empty cache", () => {

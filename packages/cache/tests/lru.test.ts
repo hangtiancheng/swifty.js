@@ -21,8 +21,8 @@
  */
 
 import { describe, it, expect, afterEach } from "vitest";
-import { LruStore, hashBKRD, maskOfNextPowOf2 } from "./lru.js";
-import { Value } from "./store.js";
+import { LruStore, hashBKRD, maskOfNextPowOf2 } from "../src/lru.js";
+import { Value } from "../src/store.js";
 
 class TestValue implements Value {
   constructor(public s: string) {}

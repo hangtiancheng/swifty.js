@@ -32,8 +32,8 @@ import {
   withPeers,
   withCacheOptions,
   Getter,
-} from "./group.js";
-import { Peer, PeerPicker } from "./peers.js";
+} from "../src/group.js";
+import { Peer, PeerPicker } from "../src/peers.js";
 
 class FakePeer implements Peer {
   getFunc?: (group: string, key: string) => Promise<Buffer>;
