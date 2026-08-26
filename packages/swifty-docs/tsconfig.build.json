@@ -1,17 +1,11 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "declarationDir": "./dist",
-    "declarationMap": false,
-    "noImplicitReturns": false,
-    "noPropertyAccessFromIndexSignature": false,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "sourceMap": false,
-    "types": ["node"],
-    "verbatimModuleSyntax": false
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "rootDir": "src",
+    "outDir": "dist"
   },
-  "include": ["./src/**/*"]
+  "include": ["src"]
 }

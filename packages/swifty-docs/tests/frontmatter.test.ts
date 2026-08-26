@@ -20,108 +20,46 @@
  * SOFTWARE.
  */
 
-import { describe, it, expect } from "vitest";
-import { extractFrontmatter } from "@/markdown/frontmatter";
+import { describe, expect, it } from "vitest";
+import { extractFrontmatter, isPrivate } from "../src/node/frontmatter";
 
 describe("extractFrontmatter", () => {
-  it("extracts YAML frontmatter from markdown", () => {
-    const source = `---
-title: Hello World
-description: A test page
-sidebar_position: 1
----
-
-# Hello World
-
-Some content here.
-`;
-    const result = extractFrontmatter(source);
-
-    expect(result.data["title"]).toBe("Hello World");
-    expect(result.data["description"]).toBe("A test page");
-    expect(result.data["sidebar_position"]).toBe(1);
-    expect(result.content).toContain("# Hello World");
-    expect(result.content).toContain("Some content here.");
+  it("parses simple frontmatter", () => {
+    const { data, content } = extractFrontmatter("---\nprivate: true\ntitle: Hi\n---\n\n# Body\n");
+    expect(data).toEqual({ private: true, title: "Hi" });
+    expect(content).toBe("\n# Body\n");
   });
 
-  it("returns empty data when no frontmatter present", () => {
-    const source = "# Just a heading\n\nSome content.";
-    const result = extractFrontmatter(source);
-
-    expect(result.data).toEqual({});
-    expect(result.content).toContain("# Just a heading");
+  it("tolerates trailing spaces after the closing delimiter", () => {
+    const { data } = extractFrontmatter("---\nprivate: true\n---   \nbody");
+    expect(isPrivate(data)).toBe(true);
   });
 
-  it("handles empty source", () => {
-    const result = extractFrontmatter("");
-    expect(result.data).toEqual({});
-    expect(result.content).toBe("");
+  it("handles empty frontmatter blocks", () => {
+    const { data, content } = extractFrontmatter("---\n---\nbody");
+    expect(data).toEqual({});
+    expect(content).toBe("body");
   });
 
-  it("extracts boolean values", () => {
-    const source = `---
-title: Boolean Page
-hidden: true
----
-
-Boolean content.
-`;
-    const result = extractFrontmatter(source);
-    expect(result.data["hidden"]).toBe(true);
+  it("returns everything as content without frontmatter", () => {
+    const src = "# Just a doc\n";
+    expect(extractFrontmatter(src)).toEqual({ data: {}, content: src });
   });
 
-  it("extracts sidebar_label and sidebar_group", () => {
-    const source = `---
-title: Config
-sidebar_label: Configuration
-sidebar_group: Guide
-sidebar_position: 3
----
+  it("treats malformed YAML as no frontmatter data", () => {
+    const { data } = extractFrontmatter("---\n{ not: [valid\n---\nbody");
+    expect(data).toEqual({});
+  });
+});
 
-Content.
-`;
-    const result = extractFrontmatter(source);
-    expect(result.data["sidebar_label"]).toBe("Configuration");
-    expect(result.data["sidebar_group"]).toBe("Guide");
-    expect(result.data["sidebar_position"]).toBe(3);
+describe("isPrivate", () => {
+  it.each(["true", "True", "TRUE"])("accepts private: %s", (spelling) => {
+    const { data } = extractFrontmatter(`---\nprivate: ${spelling}\n---\nx`);
+    expect(isPrivate(data)).toBe(true);
   });
 
-  it("does not terminate the block on --- inside a value", () => {
-    const source = `---
-title: a---b
-version: 1.0---2.0
----
-body text
-`;
-    const result = extractFrontmatter(source);
-    expect(result.data["title"]).toBe("a---b");
-    expect(result.data["version"]).toBe("1.0---2.0");
-    expect(result.content).toBe("body text\n");
-  });
-
-  it("handles an empty frontmatter block", () => {
-    const result = extractFrontmatter("---\n---\n# Heading\n");
-    expect(result.data).toEqual({});
-    expect(result.content).toBe("# Heading\n");
-  });
-
-  it("does not close the block on dashes inside a block scalar", () => {
-    const source = "---\ntitle: X\nnote: |\n  ----\n---\nbody\n";
-    const result = extractFrontmatter(source);
-    expect(result.data["title"]).toBe("X");
-    expect(result.data["note"]).toBe("----\n");
-    expect(result.content).toBe("body\n");
-  });
-
-  it("handles a closing delimiter with no trailing newline", () => {
-    const result = extractFrontmatter("---\ntitle: X\n---");
-    expect(result.data["title"]).toBe("X");
-    expect(result.content).toBe("");
-  });
-
-  it("tolerates trailing spaces/tabs after the closing delimiter", () => {
-    const result = extractFrontmatter("---\nprotected: true\n--- \t\nbody\n");
-    expect(result.data["protected"]).toBe(true);
-    expect(result.content).toBe("body\n");
+  it.each(['"true"', "yes", "1", "false"])("rejects non-boolean private: %s", (spelling) => {
+    const { data } = extractFrontmatter(`---\nprivate: ${spelling}\n---\nx`);
+    expect(isPrivate(data)).toBe(false);
   });
 });

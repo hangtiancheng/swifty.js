@@ -30,8 +30,8 @@ import { excludePrivatePages, privateDocsPlugin } from "../../src/index";
 const clientSrc = fileURLToPath(new URL("../../src/client/index.ts", import.meta.url));
 
 export default defineConfig({
-  title: "vitepress-docs example",
-  description: "Private pages demo for @swifty.js/vitepress-docs",
+  title: "swifty-docs example",
+  description: "Private pages demo for @swifty.js/docs",
   cleanUrls: true,
   themeConfig: {
     nav: [
@@ -56,7 +56,7 @@ export default defineConfig({
     plugins: [tailwindcss(), privateDocsPlugin({ debug: true })],
     resolve: {
       alias: {
-        "@swifty.js/vitepress-docs/client": clientSrc,
+        "@swifty.js/docs/client": clientSrc,
       },
     },
     optimizeDeps: {

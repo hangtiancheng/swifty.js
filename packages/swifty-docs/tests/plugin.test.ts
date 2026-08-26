@@ -144,7 +144,7 @@ describe("privateDocsPlugin transform", () => {
     // Stub wiring.
     expect(stub).toContain('h("vpd-private-page"');
     expect(stub).toContain('"data-key"');
-    expect(stub).toContain("@swifty.js/vitepress-docs/client");
+    expect(stub).toContain("@swifty.js/docs/client");
     expect(stub).toContain("registerPrivatePage");
 
     // The payload decrypts back to the rendered markdown.

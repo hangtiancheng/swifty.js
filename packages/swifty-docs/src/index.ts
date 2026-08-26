@@ -20,84 +20,10 @@
  * SOFTWARE.
  */
 
-/**
- * @swifty.js/docs barrel exports.
- *
- * Main entry point — browser-safe exports only (React theme + types).
- *
- * Build-time utilities (defineConfig, scanDocsDir, generateSidebar, etc.)
- * are available from sub-path exports:
- *   - "@swifty.js/docs/vite"     (Vite plugin + build-time helpers)
- *   - "@swifty.js/docs/compiler" (compileMarkdown)
- */
-
-// ============================================================
-// @swifty.js/docs types (browser-safe)
-// ============================================================
-
-export type {
-  DocsConfig,
-  NavItem,
-  SidebarConfig,
-  SidebarItem,
-  MarkdownOptions,
-  HighlightOptions,
-  PageData,
-  HeadingInfo,
-  DocsRoute,
-  FrontmatterResult,
-  CompileMarkdownOptions,
-} from "./types";
-
-// ============================================================
-// Runtime utilities (browser-safe)
-// ============================================================
-
-export { slugify, createSlugger } from "./runtime";
-
-// ============================================================
-// React theme
-// ============================================================
-
-export { DocsProvider, useDocs, type DocsProviderProps } from "./theme/context";
-export { DocsLayout } from "./theme/docs-layout";
-export { LocationProvider, useLocation } from "./theme/lib/router";
-export { Navbar } from "./theme/navbar";
-export { Sidebar } from "./theme/sidebar";
-export { Toc } from "./theme/toc";
-export { SearchDialog } from "./theme/search-dialog";
-export { ContentRenderer } from "./theme/content-renderer";
-export { PrevNext } from "./theme/prev-next";
-export { ThemeToggle, THEME_STORAGE_KEY } from "./theme/theme-toggle";
-export { Logo } from "./theme/logo";
-export { Button, buttonVariants } from "./theme/ui/button";
-export { Input } from "./theme/ui/input";
-export { Kbd } from "./theme/ui/kbd";
-export {
-  Dialog,
-  DialogAccessibleTitle,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogOverlay,
-  DialogPortal,
-  DialogTitle,
-  DialogTrigger,
-} from "./theme/ui/dialog";
-export {
-  createContentGuard,
-  PasswordDialog,
-  type ContentGuard,
-  type PasswordDialogProps,
-} from "./theme/docs-guard";
-export { cn } from "./theme/lib/utils";
-export { createSearchEngine, highlightSegments } from "./theme/lib/search";
-export { useScrollSpy } from "./theme/lib/scroll-spy";
-export {
-  computePrevNext,
-  normalizePath,
-  type LoadContentFn,
-  type LoadedContent,
-  type PageHeading,
-} from "./theme/lib/content";
-export { decryptContent, type EncryptedPayload } from "./utils/guard";
+export { privateDocsPlugin } from "./node/plugin";
+export type { PrivateDocsPluginOptions } from "./node/plugin";
+export { excludePrivatePages } from "./node/search";
+export type { MarkdownItLike } from "./node/search";
+export { extractFrontmatter, isPrivate } from "./node/frontmatter";
+export { encryptContent } from "./node/encrypt";
+export type { EncryptedPayload, PrivatePageEnvelope } from "./shared/payload";

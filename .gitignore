@@ -222,4 +222,6 @@ prebuilds/
 build-*/
 **/build-*/
 **/node-headers/
-packages/token-berserker/config.yaml
+
+packages/swifty-docs/example/.vitepress/cache
+packages/swifty-docs/example/.vitepress/dist

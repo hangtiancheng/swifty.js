@@ -21,18 +21,10 @@
  */
 
 import { defineConfig } from "vitest/config";
-import { resolve, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
 
 export default defineConfig({
-  resolve: {
-    alias: {
-      "@": resolve(dirname(fileURLToPath(new URL(import.meta.url))), "src"),
-    },
-  },
   test: {
     environment: "node",
-    globals: true,
     include: ["tests/**/*.test.ts"],
   },
 });

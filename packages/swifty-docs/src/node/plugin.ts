@@ -41,7 +41,7 @@ export interface PrivateDocsPluginOptions {
 
 const PAGE_DATA_RE = /__pageData\s*=\s*JSON\.parse\("((?:[^"\\]|\\.)*)"\)/;
 
-const LOG_PREFIX = "[@swifty.js/vitepress-docs]";
+const LOG_PREFIX = "[@swifty.js/docs]";
 
 function slash(p: string): string {
   return p.replace(/\\/g, "/");
@@ -112,7 +112,7 @@ function synthesizePageData(env: MarkdownEnv, relativePath: string): Record<stri
 }
 
 export function privateDocsPlugin(options: PrivateDocsPluginOptions = {}): Plugin {
-  const { clientModule = "@swifty.js/vitepress-docs/client", debug = false } = options;
+  const { clientModule = "@swifty.js/docs/client", debug = false } = options;
   const password = process.env["DOCS_PASSWORD"];
 
   let siteConfig: SiteConfig | undefined;
@@ -120,7 +120,7 @@ export function privateDocsPlugin(options: PrivateDocsPluginOptions = {}): Plugi
   const warned = new Set<string>();
 
   return {
-    name: "vitepress-docs:private",
+    name: "swifty-docs:private",
     enforce: "post",
 
     configResolved(config) {

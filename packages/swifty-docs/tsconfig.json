@@ -1,38 +1,19 @@
 {
   "compilerOptions": {
-    "declaration": true,
-    "declarationMap": true,
-    "esModuleInterop": true,
-    "exactOptionalPropertyTypes": false,
-    "forceConsistentCasingInFileNames": true,
-    "isolatedModules": true,
-    "jsx": "react-jsx",
-    "jsxImportSource": "react",
-    "lib": ["esnext", "DOM", "DOM.Iterable"],
-    "module": "esnext",
-    "moduleDetection": "force",
+    "target": "ES2022",
+    "module": "ESNext",
     "moduleResolution": "bundler",
-    "noFallthroughCasesInSwitch": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["node"],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
-    "noImplicitReturns": true,
-    "noPropertyAccessFromIndexSignature": true,
-    "noUncheckedSideEffectImports": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "paths": {
-      "@/*": ["./src/*"],
-      "@swifty-docs/generated/*": ["./.swifty-docs/generated/*"],
-      "@swifty.js/docs": ["./src/index.ts"],
-      "@swifty.js/docs/*": ["./src/*"]
-    },
-    "resolveJsonModule": true,
-    "rootDir": "./",
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
     "skipLibCheck": true,
-    "sourceMap": true,
-    "strict": true,
-    "target": "esnext",
-    "types": ["node", "vitest/globals"],
-    "verbatimModuleSyntax": true
+    "noEmit": true
   },
-  "include": ["./"]
+  "include": ["src", "tests", "vite.config.ts", "vitest.config.ts", "example/.vitepress/config.ts"]
 }

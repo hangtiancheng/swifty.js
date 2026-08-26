@@ -1,6 +1,6 @@
-# vitepress-docs example
+# swifty-docs example
 
-This site demonstrates `@swifty.js/vitepress-docs` private pages.
+This site demonstrates `@swifty.js/docs` private pages.
 
 - [Public page](/guide/public) — a normal page, always visible.
 - [Secret page](/guide/secret) — has `private: true` frontmatter; it ships
