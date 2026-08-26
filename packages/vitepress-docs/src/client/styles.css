@@ -1,0 +1,51 @@
+/**
+ * Copyright (c) 2026 hangtiancheng
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+@import "tailwindcss";
+
+@source "./";
+
+/*
+ * Map VitePress theme variables into Tailwind tokens. Custom properties
+ * inherit into shadow DOM, so the guard UI follows the site palette —
+ * including dark mode — without any extra wiring. Fallbacks mirror the
+ * default theme's light palette for non-VitePress hosts.
+ */
+@theme inline {
+  --color-vpd-bg: var(--vp-c-bg, #ffffff);
+  --color-vpd-bg-soft: var(--vp-c-bg-soft, #f6f6f7);
+  --color-vpd-text-1: var(--vp-c-text-1, rgb(60 60 67));
+  --color-vpd-text-2: var(--vp-c-text-2, rgb(60 60 67 / 0.78));
+  --color-vpd-text-3: var(--vp-c-text-3, rgb(60 60 67 / 0.56));
+  --color-vpd-divider: var(--vp-c-divider, rgb(60 60 67 / 0.12));
+  --color-vpd-brand: var(--vp-c-brand-1, #3451b2);
+  --color-vpd-brand-hover: var(--vp-c-brand-2, #3a5ccc);
+  --color-vpd-danger: var(--vp-c-danger-1, #b8272c);
+  /* Same mapping as VPButton brand, so white label text keeps contrast in
+     both color modes. */
+  --color-vpd-button: var(--vp-button-brand-bg, var(--vp-c-brand-3, #3451b2));
+  --color-vpd-button-hover: var(--vp-button-brand-hover-bg, var(--vp-c-brand-2, #3a5ccc));
+}
+
+:host {
+  display: block;
+}
