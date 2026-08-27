@@ -83,10 +83,10 @@ DOCS_PASSWORD=your-password vitepress build docs
 
 Vite plugin. Options:
 
-| Option         | Type      | Default                              | Description                           |
-| -------------- | --------- | ------------------------------------ | ------------------------------------- |
+| Option         | Type      | Default                    | Description                           |
+| -------------- | --------- | -------------------------- | ------------------------------------- |
 | `clientModule` | `string`  | `"@swifty.js/docs/client"` | Runtime module the page stubs import. |
-| `debug`        | `boolean` | `false`                              | Log which pages were encrypted.       |
+| `debug`        | `boolean` | `false`                    | Log which pages were encrypted.       |
 
 ### `excludePrivatePages(src, env, md)`
 

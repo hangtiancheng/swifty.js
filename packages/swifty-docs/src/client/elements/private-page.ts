@@ -22,7 +22,7 @@
 
 import { LitElement, html, nothing } from "lit";
 import { decryptContent } from "../crypto";
-import { getEntry, PASSWORD_STORAGE_KEY, type PrivatePageEntry } from "../registry";
+import { getEntry, PASSWORD_STORAGE_KEY, waitForEntry, type PrivatePageEntry } from "../registry";
 import { sharedStyles } from "../styles";
 import { lockIcon } from "./icons";
 import type { UnlockDetail } from "./password-dialog";
@@ -68,6 +68,7 @@ export class VpdPrivatePage extends LitElement {
   declare private _dialogOpen: boolean;
 
   private _entry: PrivatePageEntry | undefined;
+  private _unwait: (() => void) | undefined;
 
   constructor() {
     super();
@@ -80,13 +81,34 @@ export class VpdPrivatePage extends LitElement {
     this._begin();
   }
 
+  override disconnectedCallback(): void {
+    super.disconnectedCallback();
+    this._unwait?.();
+    this._unwait = undefined;
+  }
+
   private _begin(): void {
-    const entry = getEntry(this.dataset["key"] ?? "");
-    this._entry = entry;
-    if (!entry) {
-      this._state = "locked";
+    this._unwait?.();
+    this._unwait = undefined;
+    const key = this.dataset["key"] ?? "";
+    const entry = getEntry(key);
+    if (entry) {
+      this._resume(entry);
       return;
     }
+    // The stub registers through a dynamic import that can resolve after
+    // this element connects (SPA navigation mounts it synchronously while
+    // the client runtime import is still in flight). Wait for it instead
+    // of dead-ending in the locked state without a payload.
+    this._state = "checking";
+    this._unwait = waitForEntry(key, (arrived) => {
+      this._unwait = undefined;
+      if (this.isConnected) this._resume(arrived);
+    });
+  }
+
+  private _resume(entry: PrivatePageEntry): void {
+    this._entry = entry;
     if (entry.plaintext !== undefined) {
       // Synchronous re-injection: content is in the DOM before VitePress
       // collects the outline in onVnodeMounted.
@@ -146,14 +168,14 @@ export class VpdPrivatePage extends LitElement {
     if (this._state === "checking") return nothing;
     return html`
       <div class="flex min-h-[45vh] flex-col items-center justify-center gap-4 py-10 text-center">
-        <div class="text-vpd-text-3">${lockIcon(52)}</div>
+        <div class="text-(--vp-c-text-3)">${lockIcon(52)}</div>
         <div>
-          <p class="m-0 mb-1.5 text-lg font-bold text-vpd-text-1">This page is private</p>
-          <p class="m-0 text-sm text-vpd-text-2">Enter the password to view its content.</p>
+          <p class="m-0 mb-1.5 text-lg font-bold text-(--vp-c-text-1)">This page is private</p>
+          <p class="m-0 text-sm text-(--vp-c-text-2)">Enter the password to view its content.</p>
         </div>
         <button
           type="button"
-          class="mt-1 cursor-pointer rounded-lg border-0 bg-vpd-button px-5 py-2 text-sm font-semibold text-white transition-colors duration-150 hover:bg-vpd-button-hover"
+          class="mt-1 cursor-pointer rounded-lg border-0 bg-(--vp-button-brand-bg,var(--vp-c-brand-3)) px-5 py-2 text-sm font-semibold text-(--vp-button-brand-text) transition-colors duration-150 hover:bg-(--vp-button-brand-hover-bg,var(--vp-c-brand-2))"
           @click=${() => (this._dialogOpen = true)}
         >
           Unlock

@@ -33,6 +33,7 @@ export interface PrivatePageEntry {
 }
 
 const entries = new Map<string, PrivatePageEntry>();
+const waiters = new Map<string, Set<(entry: PrivatePageEntry) => void>>();
 
 export function setEntry(key: string, payload: EncryptedPayload, onUnlocked: () => void): void {
   // Keep the plaintext cache only while the ciphertext is unchanged —
@@ -40,9 +41,34 @@ export function setEntry(key: string, payload: EncryptedPayload, onUnlocked: () 
   const existing = entries.get(key);
   const plaintext =
     existing && existing.payload.encrypted === payload.encrypted ? existing.plaintext : undefined;
-  entries.set(key, { payload, onUnlocked, plaintext });
+  const entry: PrivatePageEntry = { payload, onUnlocked, plaintext };
+  entries.set(key, entry);
+  const pending = waiters.get(key);
+  if (pending) {
+    waiters.delete(key);
+    for (const notify of pending) notify(entry);
+  }
 }
 
 export function getEntry(key: string): PrivatePageEntry | undefined {
   return entries.get(key);
+}
+
+/**
+ * Page stubs register through a dynamic import that can resolve after the
+ * guard element has already connected (SPA navigation mounts the element
+ * synchronously while the client runtime is still loading). Subscribes to
+ * the next `setEntry` for `key`; returns an unsubscribe function.
+ */
+export function waitForEntry(key: string, notify: (entry: PrivatePageEntry) => void): () => void {
+  let pending = waiters.get(key);
+  if (!pending) {
+    pending = new Set();
+    waiters.set(key, pending);
+  }
+  pending.add(notify);
+  return () => {
+    pending.delete(notify);
+    if (pending.size === 0 && waiters.get(key) === pending) waiters.delete(key);
+  };
 }

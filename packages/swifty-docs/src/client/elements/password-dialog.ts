@@ -111,27 +111,27 @@ export class VpdPasswordDialog extends LitElement {
   override render() {
     return html`
       <dialog
-        class="fixed inset-0 m-auto w-[min(92vw,24rem)] rounded-xl border border-vpd-divider bg-vpd-bg p-8 text-vpd-text-1 shadow-2xl outline-none backdrop:bg-black/45 backdrop:backdrop-blur-[6px]"
+        class="fixed inset-0 m-auto w-[min(92vw,24rem)] rounded-xl border border-(--vp-c-divider) bg-(--vp-c-bg) p-8 text-(--vp-c-text-1) shadow-2xl outline-none backdrop:bg-(--vp-backdrop-bg-color) backdrop:backdrop-blur-[6px]"
         @close=${this._emitClose}
       >
         <form class="flex flex-col" @submit=${this._onSubmit}>
           <button
             type="button"
             aria-label="Close"
-            class="absolute top-3 right-3 flex size-7 cursor-pointer items-center justify-center rounded-md border-0 bg-transparent text-vpd-text-3 transition-colors duration-150 hover:bg-vpd-bg-soft hover:text-vpd-text-1"
+            class="absolute top-3 right-3 flex size-7 cursor-pointer items-center justify-center rounded-md border-0 bg-transparent text-(--vp-c-text-3) transition-colors duration-150 hover:bg-(--vp-c-bg-soft) hover:text-(--vp-c-text-1)"
             @click=${() => this.renderRoot.querySelector("dialog")?.close()}
           >
             ${xIcon(15)}
           </button>
 
           <div
-            class="mb-5 flex size-12 items-center justify-center rounded-lg border border-vpd-divider bg-vpd-bg-soft text-vpd-brand"
+            class="mb-5 flex size-12 items-center justify-center rounded-lg border border-(--vp-c-divider) bg-(--vp-c-bg-soft) text-(--vp-c-brand-1)"
           >
             ${lockIcon(24)}
           </div>
 
           <h2 class="m-0 text-[1.05rem] font-bold tracking-tight">Password Required</h2>
-          <p class="mt-1 mb-5 text-[0.82rem] text-vpd-text-2">
+          <p class="mt-1 mb-5 text-[0.82rem] text-(--vp-c-text-2)">
             This page is private. Enter the password to view its content.
           </p>
 
@@ -139,15 +139,17 @@ export class VpdPasswordDialog extends LitElement {
             type="password"
             placeholder="Password"
             autocomplete="current-password"
-            class="w-full rounded-lg border bg-transparent px-3 py-2.5 text-sm text-vpd-text-1 transition-colors outline-none placeholder:text-vpd-text-3 ${
-              this._error ? "border-vpd-danger" : "border-vpd-divider focus:border-vpd-brand"
-            }"
+            class="${
+              this._error
+                ? "border-(--vp-c-danger-1)"
+                : "border-(--vp-c-divider) focus:border-(--vp-c-brand-1)"
+            } w-full rounded-lg border bg-transparent px-3 py-2.5 text-sm text-(--vp-c-text-1) transition-colors outline-none placeholder:text-(--vp-c-text-3)"
             .value=${this._value}
             @input=${this._onInput}
           />
           ${
             this._error
-              ? html`<p class="m-0 mt-2 text-[0.78rem] font-medium text-vpd-danger">
+              ? html`<p class="m-0 mt-2 text-[0.78rem] font-medium text-(--vp-c-danger-1)">
                   ${this._error}
                 </p>`
               : nothing
@@ -156,7 +158,7 @@ export class VpdPasswordDialog extends LitElement {
           <button
             type="submit"
             ?disabled=${this._checking}
-            class="mt-5 w-full cursor-pointer rounded-lg border-0 bg-vpd-button px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-vpd-button-hover disabled:cursor-not-allowed disabled:opacity-60"
+            class="mt-5 w-full cursor-pointer rounded-lg border-0 bg-(--vp-button-brand-bg,var(--vp-c-brand-3)) px-4 py-2.5 text-sm font-semibold text-(--vp-button-brand-text) transition-colors duration-150 hover:bg-(--vp-button-brand-hover-bg,var(--vp-c-brand-2)) disabled:cursor-not-allowed disabled:opacity-60"
           >
             ${this._checking ? "Verifying..." : "Unlock"}
           </button>
