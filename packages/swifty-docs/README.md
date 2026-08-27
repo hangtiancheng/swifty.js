@@ -41,18 +41,9 @@ package at build time — consumers do not need Tailwind installed.
 
 ```ts
 import { defineConfig } from "vitepress";
-import { excludePrivatePages, privateDocsPlugin } from "@swifty.js/docs";
+import { privateDocsPlugin } from "@swifty.js/docs";
 
 export default defineConfig({
-  themeConfig: {
-    search: {
-      provider: "local",
-      // Local search reads markdown straight from disk, so private pages
-      // must be excluded explicitly. Mirrors the default renderer and
-      // keeps `search: false` support.
-      options: { _render: excludePrivatePages },
-    },
-  },
   vite: {
     plugins: [privateDocsPlugin()],
   },
@@ -87,11 +78,6 @@ Vite plugin. Options:
 | -------------- | --------- | -------------------------- | ------------------------------------- |
 | `clientModule` | `string`  | `"@swifty.js/docs/client"` | Runtime module the page stubs import. |
 | `debug`        | `boolean` | `false`                    | Log which pages were encrypted.       |
-
-### `excludePrivatePages(src, env, md)`
-
-Drop-in `themeConfig.search.options._render` implementation that keeps
-private pages (and `search: false` pages) out of the local search index.
 
 ### `@swifty.js/docs/client`
 

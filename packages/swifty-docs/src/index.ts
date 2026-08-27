@@ -22,8 +22,6 @@
 
 export { privateDocsPlugin } from "./node/plugin";
 export type { PrivateDocsPluginOptions } from "./node/plugin";
-export { excludePrivatePages } from "./node/search";
-export type { MarkdownItLike } from "./node/search";
 export { extractFrontmatter, isPrivate } from "./node/frontmatter";
 export { encryptContent } from "./node/encrypt";
 export type { EncryptedPayload, PrivatePageEnvelope } from "./shared/payload";
