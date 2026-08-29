@@ -226,3 +226,5 @@ build-*/
 packages/swifty-docs/example/.vitepress/cache
 packages/swifty-docs/example/.vitepress/dist
 packages/wanproxy.js/large-xcodec-*.bin
+
+packages/token-berserker/config.yaml

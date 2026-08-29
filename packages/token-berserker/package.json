@@ -8,7 +8,7 @@
 		"check": "biome check ./src ./tests --write",
 		"typecheck": "tsc --noEmit",
 		"build": "tsup",
-		"dev": "tsx ./src/main.js",
+		"dev": "tsx ./src/main.ts",
 		"preview": "node ./dist/main.js",
 		"test": "vitest run",
 		"test:watch": "vitest",
