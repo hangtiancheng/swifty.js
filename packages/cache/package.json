@@ -23,7 +23,8 @@
     "directory": "packages/cache"
   },
   "files": [
-    "dist"
+    "dist",
+    "skills"
   ],
   "type": "module",
   "main": "dist/index.mjs",
