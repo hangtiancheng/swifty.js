@@ -11,8 +11,7 @@
   },
   "type": "module",
   "scripts": {
-    "git:commit": "pnpm git:precommit && git add -A && git commit -m \"feat: Introduce new features\"",
-    "git:precommit": "rm -rf ./.claude && ln -s ./.github ./.claude",
+    "git:commit": "git add -A && git commit -m \"feat: Introduce new features\"",
     "git:push": "pnpm git:commit && git push origin main",
     "prepare": "husky"
   },
