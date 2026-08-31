@@ -1,6 +1,6 @@
 {
   "name": "@swifty.js/cache",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Distributed cache library aligned with swifty.go/swifty_cache",
   "keywords": [
     "cache",
@@ -24,7 +24,8 @@
   },
   "files": [
     "dist",
-    "skills"
+    "skills",
+    "README.md"
   ],
   "type": "module",
   "main": "dist/index.mjs",
@@ -46,7 +47,8 @@
   "scripts": {
     "build": "rollup -c rollup.config.mjs",
     "clean": "rm -rf dist",
-    "prepublishOnly": "pnpm run clean && pnpm run build",
+    "dev": "node ./dev.js",
+    "prepublishOnly": "pnpm clean && pnpm build",
     "test": "vitest run",
     "format": "prettier -w ./"
   },

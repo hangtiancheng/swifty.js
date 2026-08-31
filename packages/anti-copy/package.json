@@ -1,6 +1,6 @@
 {
   "name": "@swifty.js/anti-copy",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Copy-protection SDK for browsers",
   "license": "MIT",
   "author": "https://github.com/hangtiancheng",
@@ -11,7 +11,8 @@
   },
   "files": [
     "dist",
-    "skills"
+    "skills",
+    "README.md"
   ],
   "type": "module",
   "sideEffects": false,
