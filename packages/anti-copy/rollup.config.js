@@ -44,7 +44,8 @@ const destSkill = fileURLToPath(
  * the freshly-built JS bundles.
  */
 
-/** @return {import("rollup").InputPluginOption} */
+/**
+ * @return {import("rollup").Plugin} */
 function cleanThenInstall() {
   return {
     name: "clean-then-install",
