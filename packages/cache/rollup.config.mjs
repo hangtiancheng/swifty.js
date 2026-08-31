@@ -66,7 +66,13 @@ export default defineConfig([
         inlineSources: false,
       }),
       copy({
-        targets: [{ src: "src/proto/*.proto", dest: "dist/proto" }],
+        targets: [
+          { src: "src/proto/*.proto", dest: "dist/proto" },
+          {
+            src: "../../.agents/skills/swifty-cache",
+            dest: "skills/swifty-cache",
+          },
+        ],
       }),
     ],
   },

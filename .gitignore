@@ -223,8 +223,16 @@ build-*/
 **/build-*/
 **/node-headers/
 
+# Swifty Docs
 packages/swifty-docs/example/.vitepress/cache
 packages/swifty-docs/example/.vitepress/dist
+
+# Token Berserker
+packages/token-berserker/config.yaml
+
+# Wanproxy
 packages/wanproxy.js/large-xcodec-*.bin
 
-packages/token-berserker/config.yaml
+# Anti Copy
+packages/anti-copy/skills
+packages/cache/skills

@@ -22,7 +22,7 @@
 
 // @ts-check
 
-import { rmSync } from "node:fs";
+import { rmSync, cpSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import alias from "@rollup/plugin-alias";
 import typescript from "@rollup/plugin-typescript";
@@ -31,17 +31,32 @@ import { dts } from "rollup-plugin-dts";
 
 const srcDir = fileURLToPath(new URL("src", import.meta.url));
 const distDir = fileURLToPath(new URL("dist", import.meta.url));
+const srcSkill = fileURLToPath(
+  new URL("../../.agents/skills/swifty-anti-copy", import.meta.url),
+);
+const destSkill = fileURLToPath(
+  new URL("skills/swifty-anti-copy", import.meta.url),
+);
 
 /**
  * Removes stale dist artifacts before the first build config writes output.
  * Only used in the JS config — the dts config runs second and must not wipe
  * the freshly-built JS bundles.
  */
-function cleanDist() {
+
+/** @return {import("rollup").InputPluginOption} */
+function cleanThenInstall() {
   return {
-    name: "clean-dist",
+    name: "clean-then-install",
     buildStart() {
       rmSync(distDir, { recursive: true, force: true });
+    },
+    buildEnd() {
+      cpSync(srcSkill, destSkill, {
+        recursive: true,
+        force: true,
+        errorOnExist: false,
+      });
     },
   };
 }
@@ -50,11 +65,10 @@ function cleanDist() {
 const input = {
   index: "src/index.ts",
   vitepress: "src/vitepress.ts",
-  "swifty-docs": "src/swifty-docs.ts"
 };
 
 /** @type {import("rollup").ExternalOption} */
-const external = [/^react(\/|$)/, /^vue(\/|$)/, /^@lark\.js\//, /^@swifty\.js\//];
+const external = [/^react(\/|$)/, /^vue(\/|$)/];
 
 /** @type {import("rollup").RollupOptions[]} */
 export default [
@@ -62,7 +76,7 @@ export default [
     input,
     external,
     plugins: [
-      cleanDist(),
+      cleanThenInstall(),
       alias({
         entries: [{ find: "@", replacement: srcDir }],
       }),

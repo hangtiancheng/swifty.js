@@ -10,7 +10,8 @@
     "directory": "packages/anti-copy"
   },
   "files": [
-    "dist"
+    "dist",
+    "skills"
   ],
   "type": "module",
   "sideEffects": false,
@@ -27,11 +28,6 @@
       "types": "./dist/vitepress.d.ts",
       "import": "./dist/vitepress.js",
       "require": "./dist/vitepress.cjs"
-    },
-    "./swifty-docs": {
-      "types": "./dist/swifty-docs.d.ts",
-      "import": "./dist/swifty-docs.js",
-      "require": "./dist/swifty-docs.cjs"
     }
   },
   "publishConfig": {
@@ -48,7 +44,6 @@
     "@rollup/plugin-alias": "^6.0.0",
     "@rollup/plugin-terser": "^1.0.0",
     "@rollup/plugin-typescript": "^12.3.0",
-    "@swifty.js/docs": "workspace:*",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "jsdom": "^30.0.1",

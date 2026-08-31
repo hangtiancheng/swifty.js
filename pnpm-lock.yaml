@@ -31,6 +31,10 @@ importers:
         version: 0.8.1(prettier@3.9.6)
 
   packages/anti-copy:
+    dependencies:
+      '@swifty.js/docs':
+        specifier: '>=0.0.12'
+        version: 0.0.15(vitepress@1.6.4(@algolia/client-search@5.57.0)(@types/node@24.13.3)(@types/react@19.2.18)(jiti@2.7.0)(lightningcss@1.33.0)(nprogress@0.2.0)(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(search-insights@2.17.3)(terser@5.50.0)(tsx@4.23.12)(typescript@6.0.3)(yaml@2.9.0))
     devDependencies:
       '@rollup/plugin-alias':
         specifier: ^6.0.0
@@ -41,9 +45,6 @@ importers:
       '@rollup/plugin-typescript':
         specifier: ^12.3.0
         version: 12.3.0(rollup@4.62.5)(tslib@2.8.1)(typescript@6.0.3)
-      '@swifty.js/docs':
-        specifier: workspace:*
-        version: link:../swifty-docs
       '@types/react':
         specifier: ^19.2.18
         version: 19.2.18
@@ -2022,6 +2023,12 @@ packages:
         optional: true
       typescript:
         optional: true
+
+  '@swifty.js/docs@0.0.15':
+    resolution: {integrity: sha512-xycPx5hv8WGMp+c3X74oqF6tr3JweCf+ONnMsJrVvR/wf6IE0bUNwgLfeiAIv2lPIIEoJqmwWvqFvv3Y6j7/6A==}
+    engines: {node: '>=20'}
+    peerDependencies:
+      vitepress: '>=1.0.0'
 
   '@tailwindcss/node@4.3.3':
     resolution: {integrity: sha512-/T8IKEsf9VTU6tLjgC7+sv2mOPtQxzE2jMw7u4Tt40Tx+QSZxpzh95/H6cMKoja9XuW7iMdLJYBB0o9G1CaAgg==}
@@ -6091,6 +6098,12 @@ snapshots:
       typescript: 7.0.2
     transitivePeerDependencies:
       - supports-color
+
+  '@swifty.js/docs@0.0.15(vitepress@1.6.4(@algolia/client-search@5.57.0)(@types/node@24.13.3)(@types/react@19.2.18)(jiti@2.7.0)(lightningcss@1.33.0)(nprogress@0.2.0)(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(search-insights@2.17.3)(terser@5.50.0)(tsx@4.23.12)(typescript@6.0.3)(yaml@2.9.0))':
+    dependencies:
+      js-yaml: 4.3.1
+      lit: 3.3.3
+      vitepress: 1.6.4(@algolia/client-search@5.57.0)(@types/node@24.13.3)(@types/react@19.2.18)(jiti@2.7.0)(lightningcss@1.33.0)(nprogress@0.2.0)(postcss@8.5.26)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(search-insights@2.17.3)(terser@5.50.0)(tsx@4.23.12)(typescript@6.0.3)(yaml@2.9.0)
 
   '@tailwindcss/node@4.3.3':
     dependencies:
