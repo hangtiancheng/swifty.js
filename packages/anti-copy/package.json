@@ -24,11 +24,6 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
-    },
-    "./vitepress": {
-      "types": "./dist/vitepress.d.ts",
-      "import": "./dist/vitepress.js",
-      "require": "./dist/vitepress.cjs"
     }
   },
   "publishConfig": {

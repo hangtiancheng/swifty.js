@@ -64,8 +64,7 @@ function cleanThenInstall() {
 
 /** @type {import("rollup").InputOption} */
 const input = {
-  index: "src/index.ts",
-  vitepress: "src/vitepress.ts",
+  index: "src/index.ts"
 };
 
 /** @type {import("rollup").ExternalOption} */
