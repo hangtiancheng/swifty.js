@@ -29,8 +29,8 @@ import {
   useBlocker,
   useRouter,
   useState,
-} from "@lark.js/react";
-import type { RouterApi } from "@lark.js/react";
+} from "@swifty.js/react";
+import type { RouterApi } from "@swifty.js/react";
 import { click, flush } from "./helpers";
 
 function poll(predicate: () => boolean, timeout = 1000): Promise<void> {
@@ -38,7 +38,8 @@ function poll(predicate: () => boolean, timeout = 1000): Promise<void> {
     const started = Date.now();
     const tick = (): void => {
       if (predicate()) return resolve();
-      if (Date.now() - started > timeout) return reject(new Error("poll timeout"));
+      if (Date.now() - started > timeout)
+        return reject(new Error("poll timeout"));
       setTimeout(tick, 5);
     };
     tick();

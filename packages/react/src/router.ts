@@ -54,7 +54,7 @@
  *
  * `createRouter` also records the instance as the ACTIVE router so that
  * `useRouter()` / `<RouterView/>` / `useUrlState()` resolve it without prop
- * drilling (share `@lark.js/react` as an MF singleton — each copy of the
+ * drilling (share `@swifty.js/react` as an MF singleton — each copy of the
  * library would otherwise have its own active pointer).
  *
  * Route matching supports dynamic segments (`/users/:id`), splats (`*`,
@@ -107,7 +107,10 @@ export interface RouteMatch {
 }
 
 /** Return `false` (or throw) to block the navigation; may be async. */
-export type Blocker = (next: Location, current: Location) => boolean | Promise<boolean>;
+export type Blocker = (
+  next: Location,
+  current: Location,
+) => boolean | Promise<boolean>;
 
 export interface RouterApi {
   /** Current location (basename-stripped) — fresh object per commit. */
@@ -150,7 +153,11 @@ function createKey(): string {
 /** Read the wrapper a router wrote into `history.state`, if any. */
 function readWrapper(): StateWrapper | null {
   const s: unknown = globalThis.history.state;
-  if (s && typeof s === "object" && typeof (s as StateWrapper).idx === "number") {
+  if (
+    s &&
+    typeof s === "object" &&
+    typeof (s as StateWrapper).idx === "number"
+  ) {
     return s as StateWrapper;
   }
   return null;
@@ -170,7 +177,11 @@ function readWindowLocation(): Location {
 }
 
 /** Parse a `To` string into path parts (react-router `parsePath`). */
-function parsePath(path: string): { pathname?: string; search?: string; hash?: string } {
+function parsePath(path: string): {
+  pathname?: string;
+  search?: string;
+  hash?: string;
+} {
   const parsed: { pathname?: string; search?: string; hash?: string } = {};
   let rest = path;
   const hashIdx = rest.indexOf("#");
@@ -232,7 +243,10 @@ function decodeSegment(value: string): string {
  * default). Returns the captured params, or `null` when the pattern does
  * not match.
  */
-export function matchPath(pattern: string, pathname: string): Record<string, string> | null {
+export function matchPath(
+  pattern: string,
+  pathname: string,
+): Record<string, string> | null {
   const pSegs = splitSegments(pattern);
   const uSegs = splitSegments(pathname);
   const params: Record<string, string> = {};
@@ -241,7 +255,9 @@ export function matchPath(pattern: string, pathname: string): Record<string, str
     const p = pSegs[i];
     if (p === "*") {
       if (i !== pSegs.length - 1) {
-        devWarn(`Invalid route pattern "${pattern}" — "*" is only allowed as the last segment.`);
+        devWarn(
+          `Invalid route pattern "${pattern}" — "*" is only allowed as the last segment.`,
+        );
         return null;
       }
       params["*"] = uSegs.slice(i).map(decodeSegment).join("/");
@@ -263,7 +279,10 @@ export function matchPath(pattern: string, pathname: string): Record<string, str
  * candidates are ranked (static segments outrank dynamic ones, splats rank
  * last) and the best-scoring match wins; ties resolve in registration order.
  */
-export function matchRoutes(routes: RouteObject[], pathname: string): RouteMatch | null {
+export function matchRoutes(
+  routes: RouteObject[],
+  pathname: string,
+): RouteMatch | null {
   let best: RouteMatch | null = null;
   let bestScore = -Infinity;
   for (const route of routes) {
@@ -329,8 +348,13 @@ let activeRouter: RouterApi | null = null;
  * returned instance; the instance is also recorded as the ACTIVE router
  * for `useRouter()` / `<RouterView/>`.
  */
-export function createRouter(routes: RouteObject[], options: RouterOptions = {}): RouterApi {
-  const basename = options.basename ? `/${options.basename.replace(/^\/+|\/+$/g, "")}` : "";
+export function createRouter(
+  routes: RouteObject[],
+  options: RouterOptions = {},
+): RouterApi {
+  const basename = options.basename
+    ? `/${options.basename.replace(/^\/+|\/+$/g, "")}`
+    : "";
   const routeTable = [...routes];
 
   /** Strip the basename; `null` when the pathname is outside it. */
@@ -393,13 +417,18 @@ export function createRouter(routes: RouteObject[], options: RouterOptions = {})
   let revertingPop = false;
 
   /** Run blockers in registration order; first `false`/throw blocks. */
-  const runBlockers = async (next: Location, current: Location): Promise<boolean> => {
+  const runBlockers = async (
+    next: Location,
+    current: Location,
+  ): Promise<boolean> => {
     for (const blocker of Array.from(blockers)) {
       try {
         const result = await blocker(next, current);
         if (result === false) return false;
       } catch (err) {
-        devWarn(`Navigation blocker threw (${String(err)}) — treated as a block.`);
+        devWarn(
+          `Navigation blocker threw (${String(err)}) — treated as a block.`,
+        );
         return false;
       }
     }
@@ -421,7 +450,10 @@ export function createRouter(routes: RouteObject[], options: RouterOptions = {})
     };
   };
 
-  const navigate = async (to: To | number, options: NavigateOptions = {}): Promise<boolean> => {
+  const navigate = async (
+    to: To | number,
+    options: NavigateOptions = {},
+  ): Promise<boolean> => {
     if (typeof to === "number") {
       globalThis.history.go(to);
       return true;
@@ -498,7 +530,11 @@ export function createRouter(routes: RouteObject[], options: RouterOptions = {})
     index = wrapper.idx;
   } else {
     index = 0;
-    const seeded: StateWrapper = { usr: globalThis.history.state, key: createKey(), idx: 0 };
+    const seeded: StateWrapper = {
+      usr: globalThis.history.state,
+      key: createKey(),
+      idx: 0,
+    };
     globalThis.history.replaceState(seeded, "", globalThis.location.href);
   }
 
@@ -588,7 +624,9 @@ export function useBlocker(blocker: Blocker): void {
   const captured = useRef(blocker);
   const router = useMemo(() => {
     if (!activeRouter) {
-      throw new Error("useBlocker: no active router — call createRouter() first");
+      throw new Error(
+        "useBlocker: no active router — call createRouter() first",
+      );
     }
     return activeRouter;
   }, []);

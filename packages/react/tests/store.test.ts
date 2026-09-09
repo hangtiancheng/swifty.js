@@ -21,7 +21,7 @@
  */
 
 import { describe, expect, it, vi } from "vitest";
-import { createStore } from "@lark.js/react";
+import { createStore } from "@swifty.js/react";
 
 interface CountState {
   count: number;

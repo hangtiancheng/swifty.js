@@ -21,7 +21,7 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { LarkReactPlugin, larkReactLoader } from "@lark.js/react/webpack";
+import { LarkReactPlugin, larkReactLoader } from "@swifty.js/react/webpack";
 
 interface Rule {
   test: RegExp;
@@ -62,7 +62,9 @@ describe("LarkReactPlugin", () => {
 
   it("respects custom test/exclude options", () => {
     const compiler = makeCompiler("development");
-    new LarkReactPlugin({ test: /\.custom$/, exclude: /vendor/ }).apply(compiler);
+    new LarkReactPlugin({ test: /\.custom$/, exclude: /vendor/ }).apply(
+      compiler,
+    );
     const rule = compiler.options.module.rules[0] as Rule;
     expect(rule.test.test("app.custom")).toBe(true);
     expect(rule.test.test("app.tsx")).toBe(false);
@@ -83,6 +85,8 @@ describe("larkReactLoader", () => {
   });
 
   it("is a no-op in production mode", () => {
-    expect(larkReactLoader.call({ mode: "production" }, component)).toBe(component);
+    expect(larkReactLoader.call({ mode: "production" }, component)).toBe(
+      component,
+    );
   });
 });

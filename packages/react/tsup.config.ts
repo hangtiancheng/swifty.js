@@ -63,7 +63,7 @@ export default defineConfig([
   },
   {
     // JSX automatic runtime — imported by compiled JSX modules
-    // (jsxImportSource: "@lark.js/react"). Pure VNode factories, kept tiny so
+    // (jsxImportSource: "@swifty.js/react"). Pure VNode factories, kept tiny so
     // the runtime doesn't drag the whole framework into consumer chunks.
     entry: ["src/jsx-runtime.ts", "src/jsx-dev-runtime.ts"],
     dts: true,

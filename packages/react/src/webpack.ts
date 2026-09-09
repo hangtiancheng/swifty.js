@@ -21,7 +21,7 @@
  */
 
 /**
- * @lark.js/react Webpack Integration.
+ * @swifty.js/react Webpack Integration.
  *
  * Injects state-preserving component HMR into every `.tsx` / `.jsx` module
  * with a default export. Editing a component hot-swaps all live instances in
@@ -30,10 +30,10 @@
  *
  * The JSX transform itself is the responsibility of your TS/JS loader
  * (babel-loader / swc-loader / ts-loader): configure the automatic runtime
- * with `jsxImportSource: "@lark.js/react"`, e.g. in tsconfig.json:
+ * with `jsxImportSource: "@swifty.js/react"`, e.g. in tsconfig.json:
  *
  * ```jsonc
- * { "compilerOptions": { "jsx": "react-jsx", "jsxImportSource": "@lark.js/react" } }
+ * { "compilerOptions": { "jsx": "react-jsx", "jsxImportSource": "@swifty.js/react" } }
  * ```
  *
  * Two integration modes:
@@ -44,7 +44,7 @@
  *
  * Usage with Plugin (recommended):
  * ```js
- * import { LarkReactPlugin } from '@lark.js/react/webpack';
+ * import { LarkReactPlugin } from '@swifty.js/react/webpack';
  *
  * export default {
  *   plugins: [
@@ -61,7 +61,7 @@
  *       test: /\.[jt]sx$/,
  *       exclude: /node_modules/,
  *       enforce: 'pre',
- *       loader: '@lark.js/react/webpack',
+ *       loader: '@swifty.js/react/webpack',
  *     }],
  *   },
  * };
@@ -103,7 +103,7 @@ function larkReactLoader(this: unknown, source: string): string {
 }
 
 /**
- * Webpack plugin that auto-registers the @lark.js/react HMR loader.
+ * Webpack plugin that auto-registers the @swifty.js/react HMR loader.
  *
  * This is the recommended integration approach. The plugin adds a single
  * `enforce: "pre"` rule over JSX modules; the loader is a fast no-op for

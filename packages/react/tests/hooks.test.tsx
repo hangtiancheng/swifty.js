@@ -28,7 +28,7 @@ import {
   useMemo,
   useRef,
   useState,
-} from "@lark.js/react";
+} from "@swifty.js/react";
 import { click, createContainer, flush } from "./helpers";
 
 describe("useState", () => {

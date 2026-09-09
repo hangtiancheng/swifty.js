@@ -21,7 +21,7 @@
  */
 
 /**
- * JSX automatic runtime (`jsxImportSource: "@lark.js/react"`).
+ * JSX automatic runtime (`jsxImportSource: "@swifty.js/react"`).
  *
  * Runtime: `jsx`/`jsxs` build VNode descriptors; the incoming props object is
  * used verbatim (the compiler owns it — it may be frozen and MUST NOT be

@@ -11,6 +11,7 @@
   },
   "type": "module",
   "scripts": {
+    "format": "concurrently \"pnpm --filter @swifty.js/anti-copy format\" \"pnpm --filter @swifty.js/cache format\" \"pnpm --filter @swifty.js/react format\"",
     "git:commit": "git add -A && git commit -m \"feat: Introduce new features\"",
     "git:push": "pnpm git:commit && git push origin main",
     "prepare": "husky"

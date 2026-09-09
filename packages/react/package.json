@@ -1,14 +1,12 @@
 {
-  "name": "@lark.js/react",
+  "name": "@swifty.js/react",
   "version": "0.0.1",
-  "description": "@lark.js/react - Mini React: function components, keyed diff, hooks, HMR",
+  "description": "@swifty.js/react",
   "keywords": [
     "framework",
     "hooks",
     "jsx",
-    "lark.js",
     "light-weight",
-    "mini-react",
     "react",
     "virtual-dom"
   ],

@@ -15,15 +15,15 @@
     "verbatimModuleSyntax": true,
     "erasableSyntaxOnly": true,
     "jsx": "react-jsx",
-    "jsxImportSource": "@lark.js/react",
+    "jsxImportSource": "@swifty.js/react",
     "types": [],
     "paths": {
-      "@lark.js/react/jsx-dev-runtime": ["./src/jsx-dev-runtime.ts"],
-      "@lark.js/react/jsx-runtime": ["./src/jsx-runtime.ts"],
-      "@lark.js/react/vite": ["./src/vite.ts"],
-      "@lark.js/react/webpack": ["./src/webpack.ts"],
-      "@lark.js/react": ["./src/index.ts"],
-      "@/*": ["./src/*"],
+      "@swifty.js/react/jsx-dev-runtime": ["./src/jsx-dev-runtime.ts"],
+      "@swifty.js/react/jsx-runtime": ["./src/jsx-runtime.ts"],
+      "@swifty.js/react/vite": ["./src/vite.ts"],
+      "@swifty.js/react/webpack": ["./src/webpack.ts"],
+      "@swifty.js/react": ["./src/index.ts"],
+      "@/*": ["./src/*"]
     }
   },
   "include": ["src", "tests", "tsup.config.ts", "vitest.config.ts"]

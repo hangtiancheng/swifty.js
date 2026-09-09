@@ -21,7 +21,7 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { createStore, render, useEffect, useStore } from "@lark.js/react";
+import { createStore, render, useEffect, useStore } from "@swifty.js/react";
 import { createContainer, flush } from "./helpers";
 
 interface CountState {

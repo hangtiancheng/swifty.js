@@ -26,26 +26,24 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   esbuild: {
     jsx: "automatic",
-    jsxImportSource: "@lark.js/react",
+    jsxImportSource: "@swifty.js/react",
   },
   resolve: {
     alias: {
-      "@": fileURLToPath(
-        new URL("./src", import.meta.url),
-      ),
-      "@lark.js/react/jsx-dev-runtime": fileURLToPath(
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
+      "@swifty.js/react/jsx-dev-runtime": fileURLToPath(
         new URL("./src/jsx-dev-runtime.ts", import.meta.url),
       ),
-      "@lark.js/react/jsx-runtime": fileURLToPath(
+      "@swifty.js/react/jsx-runtime": fileURLToPath(
         new URL("./src/jsx-runtime.ts", import.meta.url),
       ),
-      "@lark.js/react/vite": fileURLToPath(
+      "@swifty.js/react/vite": fileURLToPath(
         new URL("./src/vite.ts", import.meta.url),
       ),
-      "@lark.js/react/webpack": fileURLToPath(
+      "@swifty.js/react/webpack": fileURLToPath(
         new URL("./src/webpack.ts", import.meta.url),
       ),
-      "@lark.js/react": fileURLToPath(
+      "@swifty.js/react": fileURLToPath(
         new URL("./src/index.ts", import.meta.url),
       ),
     },

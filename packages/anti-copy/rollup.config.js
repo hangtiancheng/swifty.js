@@ -31,12 +31,8 @@ import { dts } from "rollup-plugin-dts";
 
 const srcDir = fileURLToPath(new URL("src", import.meta.url));
 const distDir = fileURLToPath(new URL("dist", import.meta.url));
-const srcSkill = fileURLToPath(
-  new URL("../../.agents/skills/swifty-anti-copy", import.meta.url),
-);
-const destSkill = fileURLToPath(
-  new URL("skills/swifty-anti-copy", import.meta.url),
-);
+const srcSkill = fileURLToPath(new URL("../../.agents/skills/swifty-anti-copy", import.meta.url));
+const destSkill = fileURLToPath(new URL("skills/swifty-anti-copy", import.meta.url));
 
 /**
  * Removes stale dist artifacts before the first build config writes output.
@@ -64,7 +60,7 @@ function cleanThenInstall() {
 
 /** @type {import("rollup").InputOption} */
 const input = {
-  index: "src/index.ts"
+  index: "src/index.ts",
 };
 
 /** @type {import("rollup").ExternalOption} */

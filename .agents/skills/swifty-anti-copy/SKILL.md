@@ -1,6 +1,6 @@
 ---
 name: swifty-anti-copy
-description: 'Authoritative reference for @swifty.js/anti-copy (packages/anti-copy, MIT), a framework-agnostic browser copy/print/DevTools protection SDK plus per-framework docs-site integrations, shipped as an ESM+CJS dual build with four subpath entries — `.` (core), `./vitepress`, `./swifty-docs`, `./lark-docs`. Use this skill whenever the user reads, writes, debugs, reviews, or extends code under `packages/anti-copy/src/**`, imports from `@swifty.js/anti-copy` or any subpath, or works with copy-protection concepts. Trigger eagerly on these symbols and tokens — `createAntiCopy`, `AntiCopyInstance`, `AntiCopyOptions`, `AntiCopyMode`, `DevtoolsOptions`, `ViolationEvent`, `ViolationType`, `DEFAULT_REPLACE_TEXT`, `isBrowser`, `applyAntiCopy` (VitePress + lark-docs), the renderless `AntiCopy` React component (swifty-docs), `AntiCopyHandle`, `SwiftyDocsAntiCopyProps`, `LarkDocsAntiCopyOptions`, `isPathExcluded`, `excludePaths`, `excludeSelectors`, `VITEPRESS_DEFAULT_EXCLUDES`, `SWIFTY_DOCS_DEFAULT_EXCLUDES`, `LARK_DOCS_DEFAULT_EXCLUDES`, options `mode`/`replaceText`/`copy`/`keyboard`/`contextmenu`/`selectStyle`/`print`/`devtools`/`onViolation`/`target`, `mode: "block"`/`"replace"`, devtools `intervalMs`/`threshold`/`freeze`/`redirectUrl`, violation types `copy`/`cut`/`drag`/`selection`/`keyboard`/`contextmenu`/`print`/`devtools`, and the `copyable: true` VitePress frontmatter. Also trigger on phrases like "disable right-click", "block copy/paste", "prevent copying", "detect DevTools", "anti-copy", "protect docs content". Do NOT use for the ACTUAL text-selection/copy features of a docs site (that is swifty-docs / lark-docs / lark-mvc), for the Go sibling repo skills (swifty-http, swifty-rpc, swifty-orm, swifty-cache Go), or for @swifty.js/cache; route between the anti-copy CORE (`createAntiCopy`, framework-agnostic) and the correct per-framework integration entry (`./vitepress` for VitePress `enhanceApp`, `./swifty-docs` for the React `<AntiCopy>` component, `./lark-docs` for the lark-docs `applyAntiCopy` boot call).'
+description: 'Authoritative reference for @swifty.js/anti-copy (packages/anti-copy, MIT), a framework-agnostic browser copy/print/DevTools protection SDK plus per-framework docs-site integrations, shipped as an ESM+CJS dual build with four subpath entries — `.` (core). Use this skill whenever the user reads, writes, debugs, reviews, or extends code under `packages/anti-copy/src/**`, imports from `@swifty.js/anti-copy` or any subpath, or works with copy-protection concepts. Trigger eagerly on these symbols and tokens — `createAntiCopy`, `AntiCopyInstance`, `AntiCopyOptions`, `AntiCopyMode`, `DevtoolsOptions`, `ViolationEvent`, `ViolationType`, `DEFAULT_REPLACE_TEXT`, `isBrowser`, `applyAntiCopy` (VitePress + lark-docs), the renderless `AntiCopy` React component (swifty-docs), `AntiCopyHandle`, `SwiftyDocsAntiCopyProps`, `LarkDocsAntiCopyOptions`, `isPathExcluded`, `excludePaths`, `excludeSelectors`, `VITEPRESS_DEFAULT_EXCLUDES`, `SWIFTY_DOCS_DEFAULT_EXCLUDES`, `LARK_DOCS_DEFAULT_EXCLUDES`, options `mode`/`replaceText`/`copy`/`keyboard`/`contextmenu`/`selectStyle`/`print`/`devtools`/`onViolation`/`target`, `mode: "block"`/`"replace"`, devtools `intervalMs`/`threshold`/`freeze`/`redirectUrl`, violation types `copy`/`cut`/`drag`/`selection`/`keyboard`/`contextmenu`/`print`/`devtools`, and the `copyable: true` VitePress frontmatter. Also trigger on phrases like "disable right-click", "block copy/paste", "prevent copying", "detect DevTools", "anti-copy", "protect docs content". Do NOT use for the ACTUAL text-selection/copy features of a docs site (that is swifty-docs / lark-docs / lark-mvc), for the Go sibling repo skills (swifty-http, swifty-rpc, swifty-orm, swifty-cache Go), or for @swifty.js/cache; route between the anti-copy CORE (`createAntiCopy`, framework-agnostic) and the correct per-framework integration entry (`./vitepress` for VitePress `enhanceApp`, `./swifty-docs` for the React `<AntiCopy>` component, `./lark-docs` for the lark-docs `applyAntiCopy` boot call).'
 ---
 
 # @swifty.js/anti-copy — Browser Copy / Print / DevTools Protection
@@ -13,7 +13,7 @@ description: 'Authoritative reference for @swifty.js/anti-copy (packages/anti-co
 
 - **Runtime requirement:** a browser DOM. Every entry is SSR-safe — in a non-browser runtime `createAntiCopy` returns an inert no-op instance (see §4) and the integrations skip their navigation hooks.
 - **Module format:** `"type": "module"`, `"sideEffects": false`, dual ESM + CJS. `main: ./dist/index.cjs`, `module: ./dist/index.js`, `types: ./dist/index.d.ts`. Four subpath entries, each with `types`/`import`/`require`: `.`, `./vitepress`, `./swifty-docs`, `./lark-docs`.
-- **Peer deps (ALL optional via `peerDependenciesMeta`):** `react` (`^18.0.0 || ^19.0.0`), `vue` (`>=3.0.0`), `vitepress` (`>=1.0.0`), `@swifty.js/docs` (`>=0.0.11`), `@lark.js/mvc` (`>=0.0.26`). The core (`.`) needs none of them; each integration entry pulls in only its own framework. No `engines` field; no environment variables.
+- **Peer deps (ALL optional via `peerDependenciesMeta`):** `react` (`^18.0.0 || ^19.0.0`), `vue` (`>=3.0.0`), `vitepress` (`>=1.0.0`), `@swifty.js/docs` (`>=0.0.11`). The core (`.`) needs none of them; each integration entry pulls in only its own framework. No `engines` field; no environment variables.
 - **Intended uses:** deter copy/right-click/print/DevTools on marketing pages, paid docs, or any browser project (React, Vue, plain HTML).
 - **Unsuitable uses:** enforcing content secrecy, licensing, or paywalls; protecting API responses; anything requiring a real trust boundary.
 
@@ -33,14 +33,6 @@ The library has two layers.
   - `src/core/devtools.ts` — DevTools detection (size heuristic + `debugger` probe) and countermeasures (freeze loop, redirect).
   - `src/core/utils.ts` — `isBrowser`, `eventElement`, `isExcluded` (via `Element.closest`, shadow-DOM aware), `isEditable`, `isSelectionExcluded`, `escapeHtml`.
   - `src/core/types.ts` — all public + internal types.
-
-**Integration layer (build on the core, one entry each):**
-- `src/vitepress.ts` (`./vitepress`) — Vue/VitePress `enhanceApp` wiring.
-- `src/swifty-docs.ts` (`./swifty-docs`) — renderless React `<AntiCopy>` component for `@swifty.js/docs`.
-- `src/lark-docs.ts` (`./lark-docs`) — `applyAntiCopy()` boot call for `@lark.js/docs`.
-- `src/common.ts` — shared `DOCS_DEFAULT_EXCLUDES` array and `isPathExcluded()`, used by both docs integrations.
-
-Build: `rollup.config.js` compiles the 4 inputs to `.js` (ESM) + `.cjs` (CJS) + `.d.ts`. It aliases `@` → `src/`, marks `react`/`vue`/`@lark.js/*`/`@swifty.js/*` external, and runs terser with `drop_debugger: false` (critical: otherwise the DevTools CSP-fallback `debugger` probe would be stripped). `tsconfig.build.json` emits from `src` only.
 
 ## 3. Public API & configuration surface
 
@@ -98,46 +90,7 @@ interface ViolationEvent {
 }
 ```
 
-### 3.4 `./vitepress` entry
-
-Exports: `applyAntiCopy`, `VITEPRESS_DEFAULT_EXCLUDES`, and types `AntiCopyHandle`.
-
-```ts
-function applyAntiCopy(ctx: EnhanceAppContext, options?: AntiCopyOptions): AntiCopyHandle;
-interface AntiCopyHandle { instance: AntiCopyInstance; stop(): void; }
-```
-
-`VITEPRESS_DEFAULT_EXCLUDES` (prepended to any user `excludeSelectors`):
-```
-'div[class*="language-"]', "button.copy", "input", "textarea", "[contenteditable='true']", ".VPLocalSearchBox"
-```
-Behavior: enabled site-wide by default. Watches `ctx.router.route.data?.frontmatter?.copyable` (with `{ immediate: true }`) — a page with `copyable: true` in frontmatter calls `instance.disable()`, otherwise `instance.enable()`. `stop()` stops the watcher and calls `instance.destroy()`. During SSR/SSG it returns early with a no-op `stop()`.
-
-### 3.5 `./swifty-docs` entry
-
-Exports: the renderless React component `AntiCopy`, `SWIFTY_DOCS_DEFAULT_EXCLUDES` (= `DOCS_DEFAULT_EXCLUDES`), `isPathExcluded`, and type `SwiftyDocsAntiCopyProps`.
-
-```tsx
-interface SwiftyDocsAntiCopyProps extends AntiCopyOptions {
-  excludePaths?: (string | RegExp)[]; // default []
-}
-function AntiCopy(props: SwiftyDocsAntiCopyProps): null;
-```
-`AntiCopy` reads the current path via `useLocation()` from `@swifty.js/docs`. It creates the instance once with `useMemo(..., [])` — so **options changes require a remount** (only `excludePaths`/`path` retrigger enable/disable). A `useEffect` keyed on `path` + a serialized `excludePaths` key calls `disable()` when `isPathExcluded(path, excludePaths)` else `enable()`; a cleanup effect calls `instance.disable()` on unmount. Mount it inside `<LocationProvider>`.
-
-### 3.6 `./lark-docs` entry
-
-Exports: `applyAntiCopy`, `LARK_DOCS_DEFAULT_EXCLUDES` (= `DOCS_DEFAULT_EXCLUDES`), `isPathExcluded`, and types `LarkDocsAntiCopyOptions`, `AntiCopyHandle`.
-
-```ts
-interface LarkDocsAntiCopyOptions extends AntiCopyOptions {
-  excludePaths?: (string | RegExp)[]; // full paths incl. baseUrl; default []
-}
-function applyAntiCopy(options?: LarkDocsAntiCopyOptions): AntiCopyHandle;
-```
-Behavior: enabled site-wide by default. Subscribes `Router.on("changed", sync)` (from `@lark.js/mvc`) and runs `sync()` once immediately; `sync` reads `globalThis.location.pathname` (lark-docs uses history mode) and disables when the path is excluded, else enables. `stop()` calls `Router.off("changed", sync)` and `instance.destroy()`. In non-browser it returns early with a no-op `stop()`.
-
-### 3.7 `DOCS_DEFAULT_EXCLUDES` and `isPathExcluded` (`src/common.ts`)
+### 3.4 `DOCS_DEFAULT_EXCLUDES` and `isPathExcluded` (`src/common.ts`)
 
 Shared by both docs integrations:
 ```
@@ -162,9 +115,6 @@ DOCS_DEFAULT_EXCLUDES = [".codeblock", "[role='dialog']", "input", "textarea", "
 ## 5. Operational guidance & lifecycle ordering
 
 - **Core / framework-agnostic:** call `enable()` after mount; call `disable()`/`destroy()` on teardown. Toggle per view yourself. Use `update()` to change config on the fly (respects prior enabled state).
-- **VitePress:** call `applyAntiCopy(ctx, options)` inside the theme's `enhanceApp(ctx)`. Keep the returned handle if you need `stop()` (tests, HMR). The frontmatter watcher toggles across SPA navigations automatically. When consuming raw TS sources in a workspace, add `optimizeDeps.exclude` + `ssr.noExternal` for `@swifty.js/anti-copy` (README).
-- **@swifty.js/docs:** mount `<AntiCopy .../>` once inside `<LocationProvider>` (alongside `<Router>`). Unmounting disables it. Change options by remounting (see §4).
-- **@lark.js/docs:** call `applyAntiCopy(options)` once in `app/boot.ts`, before or after `Framework.boot()`. Call the handle's `stop()` to unsubscribe from `Router` and destroy.
 
 ## 6. Pitfalls / known limitations
 
@@ -194,36 +144,4 @@ const antiCopy = createAntiCopy({
 });
 antiCopy.enable();
 // later: antiCopy.update({ mode: "block" }); antiCopy.disable(); antiCopy.destroy();
-```
-
-**VitePress** (`.vitepress/theme/index.ts`):
-```ts
-import DefaultTheme from "vitepress/theme";
-import { applyAntiCopy } from "@swifty.js/anti-copy/vitepress";
-
-export default {
-  extends: DefaultTheme,
-  enhanceApp(ctx) {
-    applyAntiCopy(ctx, { mode: "replace", devtools: true });
-  },
-};
-// opt a page out with frontmatter:  copyable: true
-```
-
-**@swifty.js/docs** (renderless component inside `<LocationProvider>`):
-```tsx
-import { AntiCopy } from "@swifty.js/anti-copy/swifty-docs";
-
-<LocationProvider>
-  <AntiCopy mode="replace" excludePaths={["/playground"]} devtools />
-  <Router>{/* ... */}</Router>
-</LocationProvider>;
-```
-
-**@lark.js/docs** (`app/boot.ts`):
-```ts
-import { applyAntiCopy } from "@swifty.js/anti-copy/lark-docs";
-
-applyAntiCopy({ mode: "replace", excludePaths: ["/docs/playground"], devtools: true });
-// Framework.boot(config);
 ```

@@ -54,8 +54,8 @@
  *
  * Access to the framework's swap function goes through
  * `globalThis.__lark_react_hmr__` (registered once at the package entry,
- * src/index.ts top level), NOT via import/require of "@lark.js/react". Under
- * Module Federation (`@lark.js/react` shared singleton), ANY import of the
+ * src/index.ts top level), NOT via import/require of "@swifty.js/react". Under
+ * Module Federation (`@swifty.js/react` shared singleton), ANY import of the
  * package inside an HMR callback registers the module as a shared consumer,
  * which causes webpack to mark the main chunk as needing a hot-update it
  * never emits → ChunkLoadError. globalThis sidesteps all module-resolution

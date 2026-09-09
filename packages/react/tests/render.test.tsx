@@ -21,7 +21,7 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { createRoot, render } from "@lark.js/react";
+import { createRoot, render } from "@swifty.js/react";
 import { createContainer } from "./helpers";
 
 describe("render", () => {

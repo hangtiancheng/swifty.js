@@ -27,7 +27,7 @@
  * an unused `@ts-expect-error` directive fails the build.
  */
 
-import type { Ref, VNode } from "@lark.js/react";
+import type { Ref, VNode } from "@swifty.js/react";
 
 export function TypeChecks(): VNode {
   const objRef: { current: HTMLButtonElement | null } = { current: null };

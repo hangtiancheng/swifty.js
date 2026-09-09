@@ -21,9 +21,9 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { createElement, Fragment as IndexFragment } from "@lark.js/react";
-import { Fragment, jsx, jsxs } from "@lark.js/react/jsx-runtime";
-import { jsxDEV } from "@lark.js/react/jsx-dev-runtime";
+import { createElement, Fragment as IndexFragment } from "@swifty.js/react";
+import { Fragment, jsx, jsxs } from "@swifty.js/react/jsx-runtime";
+import { jsxDEV } from "@swifty.js/react/jsx-dev-runtime";
 
 describe("jsx / jsxs", () => {
   it("builds a descriptor with children inside props and empty instance fields", () => {

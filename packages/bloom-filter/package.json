@@ -1,6 +1,6 @@
 {
   "name": "@swifty.js/bloom-filter",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "description": "A standard Bloom Filter implementation in TypeScript",
   "keywords": [
     "bloom-filter",

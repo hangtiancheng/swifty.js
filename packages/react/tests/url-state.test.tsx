@@ -21,15 +21,16 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { createRouter, render, useUrlState } from "@lark.js/react";
-import type { NavigateOptions, RouterApi } from "@lark.js/react";
+import { createRouter, render, useUrlState } from "@swifty.js/react";
+import type { NavigateOptions, RouterApi } from "@swifty.js/react";
 
 function poll(predicate: () => boolean, timeout = 1000): Promise<void> {
   return new Promise((resolve, reject) => {
     const started = Date.now();
     const tick = (): void => {
       if (predicate()) return resolve();
-      if (Date.now() - started > timeout) return reject(new Error("poll timeout"));
+      if (Date.now() - started > timeout)
+        return reject(new Error("poll timeout"));
       setTimeout(tick, 5);
     };
     tick();
@@ -43,7 +44,9 @@ type Patch =
   | Record<string, string>
   | ((prev: Record<string, string>) => Record<string, string>);
 let lastSet: ((patch: Patch, options?: NavigateOptions) => void) | undefined;
-const setterIdentities: Array<(patch: Patch, options?: NavigateOptions) => void> = [];
+const setterIdentities: Array<
+  (patch: Patch, options?: NavigateOptions) => void
+> = [];
 
 function Pager(props: { defaults?: Record<string, string> }) {
   const [params, setParams] = useUrlState(
@@ -59,7 +62,10 @@ function mountPager(defaults?: Record<string, string>): void {
 }
 
 function shown(): Record<string, string> {
-  return JSON.parse(host.querySelector("p")!.textContent!) as Record<string, string>;
+  return JSON.parse(host.querySelector("p")!.textContent!) as Record<
+    string,
+    string
+  >;
 }
 
 beforeEach(() => {
@@ -79,7 +85,9 @@ afterEach(() => {
 
 describe("useUrlState (component hook)", () => {
   it("throws outside a component body (real hook)", () => {
-    expect(() => useUrlState({ page: "1" })).toThrow(/inside a function component/);
+    expect(() => useUrlState({ page: "1" })).toThrow(
+      /inside a function component/,
+    );
   });
 
   it("returns defaults when the URL has no params", () => {

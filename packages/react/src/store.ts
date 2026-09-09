@@ -21,7 +21,7 @@
  */
 
 /**
- * @lark.js/react Store
+ * @swifty.js/react Store
  *
  * Zustand-aligned state management (vanilla-store style).
  *
@@ -67,7 +67,10 @@ export interface StoreApi<T = object> {
 }
 
 type StateCreator<T> = (
-  set: (partial: Partial<T> | ((prev: T) => Partial<T>), replace?: boolean) => void,
+  set: (
+    partial: Partial<T> | ((prev: T) => Partial<T>),
+    replace?: boolean,
+  ) => void,
   get: () => T,
 ) => T;
 
@@ -101,7 +104,9 @@ const storeInternals = new WeakMap<object, { version(): number }>();
  * }));
  * ```
  */
-export function createStore<T extends object>(creator: StateCreator<T>): StoreApi<T> {
+export function createStore<T extends object>(
+  creator: StateCreator<T>,
+): StoreApi<T> {
   /** Listeners notified on every state change. */
   const listeners = new Set<Listener<T>>();
   /** Plain state keys (writable through setState; `replace` resets these). */
@@ -147,7 +152,10 @@ export function createStore<T extends object>(creator: StateCreator<T>): StoreAp
    * new state slots. With `replace: true`, plain state keys missing from
    * the partial are reset to `undefined`.
    */
-  const setState = (partial: Partial<T> | ((prev: T) => Partial<T>), replace?: boolean): void => {
+  const setState = (
+    partial: Partial<T> | ((prev: T) => Partial<T>),
+    replace?: boolean,
+  ): void => {
     if (destroyed) return;
     const resolved = typeof partial === "function" ? partial(proxy) : partial;
 

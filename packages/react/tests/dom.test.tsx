@@ -22,8 +22,8 @@
 
 import type { CSSProperties } from "react";
 import { describe, expect, it, vi } from "vitest";
-import { createElement, render } from "@lark.js/react";
-import type { Ref } from "@lark.js/react";
+import { createElement, render } from "@swifty.js/react";
+import type { Ref } from "@swifty.js/react";
 import { click, createContainer } from "./helpers";
 
 const SVG_NS = "http://www.w3.org/2000/svg";

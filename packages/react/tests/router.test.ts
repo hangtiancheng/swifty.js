@@ -21,8 +21,13 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { createRouter, matchPath, matchRoutes, useRouter } from "@lark.js/react";
-import type { RouteObject, RouterApi } from "@lark.js/react";
+import {
+  createRouter,
+  matchPath,
+  matchRoutes,
+  useRouter,
+} from "@swifty.js/react";
+import type { RouteObject, RouterApi } from "@swifty.js/react";
 
 const Home = (): null => null;
 const User = (): null => null;
@@ -34,7 +39,8 @@ function poll(predicate: () => boolean, timeout = 1000): Promise<void> {
     const started = Date.now();
     const tick = (): void => {
       if (predicate()) return resolve();
-      if (Date.now() - started > timeout) return reject(new Error("poll timeout"));
+      if (Date.now() - started > timeout)
+        return reject(new Error("poll timeout"));
       setTimeout(tick, 5);
     };
     tick();

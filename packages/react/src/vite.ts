@@ -21,12 +21,12 @@
  */
 
 /**
- * @lark.js/react Vite plugin — zero-config JSX + state-preserving HMR.
+ * @swifty.js/react Vite plugin — zero-config JSX + state-preserving HMR.
  *
  * 1. **JSX transform defaults** — configures the esbuild automatic JSX
- *    runtime with `jsxImportSource: "@lark.js/react"` (unless the user
+ *    runtime with `jsxImportSource: "@swifty.js/react"` (unless the user
  *    already set one), so `.tsx` / `.jsx` files compile against
- *    `@lark.js/react/jsx-runtime` without tsconfig/vite tweaking.
+ *    `@swifty.js/react/jsx-runtime` without tsconfig/vite tweaking.
  * 2. **Component HMR** — auto-injects state-preserving HMR into every
  *    `.tsx` / `.jsx` module with a line-leading default export. Editing a
  *    component hot-swaps all live instances in place (`useState`/`useRef`
@@ -40,7 +40,7 @@
  *
  * Usage in vite.config.ts:
  * ```ts
- * import { larkReactPlugin } from "@lark.js/react/vite";
+ * import { larkReactPlugin } from "@swifty.js/react/vite";
  *
  * export default defineConfig({
  *   plugins: [larkReactPlugin()],
@@ -58,14 +58,14 @@ const COMPONENT_MODULE_ID_REGEXP = /\.[jt]sx$/;
  * Transform a component module source to add Vite component HMR.
  *
  * Thin wrapper over the shared bundler-agnostic injector (./hmr-inject) —
- * kept as the public 1-arg API of "@lark.js/react/vite".
+ * kept as the public 1-arg API of "@swifty.js/react/vite".
  */
 export function injectComponentHmrSnippet(source: string): string {
   return injectShared(source, "vite");
 }
 
 /**
- * Create the @lark.js/react Vite plugin.
+ * Create the @swifty.js/react Vite plugin.
  *
  * @returns Vite plugin instance
  */
@@ -86,7 +86,7 @@ export function larkReactPlugin(): Plugin {
       if (esbuild?.jsx === "preserve") return undefined;
       const patch: { jsx?: "automatic"; jsxImportSource?: string } = {};
       if (!esbuild?.jsx) patch.jsx = "automatic";
-      if (!esbuild?.jsxImportSource) patch.jsxImportSource = "@lark.js/react";
+      if (!esbuild?.jsxImportSource) patch.jsxImportSource = "@swifty.js/react";
       if (Object.keys(patch).length === 0) return undefined;
       return { esbuild: patch };
     },

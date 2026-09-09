@@ -66,7 +66,10 @@ function createSetter<S extends Record<string, string>>(
 ): SetUrlState<S> {
   return (patch, options) => {
     const current = router.searchParams;
-    const resolved = typeof patch === "function" ? patch(readValues(current, defaults)) : patch;
+    const resolved =
+      typeof patch === "function"
+        ? patch(readValues(current, defaults))
+        : patch;
     const next = new URLSearchParams(current);
     for (const key of Object.keys(resolved)) {
       const val = resolved[key];
@@ -76,7 +79,11 @@ function createSetter<S extends Record<string, string>>(
     const search = next.toString();
     const loc = router.location;
     void router.navigate(
-      { pathname: loc.pathname, search: search ? `?${search}` : "", hash: loc.hash },
+      {
+        pathname: loc.pathname,
+        search: search ? `?${search}` : "",
+        hash: loc.hash,
+      },
       options,
     );
   };

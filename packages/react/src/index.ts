@@ -29,7 +29,7 @@ import type { Root } from "./hooks";
 
 // Global HMR handle — THE single registration point. Auto-injected HMR
 // snippets (see ./vite.ts) call it via `globalThis.__lark_react_hmr__`
-// instead of importing "@lark.js/react" (an import inside an HMR callback
+// instead of importing "@swifty.js/react" (an import inside an HMR callback
 // would register the module as an MF shared consumer → ChunkLoadError).
 const globalScope = globalThis as {
   __lark_react_hmr__?: { hotSwapByComponent: typeof hotSwapByComponent };

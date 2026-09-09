@@ -25,7 +25,7 @@ import type { UserConfig } from "vite";
 import {
   injectComponentHmrSnippet,
   larkReactPlugin,
-} from "@lark.js/react/vite";
+} from "@swifty.js/react/vite";
 
 function callConfig(userConfig: UserConfig): UserConfig | undefined {
   const plugin = larkReactPlugin();
@@ -93,7 +93,7 @@ describe("injectComponentHmrSnippet", () => {
 describe("larkReactPlugin.config", () => {
   it("defaults the esbuild JSX transform to the lark automatic runtime", () => {
     expect(callConfig({})).toEqual({
-      esbuild: { jsx: "automatic", jsxImportSource: "@lark.js/react" },
+      esbuild: { jsx: "automatic", jsxImportSource: "@swifty.js/react" },
     });
   });
 

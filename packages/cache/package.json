@@ -50,7 +50,7 @@
     "dev": "node ./dev.js",
     "prepublishOnly": "pnpm clean && pnpm build",
     "test": "vitest run",
-    "format": "prettier -w ./"
+    "format": "prettier -w ./ --experimental-cli"
   },
   "dependencies": {
     "@grpc/grpc-js": "^1.14.4",

@@ -21,7 +21,7 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { render, useState } from "@lark.js/react";
+import { render, useState } from "@swifty.js/react";
 import { click, createContainer, flush } from "./helpers";
 
 function Item(props: { label: string }) {
