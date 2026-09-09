@@ -1,6 +1,6 @@
 ---
 name: swifty-anti-copy
-description: 'Authoritative reference for @swifty.js/anti-copy (packages/anti-copy, MIT, v0.0.7), a framework-agnostic browser copy/print/DevTools protection SDK shipped as an ESM+CJS dual build with a SINGLE root entry (`.`) — the former docs-site subpath integrations (`./vitepress`, `./swifty-docs`, `./lark-docs`, `applyAntiCopy`, the `<AntiCopy>` component, `excludePaths`, `isPathExcluded`, `copyable` frontmatter) have been REMOVED from the codebase; do not reference them in new code. Use this skill whenever the user reads, writes, debugs, reviews, or extends code under `packages/anti-copy/src/**`, imports from `@swifty.js/anti-copy`, or works with copy-protection concepts. Trigger eagerly on these symbols and tokens — `createAntiCopy`, `AntiCopyInstance`, `AntiCopyOptions`, `AntiCopyMode`, `DevtoolsOptions`, `ViolationEvent`, `ViolationType`, `DEFAULT_REPLACE_TEXT`, `isBrowser`, options `mode`/`replaceText`/`excludeSelectors`/`copy`/`keyboard`/`contextmenu`/`selectStyle`/`print`/`devtools`/`onViolation`/`target`, `mode: "block"`/`"replace"`, devtools `intervalMs`/`threshold`/`freeze`/`redirectUrl`, violation types `copy`/`cut`/`drag`/`selection`/`keyboard`/`contextmenu`/`print`/`devtools`. Also trigger on phrases like "disable right-click", "block copy/paste", "prevent copying", "detect DevTools", "anti-copy", "protect page content". Do NOT use for the ACTUAL text-selection/copy features of a docs site (that is swifty-docs / lark-docs / lark-mvc), for the Go sibling repo skills (swifty-http, swifty-rpc, swifty-orm, swifty-cache Go), or for @swifty.js/cache.'
+description: 'Authoritative reference for @swifty.js/anti-copy (packages/anti-copy, MIT, v0.0.7), a framework-agnostic browser copy/print/DevTools protection SDK shipped as an ESM+CJS dual build with a SINGLE root entry (`.`) — the former docs-site subpath integrations (`applyAntiCopy`, the `<AntiCopy>` component, `excludePaths`, `isPathExcluded`, `copyable` frontmatter) have been REMOVED from the codebase; do not reference them in new code. Use this skill whenever the user reads, writes, debugs, reviews, or extends code under `packages/anti-copy/src/**`, imports from `@swifty.js/anti-copy`, or works with copy-protection concepts. Trigger eagerly on these symbols and tokens — `createAntiCopy`, `AntiCopyInstance`, `AntiCopyOptions`, `AntiCopyMode`, `DevtoolsOptions`, `ViolationEvent`, `ViolationType`, `DEFAULT_REPLACE_TEXT`, `isBrowser`, options `mode`/`replaceText`/`excludeSelectors`/`copy`/`keyboard`/`contextmenu`/`selectStyle`/`print`/`devtools`/`onViolation`/`target`, `mode: "block"`/`"replace"`, devtools `intervalMs`/`threshold`/`freeze`/`redirectUrl`, violation types `copy`/`cut`/`drag`/`selection`/`keyboard`/`contextmenu`/`print`/`devtools`. Also trigger on phrases like "disable right-click", "block copy/paste", "prevent copying", "detect DevTools", "anti-copy", "protect page content". Do NOT use for the ACTUAL text-selection/copy features of a docs site (that is swifty-docs / lark-docs / lark-react-signal), for the Go sibling repo skills (swifty-http, swifty-rpc, swifty-orm, swifty-cache Go), or for @swifty.js/cache.'
 ---
 
 # @swifty.js/anti-copy — Browser Copy / Print / DevTools Protection
@@ -43,6 +43,7 @@ function createAntiCopy(options?: AntiCopyOptions): AntiCopyInstance;
 ```
 
 `AntiCopyInstance`:
+
 - `enable(): void` — attach all configured protections. Idempotent (no-op if already enabled or destroyed).
 - `disable(): void` — detach all listeners, remove injected styles, stop detectors. Idempotent.
 - `destroy(): void` — `disable()` then permanently retire; further `enable`/`update` are no-ops (`features` cleared).
@@ -51,53 +52,59 @@ function createAntiCopy(options?: AntiCopyOptions): AntiCopyInstance;
 
 ### 3.2 `AntiCopyOptions` — every field with its EXACT default
 
-| Option | Type | Default | Behavior |
-| --- | --- | --- | --- |
-| `mode` | `"block" \| "replace"` | `"block"` | `"block"` cancels copy/cut; `"replace"` lets it proceed but swaps the clipboard payload for `replaceText`. |
-| `replaceText` | `string \| ((selection: string) => string)` | `DEFAULT_REPLACE_TEXT` = `"Copying is not allowed on this page."` | Payload used in `"replace"` mode. Function receives current selection text. |
-| `excludeSelectors` | `string[]` | `[]` | CSS selectors for regions where protection is bypassed; the event target is matched via `Element.closest`. Invalid selectors are dropped, never fatal. |
-| `copy` | `boolean` | `true` | Intercept `copy` / `cut` events and text/image drag-out (`dragstart`). |
-| `keyboard` | `boolean` | `true` | Intercept copy-related, export, DevTools, and view-source keyboard shortcuts. |
-| `contextmenu` | `boolean` | `true` | Suppress the context menu. |
-| `selectStyle` | `boolean` | **mode-dependent:** `true` in `"block"` mode, `false` in `"replace"` mode | Inject `user-select: none` stylesheet + block `selectstart`. Resolved as `options.selectStyle ?? options.mode !== "replace"` (replacement needs a live selection). |
-| `print` | `boolean` | `true` | Hide `body` in print output via `@media print`, report via `beforeprint`, and block `Ctrl/Cmd+P` / `Ctrl/Cmd+S` (keyboard export keys are gated on this flag). |
-| `devtools` | `boolean \| DevtoolsOptions` | `false` | Enable DevTools detection + countermeasures. `true` uses all `DevtoolsOptions` defaults. |
-| `onViolation` | `(event: ViolationEvent) => void` | `undefined` | Called every time a protection rule fires. |
-| `target` | `Document` | `document` | Document to attach to; injectable for tests/iframes. |
+| Option             | Type                                        | Default                                                                   | Behavior                                                                                                                                                           |
+| ------------------ | ------------------------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `mode`             | `"block" \| "replace"`                      | `"block"`                                                                 | `"block"` cancels copy/cut; `"replace"` lets it proceed but swaps the clipboard payload for `replaceText`.                                                         |
+| `replaceText`      | `string \| ((selection: string) => string)` | `DEFAULT_REPLACE_TEXT` = `"Copying is not allowed on this page."`         | Payload used in `"replace"` mode. Function receives current selection text.                                                                                        |
+| `excludeSelectors` | `string[]`                                  | `[]`                                                                      | CSS selectors for regions where protection is bypassed; the event target is matched via `Element.closest`. Invalid selectors are dropped, never fatal.             |
+| `copy`             | `boolean`                                   | `true`                                                                    | Intercept `copy` / `cut` events and text/image drag-out (`dragstart`).                                                                                             |
+| `keyboard`         | `boolean`                                   | `true`                                                                    | Intercept copy-related, export, DevTools, and view-source keyboard shortcuts.                                                                                      |
+| `contextmenu`      | `boolean`                                   | `true`                                                                    | Suppress the context menu.                                                                                                                                         |
+| `selectStyle`      | `boolean`                                   | **mode-dependent:** `true` in `"block"` mode, `false` in `"replace"` mode | Inject `user-select: none` stylesheet + block `selectstart`. Resolved as `options.selectStyle ?? options.mode !== "replace"` (replacement needs a live selection). |
+| `print`            | `boolean`                                   | `true`                                                                    | Hide `body` in print output via `@media print`, report via `beforeprint`, and block `Ctrl/Cmd+P` / `Ctrl/Cmd+S` (keyboard export keys are gated on this flag).     |
+| `devtools`         | `boolean \| DevtoolsOptions`                | `false`                                                                   | Enable DevTools detection + countermeasures. `true` uses all `DevtoolsOptions` defaults.                                                                           |
+| `onViolation`      | `(event: ViolationEvent) => void`           | `undefined`                                                               | Called every time a protection rule fires.                                                                                                                         |
+| `target`           | `Document`                                  | `document`                                                                | Document to attach to; injectable for tests/iframes.                                                                                                               |
 
 `DevtoolsOptions` (used when `devtools` is an object; `devtools: true` uses all defaults):
 
-| Field | Type | Default | Meaning |
-| --- | --- | --- | --- |
-| `intervalMs` | `number` | `1000` | Poll interval (ms) for the slow detection loop. |
-| `threshold` | `number` | `170` | Min px difference between window outer and inner size treated as "DevTools docked". |
-| `freeze` | `boolean` | `true` | Re-run the anonymous `debugger` probe in a tight loop to stall the page while DevTools is open. |
+| Field         | Type              | Default         | Meaning                                                                                                                                         |
+| ------------- | ----------------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `intervalMs`  | `number`          | `1000`          | Poll interval (ms) for the slow detection loop.                                                                                                 |
+| `threshold`   | `number`          | `170`           | Min px difference between window outer and inner size treated as "DevTools docked".                                                             |
+| `freeze`      | `boolean`         | `true`          | Re-run the anonymous `debugger` probe in a tight loop to stall the page while DevTools is open.                                                 |
 | `redirectUrl` | `string \| false` | `"about:blank"` | Page to navigate to when a confirmed stall is neutralized while DevTools stays open. Requires `freeze`; `false` disables the redirect fallback. |
 
 ### 3.3 `ViolationType` and `ViolationEvent`
 
 ```ts
 type ViolationType =
-  | "copy" | "cut" | "drag" | "selection"
-  | "keyboard" | "contextmenu" | "print" | "devtools";
+  | "copy"
+  | "cut"
+  | "drag"
+  | "selection"
+  | "keyboard"
+  | "contextmenu"
+  | "print"
+  | "devtools";
 
 interface ViolationEvent {
   type: ViolationType;
   originalEvent?: Event; // absent for "devtools" and "print" detections
-  key?: string;          // e.g. "Ctrl+Shift+I", "F12", "Ctrl+C", "Cmd+P", "Insert" — keyboard only
+  key?: string; // e.g. "Ctrl+Shift+I", "F12", "Ctrl+C", "Cmd+P", "Insert" — keyboard only
 }
 ```
 
 ## 4. Internal implementation details affecting correct usage
 
-- **Enable rollback on partial attach failure** (`index.ts` `enable()`): each feature is pushed to an `attached` list *before* its `attach()` runs; if any `attach()` throws, every already-tracked feature is `detach()`-ed (best-effort, detach is idempotent) and the error rethrown, so a half-attached run never leaks listeners or an orphan stylesheet. `enabled` stays `false`. Verified by the lifecycle test.
+- **Enable rollback on partial attach failure** (`index.ts` `enable()`): each feature is pushed to an `attached` list _before_ its `attach()` runs; if any `attach()` throws, every already-tracked feature is `detach()`-ed (best-effort, detach is idempotent) and the error rethrown, so a half-attached run never leaks listeners or an orphan stylesheet. `enabled` stays `false`. Verified by the lifecycle test.
 - **`disable()` detaches all features even if one throws**, remembering the first error and rethrowing it after every `detach()` has run.
 - **`update()` ordering** (`disable → merge → rebuild → enable`): captures `wasEnabled`, calls `disable()`, deep-merges options via `mergeOptions` (spread merge, plus a nested spread-merge of the `devtools` object when both current and patch have object `devtools`), rebuilds the feature list with `buildFeatures`, then re-`enable()`s **only if it was enabled before**. So `update()` on a disabled instance keeps it disabled. `update()` after `destroy()` is a no-op. Note `mergeOptions` replaces all non-`devtools` fields wholesale (arrays like `excludeSelectors` are overwritten, not concatenated).
 - **`excludeSelectors` matching** uses `el.closest(selector)` walking up ancestors and across open shadow-root hosts (`isExcluded` in `utils.ts`). For copy/cut, `isSelectionExcluded` is preferred: a selection spanning excluded + protected content is NOT exempt (every range must be inside an excluded region); it returns `null` (fall back to target check) when there is no non-collapsed selection. `dragstart` is judged by the drag TARGET only — the drag payload is the dragged node, so a leftover selection inside an excluded region must not exempt dragging protected content. Editable controls (`<input>` text types, `<textarea>`, `contenteditable`) always keep native behavior. Invalid selectors are silently skipped — and in `style.ts` they are filtered via `querySelector` BEFORE building the grouped CSS rule, because per the CSS spec one invalid selector invalidates the whole rule and would silently kill the editable-control exemptions along with it.
 - **Keyboard shortcut matching** (`matchKey` in `keyboard.ts`) unions the layout character (`e.key`) and the physical key (`e.code`, `Key*` only). Either alone is bypassable: `e.key` misses non-Latin layouts (Cyrillic "с") and macOS Option dead keys; `e.code` misses remapped Latin layouts (AZERTY/Dvorak, where the browser acts on `e.key`). The union may over-block (AZERTY Ctrl+Q on physical KeyA) — the safe direction for copy protection. Windows AltGr (reports ctrlKey+altKey) is typed-character input, not a shortcut, so any combo with Alt is passed through after the DevTools combos are checked.
 - **Keyboard scope details:** export keys (`S`/`P`) are gated on `options.print` and are blocked even inside editable or excluded regions (save/print leak the whole page regardless of focus). In `"replace"` mode `Ctrl/Cmd+C` and `Ctrl+Insert` are deliberately allowed through so the subsequent `copy` event can perform the substitution.
 - **SSR no-op instance** (`NOOP_INSTANCE` in `index.ts`): when `isBrowser()` is false, `createAntiCopy` returns a shared object whose `enable`/`disable`/`destroy`/`update` are no-ops and `isEnabled()` returns `false`. `isBrowser()` = `typeof window !== "undefined" && typeof document !== "undefined"`.
-- **Capture-phase on `window`** (`doc.defaultView ?? doc`): clipboard, keyboard, contextmenu, and selectstart listeners register with `capture: true` on the outermost target so page scripts on `document` cannot pre-empt protection. A script that registers on `window` *before* this library still can.
+- **Capture-phase on `window`** (`doc.defaultView ?? doc`): clipboard, keyboard, contextmenu, and selectstart listeners register with `capture: true` on the outermost target so page scripts on `document` cannot pre-empt protection. A script that registers on `window` _before_ this library still can.
 - **`"replace"` mode specifics** (`clipboard.ts`): sets both `text/plain` and escaped `text/html` on `clipboardData` and calls `preventDefault()` (mandatory, else the browser re-fills the payload).
 - **DevTools detection/countermeasures** (`devtools.ts`, `PAUSE_THRESHOLD_MS=100`, `GUARD_INTERVAL_MS=20`, `BYPASS_MAX_TICKS=25` ≈ 500ms): the slow poll (`intervalMs`) combines a size heuristic (`outerWidth/Height - innerWidth/Height > threshold`, but disabled when `outerWidth < 800` or pointer is coarse) with a `debugger` probe timing. Only a **probe-confirmed pause** escalates to the tight guard loop (freeze) and the eventual redirect. A **size-only** detection (browser zoom, unusual chrome) is report-only via `onViolation({ type: "devtools" })` and never freezes or redirects. The probe is built via `Function("debugger")` (shows as `(function anonymous() { debugger })`), falling back to a literal `debugger;` statement under CSP. Redirect targets `(view.top ?? view).location.href`, falling back to `view.location.href` for cross-origin top windows. `attach()` also registers a `resize` listener (docked DevTools change the viewport on open/close), and the guard loop drops back to slow polling once the probe stops pausing AND the size heuristic reads closed.
 
