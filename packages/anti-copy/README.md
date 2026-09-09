@@ -1,6 +1,7 @@
 # @swifty.js/anti-copy
 
-Framework-agnostic copy-protection SDK for browsers, with VitePress and @swifty.js/docs integrations.
+Framework-agnostic copy-protection SDK for browsers — React, Vue, plain HTML,
+any browser project.
 
 > **Disclaimer**: client-side copy protection is a _deterrent_, not a
 > security boundary. Content remains accessible via view-source, disabled
@@ -9,9 +10,10 @@ Framework-agnostic copy-protection SDK for browsers, with VitePress and @swifty.
 ## Features
 
 - Intercepts `copy` / `cut` / `dragstart` events (capture phase, on `window`)
-- Blocks copy shortcuts by **physical key** (`e.code`), so non-Latin keyboard
-  layouts cannot bypass: `Ctrl/Cmd + C/X/A`, `Ctrl+Insert`, and DevTools /
-  view-source shortcuts (`F12`, `Ctrl+Shift+I/J/C`, `Cmd+Opt+I/J/C`, `Ctrl+U`,
+- Blocks copy shortcuts by both the layout character (`e.key`) and the
+  physical key (`e.code`), so non-Latin and remapped keyboard layouts cannot
+  bypass: `Ctrl/Cmd + C/X/A`, `Ctrl+Insert`, and DevTools / view-source
+  shortcuts (`F12`, `Ctrl+Shift+I/J/C`, `Cmd+Opt+I/J/C`, `Ctrl+U`,
   `Cmd+Opt+U`)
 - Blocks export shortcuts (`Ctrl/Cmd + S/P`) and hides content in print
   output via `@media print` (menu-initiated printing included)
@@ -24,16 +26,15 @@ Framework-agnostic copy-protection SDK for browsers, with VitePress and @swifty.
   probe timing, which also catches undocked windows), stalls the page with an
   anonymous `(function anonymous() { debugger })` probe loop while open, and
   redirects to a blank page when the stall is neutralized (e.g. by a
-  userscript)
+  userscript). Size-only detections (e.g. browser zoom) are report-only and
+  never freeze or redirect the page.
 - Region exemptions via CSS selectors, judged against the **whole selection**
   (a selection spanning excluded and protected content stays blocked);
   editable controls always keep native behavior, incl. inside open shadow roots
+- SSR-safe: in non-browser environments `createAntiCopy` returns an inert
+  no-op instance
 
-## Core usage (framework agnostic)
-
-The framework-agnostic core (`src/index.ts`, the package root export) has
-zero framework dependencies and integrates into any browser project — React,
-Vue, plain HTML, ...:
+## Usage
 
 ```ts
 import { createAntiCopy } from "@swifty.js/anti-copy";
@@ -50,8 +51,8 @@ antiCopy.enable();
 // antiCopy.disable(); antiCopy.destroy(); antiCopy.update({...});
 ```
 
-`createAntiCopy` is SSR-safe: in non-browser environments it returns an
-inert no-op instance.
+Call `enable()` after mount and `disable()` / `destroy()` on teardown; toggle
+per view yourself. The package root is the only entry point.
 
 ### Options
 
@@ -72,8 +73,8 @@ inert no-op instance.
 Violation types: `copy`, `cut`, `drag`, `selection`, `keyboard`,
 `contextmenu`, `print`, `devtools`.
 
-`update(patch)` deep-merges the nested `devtools` object; other fields are
-replaced wholesale.
+`update(patch)` deep-merges the nested `devtools` object; other fields
+(including arrays like `excludeSelectors`) are replaced wholesale.
 
 ### DevTools protection
 
@@ -83,8 +84,8 @@ replaced wholesale.
    and the elapsed time around an anonymous `(function anonymous() { debugger })`
    probe, which only takes measurable time while a debugger is attached. The
    probe also catches undocked DevTools windows the size heuristic cannot see.
-2. **Stall (`freeze: true` by default)** — once DevTools is detected, a tight
-   guard loop keeps running the probe, so execution pauses over and over and
+2. **Stall (`freeze: true` by default)** — once the probe confirms a pause, a
+   tight guard loop keeps running it, so execution pauses over and over and
    the page is effectively frozen until DevTools is closed.
 3. **Blank-page redirect (`redirectUrl: "about:blank"` by default)** — if
    DevTools stays open while the probe no longer pauses (the stall was
@@ -93,64 +94,8 @@ replaced wholesale.
    short grace window. Set `redirectUrl: false` to keep only the stall, or
    `freeze: false` for report-only detection via `onViolation`.
 
-## VitePress integration
-
-```ts
-// .vitepress/theme/index.ts
-import DefaultTheme from "vitepress/theme";
-import { applyAntiCopy } from "@swifty.js/anti-copy/vitepress";
-
-export default {
-  extends: DefaultTheme,
-  enhanceApp(ctx) {
-    applyAntiCopy(ctx, { mode: "replace", devtools: true });
-  },
-};
-```
-
-- Enabled site-wide by default; code blocks, the copy button, inputs and the
-  local search box are exempt (`VITEPRESS_DEFAULT_EXCLUDES`).
-- Opt out per page with frontmatter:
-
-  ```yaml
-  ---
-  copyable: true
-  ---
-  ```
-
-- Toggles automatically across SPA navigations via the reactive route data.
-- Returns `{ instance, stop }` — call `stop()` to remove the watcher and all
-  listeners (useful in tests or HMR-heavy setups).
-
-When consuming the package as raw TypeScript sources inside a workspace,
-add to the VitePress `vite` config:
-
-```ts
-vite: {
-  optimizeDeps: { exclude: ["@swifty.js/anti-copy"] },
-  ssr: { noExternal: ["@swifty.js/anti-copy"] },
-}
-```
-
-## @swifty.js/docs integration
-
-Mount the renderless `AntiCopy` component anywhere inside @swifty.js/docs's
-`<LocationProvider>`:
-
-```tsx
-import { AntiCopy } from "@swifty.js/anti-copy/swifty-docs";
-
-<LocationProvider>
-  <AntiCopy mode="replace" excludePaths={["/playground"]} devtools />
-  <Router>...</Router>
-</LocationProvider>;
-```
-
-- Code blocks (`.codeblock`), dialogs (`[role="dialog"]`, incl. the search
-  palette) and editable controls are exempt (`SWIFTY_DOCS_DEFAULT_EXCLUDES`).
-- Opt out per route with `excludePaths` (string prefix or RegExp; trailing
-  slashes are normalized on both sides); protection toggles automatically on
-  client-side navigation.
+Detections triggered by the size heuristic alone (browser zoom, unusual
+window chrome) are **report-only**: they never freeze or redirect the page.
 
 ## Known limitations
 
@@ -158,13 +103,16 @@ By design (client-side JS cannot prevent these):
 
 - View-source, `curl`, reader mode, disabled JavaScript.
 - Undocked DevTools with deactivated breakpoints are indistinguishable from
-  closed DevTools; browser zoom may cause devtools-detector false positives —
-  with countermeasures enabled, a sustained false positive ends in a redirect.
-- Scripts registered on `window` before this plugin can pre-empt the
-  capture-phase listeners.
+  closed DevTools.
+- The size heuristic is disabled on narrow windows (`outerWidth < 800`) and
+  coarse-pointer (touch) devices, where the outer/inner delta is meaningless.
+- Scripts registered on `window` before this library can pre-empt the
+  capture-phase listeners — load it as early as possible.
 
-## Testing
+## Build & test
 
 ```sh
-pnpm test
+pnpm build      # rollup → dist/ (ESM + CJS + d.ts)
+pnpm test       # vitest (jsdom)
+pnpm typecheck  # tsc --noEmit
 ```
