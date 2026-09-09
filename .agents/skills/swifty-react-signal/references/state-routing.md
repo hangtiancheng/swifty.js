@@ -37,8 +37,8 @@ signal that the same tracked region reads throws `Cycle detected`.
 
 **Signals are the ONLY reactive mechanism** — no event emitters, no deps
 arrays, no error-swallowing wrappers. Cross-component state has ONE answer:
-`createStore` (the State singleton is removed — simple shared values are
-small stores or plain module-level `signal()`s).
+`createStore`; simple shared values are small stores or plain module-level
+`signal()`s.
 
 ## createStore / computed (anonymous, zustand-aligned)
 

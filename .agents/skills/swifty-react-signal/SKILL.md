@@ -1,7 +1,7 @@
 ---
 name: swifty-react-signal
 description: >-
-  Authoritative reference for @swifty.js/react-signal (v0.0.32+, signals-only,
+  Authoritative reference for @swifty.js/react-signal (v0.0.36, signals-only,
   react-router-aligned, factory router), the functional-first TypeScript
   frontend framework located at packages/react-signal — plain function
   components ((props) => JSX, body re-runs per render, hostless instances
@@ -19,26 +19,28 @@ description: >-
   matching, navigate(to, {replace, state}), async block()/useBlocker,
   <RouterView/> outlet with per-route lazy() dedup, useRouter() active
   instance), anonymous zustand-aligned createStore(creator) with
-  auto-tracked computed and selector subscribe, and Vite/Webpack
-  plugins with auto-injected state-preserving component HMR
-  (hotSwapByComponent, registered once at the index entry). Use this skill
-  whenever the user reads, writes, debugs, reviews, or extends code that
-  imports from "@swifty.js/react-signal" (or any sub-path like /vite, /webpack,
-  /jsx-runtime, /client), works under packages/react-signal or
-  packages/swifty-storybook, or mentions any of these symbols and concepts —
-  render, unmount, FC, useSignal, useComputed, useSignalEffect, useEffect,
-  onCleanup, createRouter, RouterView, useRouter, useBlocker, useUrlState,
-  matchRoutes, RouteObject, createStore, raw, swiftyReactSignalPlugin, SwiftyReactSignalPlugin,
-  hotSwapByComponent, or "why doesn't my component re-render". Even if the
-  user just says "add a page/view/component to the Swifty app", consult this
-  skill first.
+  auto-tracked computed and selector subscribe, and Vite/Webpack plugins
+  with auto-injected state-preserving component HMR (hotSwapByComponent,
+  registered once at the index entry). Use this skill whenever the user
+  reads, writes, debugs, reviews, or extends code that imports from
+  "@swifty.js/react-signal" (or any sub-path like /vite, /webpack,
+  /jsx-runtime, /client), works under packages/react-signal, or mentions
+  any of these symbols — render, unmount, FC, useSignal, useComputed,
+  useSignalEffect, useEffect, onCleanup, createRouter, RouterView,
+  useRouter, useBlocker, useUrlState, matchRoutes, RouteObject, createStore,
+  raw, swiftyReactSignalPlugin, SwiftyReactSignalPlugin, hotSwapByComponent
+  — or asks "why doesn't my component re-render". Even if the user just
+  says "add a page/view/component to the Swifty app", consult this skill
+  first. SWR-style async server state is intentionally OUT of this package
+  (a future dedicated package built on the same signals).
 ---
 
 # swifty-react-signal Framework (`@swifty.js/react-signal`)
 
 A lightweight, functional-first TypeScript framework for SPAs and
-micro-frontends. Source: `packages/react-signal` (v0.0.32+, ESM+CJS dual build,
-one runtime dependency: `@preact/signals-core`).
+micro-frontends. Source: `packages/react-signal` (v0.0.36, ESM+CJS dual
+build; reactive core re-exported from `@preact/signals-core`, the typed JSX
+attribute layer is sourced type-only from `preact`).
 
 Core philosophy: **no `class`, no `this`, no `prototype`, no mixin — and
 signals are the ONLY reactive mechanism**: no event emitters, no deps
@@ -50,23 +52,23 @@ VNode → DOM reconciler** (comment end-anchors, NO wrapper elements — output
 DOM identical to React's). The router is a **factory**
 (`createRouter(routes)`, no module singleton) mirroring react-router's data
 model, with a `<RouterView/>` outlet. Cross-component state has one answer:
-anonymous `createStore`. There is **no Framework/boot object, no State
-singleton, no useMemo/useEffect-deps, no
-Router.to/parse/beforeEach, no createQuery/createService** — all removed;
-code still using them predates the rewrite and must be migrated.
+anonymous `createStore`. There is **no Framework/boot object** — an app
+boots with `render(<RouterView router={r}/>, container)` (routed) or
+`render(<App/>, container)` (plain).
 
 ## Package entry points
 
 | Import                                    | Provides                                                                                                                                                                                                                                                                                                                                                                                              |
 | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `@swifty.js/react-signal`                 | Runtime: `render`, `unmount`, `signal`, `computed`, `effect`, `batch`, `untracked`, `Signal`, hooks (`useSignal`, `useRef`, `useComputed`, `useSignalEffect`, `useEffect` mount-only, `onCleanup`), `createRouter`/`RouterView`/`useRouter`/`useBlocker`/`matchPath`/`matchRoutes`, `createStore`, `useUrlState`, `hotSwapByComponent`, all types (`FC`, `Location`, `RouteObject`, `RouterApi`, ...) |
+| `@swifty.js/react-signal`                 | Runtime: `render`, `unmount`, `signal`, `computed`, `effect`, `batch`, `untracked`, `Signal`, hooks (`useSignal`, `useRef`, `useComputed`, `useSignalEffect`, `useEffect` mount-only, `onCleanup`), `createRouter`/`RouterView`/`useRouter`/`useBlocker`/`matchPath`/`matchRoutes`, `createStore`, `useUrlState`, `hotSwapByComponent`, all types (`FC`, `Location`, `RouteObject`, `RouterApi`, ...) plus the `JSX` type namespace and per-tag DOM attribute types |
 | `@swifty.js/react-signal/jsx-runtime`     | JSX automatic runtime (`jsx`/`jsxs`, `Fragment`, `raw`, JSX types) — referenced by `jsxImportSource`, not imported by hand                                                                                                                                                                                                                                                                            |
-| `@swifty.js/react-signal/jsx-dev-runtime` | `jsxDEV` dev runtime                                                                                                                                                                                                                                                                                                                                                                                  |
-| `@swifty.js/react-signal/vite`            | `swiftyReactSignalPlugin()` — oxc JSX defaults + auto component HMR                                                                                                                                                                                                                                                                                                                                   |
-| `@swifty.js/react-signal/webpack`         | `SwiftyReactSignalPlugin` (recommended), `swiftyReactSignalLoader`                                                                                                                                                                                                                                                                                                                                    |
-| `@swifty.js/react-signal/client`          | Ambient types: HMR globals                                                                                                                                                                                                                                                                                                                                                                            |
+| `@swifty.js/react-signal/jsx-dev-runtime` | `jsxDEV` dev runtime (debug args accepted and ignored)                                                                                                                                                                                                                                                                                                                                                |
+| `@swifty.js/react-signal/vite`            | `swiftyReactSignalPlugin()` — auto component HMR (dev only); the JSX transform comes from tsconfig                                                                                                                                                                                                                                                                                                    |
+| `@swifty.js/react-signal/webpack`         | `SwiftyReactSignalPlugin` (recommended), `swiftyReactSignalLoader` (also the default export)                                                                                                                                                                                                                                                                                                          |
+| `@swifty.js/react-signal/client`          | Ambient types for webpack/non-Vite projects: `__swifty_hmr__`, `import.meta.webpackHot`, `*.module.css`/`*.css` modules (Vite projects use `vite/client` instead)                                                                                                                                                                                                                                     |
 
-tsconfig: `"jsx": "react-jsx"`, `"jsxImportSource": "@swifty.js/react-signal"`.
+tsconfig (required on every bundler — the plugins do NOT configure the JSX
+transform): `"jsx": "react-jsx"`, `"jsxImportSource": "@swifty.js/react-signal"`.
 
 ## The 60-second mental model
 
@@ -138,7 +140,7 @@ render(<RouterView router={router} />, document.getElementById("root")!);
 ```
 
 ```ts
-// vite.config.ts
+// vite.config.ts — HMR injection only; JSX compiling is tsconfig's job
 import { swiftyReactSignalPlugin } from "@swifty.js/react-signal/vite";
 export default defineConfig({ plugins: [swiftyReactSignalPlugin()] });
 ```
@@ -170,9 +172,8 @@ by hand.
    (`Cycle detected`). Derive with `useComputed`; write from event handlers
    or `useSignalEffect` with disjoint reads.
 6. **Callbacks are plain props** (React semantics) — child calls
-   `props.onSelect?.(data)` directly; there is no emitter, no fire(), no
-   trampoline. Call callbacks from handlers (reading one in the BODY
-   subscribes to its identity).
+   `props.onSelect?.(data)` directly; there is no emitter. Call callbacks
+   from handlers (reading one in the BODY subscribes to its identity).
 7. **`children` arrive as `props.children`**; `key` is a vnode-level sibling
    compare key (never a DOM id) — on component tags it preserves the
    INSTANCE (and its hook state) across reorders. `class`/`style`/`id`/`ref`
@@ -183,17 +184,17 @@ by hand.
    `<RouterView router={router}/>` is the outlet; `useRouter()` resolves the
    ACTIVE (last-created) router; guard with `router.block(fn)` /
    `useBlocker(fn)`. Components read `router.params.value` etc. directly —
-   there are NO useLocation/useParams alias hooks. `useUrlState(defaults)`
-   returns `[value, setValue]` (value tracked, setter slot-stable,
-   component-only).
-9. **Errors bubble** — no try-catch wrappers, no error sink, no
-   config.error. A throw in a body/effect/handler propagates to the signal
-   write site; lazy-route failures are unhandled rejections.
+   react-router muscle-memory hooks (`useParams`, `useLocation`,
+   `useSearchParams`) do not exist here; the URL-params hook is
+   `useUrlState(defaults)` → `[value, setValue]` (value tracked, setter
+   slot-stable, component-only).
+9. **Errors bubble** — no try-catch wrappers, no error sink. A throw in a
+   body/effect/handler propagates to the signal write site; lazy-route
+   failures are unhandled rejections.
 10. **Cross-component state = `createStore(creator)`** (anonymous, zustand
-    semantics) — there is no State singleton. Keyed lists need stable
-    `key`s; strings are TEXT everywhere (`raw(html)` is the only
-    trusted-HTML path); routes hold component REFERENCES or `lazy()`
-    loaders (no string registry).
+    semantics). Keyed lists need stable `key`s; strings are TEXT everywhere
+    (`raw(html)` is the only trusted-HTML path); routes hold component
+    REFERENCES or `lazy()` loaders (no string registry).
 
 ## Reference files — read on demand
 
@@ -202,5 +203,5 @@ by hand.
 | [references/components.md](references/components.md)                   | Function components: props/callbacks/children/key/ref, all hooks in depth, instance lifecycle, `render`/`unmount`, DOM events, composition patterns                                             |
 | [references/templates.md](references/templates.md)                     | JSX semantics: children/attribute tables, Signal unwrapping, `raw()`, key semantics, namespaces, security guards                                                                                |
 | [references/state-routing.md](references/state-routing.md)             | Signals API, anonymous `createStore`/auto-tracked `computed`/selector subscribe, `createRouter` (location/match/params/searchParams, navigate, block), `RouterView`, `useRouter`, `useUrlState` |
-| [references/build-and-hmr.md](references/build-and-hmr.md)             | Vite/Webpack integration, `createRouter`/`RouteObject`, lazy loading & Module Federation, HMR internals, scaffolding conventions                                                                |
+| [references/build-and-hmr.md](references/build-and-hmr.md)             | tsconfig/bundler setup, Vite/Webpack plugins, lazy loading & Module Federation, HMR internals, scaffolding conventions                                                                           |
 | [references/rendering-internals.md](references/rendering-internals.md) | Instance render effects, anchor-slice reconciliation, keyed diff, attribute snapshots, batching/timing — read when debugging renders/perf                                                       |

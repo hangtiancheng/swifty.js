@@ -202,8 +202,6 @@ libs/libpool/lib
 dist-*
 **/dist-*
 
-packages/swifty-docs/docs
-**/.swifty-docs
 **/@mf-types
 **/.mf/diagnostics
 

@@ -34,8 +34,8 @@ unmount(container);              // dispose all instances + effects, clear DOM
 ```
 
 - Repeat `render()` diffs against the previous tree — matched instances keep
-  their hook state and receive changed props through per-key signals (the
-  swifty-storybook args-push pattern is literally a second `render()` call).
+  their hook state and receive changed props through per-key signals (an
+  embedding host can drive a component purely by repeated `render()` calls).
 - Signal children/attributes at the root stay live without re-calling
   `render` (the root owns a render effect).
 - `unmount` returns `false` when nothing was mounted on the container.
@@ -118,15 +118,9 @@ function SearchBox() {
 }
 ```
 
-Removed hooks (migrate): `useMemo(fn, deps)` → `useComputed(fn)` (or plain
-inline code); `useEffect(fn, deps)` → `useSignalEffect(fn)` (data-driven) or
-`useEffect(fn)` (mount-only); `onMount` → `useEffect`;
-`useInterval`/`useTimeout` → `useEffect` with a timer + cleanup;
-`useResource`/`ctx.capture` → create via `useSignal`/`useRef` +
-`onCleanup(() => it.destroy())`; `useEvent`/`ctx.on` → gone (no ctx emitter);
-`ctx.wrapAsync` → a sequence counter; `useQuery`/`createQuery` → removed
-(SWR-style async state belongs to a future dedicated package — build on
-signals directly meanwhile).
+Async server state: not part of this package — build SWR-style queries on
+signals directly (`useSignal` for the cache + `useSignalEffect` for
+refetching) or a dedicated data-fetching package.
 
 ## DOM events — per-node inline listeners
 
@@ -227,8 +221,8 @@ identity — same as React).
 ## Component identity (no string registry)
 
 Components are always direct function references — JSX tags, route
-`component` entries, and `lazy()` results alike. There is no
-`registerComponent` and no path-string registry.
+`component` entries, and `lazy()` results alike; there is no path-string
+registry.
 
 Internals (`src/component-registry.ts`): `aliasComponent(old, new)` +
 `canonicalComponent(fn)` form the HMR alias chain the reconciler matches
