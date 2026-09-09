@@ -31,22 +31,7 @@ description: >-
   matchRoutes, RouteObject, createStore, raw, swiftyReactSignalPlugin, SwiftyReactSignalPlugin,
   hotSwapByComponent, or "why doesn't my component re-render". Even if the
   user just says "add a page/view/component to the Swifty app", consult this
-  skill first. Do NOT use for the removed legacy designs (defineView,
-  jsxTemplate, ViewCtx, Frame/mountView/mountZone, event
-  trampolines/EventDelegator, HTML-string serializer, digest/observe APIs,
-  hash/hashbang routing, the Router singleton,
-  Router.to/parse/diff/beforeEach/on, initRouter/resetRouter,
-  useLocation/useParams/useSearchParams/useNavigate alias hooks, two-phase
-  change events, the State singleton (State.get/set/clean/on/off/fire),
-  Framework/Framework.boot/FrameworkConfig/getConfig/setConfig,
-  useMemo/useEffect-with-deps/onMount, getCurrentInstance,
-  registerComponent string routes, config.require/module-loader,
-  createQuery/useQuery/createMutation/invalidateQueries,
-  createService/PayloadApi, createCache/createEmitter,
-  funcWithTry/assign/SignalNode) except to migrate them away — if code
-  still uses them it predates the signals-only rewrite and must be
-  migrated. SWR-style async server state is intentionally OUT of this
-  package (future dedicated package).
+  skill first.
 ---
 
 # swifty-react-signal Framework (`@swifty.js/react-signal`)

@@ -1,6 +1,6 @@
 ---
 name: swifty-anti-copy
-description: 'Authoritative reference for @swifty.js/anti-copy (packages/anti-copy, MIT, v0.0.7), a framework-agnostic browser copy/print/DevTools protection SDK shipped as an ESM+CJS dual build with a SINGLE root entry (`.`) — the former docs-site subpath integrations (`applyAntiCopy`, the `<AntiCopy>` component, `excludePaths`, `isPathExcluded`, `copyable` frontmatter) have been REMOVED from the codebase; do not reference them in new code. Use this skill whenever the user reads, writes, debugs, reviews, or extends code under `packages/anti-copy/src/**`, imports from `@swifty.js/anti-copy`, or works with copy-protection concepts. Trigger eagerly on these symbols and tokens — `createAntiCopy`, `AntiCopyInstance`, `AntiCopyOptions`, `AntiCopyMode`, `DevtoolsOptions`, `ViolationEvent`, `ViolationType`, `DEFAULT_REPLACE_TEXT`, `isBrowser`, options `mode`/`replaceText`/`excludeSelectors`/`copy`/`keyboard`/`contextmenu`/`selectStyle`/`print`/`devtools`/`onViolation`/`target`, `mode: "block"`/`"replace"`, devtools `intervalMs`/`threshold`/`freeze`/`redirectUrl`, violation types `copy`/`cut`/`drag`/`selection`/`keyboard`/`contextmenu`/`print`/`devtools`. Also trigger on phrases like "disable right-click", "block copy/paste", "prevent copying", "detect DevTools", "anti-copy", "protect page content". Do NOT use for the ACTUAL text-selection/copy features of a docs site (that is swifty-docs / lark-docs / lark-react-signal), for the Go sibling repo skills (swifty-http, swifty-rpc, swifty-orm, swifty-cache Go), or for @swifty.js/cache.'
+description: 'Authoritative reference for @swifty.js/anti-copy (packages/anti-copy, MIT, v0.0.7), a framework-agnostic browser copy/print/DevTools protection SDK with a single root entry, shipped as an ESM+CJS dual build. Use this skill whenever the user reads, writes, debugs, reviews, or extends code under `packages/anti-copy/src/**`, imports from `@swifty.js/anti-copy`, or works with copy-protection concepts. Trigger eagerly on these symbols and tokens — `createAntiCopy`, `AntiCopyInstance`, `AntiCopyOptions`, `AntiCopyMode`, `DevtoolsOptions`, `ViolationEvent`, `ViolationType`, `DEFAULT_REPLACE_TEXT`, `isBrowser`, options `mode`/`replaceText`/`excludeSelectors`/`copy`/`keyboard`/`contextmenu`/`selectStyle`/`print`/`devtools`/`onViolation`/`target`, `mode: "block"`/`"replace"`, devtools `intervalMs`/`threshold`/`freeze`/`redirectUrl`, violation types `copy`/`cut`/`drag`/`selection`/`keyboard`/`contextmenu`/`print`/`devtools`. Also trigger on phrases like "disable right-click", "block copy/paste", "prevent copying", "detect DevTools", "anti-copy", "protect page content".'
 ---
 
 # @swifty.js/anti-copy — Browser Copy / Print / DevTools Protection
@@ -9,10 +9,10 @@ description: 'Authoritative reference for @swifty.js/anti-copy (packages/anti-co
 
 `@swifty.js/anti-copy` (`packages/anti-copy`, published as `@swifty.js/anti-copy`, v0.0.7, MIT) is a client-side deterrent that raises the effort required to copy, print, drag-out, or DevTools-inspect page content in a browser.
 
-**IMPORTANT — deterrent, not a security boundary.** This is stated in the source itself (`src/index.ts` JSDoc, `src/core/devtools.ts`, README disclaimer). Content remains fully accessible via view-source, `curl`/direct HTTP requests, reader mode, or with JavaScript disabled. Never present it as access control or DRM. Anything the browser renders can be extracted; this package only obstructs casual copying.
+**IMPORTANT — deterrent, not a security boundary.** This is stated in the source itself (`src/index.ts` JSDoc, `src/core/devtools.ts`). Content remains fully accessible via view-source, `curl`/direct HTTP requests, reader mode, or with JavaScript disabled. Never present it as access control or DRM. Anything the browser renders can be extracted; this package only obstructs casual copying.
 
 - **Runtime requirement:** a browser DOM. SSR-safe — in a non-browser runtime `createAntiCopy` returns an inert no-op instance (see §4).
-- **Single entry point:** `"type": "module"`, `"sideEffects": false`, dual ESM + CJS. `main: ./dist/index.cjs`, `module: ./dist/index.js`, `types: ./dist/index.d.ts`; the package root (`.`) is the ONLY export in `package.json`. The former per-framework integration subpaths (`./vitepress`, `./swifty-docs`, `./lark-docs`) and their helpers (`applyAntiCopy`, the renderless `<AntiCopy>` component, `excludePaths`, `isPathExcluded`, the `*_DEFAULT_EXCLUDES` constants) were removed — if older skill copies, READMEs, or JSDoc still mention them, they are stale. The core imports nothing outside standard DOM APIs. (package.json may still list optional `react`/`vue`/`vitepress`/`@swifty.js/docs` peers as legacy metadata; nothing in `src/` uses them.)
+- **Single root entry:** `"type": "module"`, `"sideEffects": false`, dual ESM + CJS. `main: ./dist/index.cjs`, `module: ./dist/index.js`, `types: ./dist/index.d.ts`; `.` is the only export in `package.json`. The core imports nothing outside standard DOM APIs.
 - **Intended uses:** deter copy/right-click/print/DevTools on marketing pages, paid docs, or any browser project (React, Vue, plain HTML).
 - **Unsuitable uses:** enforcing content secrecy, licensing, or paywalls; protecting API responses; anything requiring a real trust boundary.
 
@@ -29,12 +29,10 @@ One layer, framework-agnostic, DOM-only (`src/index.ts` + `src/core/*`):
   - `src/core/contextmenu.ts` — capture-phase `contextmenu` suppression.
   - `src/core/print.ts` — `@media print { body { display: none !important; } }` stylesheet (attr `swifty-anti-print`) + `beforeprint` reporting.
   - `src/core/devtools.ts` — DevTools detection (size heuristic + `debugger` probe) and countermeasures (freeze loop, redirect).
-  - `src/core/utils.ts` — `isBrowser`, `eventElement`, `isExcluded` (via `Element.closest`, shadow-DOM aware), `isEditable`, `isSelectionExcluded`, `escapeHtml`.
+  - `src/core/utils.ts` — `isBrowser`, `eventElement` (via `composedPath()`, shadow-DOM aware), `isExcluded` (via `Element.closest`, shadow-host walking), `isEditable`, `isSelectionExcluded`, `escapeHtml`.
   - `src/core/types.ts` — all public + internal types.
 
 ## 3. Public API & configuration surface
-
-### 3.1 Core entry `@swifty.js/anti-copy`
 
 Exports: `createAntiCopy`, `DEFAULT_REPLACE_TEXT` (= `"Copying is not allowed on this page."`), `isBrowser`, and the types `AntiCopyInstance`, `AntiCopyMode`, `AntiCopyOptions`, `DevtoolsOptions`, `ViolationEvent`, `ViolationType`.
 
@@ -50,7 +48,7 @@ function createAntiCopy(options?: AntiCopyOptions): AntiCopyInstance;
 - `isEnabled(): boolean`.
 - `update(patch: Partial<AntiCopyOptions>): void` — rebuild with merged options (see §4).
 
-### 3.2 `AntiCopyOptions` — every field with its EXACT default
+### 3.1 `AntiCopyOptions` — every field with its EXACT default
 
 | Option             | Type                                        | Default                                                                   | Behavior                                                                                                                                                           |
 | ------------------ | ------------------------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -75,7 +73,7 @@ function createAntiCopy(options?: AntiCopyOptions): AntiCopyInstance;
 | `freeze`      | `boolean`         | `true`          | Re-run the anonymous `debugger` probe in a tight loop to stall the page while DevTools is open.                                                 |
 | `redirectUrl` | `string \| false` | `"about:blank"` | Page to navigate to when a confirmed stall is neutralized while DevTools stays open. Requires `freeze`; `false` disables the redirect fallback. |
 
-### 3.3 `ViolationType` and `ViolationEvent`
+### 3.2 `ViolationType` and `ViolationEvent`
 
 ```ts
 type ViolationType =
@@ -100,7 +98,7 @@ interface ViolationEvent {
 - **Enable rollback on partial attach failure** (`index.ts` `enable()`): each feature is pushed to an `attached` list _before_ its `attach()` runs; if any `attach()` throws, every already-tracked feature is `detach()`-ed (best-effort, detach is idempotent) and the error rethrown, so a half-attached run never leaks listeners or an orphan stylesheet. `enabled` stays `false`. Verified by the lifecycle test.
 - **`disable()` detaches all features even if one throws**, remembering the first error and rethrowing it after every `detach()` has run.
 - **`update()` ordering** (`disable → merge → rebuild → enable`): captures `wasEnabled`, calls `disable()`, deep-merges options via `mergeOptions` (spread merge, plus a nested spread-merge of the `devtools` object when both current and patch have object `devtools`), rebuilds the feature list with `buildFeatures`, then re-`enable()`s **only if it was enabled before**. So `update()` on a disabled instance keeps it disabled. `update()` after `destroy()` is a no-op. Note `mergeOptions` replaces all non-`devtools` fields wholesale (arrays like `excludeSelectors` are overwritten, not concatenated).
-- **`excludeSelectors` matching** uses `el.closest(selector)` walking up ancestors and across open shadow-root hosts (`isExcluded` in `utils.ts`). For copy/cut, `isSelectionExcluded` is preferred: a selection spanning excluded + protected content is NOT exempt (every range must be inside an excluded region); it returns `null` (fall back to target check) when there is no non-collapsed selection. `dragstart` is judged by the drag TARGET only — the drag payload is the dragged node, so a leftover selection inside an excluded region must not exempt dragging protected content. Editable controls (`<input>` text types, `<textarea>`, `contenteditable`) always keep native behavior. Invalid selectors are silently skipped — and in `style.ts` they are filtered via `querySelector` BEFORE building the grouped CSS rule, because per the CSS spec one invalid selector invalidates the whole rule and would silently kill the editable-control exemptions along with it.
+- **`excludeSelectors` matching** uses `el.closest(selector)` walking up ancestors and across open shadow-root hosts (`isExcluded` in `utils.ts`). For copy/cut, `isSelectionExcluded` is preferred: a selection spanning excluded + protected content is NOT exempt (every range must be inside an excluded region); it returns `null` (fall back to target check) when there is no non-collapsed selection. `dragstart` is judged by the drag TARGET only — the drag payload is the dragged node, so a leftover selection inside an excluded region must not exempt dragging protected content. Editable controls (`<input>` text types, `<textarea>`, `contenteditable=""`/`true`/`plaintext-only`) always keep native behavior. Invalid selectors are silently skipped — and in `style.ts` they are filtered via `querySelector` BEFORE building the grouped CSS rule, because per the CSS spec one invalid selector invalidates the whole rule and would silently kill the editable-control exemptions along with it.
 - **Keyboard shortcut matching** (`matchKey` in `keyboard.ts`) unions the layout character (`e.key`) and the physical key (`e.code`, `Key*` only). Either alone is bypassable: `e.key` misses non-Latin layouts (Cyrillic "с") and macOS Option dead keys; `e.code` misses remapped Latin layouts (AZERTY/Dvorak, where the browser acts on `e.key`). The union may over-block (AZERTY Ctrl+Q on physical KeyA) — the safe direction for copy protection. Windows AltGr (reports ctrlKey+altKey) is typed-character input, not a shortcut, so any combo with Alt is passed through after the DevTools combos are checked.
 - **Keyboard scope details:** export keys (`S`/`P`) are gated on `options.print` and are blocked even inside editable or excluded regions (save/print leak the whole page regardless of focus). In `"replace"` mode `Ctrl/Cmd+C` and `Ctrl+Insert` are deliberately allowed through so the subsequent `copy` event can perform the substitution.
 - **SSR no-op instance** (`NOOP_INSTANCE` in `index.ts`): when `isBrowser()` is false, `createAntiCopy` returns a shared object whose `enable`/`disable`/`destroy`/`update` are no-ops and `isEnabled()` returns `false`. `isBrowser()` = `typeof window !== "undefined" && typeof document !== "undefined"`.
@@ -111,6 +109,7 @@ interface ViolationEvent {
 ## 5. Operational guidance & lifecycle ordering
 
 - **Framework-agnostic:** call `enable()` after mount (DOM + `document.head` available); call `disable()`/`destroy()` on teardown. Toggle per view yourself. Use `update()` to change config on the fly (respects prior enabled state).
+- **Load early.** Protection hooks capture-phase listeners on `window`; anything that registered before it wins. Mount it as the first client-side side effect.
 
 ## 6. Pitfalls / known limitations
 
