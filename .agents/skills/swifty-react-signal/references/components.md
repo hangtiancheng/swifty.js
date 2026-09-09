@@ -1,7 +1,7 @@
 # Function Components, Hooks, Props & the Instance Lifecycle
 
 Source of truth: `src/component.ts`, `src/hooks.ts`, `src/jsx/reconcile.ts`,
-`src/component-registry.ts`, `src/types.ts` in `packages/swifty-react-signal`.
+`src/component-registry.ts`, `src/types.ts` in `packages/react-signal`.
 
 ## The component contract
 

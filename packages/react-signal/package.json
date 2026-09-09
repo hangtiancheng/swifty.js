@@ -11,7 +11,7 @@
   "author": "https://github.com/hangtiancheng",
   "repository": {
     "url": "https://github.com/swifty-js/swifty.js",
-    "directory": "packages/swifty-react-signal"
+    "directory": "packages/react-signal"
   },
   "files": [
     "dist",

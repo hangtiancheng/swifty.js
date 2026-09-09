@@ -3,7 +3,7 @@ name: swifty-react-signal
 description: >-
   Authoritative reference for @swifty.js/react-signal (v0.0.32+, signals-only,
   react-router-aligned, factory router), the functional-first TypeScript
-  frontend framework located at packages/swifty-react-signal — plain function
+  frontend framework located at packages/react-signal — plain function
   components ((props) => JSX, body re-runs per render, hostless instances
   with NO wrapper elements), call-order-indexed hooks with NO deps arrays
   (useSignal, useRef, useComputed, useSignalEffect, useEffect is MOUNT-ONLY,
@@ -24,7 +24,7 @@ description: >-
   (hotSwapByComponent, registered once at the index entry). Use this skill
   whenever the user reads, writes, debugs, reviews, or extends code that
   imports from "@swifty.js/react-signal" (or any sub-path like /vite, /webpack,
-  /jsx-runtime, /client), works under packages/swifty-react-signal or
+  /jsx-runtime, /client), works under packages/react-signal or
   packages/swifty-storybook, or mentions any of these symbols and concepts —
   render, unmount, FC, useSignal, useComputed, useSignalEffect, useEffect,
   onCleanup, createRouter, RouterView, useRouter, useBlocker, useUrlState,
@@ -52,7 +52,7 @@ description: >-
 # swifty-react-signal Framework (`@swifty.js/react-signal`)
 
 A lightweight, functional-first TypeScript framework for SPAs and
-micro-frontends. Source: `packages/swifty-react-signal` (v0.0.32+, ESM+CJS dual build,
+micro-frontends. Source: `packages/react-signal` (v0.0.32+, ESM+CJS dual build,
 one runtime dependency: `@preact/signals-core`).
 
 Core philosophy: **no `class`, no `this`, no `prototype`, no mixin — and
