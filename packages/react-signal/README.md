@@ -17,11 +17,7 @@ import { render, useSignal } from "@swifty.js/react-signal";
 
 function Counter(props: { step?: number }) {
   const count = useSignal(0);
-  return (
-    <button onClick={() => (count.value += props.step ?? 1)}>
-      Count: {count.value}
-    </button>
-  );
+  return <button onClick={() => (count.value += props.step ?? 1)}>Count: {count.value}</button>;
 }
 
 render(<Counter step={2} />, document.getElementById("root")!);
@@ -224,13 +220,7 @@ The framework re-exports the `@preact/signals-core` primitives — they are the
 single reactivity mechanism for everything:
 
 ```ts
-import {
-  signal,
-  computed,
-  effect,
-  batch,
-  untracked,
-} from "@swifty.js/react-signal";
+import { signal, computed, effect, batch, untracked } from "@swifty.js/react-signal";
 import type { Signal, ReadonlySignal } from "@swifty.js/react-signal";
 
 const count = signal(1); //   count.value  (read/write)
@@ -318,9 +308,7 @@ interface Props {
 
 export default function Picker(props: Props) {
   const query = useSignal("");
-  const filtered = useComputed(() =>
-    (props.items ?? []).filter((i) => i.includes(query.value)),
-  );
+  const filtered = useComputed(() => (props.items ?? []).filter((i) => i.includes(query.value)));
 
   useEffect(() => {
     const timer = setInterval(() => console.log("tick"), 1000);
@@ -585,9 +573,7 @@ import { useUrlState } from "@swifty.js/react-signal";
 export default function Pager() {
   const [params, setParams] = useUrlState({ page: "1", size: "20" });
   return (
-    <button
-      onClick={() => setParams((p) => ({ page: String(Number(p.page) + 1) }))}
-    >
+    <button onClick={() => setParams((p) => ({ page: String(Number(p.page) + 1) }))}>
       Page {params.page}
     </button>
   );
