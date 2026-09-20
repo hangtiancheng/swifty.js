@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls -la /Users/hangtiancheng/github/swifty.js/.github/skills/ 2>/dev/null; echo \"---\"; ls -la /Users/hangtiancheng/github/swifty.js/.github/skills/swify-cache 2>/dev/null; echo \"---\"; ls -R /Users/hangtiancheng/github/swifty.js/packages/cache | head -60)",
+      "Bash(find /Users/hangtiancheng/github/swifty.js/.github/skills/swifty-cache -type f | head -50; echo \"---\"; find /Users/hangtiancheng/github/swifty.js/packages/cache/src -type f | head -80)",
+      "Bash(ls -la /Users/hangtiancheng/github/swifty.js/dig && find /Users/hangtiancheng/github/swifty.js/dig -name \"*.go\" | head -50 && find /Users/hangtiancheng/github/swifty.js/dig -name \"*.go\" | xargs wc -l | tail -5)",
+      "Bash(ls /Users/hangtiancheng/github/swifty.js/node_modules/lucide-preact/dist/ 2>/dev/null | head -20)",
+      "Bash(find /Users/hangtiancheng/github/swifty.js/packages/anti-copy -type f -not -path \"*/node_modules/*\" | head -50)",
+      "Bash(cd /Users/hangtiancheng/github/swifty.js/packages && for d in */; do echo -n \"$d -> \"; node -e \"const p=require\\('./$d/package.json'\\);console.log\\(p.name, p.version, p.private?'\\(private\\)':''\\)\" 2>/dev/null || echo \"no package.json\"; done; echo \"---\"; ls /Users/hangtiancheng/github/swifty.js/.github/skills/swifty-docs/ /Users/hangtiancheng/github/swifty.js/.github/skills/swifty-cache/)",
+      "Bash(cd /Users/hangtiancheng/github/swifty.js && echo \"=== packages ===\" && ls packages/ && echo \"=== cache/src ===\" && find packages/cache/src -type f 2>/dev/null && echo \"=== swifty-docs/src ===\" && find packages/swifty-docs/src -type f 2>/dev/null && echo \"=== anti-copy/src ===\" && find packages/anti-copy/src -type f 2>/dev/null)",
+      "mcp__codegraph__codegraph_explore",
+      "mcp__codegraph__*",
+      "Bash(find /Users/hangtiancheng/github/swifty.js/.agents/skills/swifty-anti-copy -type f | head -50)",
+      "Bash(find /Users/hangtiancheng/github/swifty.js/packages/anti-copy/src /Users/hangtiancheng/github/swifty.js/packages/anti-copy/test -type f | head -60)",
+      "Bash(ls -la /Users/hangtiancheng/github/swifty.js/.agents/skills/swifty-react-signal/ && find /Users/hangtiancheng/github/swifty.js/.agents/skills/swifty-react-signal -type f | head -50)"
+    ]
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -n \"ServiceClientConstructor\\\\|interface GrpcObject\" /Users/hangtiancheng/github/swifty.js/node_modules/@grpc/grpc-js/build/src/make-client.d.ts /Users/hangtiancheng/github/swifty.js/node_modules/@grpc/grpc-js/build/src/index.d.ts 2>/dev/null | head -20; grep -n '\"@grpc/grpc-js\"' /Users/hangtiancheng/github/swifty.js/packages/cache/package.json)"
+    ]
+  }
+}

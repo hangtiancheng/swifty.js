@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find . -type f -not -path '*/node_modules/*' -not -path '*/.git/*' -not -path '*/dist/*' | head -100)",
+      "Bash(git -C /Users/hangtiancheng/github/swifty.js/packages/react show HEAD:packages/react/scripts/fix-dts.mjs 2>/dev/null | head -50; echo \"---dist---\"; ls /Users/hangtiancheng/github/swifty.js/packages/react/dist 2>/dev/null || echo \"no dist\")",
+      "Bash(ls -la /Users/hangtiancheng/github/lark.js/packages/lark-mvc && echo \"---\" && ls /Users/hangtiancheng/github/lark.js/packages/lark-mvc/src)",
+      "Read(//Users/hangtiancheng/github/lark.js/packages/lark-mvc/**)",
+      "Bash(find /Users/hangtiancheng/github/lark.js/packages/lark-mvc/src /Users/hangtiancheng/github/lark.js/packages/lark-mvc/tests -type f | sort && echo \"---\" && wc -l /Users/hangtiancheng/github/lark.js/packages/lark-mvc/src/*.ts* 2>/dev/null | tail -30)",
+      "Bash(wc -l /Users/hangtiancheng/github/lark.js/packages/lark-mvc/src/jsx/*.ts && cd /Users/hangtiancheng/github/lark.js/packages/lark-mvc && npx vitest run --reporter=dot 2>&1 | tail -6)",
+      "Bash(wc -l /Users/hangtiancheng/github/lark.js/packages/lark-mvc/src/*.ts /Users/hangtiancheng/github/lark.js/packages/lark-mvc/src/jsx/*.ts 2>/dev/null | sort -rn | head -30 && echo \"---tests---\" && ls /Users/hangtiancheng/github/lark.js/packages/lark-mvc/tests)",
+      "Bash(wc -l /Users/hangtiancheng/github/lark.js/packages/lark-mvc/src/*.ts /Users/hangtiancheng/github/lark.js/packages/lark-mvc/src/jsx/* 2>/dev/null | sort -rn | head -25 && echo \"--- tests ---\" && ls /Users/hangtiancheng/github/lark.js/packages/lark-mvc/tests)",
+      "Bash(ls -la /Users/hangtiancheng/github/lark.js/.github/skills/lark-react/ && echo \"---\" && ls -la /Users/hangtiancheng/github/lark.js/packages/react/)",
+      "Read(//Users/hangtiancheng/github/lark.js/.github/skills/lark-react/**)"
+    ]
+  }
+}
