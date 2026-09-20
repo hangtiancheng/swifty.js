@@ -37,7 +37,7 @@
  * root tree. `hmrActive` stays false until the first swap, so production
  * renders never pay the alias lookups.
  *
- * The swap function is exposed on `globalThis.__lark_react_hmr__` (registered
+ * The swap function is exposed on `globalThis.__react_hmr__` (registered
  * once at the package entry, src/index.ts) so auto-injected HMR snippets
  * (see ./vite.ts) can call it WITHOUT importing "@yukino.js/react" — under
  * Module Federation any import of a shared singleton inside an HMR callback

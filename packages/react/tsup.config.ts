@@ -29,7 +29,7 @@ import { defineConfig } from "tsup";
 (() => {
   process.on("exit", () => {
     // copyFileSync("src/client.d.ts", "dist/client.d.ts");
-    cpSync("../../.agents/skills/lark-react", "skills/lark-react", {
+    cpSync("../../.agents/skills/yukino-react", "skills/yukino-react", {
       errorOnExist: false,
       force: true,
       recursive: true,
@@ -50,7 +50,7 @@ export default defineConfig([
   {
     // Bundler integrations — splitting: false keeps each ESM output a single
     // self-contained file with no shared chunk extraction. shims: true
-    // provides __filename in ESM output (LarkReactPlugin resolves the loader
+    // provides __filename in ESM output (ReactPlugin resolves the loader
     // path through it).
     entry: ["src/vite.ts", "src/webpack.ts"],
     dts: true,

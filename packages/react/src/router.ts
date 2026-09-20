@@ -66,7 +66,7 @@ import type { ComponentType, VNode } from "./element";
 import { useEffect, useMemo, useRef, useState } from "./hooks";
 
 function devWarn(message: string): void {
-  console.warn(`[lark-react] ${message}`);
+  console.warn(`[yukino-react] ${message}`);
 }
 
 // ============================================================

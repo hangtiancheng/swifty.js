@@ -60,8 +60,8 @@ export interface VNode {
   refCleanup: (() => void) | null;
 }
 
-export const Fragment = Symbol.for("lark.react.fragment");
-export const Text = Symbol.for("lark.react.text");
+export const Fragment = Symbol.for("yukino.react.fragment");
+export const Text = Symbol.for("yukino.react.text");
 
 /** Shared descriptor factory for the classic (createElement) and automatic (jsx) runtimes */
 export function createVNode(

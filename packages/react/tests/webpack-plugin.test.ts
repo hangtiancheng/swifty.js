@@ -21,7 +21,7 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { LarkReactPlugin, larkReactLoader } from "@yukino.js/react/webpack";
+import { ReactPlugin, reactLoader } from "@yukino.js/react/webpack";
 
 interface Rule {
   test: RegExp;
@@ -38,10 +38,10 @@ function makeCompiler(mode?: string): {
 
 const component = `export default function App() { return null; }\n`;
 
-describe("LarkReactPlugin", () => {
+describe("ReactPlugin", () => {
   it("pushes a single enforce-pre loader rule", () => {
     const compiler = makeCompiler("development");
-    new LarkReactPlugin().apply(compiler);
+    new ReactPlugin().apply(compiler);
 
     expect(compiler.options.module.rules).toHaveLength(1);
     const rule = compiler.options.module.rules[0] as Rule;
@@ -56,13 +56,13 @@ describe("LarkReactPlugin", () => {
 
   it("skips production builds", () => {
     const compiler = makeCompiler("production");
-    new LarkReactPlugin().apply(compiler);
+    new ReactPlugin().apply(compiler);
     expect(compiler.options.module.rules).toHaveLength(0);
   });
 
   it("respects custom test/exclude options", () => {
     const compiler = makeCompiler("development");
-    new LarkReactPlugin({ test: /\.custom$/, exclude: /vendor/ }).apply(
+    new ReactPlugin({ test: /\.custom$/, exclude: /vendor/ }).apply(
       compiler,
     );
     const rule = compiler.options.module.rules[0] as Rule;
@@ -72,20 +72,20 @@ describe("LarkReactPlugin", () => {
   });
 });
 
-describe("larkReactLoader", () => {
+describe("reactLoader", () => {
   it("injects the webpack HMR snippet into default-export sources", () => {
-    const output = larkReactLoader.call({}, component);
-    expect(output).toContain("__lark_react_component__");
+    const output = reactLoader.call({}, component);
+    expect(output).toContain("__react_component__");
     expect(output).toContain("import.meta.webpackHot");
   });
 
   it("passes through sources without a default export", () => {
     const source = `export const x = 1;\n`;
-    expect(larkReactLoader.call({}, source)).toBe(source);
+    expect(reactLoader.call({}, source)).toBe(source);
   });
 
   it("is a no-op in production mode", () => {
-    expect(larkReactLoader.call({ mode: "production" }, component)).toBe(
+    expect(reactLoader.call({ mode: "production" }, component)).toBe(
       component,
     );
   });

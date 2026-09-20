@@ -86,7 +86,7 @@ const storeInternals = new WeakMap<object, { version(): number }>();
  * Create a zustand-aligned store.
  *
  * The `creator` function receives `(set, get)` and executes **once** during
- * store creation. Lark iterates the return value:
+ * store creation. Iterates the return value:
  * - **Functions** become actions (attached to state, unaffected by `setState`)
  * - **All other fields** become plain state keys
  *

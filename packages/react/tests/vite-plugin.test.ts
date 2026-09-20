@@ -24,11 +24,11 @@ import { describe, expect, it } from "vitest";
 import type { UserConfig } from "vite";
 import {
   injectComponentHmrSnippet,
-  larkReactPlugin,
+  reactPlugin,
 } from "@yukino.js/react/vite";
 
 function callConfig(userConfig: UserConfig): UserConfig | undefined {
-  const plugin = larkReactPlugin();
+  const plugin = reactPlugin();
   const config = plugin.config as (
     config: UserConfig,
     env: { command: string; mode: string },
@@ -41,7 +41,7 @@ function callTransform(
   id: string,
   command: "serve" | "build" = "serve",
 ): unknown {
-  const plugin = larkReactPlugin();
+  const plugin = reactPlugin();
   const configResolved = plugin.configResolved as (config: {
     command: string;
   }) => void;
@@ -59,19 +59,19 @@ describe("injectComponentHmrSnippet", () => {
     const output = injectComponentHmrSnippet(source);
     expect(output).toContain("function App() {");
     expect(output).not.toContain("export default function");
-    expect(output).toContain("const __lark_react_component__ = App;");
-    expect(output).toContain("export default __lark_react_component__;");
+    expect(output).toContain("const __react_component__ = App;");
+    expect(output).toContain("export default __react_component__;");
     expect(output).toContain("import.meta.hot.accept");
     expect(output).toContain(
-      "globalThis.__lark_react_hmr__?.hotSwapByComponent",
+      "globalThis.__react_hmr__?.hotSwapByComponent",
     );
   });
 
   it("const-wraps identifier and arrow default exports", () => {
     const source = `const App = () => null;\nexport default App;\n`;
     const output = injectComponentHmrSnippet(source);
-    expect(output).toContain("const __lark_react_component__ = App;");
-    expect(output).toContain("export default __lark_react_component__;");
+    expect(output).toContain("const __react_component__ = App;");
+    expect(output).toContain("export default __react_component__;");
     expect(output).toContain("import.meta.hot.dispose");
   });
 
@@ -90,8 +90,8 @@ describe("injectComponentHmrSnippet", () => {
   });
 });
 
-describe("larkReactPlugin.config", () => {
-  it("defaults the esbuild JSX transform to the lark automatic runtime", () => {
+describe("reactPlugin.config", () => {
+  it("defaults the esbuild JSX transform to the yukino automatic runtime", () => {
     expect(callConfig({})).toEqual({
       esbuild: { jsx: "automatic", jsxImportSource: "@yukino.js/react" },
     });
@@ -111,7 +111,7 @@ describe("larkReactPlugin.config", () => {
   });
 });
 
-describe("larkReactPlugin.transform", () => {
+describe("reactPlugin.transform", () => {
   const component = `export default function App() { return null; }\n`;
 
   it("injects into .tsx/.jsx modules during dev", () => {
@@ -119,7 +119,7 @@ describe("larkReactPlugin.transform", () => {
       code: string;
       map: null;
     };
-    expect(result.code).toContain("__lark_react_component__");
+    expect(result.code).toContain("__react_component__");
     expect(result.map).toBe(null);
     expect(callTransform(component, "/src/app.jsx")).toBeDefined();
   });

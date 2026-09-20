@@ -13,7 +13,7 @@
   "license": "MIT",
   "author": "https://github.com/hangtiancheng",
   "repository": {
-    "url": "https://github.com/yukino-js/lark.js",
+    "url": "https://github.com/hangtiancheng/yukino.js",
     "directory": "packages/react"
   },
   "files": [

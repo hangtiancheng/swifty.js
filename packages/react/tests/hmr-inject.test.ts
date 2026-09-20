@@ -23,31 +23,31 @@
 import { describe, expect, it } from "vitest";
 import {
   injectComponentHmrSnippet,
-  isLarkComponentSource,
+  isComponentSource,
 } from "../src/hmr-inject";
 
 const component = `export default function App() {\n  return null;\n}\n`;
 
-describe("isLarkComponentSource", () => {
+describe("isComponentSource", () => {
   it("detects line-leading default exports only", () => {
-    expect(isLarkComponentSource(component)).toBe(true);
+    expect(isComponentSource(component)).toBe(true);
     expect(
-      isLarkComponentSource(`const App = () => null;\nexport default App;\n`),
+      isComponentSource(`const App = () => null;\nexport default App;\n`),
     ).toBe(true);
-    expect(isLarkComponentSource(`export function util() {}\n`)).toBe(false);
-    expect(isLarkComponentSource(`// export default App\n`)).toBe(false);
+    expect(isComponentSource(`export function util() {}\n`)).toBe(false);
+    expect(isComponentSource(`// export default App\n`)).toBe(false);
   });
 });
 
 describe("injectComponentHmrSnippet (vite flavor)", () => {
   it("emits the import.meta.hot accept-callback snippet", () => {
     const output = injectComponentHmrSnippet(component, "vite");
-    expect(output).toContain("const __lark_react_component__ = App;");
-    expect(output).toContain("export default __lark_react_component__;");
+    expect(output).toContain("const __react_component__ = App;");
+    expect(output).toContain("export default __react_component__;");
     expect(output).toContain("import.meta.hot.dispose");
     expect(output).toContain("import.meta.hot.accept");
     expect(output).toContain(
-      "globalThis.__lark_react_hmr__?.hotSwapByComponent",
+      "globalThis.__react_hmr__?.hotSwapByComponent",
     );
     expect(output).not.toContain("import.meta.webpackHot");
   });
@@ -67,7 +67,7 @@ describe("injectComponentHmrSnippet (webpack flavor)", () => {
     expect(output).toContain("import.meta.webpackHot.data?.oldComponent");
     expect(output).toContain("import.meta.webpackHot.dispose");
     expect(output).toContain(
-      "globalThis.__lark_react_hmr__?.hotSwapByComponent",
+      "globalThis.__react_hmr__?.hotSwapByComponent",
     );
     // Webpack's accept(cb) is an ERROR handler — the vite accept-callback
     // pattern must not leak in.
@@ -80,8 +80,8 @@ describe("injectComponentHmrSnippet (webpack flavor)", () => {
     const output = injectComponentHmrSnippet(component, "webpack");
     expect(output).toContain("function App() {");
     expect(output).not.toContain("export default function");
-    expect(output).toContain("const __lark_react_component__ = App;");
-    expect(output).toContain("export default __lark_react_component__;");
+    expect(output).toContain("const __react_component__ = App;");
+    expect(output).toContain("export default __react_component__;");
   });
 });
 
@@ -90,7 +90,7 @@ describe("injectComponentHmrSnippet (shared rewrite)", () => {
     const source = `const cfg = {};\nexport default cfg as Record<string, unknown>;\n`;
     const output = injectComponentHmrSnippet(source, "webpack");
     expect(output).toContain(
-      "const __lark_react_component__ = cfg as Record<string, unknown>;",
+      "const __react_component__ = cfg as Record<string, unknown>;",
     );
   });
 
@@ -98,7 +98,7 @@ describe("injectComponentHmrSnippet (shared rewrite)", () => {
     const source = `export default function App() {\n  return <p>it's fine</p>;\n}\n`;
     const output = injectComponentHmrSnippet(source, "vite");
     expect(output).toContain("it's fine");
-    expect(output).toContain("const __lark_react_component__ = App;");
+    expect(output).toContain("const __react_component__ = App;");
   });
 
   it("is idempotent and skips sources without a default export", () => {

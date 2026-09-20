@@ -90,7 +90,7 @@ type TagProps<P, T> = {
     : NativeHandler<P[K]>;
 } & { ref?: Ref<T> | undefined };
 
-type LarkIntrinsicElements = {
+type ReactIntrinsicElements = {
   [K in keyof ReactJSX.IntrinsicElements]: TagProps<
     ReactJSX.IntrinsicElements[K],
     ComponentRef<K>
@@ -107,5 +107,5 @@ export declare namespace JSX {
     key?: Key | null | undefined;
   }
   // interface-extends keeps the map open for module augmentation (custom elements)
-  interface IntrinsicElements extends LarkIntrinsicElements {}
+  interface IntrinsicElements extends ReactIntrinsicElements {}
 }

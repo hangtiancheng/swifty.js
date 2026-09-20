@@ -26,7 +26,7 @@
  * ## Why this file exists
  *
  * React's `@vitejs/plugin-react` auto-injects HMR boilerplate at compile time
- * so users never write `import.meta.hot` themselves. Lark React's bundler
+ * so users never write `import.meta.hot` themselves. React's bundler
  * integrations do the same for component modules: any `.tsx` / `.jsx` file
  * with a line-leading `export default` self-accepts, and on update calls
  * `hotSwapByComponent(old, new)` to swap the function on every live
@@ -53,7 +53,7 @@
  * after an update.
  *
  * Access to the framework's swap function goes through
- * `globalThis.__lark_react_hmr__` (registered once at the package entry,
+ * `globalThis.__react_hmr__` (registered once at the package entry,
  * src/index.ts top level), NOT via import/require of "@yukino.js/react". Under
  * Module Federation (`@yukino.js/react` shared singleton), ANY import of the
  * package inside an HMR callback registers the module as a shared consumer,
@@ -68,19 +68,19 @@ export type Bundler = "vite" | "webpack";
 /**
  * Generate the HMR snippet for a component module.
  *
- * The snippet references `__lark_react_component__`, a named const holding
+ * The snippet references `__react_component__`, a named const holding
  * the module's default export. `injectComponentHmrSnippet` (below) rewrites
  * `export default <expr>` into
- * `const __lark_react_component__ = <expr>; export default __lark_react_component__;`
+ * `const __react_component__ = <expr>; export default __react_component__;`
  * so the HMR callback can capture the old reference.
  */
 function getComponentHmrSnippet(bundler: Bundler): string {
   if (bundler === "vite") {
     return `
-// Auto-injected by larkReactPlugin
+// Auto-injected by reactPlugin
 if (import.meta.hot) {
   import.meta.hot.dispose((data) => {
-    data.oldComponent = __lark_react_component__;
+    data.oldComponent = __react_component__;
   });
   import.meta.hot.accept((newMod) => {
     const newComponent = newMod?.default;
@@ -90,7 +90,7 @@ if (import.meta.hot) {
       typeof newComponent === "function" &&
       oldComponent !== newComponent
     ) {
-      globalThis.__lark_react_hmr__?.hotSwapByComponent(oldComponent, newComponent);
+      globalThis.__react_hmr__?.hotSwapByComponent(oldComponent, newComponent);
     }
   });
 }
@@ -103,18 +103,18 @@ if (import.meta.hot) {
   // already populated by the dispose callback. The top-level data check
   // distinguishes HMR re-execution from first load.
   return `
-// Auto-injected by LarkReactPlugin
+// Auto-injected by ReactPlugin
 if (import.meta.webpackHot) {
   const oldComponent = import.meta.webpackHot.data?.oldComponent;
   if (
     typeof oldComponent === "function" &&
-    typeof __lark_react_component__ === "function" &&
-    oldComponent !== __lark_react_component__
+    typeof __react_component__ === "function" &&
+    oldComponent !== __react_component__
   ) {
-    globalThis.__lark_react_hmr__?.hotSwapByComponent(oldComponent, __lark_react_component__);
+    globalThis.__react_hmr__?.hotSwapByComponent(oldComponent, __react_component__);
   }
   import.meta.webpackHot.dispose((data) => {
-    data.oldComponent = __lark_react_component__;
+    data.oldComponent = __react_component__;
   });
   import.meta.webpackHot.accept((err) => {
     if (err) {
@@ -149,7 +149,7 @@ const NAMED_DECLARATION_REGEXP =
  * `typeof` guard carries the real filtering. Bundler integrations
  * additionally restrict by file extension (`.tsx` / `.jsx`).
  */
-export function isLarkComponentSource(source: string): boolean {
+export function isComponentSource(source: string): boolean {
   return EXPORT_DEFAULT_REGEXP.test(source);
 }
 
@@ -162,19 +162,19 @@ export function isLarkComponentSource(source: string): boolean {
  * 1. **Named function/class declarations** (`export default function App()`)
  *    keep their declaration: the `export default ` keywords are dropped so
  *    the declaration stays in module scope (other module code may reference
- *    the name), and `const __lark_react_component__ = App;` + the default
+ *    the name), and `const __react_component__ = App;` + the default
  *    export are appended at the end of the file (function declarations
  *    hoist; classes are declared before the EOF alias runs either way).
  * 2. **Everything else**: the `export default ` keywords are replaced with
- *    `const __lark_react_component__ = ` — the rest of the original
+ *    `const __react_component__ = ` — the rest of the original
  *    statement, whatever it is, now initializes the const — and
- *    `export default __lark_react_component__;` is appended at the end of
+ *    `export default __react_component__;` is appended at the end of
  *    the file (nothing else in a module can reference its own default
  *    export, so moving the export is safe).
  *
- * Idempotent: sources already containing `__lark_react_component__` are
+ * Idempotent: sources already containing `__react_component__` are
  * returned unchanged, so double-registration (plugin + manual loader rule)
- * cannot produce `const __lark_react_component__ = __lark_react_component__;`.
+ * cannot produce `const __react_component__ = __react_component__;`.
  *
  * If the source has no line-leading `export default`, it is returned
  * unchanged — modules that export named helpers hot-swap through their
@@ -188,7 +188,7 @@ export function injectComponentHmrSnippet(
   source: string,
   bundler: Bundler,
 ): string {
-  if (source.includes("__lark_react_component__")) {
+  if (source.includes("__react_component__")) {
     return source;
   }
 
@@ -203,16 +203,16 @@ export function injectComponentHmrSnippet(
     return (
       source.slice(0, match.index) +
       source.slice(bodyStart) +
-      `\nconst __lark_react_component__ = ${named[1]};\nexport default __lark_react_component__;\n` +
+      `\nconst __react_component__ = ${named[1]};\nexport default __react_component__;\n` +
       getComponentHmrSnippet(bundler)
     );
   }
 
   return (
     source.slice(0, match.index) +
-    "const __lark_react_component__ = " +
+    "const __react_component__ = " +
     source.slice(bodyStart) +
-    "\nexport default __lark_react_component__;\n" +
+    "\nexport default __react_component__;\n" +
     getComponentHmrSnippet(bundler)
   );
 }

@@ -40,10 +40,10 @@
  *
  * Usage in vite.config.ts:
  * ```ts
- * import { larkReactPlugin } from "@yukino.js/react/vite";
+ * import { reactPlugin } from "@yukino.js/react/vite";
  *
  * export default defineConfig({
- *   plugins: [larkReactPlugin()],
+ *   plugins: [reactPlugin()],
  * });
  * ```
  */
@@ -69,14 +69,14 @@ export function injectComponentHmrSnippet(source: string): string {
  *
  * @returns Vite plugin instance
  */
-export function larkReactPlugin(): Plugin {
+export function reactPlugin(): Plugin {
   let isBuild = false;
   return {
-    name: "lark-react",
+    name: "yukino-react",
     enforce: "pre",
 
     /**
-     * Default the esbuild JSX transform to the Lark automatic runtime.
+     * Default the esbuild JSX transform to the automatic runtime.
      * User-provided settings always win; `esbuild: false` disables the
      * transform entirely and `jsx: "preserve"` is respected.
      */
@@ -115,4 +115,4 @@ export function larkReactPlugin(): Plugin {
   };
 }
 
-export default larkReactPlugin;
+export default reactPlugin;

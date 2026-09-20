@@ -38,17 +38,17 @@
  *
  * Two integration modes:
  *
- * 1. **Plugin** (LarkReactPlugin) — auto-registers the HMR loader rule.
+ * 1. **Plugin** (ReactPlugin) — auto-registers the HMR loader rule.
  *    Zero-config, recommended.
- * 2. **Loader** (larkReactLoader) — manual rule setup.
+ * 2. **Loader** (reactLoader) — manual rule setup.
  *
  * Usage with Plugin (recommended):
  * ```js
- * import { LarkReactPlugin } from '@yukino.js/react/webpack';
+ * import { ReactPlugin } from '@yukino.js/react/webpack';
  *
  * export default {
  *   plugins: [
- *     new LarkReactPlugin(),
+ *     new ReactPlugin(),
  *   ],
  * };
  * ```
@@ -74,7 +74,7 @@ import { injectComponentHmrSnippet } from "./hmr-inject";
 declare const __filename: string;
 
 /** Plugin options */
-export interface LarkReactWebpackPluginOptions {
+export interface ReactWebpackPluginOptions {
   /** Component-module extensions to match (default: /\.[jt]sx$/) */
   test?: RegExp;
   /** Exclude pattern (default: /node_modules/) */
@@ -89,7 +89,7 @@ export interface LarkReactWebpackPluginOptions {
  * source — the injected code is plain `import.meta.webpackHot` JavaScript,
  * valid in both TS and TSX. Other modules pass through untouched.
  */
-function larkReactLoader(this: unknown, source: string): string {
+function reactLoader(this: unknown, source: string): string {
   // Production builds get no HMR runtime — skip the rewrite entirely.
   if ((this as { mode?: string } | null | undefined)?.mode === "production") {
     return source;
@@ -109,10 +109,10 @@ function larkReactLoader(this: unknown, source: string): string {
  * `enforce: "pre"` rule over JSX modules; the loader is a fast no-op for
  * files without a line-leading `export default`.
  */
-class LarkReactPlugin {
-  private options: LarkReactWebpackPluginOptions;
+class ReactPlugin {
+  private options: ReactWebpackPluginOptions;
 
-  constructor(options: LarkReactWebpackPluginOptions = {}) {
+  constructor(options: ReactWebpackPluginOptions = {}) {
     this.options = {
       test: /\.[jt]sx$/,
       exclude: /node_modules/,
@@ -163,5 +163,5 @@ class LarkReactPlugin {
   }
 }
 
-export { larkReactLoader, LarkReactPlugin };
-export { larkReactLoader as default };
+export { reactLoader, ReactPlugin };
+export { reactLoader as default };

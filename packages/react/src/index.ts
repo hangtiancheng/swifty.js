@@ -28,14 +28,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "./hooks";
 import type { Root } from "./hooks";
 
 // Global HMR handle — THE single registration point. Auto-injected HMR
-// snippets (see ./vite.ts) call it via `globalThis.__lark_react_hmr__`
+// snippets (see ./vite.ts) call it via `globalThis.__react_hmr__`
 // instead of importing "@yukino.js/react" (an import inside an HMR callback
 // would register the module as an MF shared consumer → ChunkLoadError).
 const globalScope = globalThis as {
-  __lark_react_hmr__?: { hotSwapByComponent: typeof hotSwapByComponent };
+  __react_hmr__?: { hotSwapByComponent: typeof hotSwapByComponent };
 };
-if (!globalScope.__lark_react_hmr__) {
-  globalScope.__lark_react_hmr__ = { hotSwapByComponent };
+if (!globalScope.__react_hmr__) {
+  globalScope.__react_hmr__ = { hotSwapByComponent };
 }
 
 const roots = new WeakMap<Node, Root>();
