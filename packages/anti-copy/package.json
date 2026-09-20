@@ -1,6 +1,6 @@
 {
   "name": "@yukino.js/anti-copy",
-  "version": "0.0.7",
+  "version": "0.0.1",
   "description": "Copy-protection SDK for browsers",
   "license": "MIT",
   "author": "https://github.com/hangtiancheng",

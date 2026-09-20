@@ -1,6 +1,6 @@
 {
   "name": "@yukino.js/cache",
-  "version": "0.0.2",
+  "version": "0.0.1",
   "description": "Distributed cache library aligned with yukino.go/yukino_cache",
   "keywords": [
     "cache",
